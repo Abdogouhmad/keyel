@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Keyel Vault - Entry Detail</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&amp;family=Roboto+Flex:opsz,wght@8..144,400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#5e6177",
+            "outline": "#757684",
+            "surface-variant": "#e4e1e8",
+            "surface-dim": "#dbd9e0",
+            "on-surface-variant": "#454652",
+            "tertiary": "#5c3c55",
+            "secondary-fixed-dim": "#c3c5dd",
+            "primary-fixed": "#dee0ff",
+            "surface-container-high": "#eae7ee",
+            "secondary-fixed": "#dfe1fa",
+            "on-primary-fixed": "#00105c",
+            "secondary-container": "#dcdef7",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#303035",
+            "on-tertiary": "#ffffff",
+            "on-primary-container": "#d1d6ff",
+            "surface-tint": "#4355b9",
+            "background": "#fbf8ff",
+            "on-tertiary-container": "#f7cceb",
+            "primary-container": "#4355b9",
+            "inverse-primary": "#bac3ff",
+            "tertiary-fixed-dim": "#e4bad8",
+            "inverse-on-surface": "#f2eff6",
+            "tertiary-container": "#76546e",
+            "on-secondary-fixed": "#171a2c",
+            "on-background": "#1b1b20",
+            "on-secondary-fixed-variant": "#42465a",
+            "surface-container-highest": "#e4e1e8",
+            "on-surface": "#1b1b20",
+            "surface": "#fbf8ff",
+            "surface-container-low": "#f5f2f9",
+            "on-error": "#ffffff",
+            "outline-variant": "#c5c5d4",
+            "on-tertiary-fixed": "#2c1228",
+            "secondary": "#5a5d72",
+            "on-error-container": "#93000a",
+            "on-primary-fixed-variant": "#293ca0",
+            "surface-bright": "#fbf8ff",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed-variant": "#5c3d55",
+            "tertiary-fixed": "#ffd7f3",
+            "primary": "#293ca0",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#efedf4",
+            "primary-fixed-dim": "#bac3ff",
+            "on-secondary": "#ffffff",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-tablet": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2rem",
+            "gutter": "1rem",
+            "space-2xl": "3rem",
+            "gutter-tablet": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "1rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Roboto Flex"],
+            "label-lg": ["Roboto Flex"],
+            "display-lg": ["Roboto Flex"],
+            "code-body": ["JetBrains Mono"],
+            "headline-lg": ["Roboto Flex"],
+            "headline-sm": ["Roboto Flex"],
+            "title-lg": ["Roboto Flex"],
+            "title-md": ["Roboto Flex"],
+            "headline-md": ["Roboto Flex"],
+            "label-sm": ["Roboto Flex"],
+            "body-md": ["Roboto Flex"],
+            "code-display": ["JetBrains Mono"],
+            "body-lg": ["Roboto Flex"],
+            "label-md": ["Roboto Flex"],
+            "body-sm": ["Roboto Flex"],
+            "title-sm": ["Roboto Flex"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+            "display-lg": ["57px", { "lineHeight": "64px", "fontWeight": "700" }],
+            "code-body": ["15px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "code-display": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "title-sm": ["14px", { "lineHeight": "20px", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      user-select: none;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Squircle Cookie Geometry */
+    .squircle-avatar {
+      border-radius: 28px;
+      position: relative;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased flex justify-center min-h-screen">
+<!-- Mobile Frame (Compact Android 412dp) -->
+<main class="w-full max-w-[412px] bg-surface relative flex flex-col min-h-screen pb-36 select-none overflow-x-hidden">
+<!-- Top App Bar (Task-focused Detail Screen: Back navigation suppresses global BottomNavBar & FAB per mandate) -->
+<header class="flex justify-between items-center w-full px-4 h-16 sticky top-0 z-30 bg-surface/90 backdrop-blur-md">
+<!-- Back trigger -->
+<button aria-label="Navigate back" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-surface-container active:scale-[0.97] transition-transform duration-150 ease-out text-on-surface" type="button">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<!-- Trailing Action Icons -->
+<div class="flex items-center gap-1">
+<!-- Favorite Star (Filled Gold/Tertiary) -->
+<button aria-label="Favorite item" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-surface-container active:scale-[0.97] transition-transform duration-150 ease-out text-tertiary-container" type="button">
+<span class="material-symbols-outlined fill text-[24px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<!-- Overflow Menu Trigger -->
+<div class="relative">
+<button aria-label="More options" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-surface-container active:scale-[0.97] transition-transform duration-150 ease-out text-on-surface" id="overflowTrigger" type="button">
+<span class="material-symbols-outlined text-[24px]">more_vert</span>
+</button>
+<!-- Contextual Dropdown Menu (M3 Expressive Elevation 2) -->
+<div class="hidden absolute right-0 mt-1 w-44 rounded-2xl bg-surface-container-high shadow-lg py-2 z-40 border border-outline-variant/30 transform origin-top-right transition-all" id="overflowMenu">
+<button class="w-full flex items-center gap-3 px-4 py-3 text-left text-on-surface hover:bg-surface-container active:scale-[0.97] font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">edit</span>
+<span>Edit</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-left text-on-surface hover:bg-surface-container active:scale-[0.97] font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">drive_file_move</span>
+<span>Move</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-left text-on-surface hover:bg-surface-container active:scale-[0.97] font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">content_copy</span>
+<span>Duplicate</span>
+</button>
+<div class="h-px bg-outline-variant/30 my-1 mx-2"></div>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-left text-error hover:bg-error-container/30 active:scale-[0.97] font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px] text-error">delete</span>
+<span>Delete</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Canvas Body Content -->
+<div class="px-4 space-y-4 pt-1">
+<!-- Hero Header Section -->
+<section class="flex flex-col items-center text-center pt-2 pb-3">
+<!-- 72dp Expressive Squircle Cookie Avatar -->
+<div class="w-[72px] h-[72px] squircle-avatar bg-surface-container-highest flex items-center justify-center shadow-sm mb-3.5 border border-outline-variant/20">
+<svg class="w-10 h-10 text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h1 class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface tracking-tight">GitHub</h1>
+<!-- Categorization & Security Badges -->
+<div class="flex items-center gap-2 mt-2.5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-label-md font-label-md">
+<span class="material-symbols-outlined text-[16px]">work</span>
+            Work / Development
+          </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-high text-primary text-label-md font-label-md">
+<span class="material-symbols-outlined fill text-[15px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+            2FA Enabled
+          </span>
+</div>
+</section>
+<!-- 1. Credentials Bento Card -->
+<section class="bg-surface-container-low rounded-2xl p-4 space-y-3.5 shadow-sm border border-outline-variant/10">
+<h2 class="text-title-sm font-title-sm text-on-surface-variant px-1 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">key</span>
+          Credentials
+        </h2>
+<!-- Field: Username -->
+<div class="bg-surface-container rounded-2xl p-3.5 flex items-center justify-between transition-colors">
+<div class="flex flex-col min-w-0 pr-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Username</span>
+<span class="text-body-lg font-body-lg text-on-surface truncate mt-0.5 select-all font-medium" id="usernameVal">alex.dev@hey.com</span>
+</div>
+<button aria-label="Copy username" class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-highest hover:bg-surface-variant active:scale-[0.97] transition-all text-on-surface shrink-0" id="copyUsernameBtn" type="button">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+</button>
+</div>
+<!-- Field: Password -->
+<div class="bg-surface-container rounded-2xl p-3.5 space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Master Password</span>
+<span class="text-label-sm font-label-sm text-outline-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+              Auto-hides after 15s
+            </span>
+</div>
+<div class="flex items-center justify-between gap-2">
+<!-- Masked Password Value -->
+<div class="min-w-0 overflow-hidden py-1">
+<span class="font-code-body text-code-body tracking-[0.25em] text-on-surface font-bold text-lg select-all" id="passwordSecret">••••••••••••••••</span>
+</div>
+<!-- Segmented Action Pills -->
+<div class="flex items-center bg-surface-container-highest p-1 rounded-full shrink-0">
+<button aria-label="Reveal or hide password" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant active:scale-[0.97] transition-all text-on-surface-variant" id="toggleVisibilityBtn" type="button">
+<span class="material-symbols-outlined text-[20px]" id="visIcon">visibility</span>
+</button>
+<div class="w-px h-5 bg-outline-variant/50"></div>
+<button aria-label="Copy password to clipboard" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant active:scale-[0.97] transition-all text-primary" id="copyPasswordBtn" type="button">
+<span class="material-symbols-outlined text-[20px]">password</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Field: Website -->
+<div class="bg-surface-container rounded-2xl p-3.5 flex items-center justify-between">
+<div class="flex flex-col min-w-0 pr-2">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Website URL</span>
+<span class="text-body-md font-body-md text-primary truncate mt-0.5 font-medium underline underline-offset-4 decoration-primary/40">github.com</span>
+</div>
+<a aria-label="Open github.com" class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-highest hover:bg-surface-variant active:scale-[0.97] transition-all text-on-surface shrink-0" href="https://github.com" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</a>
+</div>
+</section>
+<!-- 2. One-Time Code (TOTP) Card -->
+<section class="bg-surface-container-low rounded-2xl p-4 shadow-sm border border-outline-variant/10">
+<div class="flex items-center justify-between mb-3 px-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">phonelink_lock</span>
+<h2 class="text-title-sm font-title-sm text-on-surface">One-time code (2FA)</h2>
+</div>
+<span class="text-label-sm font-label-sm text-outline">RFC 6238 TOTP</span>
+</div>
+<div class="bg-surface-container rounded-2xl p-4 flex items-center justify-between">
+<!-- TOTP Digits Display -->
+<div class="flex flex-col">
+<div class="flex items-baseline gap-2 font-code-display text-code-display text-on-surface tracking-wider font-bold">
+<span>749</span>
+<span class="text-outline-variant">•</span>
+<span>204</span>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant mt-0.5">Refreshes automatically</span>
+</div>
+<!-- Circular SVG Countdown Ring & Quick Copy Action -->
+<div class="flex items-center gap-3">
+<div class="relative w-12 h-12 flex items-center justify-center">
+<svg class="w-12 h-12 transform -rotate-90" viewbox="0 0 44 44">
+<circle class="text-surface-container-highest" cx="22" cy="22" fill="transparent" r="18" stroke="currentColor" stroke-width="3.5"></circle>
+<circle class="text-primary transition-all duration-1000 ease-linear" cx="22" cy="22" fill="transparent" id="countdownProgress" r="18" stroke="currentColor" stroke-dasharray="113.1" stroke-dashoffset="45.2" stroke-linecap="round" stroke-width="3.5"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-code-body text-xs font-bold text-on-surface" id="countdownSeconds">18s</span>
+</div>
+</div>
+<button aria-label="Copy 2FA Code" class="w-12 h-12 flex items-center justify-center rounded-full bg-primary hover:bg-primary/90 text-on-primary active:scale-[0.97] transition-all shadow-sm shrink-0" id="copyTotpBtn" type="button">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 3. Security Health Card -->
+<section class="bg-surface-container-low rounded-2xl p-4 shadow-sm border border-outline-variant/10">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-full bg-[#B7F2C0] flex items-center justify-center shrink-0 text-[#1B6D3A]">
+<span class="material-symbols-outlined fill text-[22px]" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-[#B7F2C0] text-[#1B6D3A]">
+                Strong password (18 chars)
+              </span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1.5 leading-snug">
+              Last changed 4 months ago • No breaches found
+            </p>
+</div>
+</div>
+</section>
+<!-- 4. Secure Notes -->
+<section class="bg-surface-container-low rounded-2xl p-4 shadow-sm border border-outline-variant/10">
+<h2 class="text-title-sm font-title-sm text-on-surface-variant px-1 mb-2.5 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">notes</span>
+          Secure Notes
+        </h2>
+<div class="bg-surface-container rounded-2xl p-3.5 text-body-md font-body-md text-on-surface leading-relaxed">
+          SSH recovery codes backed up in local vault note <span class="font-code-body font-semibold text-primary">#04</span>.
+        </div>
+</section>
+</div>
+<!-- Floating Action Bottom Bar (56dp Tonal Primary Thumb Reach) -->
+<div class="fixed bottom-0 left-0 right-0 w-full max-w-[412px] mx-auto p-4 bg-gradient-to-t from-surface via-surface/95 to-transparent pointer-events-none z-20">
+<button aria-label="Edit Login" class="pointer-events-auto w-full h-14 rounded-full bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed transition-colors active:scale-[0.97] duration-150 ease-out flex items-center justify-center gap-2.5 text-title-md font-title-md shadow-md" type="button">
+<span class="material-symbols-outlined text-[22px]">edit</span>
+<span>Edit login</span>
+</button>
+</div>
+<!-- Floating Snackbar Notification (Shown upon copy) -->
+<aside class="fixed bottom-20 left-4 right-4 max-w-[380px] mx-auto z-40 flex items-center justify-between px-4 py-3 bg-inverse-surface text-inverse-on-surface rounded-xl shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-none" id="copySnackbar">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-inverse-primary">check_circle</span>
+<span class="text-body-md font-body-md text-inverse-on-surface" id="snackbarText">Password copied • Clears in 30s</span>
+</div>
+<button class="text-inverse-primary hover:text-white font-label-lg text-label-lg active:scale-95 transition-transform px-2 py-1" id="snackbarUndoBtn" type="button">
+        Undo
+      </button>
+</aside>
+</main>
+<!-- Interactive Logic -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements
+      const overflowTrigger = document.getElementById('overflowTrigger');
+      const overflowMenu = document.getElementById('overflowMenu');
+      const passwordSecret = document.getElementById('passwordSecret');
+      const toggleVisibilityBtn = document.getElementById('toggleVisibilityBtn');
+      const visIcon = document.getElementById('visIcon');
+      const copyUsernameBtn = document.getElementById('copyUsernameBtn');
+      const copyPasswordBtn = document.getElementById('copyPasswordBtn');
+      const copyTotpBtn = document.getElementById('copyTotpBtn');
+      const copySnackbar = document.getElementById('copySnackbar');
+      const snackbarText = document.getElementById('snackbarText');
+      const snackbarUndoBtn = document.getElementById('snackbarUndoBtn');
+      const countdownProgress = document.getElementById('countdownProgress');
+      const countdownSeconds = document.getElementById('countdownSeconds');
+
+      const rawSecret = 'ghp_k92JmXv84Lqz99!';
+      let isMasked = true;
+      let hideTimeout = null;
+      let snackbarTimeout = null;
+
+      // Overflow Menu Toggle
+      overflowTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        overflowMenu.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', () => {
+        if (!overflowMenu.classList.contains('hidden')) {
+          overflowMenu.classList.add('hidden');
+        }
+      });
+
+      // Show Snackbar Toast
+      function showToast(message) {
+        snackbarText.textContent = message;
+        copySnackbar.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+        copySnackbar.classList.add('opacity-100', 'translate-y-0');
+
+        clearTimeout(snackbarTimeout);
+        snackbarTimeout = setTimeout(() => {
+          hideToast();
+        }, 4000);
+      }
+
+      function hideToast() {
+        copySnackbar.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+        copySnackbar.classList.remove('opacity-100', 'translate-y-0');
+      }
+
+      snackbarUndoBtn.addEventListener('click', () => {
+        hideToast();
+      });
+
+      // Password Reveal / Mask Logic (Auto-hides after 15s)
+      toggleVisibilityBtn.addEventListener('click', () => {
+        isMasked = !isMasked;
+        if (isMasked) {
+          passwordSecret.textContent = '••••••••••••••••';
+          passwordSecret.classList.add('tracking-[0.25em]', 'text-lg');
+          visIcon.textContent = 'visibility';
+          clearTimeout(hideTimeout);
+        } else {
+          passwordSecret.textContent = rawSecret;
+          passwordSecret.classList.remove('tracking-[0.25em]', 'text-lg');
+          visIcon.textContent = 'visibility_off';
+
+          clearTimeout(hideTimeout);
+          hideTimeout = setTimeout(() => {
+            isMasked = true;
+            passwordSecret.textContent = '••••••••••••••••';
+            passwordSecret.classList.add('tracking-[0.25em]', 'text-lg');
+            visIcon.textContent = 'visibility';
+          }, 15000);
+        }
+      });
+
+      // Copy Username
+      copyUsernameBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText('alex.dev@hey.com').catch(() => {});
+        showToast('Username copied to clipboard');
+      });
+
+      // Copy Password
+      copyPasswordBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(rawSecret).catch(() => {});
+        showToast('Password copied • Clears in 30s');
+      });
+
+      // Copy TOTP Code
+      copyTotpBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText('749204').catch(() => {});
+        showToast('2FA code copied to clipboard');
+      });
+
+      // TOTP Live 30s countdown simulation
+      let secondsLeft = 18;
+      const totalSeconds = 30;
+      const circumference = 2 * Math.PI * 18; // ~113.1
+
+      setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft < 0) {
+          secondsLeft = 30;
+        }
+        countdownSeconds.textContent = `${secondsLeft}s`;
+        const offset = circumference - (secondsLeft / totalSeconds) * circumference;
+        countdownProgress.style.strokeDashoffset = offset;
+
+        // Change color to risk red on last 5 seconds
+        if (secondsLeft <= 5) {
+          countdownProgress.classList.remove('text-primary');
+          countdownProgress.classList.add('text-error');
+        } else {
+          countdownProgress.classList.add('text-primary');
+          countdownProgress.classList.remove('text-error');
+        }
+      }, 1000);
+    });
+  </script>
+</body></html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Keyel Vault - Security Health</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Roboto Flex & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Roboto+Flex:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#5e6177",
+            "outline": "#757684",
+            "surface-variant": "#e4e1e8",
+            "surface-dim": "#dbd9e0",
+            "on-surface-variant": "#454652",
+            "tertiary": "#5c3c55",
+            "secondary-fixed-dim": "#c3c5dd",
+            "primary-fixed": "#dee0ff",
+            "surface-container-high": "#eae7ee",
+            "secondary-fixed": "#dfe1fa",
+            "on-primary-fixed": "#00105c",
+            "secondary-container": "#dcdef7",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#303035",
+            "on-tertiary": "#ffffff",
+            "on-primary-container": "#d1d6ff",
+            "surface-tint": "#4355b9",
+            "background": "#fbf8ff",
+            "on-tertiary-container": "#f7cceb",
+            "primary-container": "#4355b9",
+            "inverse-primary": "#bac3ff",
+            "tertiary-fixed-dim": "#e4bad8",
+            "inverse-on-surface": "#f2eff6",
+            "tertiary-container": "#76546e",
+            "on-secondary-fixed": "#171a2c",
+            "on-background": "#1b1b20",
+            "on-secondary-fixed-variant": "#42465a",
+            "surface-container-highest": "#e4e1e8",
+            "on-surface": "#1b1b20",
+            "surface": "#fbf8ff",
+            "surface-container-low": "#f5f2f9",
+            "on-error": "#ffffff",
+            "outline-variant": "#c5c5d4",
+            "on-tertiary-fixed": "#2c1228",
+            "secondary": "#5a5d72",
+            "on-error-container": "#93000a",
+            "on-primary-fixed-variant": "#293ca0",
+            "surface-bright": "#fbf8ff",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed-variant": "#5c3d55",
+            "tertiary-fixed": "#ffd7f3",
+            "primary": "#293ca0",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#efedf4",
+            "primary-fixed-dim": "#bac3ff",
+            "on-secondary": "#ffffff",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-tablet": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2rem",
+            "gutter": "1rem",
+            "space-2xl": "3rem",
+            "gutter-tablet": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "1rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Roboto Flex"],
+            "label-lg": ["Roboto Flex"],
+            "display-lg": ["Roboto Flex"],
+            "code-body": ["JetBrains Mono"],
+            "headline-lg": ["Roboto Flex"],
+            "headline-sm": ["Roboto Flex"],
+            "title-lg": ["Roboto Flex"],
+            "title-md": ["Roboto Flex"],
+            "headline-md": ["Roboto Flex"],
+            "label-sm": ["Roboto Flex"],
+            "body-md": ["Roboto Flex"],
+            "code-display": ["JetBrains Mono"],
+            "body-lg": ["Roboto Flex"],
+            "label-md": ["Roboto Flex"],
+            "body-sm": ["Roboto Flex"],
+            "title-sm": ["Roboto Flex"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+            "display-lg": ["57px", { "lineHeight": "64px", "fontWeight": "700" }],
+            "code-body": ["15px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "code-display": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "title-sm": ["14px", { "lineHeight": "20px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .material-symbols-outlined[data-weight="fill"] {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.98); opacity: 0.8; }
+      50% { transform: scale(1.02); opacity: 1; }
+      100% { transform: scale(0.98); opacity: 0.8; }
+    }
+    .wavy-circle {
+      animation: pulse-ring 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased flex justify-center min-h-screen selection:bg-secondary-container">
+<!-- Mobile Viewport Canvas: 412dp standard Pixel screen -->
+<main class="w-full max-w-[412px] bg-background min-h-screen flex flex-col relative pb-28 select-none">
+<!-- Top App Bar Component (Source of Truth mapped from Shared JSON) -->
+<header class="bg-surface dark:bg-surface flex justify-between items-center w-full px-4 h-16 max-w-md mx-auto sticky top-0 z-30">
+<div class="flex items-center gap-3">
+<button aria-label="Security health icon" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors active:scale-[0.97] transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary text-[26px]" data-weight="fill">shield_lock</span>
+</button>
+<h1 class="text-headline-sm font-headline-sm text-on-surface dark:text-on-surface tracking-tight">Security Health</h1>
+</div>
+<button aria-label="Lock vault" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors active:scale-[0.97] transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant text-[24px]">lock</span>
+</button>
+</header>
+<!-- Scrollable Security Dashboard Content Area -->
+<div class="px-4 flex flex-col gap-5 pt-1">
+<!-- Header Health Ring Card -->
+<section class="bg-surface-container rounded-[28px] p-5 flex flex-col items-center text-center relative overflow-hidden">
+<!-- Expressive Wavy Score Circular Visual Container -->
+<div class="relative w-44 h-44 flex items-center justify-center my-2">
+<!-- Background decorative glow / subtle concentric squircle ring -->
+<div class="absolute inset-0 rounded-full bg-surface-container-lowest/60 scale-95"></div>
+<!-- Dynamic SVG Radial Meter with Organic Dash/Wave Rhythm -->
+<svg class="w-40 h-40 transform -rotate-90 wavy-circle" viewbox="0 0 160 160">
+<!-- Background Track -->
+<circle cx="80" cy="80" fill="none" r="66" stroke="#E4E1E8" stroke-linecap="round" stroke-width="12"></circle>
+<!-- Progress Arc: 88% circumference = 2 * PI * 66 = 414.69 -> 88% is ~365 filled -->
+<circle class="transition-all duration-1000 ease-out" cx="80" cy="80" fill="none" r="66" stroke="#1B6D3A" stroke-dasharray="414.69" stroke-dashoffset="49.76" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<!-- Numeric Center Value Group -->
+<div class="absolute flex flex-col items-center justify-center inset-0 pointer-events-none">
+<div class="flex items-baseline gap-1">
+<span class="font-code-display text-code-display text-[#1B6D3A] tracking-tighter">88</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/ 100</span>
+</div>
+<div class="flex items-center gap-1 text-[#1B6D3A] mt-0.5">
+<span class="material-symbols-outlined text-[15px]" data-weight="fill">verified</span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wide">SECURE</span>
+</div>
+</div>
+</div>
+<!-- Pill Status Badge -->
+<div class="inline-flex items-center gap-1.5 px-3.5 py-1 bg-surface-container-lowest rounded-full shadow-sm mb-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#1B6D3A]"></span>
+<span class="font-title-sm text-title-sm text-on-surface font-medium">Vault health: Good</span>
+</div>
+<!-- Subtext description -->
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[270px]">
+          4 items need your attention to reach 100%
+        </p>
+<!-- Primary Quick Sweep CTA -->
+<button class="mt-4 w-full h-14 bg-primary text-on-primary rounded-full font-title-md text-title-md flex items-center justify-center gap-2 active:scale-[0.97] transition-transform duration-150 ease-out shadow-sm hover:brightness-105">
+<span class="material-symbols-outlined text-[20px]">auto_fix_high</span>
+          Optimize Vault
+        </button>
+</section>
+<!-- Section Title -->
+<div class="flex items-center justify-between px-1">
+<h2 class="font-title-lg text-title-lg text-on-surface">Vulnerability Summary</h2>
+<span class="font-label-md text-label-md text-on-surface-variant">4 categories</span>
+</div>
+<!-- Summary Chips 2x2 Interactive Bento Grid -->
+<div class="grid grid-cols-2 gap-3">
+<!-- 1. Weak passwords (Warning Tonal Red #FFDAD6) -->
+<article class="bg-[#FFDAD6] rounded-[24px] p-4 flex flex-col justify-between min-h-[148px] active:scale-[0.97] transition-transform duration-150 ease-out">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-[14px] bg-[#BA1A1A] text-on-primary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[22px]" data-weight="fill">error</span>
+</div>
+<span class="font-code-body text-code-body font-bold text-[#410002]">2</span>
+</div>
+<div class="mt-2">
+<h3 class="font-title-sm text-title-sm text-[#410002] leading-tight">Weak passwords</h3>
+<p class="font-label-sm text-label-sm text-[#93000A] opacity-90 mt-0.5">High compromise risk</p>
+</div>
+<button class="mt-3 w-full h-9 bg-[#BA1A1A] text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-1 active:scale-[0.96] transition-transform">
+<span>Fix now</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</article>
+<!-- 2. Reused passwords (Amber Tonal Background #FFDF9E) -->
+<article class="bg-[#FFDF9E] rounded-[24px] p-4 flex flex-col justify-between min-h-[148px] active:scale-[0.97] transition-transform duration-150 ease-out">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-[14px] bg-[#785900] text-on-primary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[22px]">sync</span>
+</div>
+<span class="font-code-body text-code-body font-bold text-[#261A00]">4</span>
+</div>
+<div class="mt-2">
+<h3 class="font-title-sm text-title-sm text-[#261A00] leading-tight">Reused passwords</h3>
+<p class="font-label-sm text-label-sm text-[#543E00] opacity-90 mt-0.5">Shared across services</p>
+</div>
+<button class="mt-3 w-full h-9 bg-[#785900] text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-1 active:scale-[0.96] transition-transform">
+<span>Review</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</article>
+<!-- 3. Old passwords (Neutral Tonal surface-container) -->
+<article class="bg-surface-container rounded-[24px] p-4 flex flex-col justify-between min-h-[148px] active:scale-[0.97] transition-transform duration-150 ease-out">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-[14px] bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[22px]">history</span>
+</div>
+<span class="font-code-body text-code-body font-bold text-on-surface">11</span>
+</div>
+<div class="mt-2">
+<h3 class="font-title-sm text-title-sm text-on-surface leading-tight">Old passwords</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">&gt; 1 year old</p>
+</div>
+<button class="mt-3 w-full h-9 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-full font-label-md text-label-md flex items-center justify-center gap-1 active:scale-[0.96] transition-transform">
+<span>Update</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</article>
+<!-- 4. Missing 2FA (Blue Tonal Background / Secondary-Container) -->
+<article class="bg-secondary-container rounded-[24px] p-4 flex flex-col justify-between min-h-[148px] active:scale-[0.97] transition-transform duration-150 ease-out">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-[14px] bg-primary text-on-primary flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[22px]" data-weight="fill">shield</span>
+</div>
+<span class="font-code-body text-code-body font-bold text-on-secondary-fixed">9</span>
+</div>
+<div class="mt-2">
+<h3 class="font-title-sm text-title-sm text-on-secondary-fixed leading-tight">Missing 2FA</h3>
+<p class="font-label-sm text-label-sm text-on-secondary-container mt-0.5">TOTP supported</p>
+</div>
+<button class="mt-3 w-full h-9 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-1 active:scale-[0.96] transition-transform">
+<span>Add codes</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</article>
+</div>
+<!-- Vulnerability Audit Section -->
+<section class="mt-1 flex flex-col gap-3">
+<div class="flex items-center justify-between px-1">
+<h2 class="font-title-lg text-title-lg text-on-surface">Vulnerability Audit</h2>
+<span class="material-symbols-outlined text-outline text-[20px]">manage_search</span>
+</div>
+<div class="bg-surface-container rounded-[28px] p-2 flex flex-col gap-1.5">
+<!-- Row 1: Insecure websites (HTTP) -->
+<div class="min-h-[72px] bg-surface-container-lowest/80 rounded-[20px] p-3.5 flex items-center justify-between gap-3 active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-full bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">no_encryption</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface">Insecure websites (HTTP)</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-error-container text-on-error-container font-semibold">1</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Credentials sent in plain text</p>
+</div>
+</div>
+<button class="h-9 px-3.5 bg-surface-container text-primary font-label-md text-label-md rounded-full shrink-0 flex items-center gap-1 active:scale-[0.96] transition-transform hover:bg-surface-container-high">
+<span>Fix</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+<!-- Row 2: Offline breach check -->
+<div class="min-h-[72px] bg-surface-container-lowest/80 rounded-[20px] p-3.5 flex items-start gap-3 active:scale-[0.98] transition-transform">
+<div class="w-11 h-11 rounded-full bg-[#D7EEDD] text-[#1B6D3A] flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[22px]" data-weight="fill">verified_user</span>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-on-surface">Offline breach check</span>
+<span class="font-label-sm text-label-sm text-[#1B6D3A] font-semibold bg-[#D7EEDD] px-2 py-0.5 rounded-full">Pass</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 leading-snug">
+                No credentials found in known breach databases (local bloom filter)
+              </p>
+<div class="flex items-center gap-1 mt-2 text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">update</span>
+<span>Database sync: Today, 08:30 AM</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Security Advisory Pixel Tip Card -->
+<div class="bg-surface-container-low rounded-[24px] p-4 flex items-center gap-3.5 border border-outline-variant/30 mb-2">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]" data-weight="fill">lightbulb</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Enable biometric lock for instantaneous vault unmasking using your device's secure enclave.
+        </p>
+</div>
+</div>
+<!-- Bottom Navigation Bar (Exact specification execution from JSON) -->
+<!-- Destination count: 4 | Labels: Vault, Generator, Security, Settings | Active: Security -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 max-w-md mx-auto bg-surface-container-high dark:bg-surface-container-high rounded-t-xl shadow-sm">
+<!-- 1. Vault (Inactive) -->
+<button aria-label="Vault tab" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1.5 font-label-md text-label-md hover:bg-surface-container-highest dark:hover:bg-surface-container-highest transition-colors active:scale-[0.97] transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-[24px]">key</span>
+<span class="mt-1">Vault</span>
+</button>
+<!-- 2. Generator (Inactive) -->
+<button aria-label="Generator tab" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1.5 font-label-md text-label-md hover:bg-surface-container-highest dark:hover:bg-surface-container-highest transition-colors active:scale-[0.97] transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-[24px]">password</span>
+<span class="mt-1">Generator</span>
+</button>
+<!-- 3. Security (Active - Exact JSON mapping match) -->
+<button aria-current="page" aria-label="Security tab" class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-5 py-1.5 font-label-md text-label-md hover:bg-surface-container-highest dark:hover:bg-surface-container-highest transition-colors active:scale-[0.97] transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-[24px]" data-weight="fill">verified_user</span>
+<span class="mt-1 font-semibold">Security</span>
+</button>
+<!-- 4. Settings (Inactive) -->
+<button aria-label="Settings tab" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-5 py-1.5 font-label-md text-label-md hover:bg-surface-container-highest dark:hover:bg-surface-container-highest transition-colors active:scale-[0.97] transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="mt-1">Settings</span>
+</button>
+</nav>
+</main>
+<!-- Inline Micro-interaction Script for Spring Touch Responsiveness -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const interactiveTargets = document.querySelectorAll('button, article, [role="button"]');
+      interactiveTargets.forEach(target => {
+        target.addEventListener('touchstart', () => {
+          target.style.transitionTimingFunction = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+        }, { passive: true });
+      });
+    });
+  </script>
+</body></html>

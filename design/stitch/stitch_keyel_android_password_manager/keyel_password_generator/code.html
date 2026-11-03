@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Keyel Vault - Password Generator</title>
+<!-- Google Fonts: Roboto Flex & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Roboto+Flex:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#5e6177",
+            "outline": "#757684",
+            "surface-variant": "#e4e1e8",
+            "surface-dim": "#dbd9e0",
+            "on-surface-variant": "#454652",
+            "tertiary": "#5c3c55",
+            "secondary-fixed-dim": "#c3c5dd",
+            "primary-fixed": "#dee0ff",
+            "surface-container-high": "#eae7ee",
+            "secondary-fixed": "#dfe1fa",
+            "on-primary-fixed": "#00105c",
+            "secondary-container": "#dcdef7",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#303035",
+            "on-tertiary": "#ffffff",
+            "on-primary-container": "#d1d6ff",
+            "surface-tint": "#4355b9",
+            "background": "#fbf8ff",
+            "on-tertiary-container": "#f7cceb",
+            "primary-container": "#4355b9",
+            "inverse-primary": "#bac3ff",
+            "tertiary-fixed-dim": "#e4bad8",
+            "inverse-on-surface": "#f2eff6",
+            "tertiary-container": "#76546e",
+            "on-secondary-fixed": "#171a2c",
+            "on-background": "#1b1b20",
+            "on-secondary-fixed-variant": "#42465a",
+            "surface-container-highest": "#e4e1e8",
+            "on-surface": "#1b1b20",
+            "surface": "#fbf8ff",
+            "surface-container-low": "#f5f2f9",
+            "on-error": "#ffffff",
+            "outline-variant": "#c5c5d4",
+            "on-tertiary-fixed": "#2c1228",
+            "secondary": "#5a5d72",
+            "on-error-container": "#93000a",
+            "on-primary-fixed-variant": "#293ca0",
+            "surface-bright": "#fbf8ff",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed-variant": "#5c3d55",
+            "tertiary-fixed": "#ffd7f3",
+            "primary": "#293ca0",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#efedf4",
+            "primary-fixed-dim": "#bac3ff",
+            "on-secondary": "#ffffff",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-tablet": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2rem",
+            "gutter": "1rem",
+            "space-2xl": "3rem",
+            "gutter-tablet": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "1rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Roboto Flex"],
+            "label-lg": ["Roboto Flex"],
+            "display-lg": ["Roboto Flex"],
+            "code-body": ["JetBrains Mono"],
+            "headline-lg": ["Roboto Flex"],
+            "headline-sm": ["Roboto Flex"],
+            "title-lg": ["Roboto Flex"],
+            "title-md": ["Roboto Flex"],
+            "headline-md": ["Roboto Flex"],
+            "label-sm": ["Roboto Flex"],
+            "body-md": ["Roboto Flex"],
+            "code-display": ["JetBrains Mono"],
+            "body-lg": ["Roboto Flex"],
+            "label-md": ["Roboto Flex"],
+            "body-sm": ["Roboto Flex"],
+            "title-sm": ["Roboto Flex"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+            "display-lg": ["57px", { "lineHeight": "64px", "fontWeight": "700" }],
+            "code-body": ["15px", { "lineHeight": "22px", "fontWeight": "500" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+            "title-md": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "code-display": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "title-sm": ["14px", { "lineHeight": "20px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      background-color: #293ca0;
+      border: 4px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      cursor: pointer;
+      margin-top: -8px;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    input[type=range]::-webkit-slider-thumb:active {
+      transform: scale(1.2);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 12px;
+      border-radius: 9999px;
+      background: transparent;
+    }
+    @keyframes spin-once {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-animate {
+      animation: spin-once 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md antialiased selection:bg-secondary-container min-h-screen flex justify-center">
+<!-- Mobile Viewport Chassis (412dp standard Android) -->
+<div class="w-full max-w-[412px] bg-surface min-h-screen flex flex-col relative pb-32">
+<!-- Top Status Bar & App Bar Area -->
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md">
+<!-- Android System Status Bar Simulation -->
+<div class="h-8 px-6 flex justify-between items-center text-on-surface-variant font-label-sm text-label-sm pt-1">
+<span>9:41</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]" data-icon="signal_cellular_4_bar">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[15px]" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- TopAppBar Shared Component Specification -->
+<div class="flex justify-between items-center w-full px-4 h-16 max-w-md mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-surface-container text-primary hover:bg-surface-container-high transition-colors active:scale-[0.97]">
+<span class="material-symbols-outlined" data-icon="shield_lock">shield_lock</span>
+</div>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Generator</h1>
+</div>
+</div>
+<button aria-label="Password Generation History" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors active:scale-[0.97]">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-4 pt-1 pb-6 flex flex-col gap-5">
+<!-- Mode Selector (Segmented Pill) -->
+<div class="bg-surface-container p-1 rounded-full flex items-center self-center w-full max-w-[340px]">
+<button class="flex-1 py-2 px-4 rounded-full bg-surface-container-lowest text-primary font-title-sm text-title-sm text-center shadow-sm transition-all active:scale-[0.97]" id="mode-password-btn">
+          Password
+        </button>
+<button class="flex-1 py-2 px-4 rounded-full text-on-surface-variant font-title-sm text-title-sm text-center transition-all hover:text-on-surface active:scale-[0.97]" id="mode-passphrase-btn">
+          Passphrase
+        </button>
+</div>
+<!-- Result Card Display (primary-container tinted chassis with 28dp radius) -->
+<div class="bg-secondary-fixed/40 rounded-[28px] p-5 flex flex-col items-center gap-4 relative overflow-hidden transition-all duration-200">
+<!-- Floating Security Token Tag -->
+<div class="self-start flex items-center gap-1.5 px-3 py-1 bg-surface-container-lowest/80 backdrop-blur-sm rounded-full">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="lock">lock</span>
+<span class="text-label-sm font-label-sm text-on-surface font-medium">End-to-End Cryptographic</span>
+</div>
+<!-- Password Preview (Monospace with expressive token tints) -->
+<div class="w-full py-3 px-2 flex justify-center items-center overflow-x-auto select-all">
+<div class="font-code-display text-[26px] tracking-wider text-center break-all select-all flex flex-wrap justify-center items-center" id="password-display">
+<span class="text-on-surface font-code-body text-[26px]">k</span>
+<span class="text-primary font-bold font-code-body text-[26px]">9</span>
+<span class="text-tertiary font-bold font-code-body text-[26px]">#</span>
+<span class="text-on-surface font-code-body text-[26px]">M</span>
+<span class="text-on-surface font-code-body text-[26px]">v</span>
+<span class="text-tertiary font-bold font-code-body text-[26px]">$</span>
+<span class="text-primary font-bold font-code-body text-[26px]">7</span>
+<span class="text-on-surface font-code-body text-[26px]">Q</span>
+<span class="text-on-surface font-code-body text-[26px]">x</span>
+<span class="text-tertiary font-bold font-code-body text-[26px]">!</span>
+<span class="text-primary font-bold font-code-body text-[26px]">2</span>
+<span class="text-on-surface font-code-body text-[26px]">L</span>
+<span class="text-on-surface font-code-body text-[26px]">p</span>
+</div>
+</div>
+<!-- Quick Action Row -->
+<div class="flex items-center gap-3 w-full pt-1">
+<!-- Circular Regenerate button with tactile bounce -->
+<button class="w-12 h-12 rounded-full bg-surface-container-lowest text-primary flex items-center justify-center hover:bg-surface-container-high transition-transform duration-150 active:scale-[0.94] shadow-sm" id="regenerate-btn" title="Generate New Password">
+<span class="material-symbols-outlined text-[24px]" data-icon="refresh" id="refresh-icon">refresh</span>
+</button>
+<!-- Large Copy Pill Button -->
+<button class="flex-1 h-12 rounded-full bg-primary text-on-primary font-title-sm text-title-sm flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-[0.97] shadow-sm" id="copy-btn">
+<span class="material-symbols-outlined text-[20px]" data-icon="content_copy">content_copy</span>
+<span id="copy-text">Copy Password</span>
+</button>
+</div>
+</div>
+<!-- Strength Meter Component with Wavy Bar -->
+<div class="bg-surface-container rounded-lg p-4 flex flex-col gap-2.5">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="verified_user">verified_user</span>
+<span class="font-title-sm text-title-sm text-on-surface">Entropy Level</span>
+</div>
+<!-- Chip -->
+<div class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Very Strong (96 bits)</span>
+</div>
+</div>
+<!-- Expressive Wavy Indicator Vector Track -->
+<div class="relative w-full h-3 rounded-full bg-surface-variant overflow-hidden flex items-center">
+<div class="h-full bg-primary rounded-full transition-all duration-300 w-[92%] flex items-center justify-end pr-1">
+<svg class="w-full h-full opacity-60" fill="none" preserveaspectratio="none" viewbox="0 0 100 8">
+<path d="M0 4 Q 10 0, 20 4 T 40 4 T 60 4 T 80 4 T 100 4" stroke="#ffffff" stroke-linecap="round" stroke-width="2.2"></path>
+</svg>
+</div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Estimated crack time: &gt; 100,000 centuries</span>
+<span class="font-semibold text-primary">Air-tight</span>
+</div>
+</div>
+<!-- Configuration Controls Header & Slider -->
+<div class="bg-surface-container rounded-lg p-4 flex flex-col gap-4">
+<!-- Length Header & Floating Pill Badge -->
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Password Length</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Recommended 16+ chars</span>
+</div>
+<div class="bg-primary text-on-primary px-3.5 py-1.5 rounded-full font-label-lg text-label-lg font-bold">
+<span id="slider-val-display">18</span> characters
+          </div>
+</div>
+<!-- Custom Interactive Range Slider with Wavy Track Bed -->
+<div class="relative flex items-center py-2">
+<!-- Background Track SVG decoration for pixel-expressive touch -->
+<div class="absolute inset-x-0 h-2 bg-surface-container-highest rounded-full pointer-events-none">
+<div class="h-full bg-primary rounded-full" id="slider-progress" style="width: 17.8%;"></div>
+</div>
+<input class="relative z-10 w-full appearance-none bg-transparent focus:outline-none cursor-pointer" id="length-slider" max="64" min="8" type="range" value="18"/>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-sm text-label-sm px-1">
+<span>8 chars</span>
+<span>36 chars</span>
+<span>64 chars</span>
+</div>
+</div>
+<!-- Tonal Switch Rows (56dp Touch Target Heights) -->
+<div class="flex flex-col gap-2">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant px-2 pt-1 font-semibold">CHARACTER RULES</h2>
+<!-- Tonal Switch Item: Uppercase -->
+<label class="h-14 px-4 bg-surface-container rounded-lg flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-surface-container-high active:scale-[0.99]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-code-body font-bold text-sm">
+              AB
+            </div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Uppercase letters</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">A-Z</span>
+</div>
+</div>
+<!-- Expressive Android Switch -->
+<div class="relative inline-flex items-center">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-variant rounded-full peer peer-checked:bg-primary transition-colors"></div>
+<div class="w-5 h-5 bg-surface-container-lowest rounded-full absolute left-1 peer-checked:translate-x-5 transition-transform duration-200 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-primary" data-icon="check">check</span>
+</div>
+</div>
+</label>
+<!-- Tonal Switch Item: Lowercase -->
+<label class="h-14 px-4 bg-surface-container rounded-lg flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-surface-container-high active:scale-[0.99]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-code-body font-bold text-sm">
+              ab
+            </div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Lowercase letters</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">a-z</span>
+</div>
+</div>
+<!-- Expressive Android Switch -->
+<div class="relative inline-flex items-center">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-variant rounded-full peer peer-checked:bg-primary transition-colors"></div>
+<div class="w-5 h-5 bg-surface-container-lowest rounded-full absolute left-1 peer-checked:translate-x-5 transition-transform duration-200 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-primary" data-icon="check">check</span>
+</div>
+</div>
+</label>
+<!-- Tonal Switch Item: Numbers -->
+<label class="h-14 px-4 bg-surface-container rounded-lg flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-surface-container-high active:scale-[0.99]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-code-body font-bold text-sm">
+              09
+            </div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Numbers</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">0-9</span>
+</div>
+</div>
+<!-- Expressive Android Switch -->
+<div class="relative inline-flex items-center">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-variant rounded-full peer peer-checked:bg-primary transition-colors"></div>
+<div class="w-5 h-5 bg-surface-container-lowest rounded-full absolute left-1 peer-checked:translate-x-5 transition-transform duration-200 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-primary" data-icon="check">check</span>
+</div>
+</div>
+</label>
+<!-- Tonal Switch Item: Symbols -->
+<label class="h-14 px-4 bg-surface-container rounded-lg flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-surface-container-high active:scale-[0.99]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-code-body font-bold text-sm">
+              #@
+            </div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Symbols</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">!@#$%^&amp;*</span>
+</div>
+</div>
+<!-- Expressive Android Switch -->
+<div class="relative inline-flex items-center">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-variant rounded-full peer peer-checked:bg-primary transition-colors"></div>
+<div class="w-5 h-5 bg-surface-container-lowest rounded-full absolute left-1 peer-checked:translate-x-5 transition-transform duration-200 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-primary" data-icon="check">check</span>
+</div>
+</div>
+</label>
+<!-- Tonal Switch Item: Exclude Ambiguous Characters -->
+<label class="h-14 px-4 bg-surface-container rounded-lg flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-surface-container-high active:scale-[0.99]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-code-body font-bold text-sm">
+              0O
+            </div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Exclude ambiguous</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Avoid 0, O, 1, l, I confusion</span>
+</div>
+</div>
+<!-- Expressive Android Switch (Toggled Off initially) -->
+<div class="relative inline-flex items-center">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-variant rounded-full peer peer-checked:bg-primary transition-colors"></div>
+<div class="w-5 h-5 bg-surface-container-lowest rounded-full absolute left-1 peer-checked:translate-x-5 transition-transform duration-200 shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-primary opacity-0 peer-checked:opacity-100" data-icon="check">check</span>
+</div>
+</div>
+</label>
+</div>
+<!-- Primary Bottom Action (Thumb Ergonomics) -->
+<div class="pt-2">
+<button class="w-full h-14 rounded-full bg-primary text-on-primary font-title-md text-title-md flex items-center justify-center gap-2 hover:opacity-95 shadow-md active:scale-[0.97] transition-all" id="primary-action-btn">
+<span class="material-symbols-outlined text-[22px]" data-icon="done">done</span>
+<span>Use this password</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar Shared Component Specification -->
+<!-- Active Destination determined as 'Generator' -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 max-w-md mx-auto bg-surface-container-high rounded-t-xl shadow-sm">
+<!-- Destination: Vault (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 font-label-md text-label-md active:scale-[0.97] transition-transform">
+<span class="material-symbols-outlined text-[24px]" data-icon="key">key</span>
+<span class="mt-0.5">Vault</span>
+</button>
+<!-- Destination: Generator (Active) -->
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1.5 font-label-md text-label-md active:scale-[0.97] transition-transform">
+<span class="material-symbols-outlined text-[24px]" data-icon="password">password</span>
+<span class="mt-0.5 font-bold">Generator</span>
+</button>
+<!-- Destination: Security (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 font-label-md text-label-md active:scale-[0.97] transition-transform">
+<span class="material-symbols-outlined text-[24px]" data-icon="verified_user">verified_user</span>
+<span class="mt-0.5">Security</span>
+</button>
+<!-- Destination: Settings (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1.5 font-label-md text-label-md active:scale-[0.97] transition-transform">
+<span class="material-symbols-outlined text-[24px]" data-icon="settings">settings</span>
+<span class="mt-0.5">Settings</span>
+</button>
+</nav>
+</div>
+<!-- Inline Interactive Logic for micro-tactility -->
+<script>
+    const slider = document.getElementById('length-slider');
+    const sliderValDisplay = document.getElementById('slider-val-display');
+    const sliderProgress = document.getElementById('slider-progress');
+    const regenBtn = document.getElementById('regenerate-btn');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const copyBtn = document.getElementById('copy-btn');
+    const copyText = document.getElementById('copy-text');
+    const passwordDisplay = document.getElementById('password-display');
+
+    const samplePasswords = [
+      "k9#Mv$7Qx!2Lp&4Zn",
+      "p4@Lw#8Ty!9Bq$3Vm",
+      "R7!mK$3Vx@8Nz#6Qt",
+      "W2$tN*9Yc!5Fx@1Jb",
+      "x8%Pa#2Hj$7Dv!4Gs"
+    ];
+    let sampleIdx = 0;
+
+    function renderFormattedPassword(pwd) {
+      passwordDisplay.innerHTML = '';
+      for (const ch of pwd) {
+        const span = document.createElement('span');
+        span.className = 'font-code-body text-[26px]';
+        if (/[0-9]/.test(ch)) {
+          span.className += ' text-primary font-bold';
+        } else if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(ch)) {
+          span.className += ' text-tertiary font-bold';
+        } else {
+          span.className += ' text-on-surface';
+        }
+        span.textContent = ch;
+        passwordDisplay.appendChild(span);
+      }
+    }
+
+    // Dynamic slider progress recalculation
+    slider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      sliderValDisplay.textContent = val;
+      const min = slider.min || 8;
+      const max = slider.max || 64;
+      const percent = ((val - min) / (max - min)) * 100;
+      sliderProgress.style.width = `${percent}%`;
+    });
+
+    // Tactile regenerate rotation animation
+    regenBtn.addEventListener('click', () => {
+      refreshIcon.classList.remove('spin-animate');
+      void refreshIcon.offsetWidth; // trigger reflow
+      refreshIcon.classList.add('spin-animate');
+
+      sampleIdx = (sampleIdx + 1) % samplePasswords.length;
+      let currentSample = samplePasswords[sampleIdx];
+      
+      const desiredLen = parseInt(slider.value, 10);
+      while(currentSample.length < desiredLen) {
+        currentSample += samplePasswords[(sampleIdx + 1) % samplePasswords.length];
+      }
+      renderFormattedPassword(currentSample.slice(0, desiredLen));
+    });
+
+    // Tactile copy confirmation
+    copyBtn.addEventListener('click', () => {
+      copyText.textContent = "Copied to Clipboard!";
+      copyBtn.classList.remove('bg-primary');
+      copyBtn.classList.add('bg-tertiary-container');
+      setTimeout(() => {
+        copyText.textContent = "Copy Password";
+        copyBtn.classList.add('bg-primary');
+        copyBtn.classList.remove('bg-tertiary-container');
+      }, 1800);
+    });
+
+    // Mode Selector Segment Toggle
+    const modePwd = document.getElementById('mode-password-btn');
+    const modePass = document.getElementById('mode-passphrase-btn');
+
+    modePwd.addEventListener('click', () => {
+      modePwd.className = 'flex-1 py-2 px-4 rounded-full bg-surface-container-lowest text-primary font-title-sm text-title-sm text-center shadow-sm transition-all active:scale-[0.97]';
+      modePass.className = 'flex-1 py-2 px-4 rounded-full text-on-surface-variant font-title-sm text-title-sm text-center transition-all hover:text-on-surface active:scale-[0.97]';
+    });
+
+    modePass.addEventListener('click', () => {
+      modePass.className = 'flex-1 py-2 px-4 rounded-full bg-surface-container-lowest text-primary font-title-sm text-title-sm text-center shadow-sm transition-all active:scale-[0.97]';
+      modePwd.className = 'flex-1 py-2 px-4 rounded-full text-on-surface-variant font-title-sm text-title-sm text-center transition-all hover:text-on-surface active:scale-[0.97]';
+    });
+  </script>
+</body></html>
