@@ -6,7 +6,8 @@
 - All crypto and storage in a pure Rust core (`crates/keyel_core`), bridged to Flutter with [flutter_rust_bridge](https://flutter_rust_bridge.dev).
 - Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet).
 
-**Status:** phase 0.1.0 — Foundation. See [`docs/roadmap.md`](docs/roadmap.md).
+**Status:** phase 0.2.0 — Crypto core. See [`docs/roadmap.md`](docs/roadmap.md)
+and [`docs/crypto-design.md`](docs/crypto-design.md).
 
 ## Build & run
 
@@ -47,6 +48,17 @@ cargo fmt --check
 flutter analyze
 flutter test
 ```
+
+### Fuzz the vault parser
+
+```bash
+cd crates/keyel_core
+cargo +nightly fuzz run parse_vault -- -max_total_time=600
+```
+
+The fuzz target exercises the file parser and AEAD opener with a fixed vault
+key, so it does not spend every iteration in Argon2. See
+[`docs/crypto-design.md`](docs/crypto-design.md).
 
 ## Repository layout
 

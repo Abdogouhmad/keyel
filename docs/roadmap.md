@@ -21,8 +21,8 @@ git tag v0.X.0 && git push --tags
 
 | Version | Phase | Est. | Status |
 |---|---|---|---|
-| 0.1.0 | Foundation | 2-3 days | ☐ |
-| 0.2.0 | Crypto core | 1 week | ☐ |
+| 0.1.0 | Foundation | 2-3 days | ☑ |
+| 0.2.0 | Crypto core | 1 week | ☑ |
 | 0.3.0 | Vault model and storage | 1 week | ☐ |
 | 0.4.0 | Bridge and session | 3-4 days | ☐ |
 | 0.5.0 | Adaptive shell and design system | 1 week | ☐ |
@@ -36,6 +36,11 @@ git tag v0.X.0 && git push --tags
 | 1.0.0 | Release | 3-4 days | ☐ |
 
 Estimates assume part-time work. Adjust to your pace.
+
+> The vault, generator, security and settings screens already exist as
+> design-system prototypes running on demo data. They are wired to the real
+> vault in phases 0.3 and 0.4; do not treat the 0.5/0.7/0.8 rows as complete
+> until that wiring lands.
 
 ---
 
