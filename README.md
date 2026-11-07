@@ -6,8 +6,9 @@
 - All crypto and storage in a pure Rust core (`crates/keyel_core`), bridged to Flutter with [flutter_rust_bridge](https://flutter_rust_bridge.dev).
 - Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet).
 
-**Status:** phase 0.2.0 — Crypto core. See [`docs/roadmap.md`](docs/roadmap.md)
-and [`docs/crypto-design.md`](docs/crypto-design.md).
+**Status:** phase 0.3.0 — Vault model and storage. See
+[`docs/roadmap.md`](docs/roadmap.md), [`docs/crypto-design.md`](docs/crypto-design.md)
+and [`docs/vault-model.md`](docs/vault-model.md).
 
 ## Build & run
 

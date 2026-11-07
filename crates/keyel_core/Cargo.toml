@@ -3,7 +3,7 @@
 # is implemented and tested in this crate, independent of the UI.
 [package]
 name = "keyel_core"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
 publish = false
@@ -23,6 +23,9 @@ sha2 = "0.10"
 ciborium = "0.2"
 data-encoding = "2"
 serde = { version = "1", features = ["derive"] }
+uuid = { version = "1.29.1", features = ["v7", "serde"] }
+unicode-normalization = "0.1.26"
 
 [dev-dependencies]
 proptest = "1"
+tempfile = "3.27.0"

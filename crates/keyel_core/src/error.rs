@@ -33,4 +33,13 @@ pub enum Error {
     /// An internal cryptographic operation failed.
     #[error("cryptographic operation failed")]
     Crypto,
+
+    /// The requested entry, folder or session was not found.
+    #[error("not found")]
+    NotFound,
+
+    /// Reading or writing the vault file failed. The message is for
+    /// diagnostics and must never contain secret material.
+    #[error("storage error: {0}")]
+    Storage(String),
 }

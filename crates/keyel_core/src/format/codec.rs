@@ -37,6 +37,10 @@ pub struct CreatedVault {
     pub bytes: Vec<u8>,
     /// Human-readable recovery key. Show it once, then discard it.
     pub recovery_key: String,
+    /// Authenticated header, reused for later saves.
+    pub header: Header,
+    /// The freshly generated vault key. Stays in Rust.
+    pub vault_key: VaultKey,
 }
 
 /// A successfully decrypted vault.
@@ -95,6 +99,8 @@ pub fn create(master: &str, plaintext: &[u8], params: Argon2Params) -> Result<Cr
     Ok(CreatedVault {
         bytes,
         recovery_key: recovery.to_string(),
+        header,
+        vault_key,
     })
 }
 

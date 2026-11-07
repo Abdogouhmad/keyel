@@ -134,3 +134,44 @@ design (docs/roadmap.md header).
   32-byte key). This exercises the parser and AEAD without spending every
   fuzz iteration in Argon2.
 
+- **Phase 0.3.0 branch:** `phase/0.3-vault-model`.
+
+- **Vault payload is CBOR with its own schema version.** The file format keeps
+  `format_version`; the decrypted payload carries `schema_version`. This lets
+  the data model evolve without changing the crypto container. New ids are
+  UUID v7 so they sort by creation time.
+
+- **Atomic save is temp + fsync + copy-to-backup + rename.** The previous file
+  is copied to `vault.keyel.bak` before the rename. A crash before the rename
+  leaves the main file untouched; a stale `.tmp` is ignored. The parent
+  directory is fsynced best-effort for durability.
+
+- **`.bak` fallback only on structural failure.** Bad magic, truncation,
+  invalid header, unknown version or undecodable payload trigger the backup.
+  `WrongPassword` does not, because a backup may predate a master-password
+  change and would silently make the old password valid again. The tradeoff
+  (a body bit-flip still shows "wrong password") is documented in
+  `docs/vault-model.md`.
+
+- **Trash is soft-delete with 30-day retention.** `Session::open` calls
+  `purge_expired` so cleanup happens on unlock without a background job. The
+  purge is persisted by the next save.
+
+- **Search is metadata-only.** Title, tags, username, URL, cardholder and
+  brand are matched; passwords, notes, card numbers, CVVs and TOTP secrets are
+  excluded so search cannot be used as a secret oracle. Matching is
+  NFD-normalized and lowercased for case/accent tolerance.
+
+- **Password history is capped at 10.** `Vault::update_entry` records the old
+  password only when it actually changed, newest first.
+
+- **Secret-free summaries.** `EntrySummary` is the only list DTO: id, kind,
+  title, subtitle, favorite, folder id, has-TOTP. Phase 0.4 will expose it over
+  FRB; the vault key and full entries stay in Rust.
+
+- **Best-effort plaintext wiping.** `Vault` wipes secret fields on drop and
+  whenever an entry is replaced, purged or expired; create/save wrap the CBOR
+  payload in `Zeroizing`. Caller-made `String` clones cannot be tracked, so
+  the bridge must not hand secrets to Dart.
+
+
