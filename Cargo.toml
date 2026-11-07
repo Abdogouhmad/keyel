@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = ["rust", "crates/keyel_core"]
+
+# Shared lint configuration across the workspace.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

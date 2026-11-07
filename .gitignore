@@ -53,6 +53,12 @@ coverage/
 lcov.info
 goldens_failures/
 
+# --- Release artifacts ------------------------------------------------
+dist/
+
+# --- Kotlin / Gradle scratch -----------------------------------------
+.kotlin/
+
 # --- Local secrets ----------------------------------------------------
 *.env
 service_account.json

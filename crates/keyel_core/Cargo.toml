@@ -1,0 +1,20 @@
+# Keyel core: pure Rust, no flutter_rust_bridge types in here.
+# Everything the app does (crypto, vault format, generator, TOTP, health)
+# is implemented and tested in this crate, independent of the UI.
+[package]
+name = "keyel_core"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+rand = "0.9"
+zeroize = "1.8"
+secrecy = "0.10"
+thiserror = "2"
+
+[dev-dependencies]

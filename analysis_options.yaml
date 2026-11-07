@@ -1,0 +1,18 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    # flutter_rust_bridge generated files.
+    - "lib/src/rust/**"
+    # cargokit build_tool is vendored & runs inside Gradle only; its dependencies
+    # (github, ed25519_edwards, http) are not part of our dependency tree.
+    - "rust_builder/cargokit/build_tool/**"
+    # Dart build_runner output.
+    - "build/**"
+    - android/**
+    - linux/**
+
+linter:
+  rules:
+    # FRB generated bindings intentionally return very long lines.
+    lines_longer_than_80_chars: false

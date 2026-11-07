@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Keyel must never request network access. The INTERNET permission that
+         Flutter normally adds to the profile manifest has been removed on
+         purpose (see docs/roadmap.md Phase 0.1.0). Debug builds still get it
+         via android/app/src/debug/AndroidManifest.xml for hot reload only. -->
+</manifest>
