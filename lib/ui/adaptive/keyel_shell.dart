@@ -65,15 +65,53 @@ class KeyelShell extends StatelessWidget {
     );
   }
 
+  /// Content of each tab, wrapped with the global shortcut scaffold.
+  Widget _content(BuildContext context, StatefulNavigationShell shell) {
+    return KeyelShortcuts(
+      // Search focus wiring lands with phase 0.7.
+      onNewEntry: () => context.push(KeyelRoutes.newEntry),
+      child: shell,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final windowClass = WindowSizeClass.of(context);
 
     if (windowClass.isCompact) {
-      return _BottomNavScaffold(shell: navigationShell, onTap: _onTap);
+      return _BottomNavScaffold(
+        shell: navigationShell,
+        content: _content(context, navigationShell),
+        onTap: _onTap,
+      );
+    }
+    if (windowClass == WindowSizeClass.medium) {
+      // Icon-only rail.
+      return _RailScaffold(
+        shell: navigationShell,
+        content: _content(context, navigationShell),
+        onTap: _onTap,
+        width: 76,
+        showLabels: false,
+      );
+    }
+    if (windowClass == WindowSizeClass.expanded) {
+      // Rail with labels.
+      return _RailScaffold(
+        shell: navigationShell,
+        content: _content(context, navigationShell),
+        onTap: _onTap,
+        width: 108,
+        showLabels: true,
+      );
     }
 
-    return _RailScaffold(shell: navigationShell, onTap: _onTap);
+    // Large: drawer navigation.
+    return _DrawerScaffold(
+      shell: navigationShell,
+      content: _content(context, navigationShell),
+      onTap: _onTap,
+    );
   }
 }
 
@@ -82,15 +120,16 @@ class KeyelShell extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _BottomNavScaffold extends StatelessWidget {
-  const new({required this.shell, required this.onTap});
+  const new({required this.shell, required this.content, required this.onTap});
 
   final StatefulNavigationShell shell;
+  final Widget content;
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: shell,
+      body: content,
       bottomNavigationBar: _KeyelBottomNav(
         currentIndex: shell.currentIndex,
         onTap: onTap,
@@ -210,10 +249,19 @@ class _NavItem extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _RailScaffold extends StatelessWidget {
-  const new({required this.shell, required this.onTap});
+  const new({
+    required this.shell,
+    required this.content,
+    required this.onTap,
+    required this.width,
+    required this.showLabels,
+  });
 
   final StatefulNavigationShell shell;
+  final Widget content;
   final ValueChanged<int> onTap;
+  final double width;
+  final bool showLabels;
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +271,7 @@ class _RailScaffold extends StatelessWidget {
       body: Row(
         children: [
           Container(
-            width: 108,
+            width: width,
             color: scheme.surface,
             child: SafeArea(
               right: false,
@@ -251,14 +299,167 @@ class _RailScaffold extends StatelessWidget {
                         destination: _destinations[i],
                         selected: i == shell.currentIndex,
                         onTap: () => onTap(i),
+                        showLabel: showLabels,
                       ),
                     ),
                 ],
               ),
             ),
           ),
-          Expanded(child: shell),
+          Expanded(child: content),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Large – drawer navigation
+// ---------------------------------------------------------------------------
+
+class _DrawerScaffold extends StatelessWidget {
+  const new({
+    required this.shell,
+    required this.content,
+    required this.onTap,
+  });
+
+  final StatefulNavigationShell shell;
+  final Widget content;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Scaffold(
+      body: Row(
+        children: [
+          Container(
+            width: 280,
+            color: scheme.surface,
+            child: SafeArea(
+              right: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: KeyelSpacing.lg,
+                      top: KeyelSpacing.xl,
+                      bottom: KeyelSpacing.xl,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: scheme.primaryFixed,
+                            borderRadius: BorderRadius.circular(
+                              KeyelRadii.field,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.key_rounded,
+                            color: scheme.onPrimaryFixed,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: KeyelSpacing.md),
+                        Expanded(
+                          child: Text(
+                            'Keyel',
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: scheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: KeyelSpacing.md,
+                    ),
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < _destinations.length; i++)
+                          _DrawerItem(
+                            destination: _destinations[i],
+                            selected: i == shell.currentIndex,
+                            onTap: () => onTap(i),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(child: content),
+        ],
+      ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  const new({
+    required this.destination,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _Destination destination;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return PressableScale(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(KeyelRadii.pill),
+      semanticLabel: destination.label,
+      child: AnimatedContainer(
+        duration: KeyelMotion.fast,
+        curve: Curves.easeOut,
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: KeyelSpacing.md,
+          vertical: KeyelSpacing.sm + 4,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? scheme.secondaryContainer : Colors.transparent,
+          borderRadius: BorderRadius.circular(KeyelRadii.pill),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              selected ? destination.selectedIcon : destination.icon,
+              size: 24,
+              color: selected ? scheme.primary : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: KeyelSpacing.md),
+            Expanded(
+              child: Text(
+                destination.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelLarge?.copyWith(
+                  color: selected ? scheme.primary : scheme.onSurface,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -269,11 +470,13 @@ class _RailItem extends StatelessWidget {
     required this.destination,
     required this.selected,
     required this.onTap,
+    required this.showLabel,
   });
 
   final _Destination destination;
   final bool selected;
   final VoidCallback onTap;
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -300,17 +503,19 @@ class _RailItem extends StatelessWidget {
               size: 24,
               color: selected ? scheme.primary : scheme.onSurfaceVariant,
             ),
-            const SizedBox(height: KeyelSpacing.xs),
-            Text(
-              destination.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.labelSmall?.copyWith(
-                color: selected ? scheme.primary : scheme.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                letterSpacing: 0,
+            if (showLabel) ...[
+              const SizedBox(height: KeyelSpacing.xs),
+              Text(
+                destination.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelSmall?.copyWith(
+                  color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: 0,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

@@ -25,7 +25,7 @@ git tag v0.X.0 && git push --tags
 | 0.2.0 | Crypto core | 1 week | ☑ |
 | 0.3.0 | Vault model and storage | 1 week | ☑ |
 | 0.4.0 | Bridge and session | 3-4 days | ☑ |
-| 0.5.0 | Adaptive shell and design system | 1 week | ☐ |
+| 0.5.0 | Adaptive shell and design system | 1 week | ☑ |
 | 0.6.0 | Onboarding, unlock, auto-lock | 1 week | ☐ |
 | 0.7.0 | Vault UI (CRUD) | 1.5 weeks | ☐ |
 | 0.8.0 | Generator and TOTP | 1 week | ☐ |

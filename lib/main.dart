@@ -41,18 +41,18 @@ Future<void> main() async {
 /// You is intentionally **not** used: the vault's security states, strength
 /// colours and contrast ratios must stay identical on every device
 /// (docs/design.md; docs/DECISIONS.md 2026-11-05).
-class KeyelApp extends StatelessWidget {
+class KeyelApp extends ConsumerWidget {
   /// Creates the root application widget.
   const new({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       title: 'Keyel',
       debugShowCheckedModeBanner: false,
       theme: KeyelTheme.light(),
       darkTheme: KeyelTheme.dark(),
-      routerConfig: appRouter,
+      routerConfig: ref.watch(appRouterProvider),
     );
   }
 }

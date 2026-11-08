@@ -3,11 +3,19 @@
 /// Screens import this barrel instead of individual widget files.
 library;
 
+export 'adaptive/hinge.dart';
 export 'adaptive/keyel_shell.dart';
+export 'adaptive/keyel_shortcuts.dart';
+export 'adaptive/list_detail.dart';
 export 'adaptive/window.dart';
+export 'design_system/keyel_action_button_group.dart';
+export 'design_system/keyel_adaptive_sheet.dart';
 export 'design_system/keyel_avatar.dart';
 export 'design_system/keyel_buttons.dart';
 export 'design_system/keyel_chips.dart';
+export 'design_system/keyel_confirm_dialog.dart';
+export 'design_system/keyel_entry_tile.dart';
+export 'design_system/keyel_password_field.dart';
 export 'design_system/keyel_search_field.dart';
 export 'design_system/keyel_snackbar.dart';
 export 'design_system/keyel_strength_meter.dart';

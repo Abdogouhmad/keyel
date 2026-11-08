@@ -12,6 +12,12 @@ abstract final class KeyelRoutes {
   /// App settings.
   static const settings = '/settings';
 
+  /// First-run vault creation. Real flow arrives in phase 0.6.
+  static const onboarding = '/onboarding';
+
+  /// Vault unlock. Real flow arrives in phase 0.6.
+  static const unlock = '/unlock';
+
   /// Temporary 0.4.0 bridge/session debug screen.
   static const debug = '/debug';
 

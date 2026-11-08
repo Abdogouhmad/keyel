@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/core/router/vault_session_listenable.dart';
+import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/debug/debug_vault_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
+import 'package:keyel/features/onboarding/onboarding_placeholder_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
+import 'package:keyel/features/unlock/unlock_placeholder_screen.dart';
 import 'package:keyel/features/vault/entry_detail_screen.dart';
 import 'package:keyel/features/vault/entry_edit_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
@@ -17,69 +22,97 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 Page<void> _tab(GoRouterState state, Widget child) =>
     NoTransitionPage<void>(key: state.pageKey, child: child);
 
-/// The app router. Each tab keeps its own navigation stack and scroll
-/// position. The order of branches must match `KeyelShell.destinations`.
-final GoRouter appRouter = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: KeyelRoutes.vault,
-  routes: [
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => KeyelShell(navigationShell: shell),
-      branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: KeyelRoutes.vault,
-              pageBuilder: (context, state) => _tab(state, const VaultScreen()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: KeyelRoutes.generator,
-              pageBuilder: (context, state) =>
-                  _tab(state, const GeneratorScreen()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: KeyelRoutes.security,
-              pageBuilder: (context, state) =>
-                  _tab(state, const SecurityScreen()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: KeyelRoutes.settings,
-              pageBuilder: (context, state) =>
-                  _tab(state, const SettingsScreen()),
-            ),
-          ],
-        ),
-      ],
-    ),
-    GoRoute(
-      path: KeyelRoutes.newEntry,
-      builder: (context, state) => const EntryEditScreen(),
-    ),
-    GoRoute(
-      path: KeyelRoutes.debug,
-      builder: (context, state) => const DebugVaultScreen(),
-    ),
-    GoRoute(
-      path: '${KeyelRoutes.entryRoot}/:id/edit',
-      builder: (context, state) =>
-          EntryEditScreen(entryId: state.pathParameters['id']),
-    ),
-    GoRoute(
-      path: '${KeyelRoutes.entryRoot}/:id',
-      builder: (context, state) =>
-          EntryDetailScreen(entryId: state.pathParameters['id']!),
-    ),
-  ],
-);
+/// Injectable router so the guard can read the Riverpod container.
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final session = VaultSessionListenable(ref.container);
+
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: KeyelRoutes.vault,
+    refreshListenable: session,
+    // Lifecycle guard: no vault → /onboarding, locked → /unlock.
+    // Redirects only once the session state has resolved.
+    redirect: (context, state) {
+      final snapshot = session.state;
+      if (snapshot.busy) return null;
+
+      final status = snapshot.status;
+      final location = state.matchedLocation;
+      final isOnboarding = location == KeyelRoutes.onboarding;
+      final isUnlock = location == KeyelRoutes.unlock;
+      final isDebug = location == KeyelRoutes.debug;
+
+      return switch (status) {
+        VaultStatus.noVault when !isOnboarding => KeyelRoutes.onboarding,
+        VaultStatus.locked when !isUnlock && !isDebug => KeyelRoutes.unlock,
+        VaultStatus.unlocked when (isOnboarding || isUnlock) => KeyelRoutes.vault,
+        _ => null,
+      };
+    },
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => KeyelShell(navigationShell: shell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: KeyelRoutes.vault,
+                pageBuilder: (context, state) => _tab(state, const VaultScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: KeyelRoutes.generator,
+                pageBuilder: (context, state) => _tab(state, const GeneratorScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: KeyelRoutes.security,
+                pageBuilder: (context, state) => _tab(state, const SecurityScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: KeyelRoutes.settings,
+                pageBuilder: (context, state) => _tab(state, const SettingsScreen()),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: KeyelRoutes.onboarding,
+        builder: (context, state) => const OnboardingPlaceholderScreen(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.unlock,
+        builder: (context, state) => const UnlockPlaceholderScreen(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.newEntry,
+        builder: (context, state) => const EntryEditScreen(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.debug,
+        builder: (context, state) => const DebugVaultScreen(),
+      ),
+      GoRoute(
+        path: '${KeyelRoutes.entryRoot}/:id/edit',
+        builder: (context, state) =>
+            EntryEditScreen(entryId: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: '${KeyelRoutes.entryRoot}/:id',
+        builder: (context, state) =>
+            EntryDetailScreen(entryId: state.pathParameters['id']!),
+      ),
+    ],
+  );
+});

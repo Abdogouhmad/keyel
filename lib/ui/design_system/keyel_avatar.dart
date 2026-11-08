@@ -87,3 +87,61 @@ class KeyelAvatar extends StatelessWidget {
     );
   }
 }
+
+/// Deterministic shape-and-tone pair derived from an entry id.
+///
+/// The same id always yields the same avatar look, so list reordering
+/// never makes avatars "jump".
+final class KeyelAvatarProfile {
+  /// Creates a profile directly.
+  const new({required this.shape, required this.tone});
+
+  /// Derives a stable profile from an id hash.
+  ///
+  /// Uses a signed-object-free mix (`id.hashCode` plus golden-ratio
+  /// stepping) so consecutive UUID v7 ids give varied combinations.
+  factory fromId(String id) {
+    final hash = Object.hash(id, 0x9E3779B9);
+    final shape = KeyelAvatarShape
+        .values[hash % KeyelAvatarShape.values.length];
+    final tone =
+        KeyelAvatarTone.values[(hash ~/ 31) % KeyelAvatarTone.values.length];
+    return KeyelAvatarProfile(shape: shape, tone: tone);
+  }
+
+  /// Shape family for the avatar.
+  final KeyelAvatarShape shape;
+
+  /// Tone family for the avatar.
+  final KeyelAvatarTone tone;
+}
+
+/// A [KeyelAvatar] whose look is stable for a given id.
+///
+/// ```dart
+/// KeyelAvatar.forId(id: entry.id, icon: Icons.laptop_mac_rounded)
+/// ```
+class KeyelStableAvatar extends StatelessWidget {
+  /// Creates an avatar with the look derived from [id].
+  const new({required this.id, required this.icon, this.size = 48, super.key});
+
+  /// Entry id (or any stable string) seeding the profile.
+  final String id;
+
+  /// Glyph shown inside the avatar.
+  final IconData icon;
+
+  /// Outer square size in dp.
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = KeyelAvatarProfile.fromId(id);
+    return KeyelAvatar(
+      icon: icon,
+      tone: profile.tone,
+      shape: profile.shape,
+      size: size,
+    );
+  }
+}
