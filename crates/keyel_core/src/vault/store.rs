@@ -96,6 +96,27 @@ impl Session {
         write_atomic(&self.path, &bytes)
     }
 
+    /// Re-wrap the vault key with a new master password.
+    ///
+    /// The current in-memory vault is written first, so unsaved changes are
+    /// not lost. Only the master keyslot is rewritten; the encrypted body is
+    /// copied byte for byte. The session is reopened with `new_master`, which
+    /// also refreshes the cached header.
+    pub fn change_master(
+        &mut self,
+        old_master: &str,
+        new_master: &str,
+        params: Argon2Params,
+    ) -> Result<(), Error> {
+        self.save()?;
+        let path = self.path.clone();
+        let bytes = fs::read(&path).map_err(storage_error)?;
+        let rekeyed = format::change_master(&bytes, old_master, new_master, params)?;
+        write_atomic(&path, &rekeyed)?;
+        *self = Self::open(&path, new_master)?;
+        Ok(())
+    }
+
     /// Drop the vault key and the decrypted payload.
     pub fn lock(self) {
         // `self` is dropped here; `VaultKey` and `Vault` wipe/drop their data.

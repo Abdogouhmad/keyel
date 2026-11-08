@@ -12,6 +12,9 @@ abstract final class KeyelRoutes {
   /// App settings.
   static const settings = '/settings';
 
+  /// Temporary 0.4.0 bridge/session debug screen.
+  static const debug = '/debug';
+
   /// Entry detail and editor root.
   static const entryRoot = '/entry';
 

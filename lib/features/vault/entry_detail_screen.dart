@@ -2,36 +2,70 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/security/password_strength.dart';
+import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/vault/vault_entry.dart';
+import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// Detail screen for a single login, card or secure note.
-class EntryDetailScreen extends StatefulWidget {
+class EntryDetailScreen extends ConsumerStatefulWidget {
   /// Creates an entry detail screen.
-  const new({required this.entryId, super.key});
+  const new({
+    required this.entryId,
+    this.isEmbedded = false,
+    this.onDeleted,
+    this.onEdited,
+    super.key,
+  });
 
-  /// Identifier of the demo entry to show.
+  /// Identifier of the entry to show.
   final String entryId;
 
+  /// Whether this view is embedded in a wide-screen multi-pane layout.
+  final bool isEmbedded;
+
+  /// Optional callback when entry is deleted.
+  final VoidCallback? onDeleted;
+
+  /// Optional callback when entry is edited.
+  final VoidCallback? onEdited;
+
   @override
-  State<EntryDetailScreen> createState() => _EntryDetailScreenState();
+  ConsumerState<EntryDetailScreen> createState() => _EntryDetailScreenState();
 }
 
-class _EntryDetailScreenState extends State<EntryDetailScreen> {
+class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
+  EntryDetailDto? _detail;
   VaultEntry? _entry;
-  bool _revealed = false;
-  bool _favorite = false;
+  bool _loading = true;
+  String? _revealedPassword;
+  String? _revealedCardNumber;
+  String? _revealedCvv;
+  String? _revealedNote;
   Timer? _hideTimer;
 
   @override
   void initState() {
     super.initState();
-    _entry = vaultEntryById(widget.entryId);
-    _favorite = _entry?.favorite ?? false;
+    unawaited(_loadEntry());
+  }
+
+  @override
+  void didUpdateWidget(covariant EntryDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entryId != widget.entryId) {
+      _revealedPassword = null;
+      _revealedCardNumber = null;
+      _revealedCvv = null;
+      _revealedNote = null;
+      _hideTimer?.cancel();
+      unawaited(_loadEntry());
+    }
   }
 
   @override
@@ -40,13 +74,95 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
     super.dispose();
   }
 
-  void _toggleReveal() {
-    _hideTimer?.cancel();
-    setState(() => _revealed = !_revealed);
-    if (_revealed) {
-      _hideTimer = Timer(const Duration(seconds: 15), () {
-        if (mounted) setState(() => _revealed = false);
+  Future<void> _loadEntry() async {
+    setState(() => _loading = true);
+    try {
+      final detail = await ref
+          .read(vaultRepositoryProvider)
+          .getEntry(widget.entryId);
+      if (!mounted) return;
+      setState(() {
+        _detail = detail;
+        _entry = VaultEntry.fromDetail(detail);
+        _loading = false;
       });
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _detail = null;
+        _entry = null;
+        _loading = false;
+      });
+      showKeyelSnack(context, describeVaultError(error));
+    }
+  }
+
+  Future<void> _toggleRevealPassword() async {
+    if (_revealedPassword != null) {
+      setState(() => _revealedPassword = null);
+      _hideTimer?.cancel();
+      return;
+    }
+
+    try {
+      final plain = await ref
+          .read(vaultRepositoryProvider)
+          .revealField(widget.entryId, SecretFieldDto.loginPassword);
+      if (!mounted) return;
+      setState(() => _revealedPassword = plain);
+      _hideTimer?.cancel();
+      _hideTimer = Timer(const Duration(seconds: 15), () {
+        if (mounted) setState(() => _revealedPassword = null);
+      });
+    } on Object catch (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
+    }
+  }
+
+  Future<void> _toggleRevealCard() async {
+    if (_revealedCardNumber != null) {
+      setState(() {
+        _revealedCardNumber = null;
+        _revealedCvv = null;
+      });
+      return;
+    }
+
+    try {
+      final number = await ref
+          .read(vaultRepositoryProvider)
+          .revealField(widget.entryId, SecretFieldDto.cardNumber);
+      String? cvv;
+      try {
+        cvv = await ref
+            .read(vaultRepositoryProvider)
+            .revealField(widget.entryId, SecretFieldDto.cardCvv);
+      } on Object catch (_) {}
+
+      if (!mounted) return;
+      setState(() {
+        _revealedCardNumber = number;
+        _revealedCvv = cvv;
+      });
+    } on Object catch (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
+    }
+  }
+
+  Future<void> _toggleRevealNote() async {
+    if (_revealedNote != null) {
+      setState(() => _revealedNote = null);
+      return;
+    }
+
+    try {
+      final content = await ref
+          .read(vaultRepositoryProvider)
+          .revealField(widget.entryId, SecretFieldDto.noteContent);
+      if (!mounted) return;
+      setState(() => _revealedNote = content);
+    } on Object catch (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
     }
   }
 
@@ -55,24 +171,71 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
     showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
   }
 
-  void _toggleFavorite(VaultEntry entry) {
-    setState(() => _favorite = !_favorite);
-    showKeyelSnack(
-      context,
-      _favorite ? '${entry.title} pinned to favourites' : 'Favourite removed',
-      icon: _favorite ? Icons.star_rounded : Icons.star_outline_rounded,
-    );
+  Future<void> _copyPassword() async {
+    if (_revealedPassword != null) {
+      _copy(_revealedPassword!, 'Password copied • Clears in 30s');
+      return;
+    }
+
+    try {
+      final plain = await ref
+          .read(vaultRepositoryProvider)
+          .revealField(widget.entryId, SecretFieldDto.loginPassword);
+      if (!mounted) return;
+      _copy(plain, 'Password copied • Clears in 30s');
+    } on Object catch (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
+    }
   }
 
-  Future<void> _confirmDelete(VaultEntry entry) async {
+  Future<void> _toggleFavorite() async {
+    final detail = _detail;
+    if (detail == null) return;
+
+    final newFav = !detail.favorite;
+    try {
+      await ref
+          .read(vaultRepositoryProvider)
+          .upsertEntry(
+            EntryDraft(
+              id: detail.id,
+              kind: detail.kind,
+              title: detail.title,
+              tags: detail.tags,
+              folderId: detail.folderId,
+              favorite: newFav,
+              username: detail.login?.username ?? '',
+              url: detail.login?.url ?? '',
+              totpAlgorithm:
+                  detail.login?.totpAlgorithm ?? TotpAlgorithmDto.sha1,
+              totpDigits: detail.login?.totpDigits ?? 6,
+              totpPeriod: detail.login?.totpPeriod ?? 30,
+              cardholder: detail.card?.cardholder ?? '',
+              cardExpiry: detail.card?.expiry ?? '',
+              cardBrand: detail.card?.brand,
+            ),
+          );
+      await _loadEntry();
+      if (!mounted) return;
+      showKeyelSnack(
+        context,
+        newFav ? '${detail.title} pinned to favorites' : 'Favorite removed',
+        icon: newFav ? Icons.star_rounded : Icons.star_outline_rounded,
+      );
+    } on Object catch (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final detail = _detail;
+    if (detail == null) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Delete ${entry.title}?'),
-        content: const Text(
-          'This demo entry is not connected to encrypted storage yet, so '
-          'nothing will be removed.',
-        ),
+        title: Text('Delete ${detail.title}?'),
+        content: const Text('This item will be moved to the trash.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -87,43 +250,46 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
     );
 
     if ((confirmed ?? false) && mounted) {
-      showKeyelSnack(
-        context,
-        'Deleting entries arrives with encrypted storage.',
-        icon: Icons.delete_outline_rounded,
-      );
+      try {
+        await ref.read(vaultRepositoryProvider).deleteEntry(detail.id);
+        if (!mounted) return;
+        showKeyelSnack(
+          context,
+          '${detail.title} moved to trash',
+          icon: Icons.delete_outline_rounded,
+        );
+        widget.onDeleted?.call();
+        if (!widget.isEmbedded && context.canPop()) {
+          context.pop();
+        }
+      } on Object catch (error) {
+        if (mounted) showKeyelSnack(context, describeVaultError(error));
+      }
     }
   }
 
-  void _handleMenu(String action, VaultEntry entry) {
-    switch (action) {
-      case 'edit':
-        unawaited(context.push(KeyelRoutes.entryEdit(entry.id)));
-        return;
-      case 'move':
-        showKeyelSnack(
-          context,
-          'Moving entries between folders is coming soon.',
-          icon: Icons.drive_file_move_rounded,
-        );
-        return;
-      case 'duplicate':
-        showKeyelSnack(
-          context,
-          'Duplicating entries is coming with the storage layer.',
-          icon: Icons.content_copy_rounded,
-        );
-        return;
-      case 'delete':
-        unawaited(_confirmDelete(entry));
-        return;
+  Future<void> _openEdit() async {
+    final detail = _detail;
+    if (detail == null) return;
+
+    await context.push(KeyelRoutes.entryEdit(detail.id));
+    if (mounted) {
+      await _loadEntry();
+      widget.onEdited?.call();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final entry = _entry;
-    if (entry == null) return _MissingEntry(entryId: widget.entryId);
+    final detail = _detail;
+    if (entry == null || detail == null) {
+      return _MissingEntry(entryId: widget.entryId);
+    }
 
     final scheme = Theme.of(context).colorScheme;
 
@@ -134,10 +300,12 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
         child: Column(
           children: [
             _DetailBar(
-              favorite: _favorite,
+              favorite: detail.favorite,
+              isEmbedded: widget.isEmbedded,
               onBack: () => context.pop(),
-              onFavorite: () => _toggleFavorite(entry),
-              onMenu: (action) => _handleMenu(action, entry),
+              onFavorite: _toggleFavorite,
+              onEdit: _openEdit,
+              onDelete: _confirmDelete,
             ),
             Expanded(
               child: ListView(
@@ -150,60 +318,44 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
                 children: [
                   _Hero(entry: entry),
                   if (entry.kind == VaultEntryKind.card)
-                    _CardDetails(entry: entry, onCopy: _copy)
-                  else
+                    _CardDetails(
+                      entry: entry,
+                      detail: detail,
+                      revealedNumber: _revealedCardNumber,
+                      revealedCvv: _revealedCvv,
+                      onToggleReveal: _toggleRevealCard,
+                      onCopy: _copy,
+                    )
+                  else if (entry.kind == VaultEntryKind.login)
                     _Credentials(
                       entry: entry,
-                      revealed: _revealed,
-                      onToggleReveal: _toggleReveal,
+                      detail: detail,
+                      revealedPassword: _revealedPassword,
+                      onToggleReveal: _toggleRevealPassword,
                       onCopy: _copy,
+                      onCopyPassword: _copyPassword,
                       onOpenWebsite: () => showKeyelSnack(
                         context,
-                        'Opening links arrives in a later update.',
+                        'Website: ${detail.login?.url ?? ""}',
                         icon: Icons.open_in_new_rounded,
                       ),
+                    )
+                  else
+                    _NoteDetails(
+                      entry: entry,
+                      detail: detail,
+                      revealedContent: _revealedNote,
+                      onToggleReveal: _toggleRevealNote,
+                      onCopy: _copy,
                     ),
-                  if (entry.hasTotp && entry.totpCode != null) ...[
-                    const SizedBox(height: KeyelSpacing.md),
-                    KeyelSectionCard(
-                      title: 'One-time code (2FA)',
-                      icon: Icons.phonelink_lock_rounded,
-                      showBorder: true,
-                      trailing: Text(
-                        'RFC 6238 TOTP',
-                        style: Theme.of(context).textTheme.labelSmall
-                            ?.copyWith(color: scheme.outline),
-                      ),
-                      child: KeyelTotpDisplay(
-                        code: entry.totpCode!,
-                        onCopy: () => _copy(
-                          entry.totpCode!,
-                          '2FA code copied to clipboard',
-                        ),
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: KeyelSpacing.md),
-                  _HealthCard(entry: entry),
-                  if (entry.notes != null) ...[
+                  _HealthCard(
+                    entry: entry,
+                    revealedPassword: _revealedPassword,
+                  ),
+                  if (detail.hasNotes) ...[
                     const SizedBox(height: KeyelSpacing.md),
-                    KeyelSectionCard(
-                      title: 'Secure notes',
-                      icon: Icons.description_rounded,
-                      showBorder: true,
-                      child: Container(
-                        padding: const EdgeInsets.all(KeyelSpacing.md - 2),
-                        decoration: BoxDecoration(
-                          color: scheme.surfaceContainer,
-                          borderRadius: BorderRadius.circular(KeyelRadii.field),
-                        ),
-                        child: Text(
-                          entry.notes!,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: scheme.onSurface, height: 1.5),
-                        ),
-                      ),
-                    ),
+                    _NotesCard(entryId: detail.id, onCopy: _copy),
                   ],
                   const SizedBox(height: KeyelSpacing.lg),
                 ],
@@ -212,26 +364,30 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          color: scheme.surface,
-          padding: const EdgeInsets.fromLTRB(
-            KeyelSpacing.md,
-            KeyelSpacing.sm,
-            KeyelSpacing.md,
-            KeyelSpacing.md,
-          ),
-          child: KeyelPillButton(
-            label: entry.kind == VaultEntryKind.card
-                ? 'Edit card'
-                : 'Edit login',
-            icon: Icons.edit_rounded,
-            tone: KeyelButtonTone.tonal,
-            onPressed: () => context.push(KeyelRoutes.entryEdit(entry.id)),
-          ),
-        ),
-      ),
+      bottomNavigationBar: widget.isEmbedded
+          ? null
+          : SafeArea(
+              top: false,
+              child: Container(
+                color: scheme.surface,
+                padding: const EdgeInsets.fromLTRB(
+                  KeyelSpacing.md,
+                  KeyelSpacing.sm,
+                  KeyelSpacing.md,
+                  KeyelSpacing.md,
+                ),
+                child: KeyelPillButton(
+                  label: switch (entry.kind) {
+                    VaultEntryKind.card => 'Edit card',
+                    VaultEntryKind.note => 'Edit note',
+                    VaultEntryKind.login => 'Edit login',
+                  },
+                  icon: Icons.edit_rounded,
+                  tone: KeyelButtonTone.tonal,
+                  onPressed: _openEdit,
+                ),
+              ),
+            ),
     );
   }
 }
@@ -239,97 +395,61 @@ class _EntryDetailScreenState extends State<EntryDetailScreen> {
 class _DetailBar extends StatelessWidget {
   const new({
     required this.favorite,
+    required this.isEmbedded,
     required this.onBack,
     required this.onFavorite,
-    required this.onMenu,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final bool favorite;
+  final bool isEmbedded;
   final VoidCallback onBack;
   final VoidCallback onFavorite;
-  final ValueChanged<String> onMenu;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return SizedBox(
-      height: 64,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.sm),
-        child: Row(
-          children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: KeyelSpacing.sm,
+        vertical: KeyelSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          if (!isEmbedded)
             KeyelIconHull(
               icon: Icons.arrow_back_rounded,
               tooltip: 'Back',
               onPressed: onBack,
-              foreground: scheme.onSurface,
-            ),
-            const Spacer(),
-            KeyelIconHull(
-              icon: favorite ? Icons.star_rounded : Icons.star_outline_rounded,
-              tooltip: favorite ? 'Remove favourite' : 'Add favourite',
-              onPressed: onFavorite,
-              foreground: favorite ? scheme.tertiary : scheme.onSurfaceVariant,
-            ),
-            PopupMenuButton<String>(
-              tooltip: 'More options',
-              icon: Icon(Icons.more_vert_rounded, color: scheme.onSurface),
-              onSelected: onMenu,
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: _MenuItem(icon: Icons.edit_rounded, label: 'Edit'),
-                ),
-                const PopupMenuItem(
-                  value: 'move',
-                  child: _MenuItem(
-                    icon: Icons.drive_file_move_rounded,
-                    label: 'Move',
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'duplicate',
-                  child: _MenuItem(
-                    icon: Icons.content_copy_rounded,
-                    label: 'Duplicate',
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: _MenuItem(
-                    icon: Icons.delete_outline_rounded,
-                    label: 'Delete',
-                    color: scheme.error,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            )
+          else
+            const SizedBox(width: KeyelSpacing.md),
+          const Spacer(),
+          KeyelIconHull(
+            icon: favorite ? Icons.star_rounded : Icons.star_outline_rounded,
+            tooltip: favorite ? 'Remove favorite' : 'Add to favorites',
+            foreground: favorite ? scheme.primary : scheme.onSurfaceVariant,
+            onPressed: onFavorite,
+          ),
+          const SizedBox(width: KeyelSpacing.xs),
+          KeyelIconHull(
+            icon: Icons.edit_rounded,
+            tooltip: 'Edit entry',
+            onPressed: onEdit,
+          ),
+          const SizedBox(width: KeyelSpacing.xs),
+          KeyelIconHull(
+            icon: Icons.delete_outline_rounded,
+            tooltip: 'Delete entry',
+            foreground: scheme.error,
+            onPressed: onDelete,
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _MenuItem extends StatelessWidget {
-  const new({required this.icon, required this.label, this.color});
-
-  final IconData icon;
-  final String label;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final foreground = color ?? scheme.onSurface;
-
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: color ?? scheme.onSurfaceVariant),
-        const SizedBox(width: KeyelSpacing.sm + 4),
-        Text(label, style: TextStyle(color: foreground)),
-      ],
     );
   }
 }
@@ -376,7 +496,7 @@ class _Hero extends StatelessWidget {
             children: [
               KeyelBadge(
                 label: entry.folder,
-                icon: Icons.work_rounded,
+                icon: Icons.folder_rounded,
                 background: scheme.secondaryContainer,
                 foreground: scheme.onSecondaryContainer,
               ),
@@ -398,23 +518,29 @@ class _Hero extends StatelessWidget {
 class _Credentials extends StatelessWidget {
   const new({
     required this.entry,
-    required this.revealed,
+    required this.detail,
+    required this.revealedPassword,
     required this.onToggleReveal,
     required this.onCopy,
+    required this.onCopyPassword,
     required this.onOpenWebsite,
   });
 
   final VaultEntry entry;
-  final bool revealed;
+  final EntryDetailDto detail;
+  final String? revealedPassword;
   final VoidCallback onToggleReveal;
   final void Function(String value, String message) onCopy;
+  final VoidCallback onCopyPassword;
   final VoidCallback onOpenWebsite;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final password = revealed ? entry.password : List.filled(16, '•').join();
+    final username = detail.login?.username ?? entry.username;
+    final isRevealed = revealedPassword != null;
+    final displayPass = isRevealed ? revealedPassword! : '••••••••••••';
 
     return KeyelSectionCard(
       title: 'Credentials',
@@ -422,28 +548,29 @@ class _Credentials extends StatelessWidget {
       showBorder: true,
       child: Column(
         children: [
-          KeyelFieldSurface(
-            label: 'Username',
-            trailing: KeyelIconHull(
-              icon: Icons.content_copy_rounded,
-              tooltip: 'Copy username',
-              onPressed: () =>
-                  onCopy(entry.username, 'Username copied to clipboard'),
-              background: scheme.surfaceContainerHighest,
-            ),
-            child: Text(
-              entry.username,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w500,
+          if (username.isNotEmpty)
+            KeyelFieldSurface(
+              label: 'Username',
+              trailing: KeyelIconHull(
+                icon: Icons.content_copy_rounded,
+                tooltip: 'Copy username',
+                onPressed: () =>
+                    onCopy(username, 'Username copied to clipboard'),
+                background: scheme.surfaceContainerHighest,
+              ),
+              child: Text(
+                username,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: KeyelSpacing.sm + 4),
+          if (username.isNotEmpty) const SizedBox(height: KeyelSpacing.sm + 4),
           KeyelFieldSurface(
-            label: 'Master Password',
+            label: 'Password',
             trailing: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
@@ -454,10 +581,10 @@ class _Credentials extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   KeyelIconHull(
-                    icon: revealed
+                    icon: isRevealed
                         ? Icons.visibility_off_rounded
                         : Icons.visibility_rounded,
-                    tooltip: revealed ? 'Hide password' : 'Reveal password',
+                    tooltip: isRevealed ? 'Hide password' : 'Reveal password',
                     onPressed: onToggleReveal,
                     size: 44,
                     iconSize: 20,
@@ -470,10 +597,7 @@ class _Credentials extends StatelessWidget {
                   KeyelIconHull(
                     icon: Icons.content_copy_rounded,
                     tooltip: 'Copy password',
-                    onPressed: () => onCopy(
-                      entry.password,
-                      'Password copied • Clears in 30s',
-                    ),
+                    onPressed: onCopyPassword,
                     foreground: scheme.primary,
                     size: 44,
                     iconSize: 20,
@@ -482,29 +606,29 @@ class _Credentials extends StatelessWidget {
               ),
             ),
             child: Text(
-              password,
+              displayPass,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: KeyelTheme.mono(
                 context,
-                fontSize: revealed ? 18 : 19,
+                fontSize: isRevealed ? 18 : 19,
                 fontWeight: FontWeight.w700,
-                letterSpacing: revealed ? 1.2 : 3,
+                letterSpacing: isRevealed ? 1.2 : 3,
               ),
             ),
           ),
-          if (entry.website != null) ...[
+          if ((detail.login?.url ?? '').isNotEmpty) ...[
             const SizedBox(height: KeyelSpacing.sm + 4),
             KeyelFieldSurface(
               label: 'Website URL',
               trailing: KeyelIconHull(
                 icon: Icons.open_in_new_rounded,
-                tooltip: 'Open website',
+                tooltip: 'Website link',
                 onPressed: onOpenWebsite,
                 background: scheme.surfaceContainerHighest,
               ),
               child: Text(
-                entry.website!,
+                detail.login!.url,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodyMedium?.copyWith(
@@ -523,15 +647,29 @@ class _Credentials extends StatelessWidget {
 }
 
 class _CardDetails extends StatelessWidget {
-  const new({required this.entry, required this.onCopy});
+  const new({
+    required this.entry,
+    required this.detail,
+    required this.revealedNumber,
+    required this.revealedCvv,
+    required this.onToggleReveal,
+    required this.onCopy,
+  });
 
   final VaultEntry entry;
+  final EntryDetailDto detail;
+  final String? revealedNumber;
+  final String? revealedCvv;
+  final VoidCallback onToggleReveal;
   final void Function(String value, String message) onCopy;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final card = detail.card;
+    final isRevealed = revealedNumber != null;
+    final displayNum = isRevealed ? revealedNumber! : '•••• •••• •••• ••••';
 
     return KeyelSectionCard(
       title: 'Card details',
@@ -541,59 +679,184 @@ class _CardDetails extends StatelessWidget {
         children: [
           KeyelFieldSurface(
             label: 'Card number',
-            trailing: KeyelIconHull(
-              icon: Icons.content_copy_rounded,
-              tooltip: 'Copy card number',
-              onPressed: () => onCopy(
-                entry.cardNumber ?? '',
-                'Card number copied to clipboard',
+            trailing: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(KeyelRadii.pill),
               ),
-              background: scheme.surfaceContainerHighest,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  KeyelIconHull(
+                    icon: isRevealed
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
+                    tooltip: isRevealed ? 'Hide number' : 'Reveal number',
+                    onPressed: onToggleReveal,
+                    size: 44,
+                    iconSize: 20,
+                  ),
+                  KeyelIconHull(
+                    icon: Icons.content_copy_rounded,
+                    tooltip: 'Copy card number',
+                    onPressed: () => onCopy(
+                      revealedNumber ?? '',
+                      'Card number copied to clipboard',
+                    ),
+                    foreground: scheme.primary,
+                    size: 44,
+                    iconSize: 20,
+                  ),
+                ],
+              ),
             ),
             child: Text(
-              entry.cardNumber ?? '',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              displayNum,
               style: KeyelTheme.mono(
                 context,
-                fontSize: 17,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 1,
+                letterSpacing: 2,
               ),
             ),
           ),
-          const SizedBox(height: KeyelSpacing.sm + 4),
-          Row(
-            children: [
-              Expanded(
-                child: KeyelFieldSurface(
-                  label: 'Expiry',
-                  child: Text(
-                    entry.cardExpiry ?? '',
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+          if ((card?.cardholder ?? '').isNotEmpty) ...[
+            const SizedBox(height: KeyelSpacing.sm + 4),
+            KeyelFieldSurface(
+              label: 'Cardholder name',
+              trailing: KeyelIconHull(
+                icon: Icons.content_copy_rounded,
+                tooltip: 'Copy cardholder',
+                onPressed: () =>
+                    onCopy(card!.cardholder, 'Cardholder name copied'),
+                background: scheme.surfaceContainerHighest,
+              ),
+              child: Text(
+                card!.cardholder,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: KeyelSpacing.sm + 4),
-              Expanded(
-                child: KeyelFieldSurface(
-                  label: 'Cardholder',
-                  child: Text(
-                    entry.cardholder ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
+            ),
+          ],
+          if ((card?.expiry ?? '').isNotEmpty) ...[
+            const SizedBox(height: KeyelSpacing.sm + 4),
+            Row(
+              children: [
+                Expanded(
+                  child: KeyelFieldSurface(
+                    label: 'Expires',
+                    child: Text(
+                      card!.expiry,
+                      style: KeyelTheme.mono(
+                        context,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(width: KeyelSpacing.sm),
+                Expanded(
+                  child: KeyelFieldSurface(
+                    label: 'Security code (CVV)',
+                    child: Text(
+                      revealedCvv ?? '•••',
+                      style: KeyelTheme.mono(
+                        context,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _NoteDetails extends StatelessWidget {
+  const new({
+    required this.entry,
+    required this.detail,
+    required this.revealedContent,
+    required this.onToggleReveal,
+    required this.onCopy,
+  });
+
+  final VaultEntry entry;
+  final EntryDetailDto detail;
+  final String? revealedContent;
+  final VoidCallback onToggleReveal;
+  final void Function(String value, String message) onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return KeyelSectionCard(
+      title: 'Secure note content',
+      icon: Icons.description_rounded,
+      showBorder: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                revealedContent != null
+                    ? 'Decrypted note:'
+                    : 'Encrypted content',
+                style: textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              KeyelPillButton(
+                label: revealedContent != null ? 'Hide content' : 'Reveal note',
+                icon: revealedContent != null
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
+                tone: KeyelButtonTone.tonal,
+                onPressed: onToggleReveal,
               ),
             ],
           ),
+          if (revealedContent != null) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(KeyelSpacing.md),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(KeyelRadii.field),
+              ),
+              child: SelectableText(
+                revealedContent!,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: KeyelSpacing.sm),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => onCopy(revealedContent!, 'Note copied'),
+                icon: const Icon(Icons.content_copy_rounded, size: 16),
+                label: const Text('Copy full note'),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -601,85 +864,155 @@ class _CardDetails extends StatelessWidget {
 }
 
 class _HealthCard extends StatelessWidget {
-  const new({required this.entry});
+  const new({required this.entry, this.revealedPassword});
 
   final VaultEntry entry;
+  final String? revealedPassword;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final hasPassword = entry.hasPassword;
-    final strength = PasswordStrength.estimate(entry.password);
+    final pass = revealedPassword;
 
-    final (accent, container, onContainer, message) = !hasPassword
-        ? (
-            scheme.onSurfaceVariant,
-            scheme.surfaceContainerHigh,
-            scheme.onSurfaceVariant,
-            'No password stored for this item.',
-          )
-        : switch (strength.level) {
-            PasswordStrengthLevel.strong => (
-              scheme.strong,
-              scheme.strongContainer,
-              scheme.onStrongContainer,
-              'Last changed 4 months ago • No breaches found',
+    if (pass == null) {
+      return KeyelSectionCard(
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(KeyelRadii.field),
+              ),
+              child: Icon(Icons.lock_rounded, color: scheme.primary),
             ),
-            PasswordStrengthLevel.fair => (
-              scheme.fair,
-              scheme.fairContainer,
-              scheme.onFairContainer,
-              'Consider rotating this password when convenient.',
+            const SizedBox(width: KeyelSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Encrypted & Protected',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    'Secrets stay encrypted with Argon2id & ChaCha20-Poly1305.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            PasswordStrengthLevel.weak => (
-              scheme.weak,
-              scheme.weakContainer,
-              scheme.onWeakContainer,
-              'Rotate this password now.',
-            ),
-          };
+          ],
+        ),
+      );
+    }
 
-    final label = hasPassword
-        ? '${strength.label} password (${entry.password.length} chars)'
-        : 'No password';
+    final strength = PasswordStrength.estimate(pass);
+    final (accent, container, onContainer) = switch (strength.level) {
+      PasswordStrengthLevel.strong => (
+        scheme.strong,
+        scheme.strongContainer,
+        scheme.onStrongContainer,
+      ),
+      PasswordStrengthLevel.fair => (
+        scheme.fair,
+        scheme.fairContainer,
+        scheme.onFairContainer,
+      ),
+      PasswordStrengthLevel.weak => (
+        scheme.weak,
+        scheme.weakContainer,
+        scheme.onWeakContainer,
+      ),
+    };
 
     return KeyelSectionCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: container, shape: BoxShape.circle),
-            child: Icon(
-              Icons.health_and_safety_rounded,
-              size: 22,
-              color: accent,
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: container,
+              borderRadius: BorderRadius.circular(KeyelRadii.field),
             ),
+            child: Icon(Icons.security_rounded, color: accent),
           ),
-          const SizedBox(width: KeyelSpacing.sm + 4),
+          const SizedBox(width: KeyelSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                KeyelBadge(
-                  label: label,
-                  background: container,
-                  foreground: onContainer,
-                ),
-                const SizedBox(height: KeyelSpacing.sm),
                 Text(
-                  message,
-                  style: textTheme.bodyMedium?.copyWith(
+                  '${strength.label} password (${pass.length} chars)',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: onContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Score: ${(strength.score * 100).round()}%',
+                  style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
                 ),
+                const SizedBox(height: KeyelSpacing.sm),
+                KeyelStrengthMeter(strength: strength),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _NotesCard extends ConsumerWidget {
+  const new({required this.entryId, required this.onCopy});
+
+  final String entryId;
+  final void Function(String value, String message) onCopy;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return FutureBuilder<String>(
+      future: ref
+          .read(vaultRepositoryProvider)
+          .revealField(entryId, SecretFieldDto.entryNotes),
+      builder: (context, snapshot) {
+        final notes = snapshot.data;
+        if (notes == null || notes.isEmpty) return const SizedBox.shrink();
+
+        return KeyelSectionCard(
+          title: 'Notes',
+          icon: Icons.notes_rounded,
+          showBorder: true,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(KeyelSpacing.md),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(KeyelRadii.field),
+            ),
+            child: SelectableText(
+              notes,
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurface, height: 1.5),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -691,37 +1024,26 @@ class _MissingEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: scheme.surface,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(KeyelSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.search_off_rounded, size: 56, color: scheme.outline),
-                const SizedBox(height: KeyelSpacing.lg),
-                Text(
-                  'Entry not found',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: KeyelSpacing.sm),
-                Text(
-                  'No demo entry exists for "$entryId".',
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: KeyelSpacing.lg),
-                KeyelPillButton(
-                  label: 'Back to vault',
-                  expand: false,
-                  onPressed: () => context.go(KeyelRoutes.vault),
-                ),
-              ],
-            ),
+      appBar: AppBar(title: const Text('Item not found')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(KeyelSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.search_off_rounded, size: 56),
+              const SizedBox(height: KeyelSpacing.md),
+              Text(
+                'No entry with ID "$entryId" exists.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: KeyelSpacing.md),
+              FilledButton(
+                onPressed: () => context.pop(),
+                child: const Text('Go back'),
+              ),
+            ],
           ),
         ),
       ),

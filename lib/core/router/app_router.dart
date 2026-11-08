@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/features/debug/debug_vault_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
@@ -65,6 +66,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: KeyelRoutes.newEntry,
       builder: (context, state) => const EntryEditScreen(),
+    ),
+    GoRoute(
+      path: KeyelRoutes.debug,
+      builder: (context, state) => const DebugVaultScreen(),
     ),
     GoRoute(
       path: '${KeyelRoutes.entryRoot}/:id/edit',

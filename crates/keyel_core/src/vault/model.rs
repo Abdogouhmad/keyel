@@ -132,6 +132,7 @@ impl Entry {
             favorite: self.favorite,
             folder_id: self.folder_id,
             has_totp: self.has_totp(),
+            deleted_at: self.deleted_at,
         }
     }
 
@@ -317,6 +318,8 @@ pub struct EntrySummary {
     pub folder_id: Option<Uuid>,
     /// Whether the entry has TOTP.
     pub has_totp: bool,
+    /// Trash marker, if soft-deleted (Unix seconds).
+    pub deleted_at: Option<u64>,
 }
 
 /// The decrypted vault payload.

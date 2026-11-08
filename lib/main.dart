@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/router/app_router.dart';
+import 'package:keyel/data/vault_paths.dart';
+import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -20,7 +23,16 @@ Future<void> main() async {
   // Bring up the Rust side (FRB).
   await RustLib.init();
 
-  runApp(const KeyelApp());
+  // Point the bridge at the app-private vault file before any UI runs.
+  try {
+    vault_api.init(path: await defaultVaultPath());
+  } on Object catch (error) {
+    // Never block startup on storage problems; the debug screen reports the
+    // real error when the user tries to create or unlock a vault.
+    debugPrint('Keyel: vault storage is unavailable: $error');
+  }
+
+  runApp(const ProviderScope(child: KeyelApp()));
 }
 
 /// The Keyel root widget.

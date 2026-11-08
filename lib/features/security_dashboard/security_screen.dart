@@ -1,14 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// Security dashboard screen — vault health at a glance.
-///
-/// The metrics are demo values until the vault analyser lands. Layout, colour
-/// semantics and the wavy score ring are final.
-class SecurityScreen extends StatelessWidget {
+class SecurityScreen extends ConsumerWidget {
   /// Creates the security screen.
   const new({super.key});
 
@@ -21,7 +20,7 @@ class SecurityScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -37,15 +36,21 @@ class SecurityScreen extends StatelessWidget {
               trailing: KeyelIconHull(
                 icon: Icons.lock_rounded,
                 tooltip: 'Lock vault',
-                onPressed: () => showKeyelSnack(
-                  context,
-                  'Vault lock is coming with biometric unlock.',
-                  icon: Icons.lock_rounded,
-                ),
+                onPressed: () {
+                  ref.read(vaultSessionProvider.notifier).lock();
+                  showKeyelSnack(
+                    context,
+                    'Vault locked',
+                    icon: Icons.lock_rounded,
+                  );
+                },
               ),
             ),
             Expanded(
-              child: ListView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: ListView(
                 padding: const EdgeInsets.fromLTRB(
                   KeyelSpacing.md,
                   KeyelSpacing.xs,
@@ -215,10 +220,12 @@ class SecurityScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ],
+          ),
         ),
-      ),
-    );
+      ],
+    ),
+  ),
+);
   }
 }
 

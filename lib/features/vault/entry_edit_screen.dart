@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/security/password_strength.dart';
+import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/vault/vault_entry.dart';
 import 'package:keyel/src/rust/api/generator.dart';
+import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// Create or edit a vault entry.
-class EntryEditScreen extends StatefulWidget {
+class EntryEditScreen extends ConsumerStatefulWidget {
   /// Creates the editor. Omit [entryId] to create a new entry.
   const new({this.entryId, super.key});
 
@@ -15,10 +20,10 @@ class EntryEditScreen extends StatefulWidget {
   final String? entryId;
 
   @override
-  State<EntryEditScreen> createState() => _EntryEditScreenState();
+  ConsumerState<EntryEditScreen> createState() => _EntryEditScreenState();
 }
 
-class _EntryEditScreenState extends State<EntryEditScreen> {
+class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
   final _titleController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -28,7 +33,6 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
   final _cardExpiryController = TextEditingController();
   final _cardholderController = TextEditingController();
 
-  VaultEntry? _existing;
   VaultEntryKind _kind = VaultEntryKind.login;
   bool _favorite = false;
   bool _obscurePassword = true;
@@ -36,20 +40,72 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
   @override
   void initState() {
     super.initState();
-    final existing = widget.entryId == null
-        ? null
-        : vaultEntryById(widget.entryId!);
-    _existing = existing;
-    _kind = existing?.kind ?? VaultEntryKind.login;
-    _favorite = existing?.favorite ?? false;
-    _titleController.text = existing?.title ?? '';
-    _usernameController.text = existing?.username ?? '';
-    _passwordController.text = existing?.password ?? '';
-    _websiteController.text = existing?.website ?? '';
-    _notesController.text = existing?.notes ?? '';
-    _cardNumberController.text = existing?.cardNumber ?? '';
-    _cardExpiryController.text = existing?.cardExpiry ?? '';
-    _cardholderController.text = existing?.cardholder ?? '';
+    if (widget.entryId != null) {
+      unawaited(_loadExisting());
+    }
+  }
+
+  Future<void> _loadExisting() async {
+    try {
+      final repo = ref.read(vaultRepositoryProvider);
+      final detail = await repo.getEntry(widget.entryId!);
+      if (!mounted) return;
+
+      _titleController.text = detail.title;
+      _kind = switch (detail.kind) {
+        EntryKindDto.login => VaultEntryKind.login,
+        EntryKindDto.card => VaultEntryKind.card,
+        EntryKindDto.note => VaultEntryKind.note,
+      };
+      _favorite = detail.favorite;
+
+      if (detail.login != null) {
+        _usernameController.text = detail.login!.username;
+        _websiteController.text = detail.login!.url;
+        if (detail.login!.hasPassword) {
+          try {
+            final pass = await repo.revealField(
+              widget.entryId!,
+              SecretFieldDto.loginPassword,
+            );
+            if (mounted) _passwordController.text = pass;
+          } on Object catch (_) {}
+        }
+      }
+
+      if (detail.card != null) {
+        _cardholderController.text = detail.card!.cardholder;
+        _cardExpiryController.text = detail.card!.expiry;
+        if (detail.card!.hasNumber) {
+          try {
+            final num = await repo.revealField(
+              widget.entryId!,
+              SecretFieldDto.cardNumber,
+            );
+            if (mounted) _cardNumberController.text = num;
+          } on Object catch (_) {}
+        }
+      }
+
+      if (detail.hasNotes) {
+        try {
+          final notes = await repo.revealField(
+            widget.entryId!,
+            detail.kind == EntryKindDto.note
+                ? SecretFieldDto.noteContent
+                : SecretFieldDto.entryNotes,
+          );
+          if (mounted) _notesController.text = notes;
+        } on Object catch (_) {}
+      }
+
+      if (!mounted) return;
+      setState(() {});
+    } on Object catch (error) {
+      if (mounted) {
+        showKeyelSnack(context, describeVaultError(error));
+      }
+    }
   }
 
   @override
@@ -104,8 +160,9 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
     }
   }
 
-  void _save() {
-    if (_titleController.text.trim().isEmpty) {
+  Future<void> _save() async {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
       showKeyelSnack(
         context,
         'Give this entry a title first.',
@@ -114,11 +171,57 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
       return;
     }
 
-    showKeyelSnack(
-      context,
-      _existing == null ? 'Entry created in the demo vault.' : 'Entry updated.',
+    final entryKind = switch (_kind) {
+      VaultEntryKind.login => EntryKindDto.login,
+      VaultEntryKind.card => EntryKindDto.card,
+      VaultEntryKind.note => EntryKindDto.note,
+    };
+
+    final draft = EntryDraft(
+      id: widget.entryId,
+      kind: entryKind,
+      title: title,
+      notes: _kind != VaultEntryKind.note && _notesController.text.isNotEmpty
+          ? _notesController.text
+          : null,
+      tags: const [],
+      favorite: _favorite,
+      username: _usernameController.text.trim(),
+      password: _passwordController.text.isNotEmpty
+          ? _passwordController.text
+          : null,
+      url: _websiteController.text.trim(),
+      totpAlgorithm: TotpAlgorithmDto.sha1,
+      totpDigits: 6,
+      totpPeriod: 30,
+      cardholder: _cardholderController.text.trim(),
+      cardNumber: _cardNumberController.text.isNotEmpty
+          ? _cardNumberController.text.trim()
+          : null,
+      cardExpiry: _cardExpiryController.text.trim(),
+      noteContent:
+          _kind == VaultEntryKind.note && _notesController.text.isNotEmpty
+          ? _notesController.text
+          : null,
     );
-    context.pop();
+
+    try {
+      await ref.read(vaultRepositoryProvider).upsertEntry(draft);
+      if (!mounted) return;
+      showKeyelSnack(
+        context,
+        widget.entryId == null ? 'Entry created in vault.' : 'Entry updated.',
+      );
+      context.pop();
+    } on Object catch (error) {
+      if (mounted) {
+        showKeyelSnack(
+          context,
+          describeVaultError(error),
+          icon: Icons.error_outline_rounded,
+        );
+      }
+    }
   }
 
   @override
@@ -132,7 +235,9 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
         child: Column(
           children: [
             _EditBar(
-              title: _existing == null ? 'New $_kindLabel' : 'Edit $_kindLabel',
+              title: widget.entryId == null
+                  ? 'New $_kindLabel'
+                  : 'Edit $_kindLabel',
               onClose: () => context.pop(),
               onSave: _save,
             ),
@@ -290,7 +395,7 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
                   if (_kind != VaultEntryKind.note) ...[
                     _OrganizationSection(
                       favorite: _favorite,
-                      folder: _existing?.folder ?? 'Personal',
+                      folder: 'General',
                       onFavoriteChanged: (value) =>
                           setState(() => _favorite = value),
                       onFolderTap: () => showKeyelSnack(
@@ -310,7 +415,7 @@ class _EntryEditScreenState extends State<EntryEditScreen> {
                     const SizedBox(height: KeyelSpacing.md),
                     _OrganizationSection(
                       favorite: _favorite,
-                      folder: _existing?.folder ?? 'Personal',
+                      folder: 'General',
                       onFavoriteChanged: (value) =>
                           setState(() => _favorite = value),
                       onFolderTap: () => showKeyelSnack(

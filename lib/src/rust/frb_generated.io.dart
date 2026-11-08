@@ -3,7 +3,11 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/entries.dart';
+import 'api/error.dart';
 import 'api/generator.dart';
+import 'api/models.dart';
+import 'api/session.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -22,10 +26,64 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  RustStreamSink<String> dco_decode_StreamSink_String_Sse(dynamic raw);
+
+  @protected
   String dco_decode_String(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  bool dco_decode_box_autoadd_bool(dynamic raw);
+
+  @protected
+  CardDetailDto dco_decode_box_autoadd_card_detail_dto(dynamic raw);
+
+  @protected
+  EntryDraft dco_decode_box_autoadd_entry_draft(dynamic raw);
+
+  @protected
+  EntryKindDto dco_decode_box_autoadd_entry_kind_dto(dynamic raw);
+
+  @protected
+  LoginDetailDto dco_decode_box_autoadd_login_detail_dto(dynamic raw);
+
+  @protected
+  NoteDetailDto dco_decode_box_autoadd_note_detail_dto(dynamic raw);
+
+  @protected
+  TotpAlgorithmDto dco_decode_box_autoadd_totp_algorithm_dto(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  CardDetailDto dco_decode_card_detail_dto(dynamic raw);
+
+  @protected
+  EntryDetailDto dco_decode_entry_detail_dto(dynamic raw);
+
+  @protected
+  EntryDraft dco_decode_entry_draft(dynamic raw);
+
+  @protected
+  EntryKindDto dco_decode_entry_kind_dto(dynamic raw);
+
+  @protected
+  EntrySummaryDto dco_decode_entry_summary_dto(dynamic raw);
+
+  @protected
+  FolderDto dco_decode_folder_dto(dynamic raw);
 
   @protected
   GeneratorApiError dco_decode_generator_api_error(dynamic raw);
@@ -34,7 +92,64 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<EntrySummaryDto> dco_decode_list_entry_summary_dto(dynamic raw);
+
+  @protected
+  List<FolderDto> dco_decode_list_folder_dto(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  LoginDetailDto dco_decode_login_detail_dto(dynamic raw);
+
+  @protected
+  NoteDetailDto dco_decode_note_detail_dto(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  CardDetailDto? dco_decode_opt_box_autoadd_card_detail_dto(dynamic raw);
+
+  @protected
+  EntryKindDto? dco_decode_opt_box_autoadd_entry_kind_dto(dynamic raw);
+
+  @protected
+  LoginDetailDto? dco_decode_opt_box_autoadd_login_detail_dto(dynamic raw);
+
+  @protected
+  NoteDetailDto? dco_decode_opt_box_autoadd_note_detail_dto(dynamic raw);
+
+  @protected
+  TotpAlgorithmDto? dco_decode_opt_box_autoadd_totp_algorithm_dto(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  SecretFieldDto dco_decode_secret_field_dto(dynamic raw);
+
+  @protected
+  TotpAlgorithmDto dco_decode_totp_algorithm_dto(dynamic raw);
+
+  @protected
+  int dco_decode_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -43,10 +158,79 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  VaultApiError dco_decode_vault_api_error(dynamic raw);
+
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  RustStreamSink<String> sse_decode_StreamSink_String_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  CardDetailDto sse_decode_box_autoadd_card_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  EntryDraft sse_decode_box_autoadd_entry_draft(SseDeserializer deserializer);
+
+  @protected
+  EntryKindDto sse_decode_box_autoadd_entry_kind_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LoginDetailDto sse_decode_box_autoadd_login_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NoteDetailDto sse_decode_box_autoadd_note_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TotpAlgorithmDto sse_decode_box_autoadd_totp_algorithm_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  CardDetailDto sse_decode_card_detail_dto(SseDeserializer deserializer);
+
+  @protected
+  EntryDetailDto sse_decode_entry_detail_dto(SseDeserializer deserializer);
+
+  @protected
+  EntryDraft sse_decode_entry_draft(SseDeserializer deserializer);
+
+  @protected
+  EntryKindDto sse_decode_entry_kind_dto(SseDeserializer deserializer);
+
+  @protected
+  EntrySummaryDto sse_decode_entry_summary_dto(SseDeserializer deserializer);
+
+  @protected
+  FolderDto sse_decode_folder_dto(SseDeserializer deserializer);
 
   @protected
   GeneratorApiError sse_decode_generator_api_error(
@@ -57,7 +241,76 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<EntrySummaryDto> sse_decode_list_entry_summary_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<FolderDto> sse_decode_list_folder_dto(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  LoginDetailDto sse_decode_login_detail_dto(SseDeserializer deserializer);
+
+  @protected
+  NoteDetailDto sse_decode_note_detail_dto(SseDeserializer deserializer);
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  CardDetailDto? sse_decode_opt_box_autoadd_card_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  EntryKindDto? sse_decode_opt_box_autoadd_entry_kind_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  LoginDetailDto? sse_decode_opt_box_autoadd_login_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NoteDetailDto? sse_decode_opt_box_autoadd_note_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TotpAlgorithmDto? sse_decode_opt_box_autoadd_totp_algorithm_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  SecretFieldDto sse_decode_secret_field_dto(SseDeserializer deserializer);
+
+  @protected
+  TotpAlgorithmDto sse_decode_totp_algorithm_dto(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -66,10 +319,97 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  VaultApiError sse_decode_vault_api_error(SseDeserializer deserializer);
+
+  @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_String_Sse(
+    RustStreamSink<String> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_card_detail_dto(
+    CardDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_entry_draft(
+    EntryDraft self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_entry_kind_dto(
+    EntryKindDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_login_detail_dto(
+    LoginDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_note_detail_dto(
+    NoteDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_totp_algorithm_dto(
+    TotpAlgorithmDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_card_detail_dto(CardDetailDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_entry_detail_dto(
+    EntryDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_entry_draft(EntryDraft self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_entry_kind_dto(EntryKindDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_entry_summary_dto(
+    EntrySummaryDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_folder_dto(FolderDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_generator_api_error(
@@ -81,16 +421,106 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_entry_summary_dto(
+    List<EntrySummaryDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_folder_dto(
+    List<FolderDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_login_detail_dto(
+    LoginDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_note_detail_dto(NoteDetailDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_card_detail_dto(
+    CardDetailDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_entry_kind_dto(
+    EntryKindDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_login_detail_dto(
+    LoginDetailDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_note_detail_dto(
+    NoteDetailDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_totp_algorithm_dto(
+    TotpAlgorithmDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_secret_field_dto(
+    SecretFieldDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_totp_algorithm_dto(
+    TotpAlgorithmDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_vault_api_error(VaultApiError self, SseSerializer serializer);
 }
 
 // Section: wire_class

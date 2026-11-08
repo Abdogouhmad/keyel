@@ -290,6 +290,51 @@ fn card_and_note_entries_round_trip() {
     assert_eq!(reopened.vault(), &before);
 }
 
+#[test]
+fn change_master_rewraps_the_same_body() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = temp_vault_path(&dir);
+
+    let (mut session, recovery) = Session::create(&path, "old-master", fast_params()).unwrap();
+    session.add_entry(Entry::note(
+        "kept",
+        Note {
+            content: "x".into(),
+        },
+    ));
+    session.save().unwrap();
+    let before = session.vault().clone();
+
+    session
+        .change_master("old-master", "new-master", fast_params())
+        .unwrap();
+    assert_eq!(session.vault(), &before);
+    session.lock();
+
+    assert_eq!(
+        Session::open(&path, "old-master").unwrap_err(),
+        Error::WrongPassword
+    );
+
+    let reopened = Session::open(&path, "new-master").unwrap();
+    assert_eq!(reopened.vault(), &before);
+
+    // The recovery slot is untouched by a master-password change.
+    let recovered = Session::open_with_recovery(&path, &recovery).unwrap();
+    assert_eq!(recovered.vault(), &before);
+
+    // A wrong old password never rewrites the file.
+    let mut reopened = Session::open(&path, "new-master").unwrap();
+    assert_eq!(
+        reopened
+            .change_master("wrong", "another", fast_params())
+            .unwrap_err(),
+        Error::WrongPassword
+    );
+    reopened.lock();
+    assert!(Session::open(&path, "new-master").is_ok());
+}
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(48))]
 

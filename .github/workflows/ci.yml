@@ -33,6 +33,12 @@ jobs:
           channel: stable
       - name: Rust targets for bridge check
         run: rustup target add x86_64-unknown-linux-gnu
+      - name: Regenerate FRB bindings and fail if out of date
+        run: |
+          cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
+          flutter_rust_bridge_codegen generate --no-web
+          git diff --exit-code -- lib/src/rust rust/src/frb_generated.rs \
+            || (echo "::error::Generated FRB bindings are out of date. Run 'flutter_rust_bridge_codegen generate' and commit the result." && exit 1)
       - name: flutter analyze
         run: flutter analyze
       - name: flutter test

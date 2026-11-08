@@ -11,6 +11,7 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 flutter_rust_bridge = "=2.13.0"
 keyel_core = { path = "../crates/keyel_core" }
+uuid = "1.29.1"
 zeroize = "1.8"
 
 [lints.rust]

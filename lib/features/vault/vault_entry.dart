@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/design_system/keyel_avatar.dart';
 
 /// The kind of secret stored in a vault entry.
@@ -15,12 +16,8 @@ enum VaultEntryKind {
 }
 
 /// Presentation model for a vault row.
-///
-/// The encrypted storage layer is not wired yet, so these entries are local
-/// demo data — they keep the redesigned surfaces honest while the Rust vault
-/// lands. Every value here is fictional.
 class VaultEntry {
-  /// Creates a demo vault entry.
+  /// Creates a vault entry.
   const new({
     required this.id,
     required this.title,
@@ -29,7 +26,7 @@ class VaultEntry {
     this.username = '',
     this.password = '',
     this.website,
-    this.folder = 'Personal',
+    this.folder = 'General',
     this.notes,
     this.favorite = false,
     this.hasTotp = false,
@@ -40,6 +37,74 @@ class VaultEntry {
     this.cardExpiry,
     this.cardholder,
   });
+
+  /// Build a presentation model from a secret-free summary.
+  factory fromSummary(EntrySummaryDto summary) {
+    final shape = KeyelAvatarShape.values[
+        summary.id.hashCode.abs() % KeyelAvatarShape.values.length];
+    final tone = KeyelAvatarTone.values[
+        summary.title.hashCode.abs() % KeyelAvatarTone.values.length];
+    final kind = switch (summary.kind) {
+      EntryKindDto.login => VaultEntryKind.login,
+      EntryKindDto.card => VaultEntryKind.card,
+      EntryKindDto.note => VaultEntryKind.note,
+    };
+    final icon = switch (summary.kind) {
+      EntryKindDto.login => Icons.key_rounded,
+      EntryKindDto.card => Icons.credit_card_rounded,
+      EntryKindDto.note => Icons.sticky_note_2_rounded,
+    };
+
+    return VaultEntry(
+      id: summary.id,
+      title: summary.title,
+      kind: kind,
+      icon: icon,
+      username: summary.subtitle,
+      favorite: summary.favorite,
+      hasTotp: summary.hasTotp,
+      avatarTone: tone,
+      avatarShape: shape,
+      folder: summary.folderId ?? 'General',
+    );
+  }
+
+  /// Build a presentation model from entry detail.
+  factory fromDetail(EntryDetailDto detail) {
+    final shape = KeyelAvatarShape.values[
+        detail.id.hashCode.abs() % KeyelAvatarShape.values.length];
+    final tone = KeyelAvatarTone.values[
+        detail.title.hashCode.abs() % KeyelAvatarTone.values.length];
+    final kind = switch (detail.kind) {
+      EntryKindDto.login => VaultEntryKind.login,
+      EntryKindDto.card => VaultEntryKind.card,
+      EntryKindDto.note => VaultEntryKind.note,
+    };
+    final icon = switch (detail.kind) {
+      EntryKindDto.login => Icons.key_rounded,
+      EntryKindDto.card => Icons.credit_card_rounded,
+      EntryKindDto.note => Icons.sticky_note_2_rounded,
+    };
+
+    return VaultEntry(
+      id: detail.id,
+      title: detail.title,
+      kind: kind,
+      icon: icon,
+      username: detail.login?.username ?? '',
+      website: detail.login?.url,
+      folder: detail.folderId ?? 'General',
+      notes: detail.hasNotes ? '•' : null,
+      favorite: detail.favorite,
+      hasTotp: detail.login?.totpDigits != null,
+      avatarTone: tone,
+      avatarShape: shape,
+      cardholder: detail.card?.cardholder,
+      cardExpiry: detail.card?.expiry,
+      cardNumber:
+          detail.card != null ? (detail.card!.hasNumber ? '••••' : '') : null,
+    );
+  }
 
   /// Stable identifier used by the detail and editor routes.
   final String id;
@@ -118,127 +183,10 @@ class VaultEntry {
   }
 }
 
-/// The fictional vault shown until encrypted storage lands.
-const sampleVaultEntries = <VaultEntry>[
-  VaultEntry(
-    id: 'github',
-    title: 'GitHub',
-    kind: VaultEntryKind.login,
-    icon: Icons.code_rounded,
-    username: 'alex.dev@hey.com',
-    password: 'ghp_K92jMxV84Lqz99!',
-    website: 'github.com',
-    folder: 'Work / Development',
-    favorite: true,
-    hasTotp: true,
-    totpCode: '749204',
-    avatarTone: KeyelAvatarTone.indigo,
-    avatarShape: KeyelAvatarShape.cookie,
-    notes: 'SSH recovery codes backed up in local vault note #04.',
-  ),
-  VaultEntry(
-    id: 'protonmail',
-    title: 'ProtonMail',
-    kind: VaultEntryKind.login,
-    icon: Icons.mail_rounded,
-    username: 'alex@proton.me',
-    password: 'pr0ton!Mail#2026',
-    website: 'proton.me',
-    favorite: true,
-    avatarTone: KeyelAvatarTone.plum,
-    notes: 'Recovery phrase stored offline in the safe.',
-  ),
-  VaultEntry(
-    id: 'amazon',
-    title: 'Amazon',
-    kind: VaultEntryKind.login,
-    icon: Icons.shopping_cart_rounded,
-    username: 'alex.shopping',
-    password: r'Amzn$hop#7721',
-    website: 'amazon.com',
-    folder: 'Shopping',
-  ),
-  VaultEntry(
-    id: 'apple-id',
-    title: 'Apple ID',
-    kind: VaultEntryKind.login,
-    icon: Icons.cloud_rounded,
-    username: 'alex.cloud@icloud.com',
-    password: r'App1e!Cloud$88',
-    website: 'appleid.apple.com',
-    notes: 'Trusted device: Pixel 8 Pro.',
-  ),
-  VaultEntry(
-    id: 'chase-sapphire',
-    title: 'Chase Sapphire',
-    kind: VaultEntryKind.card,
-    icon: Icons.credit_card_rounded,
-    folder: 'Finance',
-    cardNumber: '4532 8811 9024 1176',
-    cardExpiry: '08/29',
-    cardholder: 'Alex Morgan',
-    avatarTone: KeyelAvatarTone.indigo,
-    notes: 'Travel card. Fraud alerts are enabled.',
-  ),
-  VaultEntry(
-    id: 'figma',
-    title: 'Figma',
-    kind: VaultEntryKind.login,
-    icon: Icons.design_services_rounded,
-    username: 'alex.design',
-    password: 'F1gma@Design!7',
-    website: 'figma.com',
-    folder: 'Work / Development',
-    avatarTone: KeyelAvatarTone.plum,
-    avatarShape: KeyelAvatarShape.cookie,
-  ),
-  VaultEntry(
-    id: 'google-workspace',
-    title: 'Google Workspace',
-    kind: VaultEntryKind.login,
-    icon: Icons.work_rounded,
-    username: 'work@keyel.org',
-    password: r'gW0rk$pace!26',
-    website: 'workspace.google.com',
-    folder: 'Work / Development',
-    hasTotp: true,
-    totpCode: '318557',
-    avatarTone: KeyelAvatarTone.slate,
-  ),
-  VaultEntry(
-    id: 'passport',
-    title: 'Passport',
-    kind: VaultEntryKind.note,
-    icon: Icons.badge_rounded,
-    folder: 'Identity',
-    notes:
-        'Passport number and renewal date are stored in the fireproof '
-        'document folder. Renewal reminder set for March 2028.',
-    avatarTone: KeyelAvatarTone.indigo,
-    avatarShape: KeyelAvatarShape.cookie,
-  ),
-  VaultEntry(
-    id: 'recovery-codes',
-    title: 'Recovery codes',
-    kind: VaultEntryKind.note,
-    icon: Icons.description_rounded,
-    folder: 'Work / Development',
-    notes:
-        'Single-use backup codes for the work identity provider. '
-        'Printed copy is in the office safe.',
-  ),
-  VaultEntry(
-    id: 'spotify',
-    title: 'Spotify',
-    kind: VaultEntryKind.login,
-    icon: Icons.music_note_rounded,
-    username: 'music_lover',
-    password: 'Mus1c!L0ver#9',
-    website: 'spotify.com',
-  ),
-];
+/// Active entries cache / empty fallback when unpopulated.
+const sampleVaultEntries = <VaultEntry>[];
 
-/// Looks up a demo entry by id, or returns `null` when it does not exist.
+/// Looks up an entry in [sampleVaultEntries] by id, or returns `null`.
 VaultEntry? vaultEntryById(String id) {
   for (final entry in sampleVaultEntries) {
     if (entry.id == id) return entry;
