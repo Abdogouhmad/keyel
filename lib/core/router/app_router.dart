@@ -6,13 +6,13 @@ import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/router/vault_session_listenable.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/debug/debug_vault_screen.dart';
+import 'package:keyel/features/entry/entry_detail_screen.dart';
+import 'package:keyel/features/entry/entry_edit_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
 import 'package:keyel/features/onboarding/onboarding_placeholder_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
 import 'package:keyel/features/unlock/unlock_placeholder_screen.dart';
-import 'package:keyel/features/vault/entry_detail_screen.dart';
-import 'package:keyel/features/vault/entry_edit_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
 import 'package:keyel/ui/adaptive/keyel_shell.dart';
 

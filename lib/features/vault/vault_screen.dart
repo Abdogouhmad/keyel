@@ -8,8 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 // import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/data/vault_session_provider.dart';
-import 'package:keyel/features/vault/entry_detail_screen.dart';
-import 'package:keyel/features/vault/vault_entry.dart';
+import 'package:keyel/features/entry/entry_detail_screen.dart';
+import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
