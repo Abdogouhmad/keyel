@@ -16,7 +16,9 @@
 #   * The Rust Android targets must be installed (checked / added here).
 #   * The generated FRB bindings must be in sync with the Rust API. In CI the
 #     build FAILS if regenerating them changes anything (stale bindings are a
-#     classic "works on my machine" release bug).
+#     classic "works on my machine" release bug). Regeneration runs
+#     `cargo expand`, which is SLOW (several minutes), so locally it can be
+#     skipped with --skip-bindings (never skipped in CI).
 #   * Rust fmt / clippy / tests / audit and Flutter analyze / test run first
 #     (skip locally with --skip-checks; always run in CI).
 #
@@ -40,10 +42,14 @@
 #   KEYEL_KEY_PASSWORD      = signing key password
 #
 # Usage:
-#   ./build.sh                       checks + keystore + build + stage + verify
+#   ./build.sh                       checks + bindings + keystore + build + stage + verify
 #   ./build.sh --aab                 also build the Play Store app bundle
 #   ./build.sh --obfuscate           obfuscate Dart code, keep symbols in dist/
 #   ./build.sh --skip-checks         skip Rust/Flutter lint+test (local only)
+#   ./build.sh --skip-bindings       skip FRB codegen regeneration (local only;
+#                                    use when the Rust API has not changed)
+#   ./build.sh --fast                quick LOCAL build: arm64 only, no universal
+#                                    APK, no checks, no bindings regeneration
 #   ./build.sh --detect-version      print tag= / version= / versionCode= lines
 #                                    (append to $GITHUB_OUTPUT)
 #   ./build.sh --release-notes       extract this version's CHANGELOG section
@@ -75,6 +81,8 @@ VERBOSE=false
 MODE=build # build | detect-version | release-notes
 CHECK_VERSION=true
 RUN_CHECKS=true
+SKIP_BINDINGS=false
+FAST=false
 BUILD_AAB=false
 OBFUSCATE=false
 while [[ $# -gt 0 ]]; do
@@ -84,6 +92,8 @@ while [[ $# -gt 0 ]]; do
   --release-notes) MODE=release-notes ;;
   --no-version-checksum) CHECK_VERSION=false ;;
   --skip-checks) RUN_CHECKS=false ;;
+  --skip-bindings) SKIP_BINDINGS=true ;;
+  --fast) FAST=true ;;
   --aab) BUILD_AAB=true ;;
   --obfuscate) OBFUSCATE=true ;;
   *)
@@ -94,8 +104,22 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-# CI always runs the checks, whatever the flags say.
-if [[ "$CI_RUNNER" == true ]]; then RUN_CHECKS=true; fi
+# --fast implies skipping checks and bindings regeneration (local only).
+if [[ "$FAST" == true ]]; then
+  RUN_CHECKS=false
+  SKIP_BINDINGS=true
+  BUILD_AAB=false
+fi
+
+# CI always runs the full pipeline, whatever the flags say.
+if [[ "$CI_RUNNER" == true ]]; then
+  if [[ "$FAST" == true ]]; then
+    echo "[keyel] --fast is not allowed in CI (it skips checks and builds a single ABI)." >&2
+    exit 1
+  fi
+  RUN_CHECKS=true
+  SKIP_BINDINGS=false
+fi
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 info() { printf '\033[1;36m[keyel]\033[0m %s\n' "$*"; }
@@ -178,6 +202,10 @@ ensure_rust_targets() {
   local installed t
   installed="$(rustup target list --installed 2>/dev/null || true)"
   for t in "${RUST_TARGETS[@]}"; do
+    # --fast only needs the arm64 target.
+    if [[ "$FAST" == true && "$t" != "aarch64-linux-android" ]]; then
+      continue
+    fi
     if ! grep -qx "$t" <<<"$installed"; then
       info "Adding missing Rust target $t ..."
       run rustup target add "$t"
@@ -186,7 +214,14 @@ ensure_rust_targets() {
 }
 
 # ── flutter_rust_bridge: bindings must match the Rust API ────────────────────
+# NOTE: codegen runs `cargo expand`, which can take many minutes. Use
+# --skip-bindings locally when the Rust API has not changed. After changing the
+# Rust API, run `flutter_rust_bridge_codegen generate` once and commit the result.
 check_bindings() {
+  if [[ "$SKIP_BINDINGS" == true ]]; then
+    warn "Skipping bindings regeneration (--skip-bindings / --fast). Local build only."
+    return
+  fi
   if ! have flutter_rust_bridge_codegen; then
     if [[ "$CI_RUNNER" == true ]]; then
       err "flutter_rust_bridge_codegen not installed in CI (cargo install flutter_rust_bridge_codegen)."
@@ -195,7 +230,7 @@ check_bindings() {
     warn "flutter_rust_bridge_codegen not found; skipping bindings check."
     return
   fi
-  info "Regenerating flutter_rust_bridge bindings ..."
+  info "Regenerating flutter_rust_bridge bindings (slow: cargo expand) ..."
   run flutter_rust_bridge_codegen generate
   if ! git diff --quiet -- "$FRB_DART_OUT" "$FRB_RUST_OUT" 2>/dev/null; then
     if [[ "$CI_RUNNER" == true ]]; then
@@ -299,6 +334,14 @@ build_aab() {
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 
+# Quick local build: a single arm64 APK (most modern phones).
+build_fast() {
+  info "Fast build: single arm64 release APK (local only) ..."
+  run flutter build apk --release \
+    --target-platform android-arm64 \
+    "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
+}
+
 # ── Stage + checksum ─────────────────────────────────────────────────────────
 stage_artifacts() {
   info "Staging artifacts under dist/ ..."
@@ -325,6 +368,23 @@ stage_artifacts() {
     cp "$aab" "dist/${PKG_NAME}-v${VERSION}.aab"
   fi
 
+  finish_staging
+}
+
+stage_fast() {
+  info "Staging fast build under dist/ ..."
+  mkdir -p dist
+  local src="build/app/outputs/flutter-apk/app-release.apk"
+  [[ -f "$src" ]] || {
+    err "Missing build output: $src"
+    exit 1
+  }
+  cp "$src" "dist/${PKG_NAME}-v${VERSION}-arm64-v8a.apk"
+  finish_staging
+}
+
+# Symbols zip + checksums + listing (shared by both staging paths).
+finish_staging() {
   if [[ "$OBFUSCATE" == true ]]; then
     [[ -d build/symbols ]] || {
       err "Missing build/symbols (obfuscation symbols)."
@@ -411,6 +471,9 @@ echo
 echo "═══════════════════════════════════════════"
 echo "  keyel — release build"
 echo "  version: $VERSION   (versionCode $VERSION_CODE, tag $TAG)"
+if [[ "$FAST" == true ]]; then
+  echo "  mode: FAST (arm64 only, local build)"
+fi
 echo "═══════════════════════════════════════════"
 
 preflight
@@ -420,16 +483,27 @@ info "Fetching dependencies ..."
 run flutter pub get
 
 check_bindings
-if [[ "$RUN_CHECKS" == true ]]; then run_checks; else warn "Skipping lint/test checks (--skip-checks)."; fi
+if [[ "$RUN_CHECKS" == true ]]; then run_checks; else warn "Skipping lint/test checks."; fi
 
 check_version_checksum
 provision_keystore
-build_split_abis
-build_universal
-if [[ "$BUILD_AAB" == true ]]; then build_aab; fi
-stage_artifacts
+
+if [[ "$FAST" == true ]]; then
+  build_fast
+  stage_fast
+else
+  build_split_abis
+  build_universal
+  if [[ "$BUILD_AAB" == true ]]; then build_aab; fi
+  stage_artifacts
+fi
+
 verify_signing
 verify_policy
 
 echo
-info "All release artifacts built, signed and verified."
+if [[ "$FAST" == true ]]; then
+  info "Fast build finished (arm64 only). Run the full ./build.sh before publishing."
+else
+  info "All release artifacts built, signed and verified."
+fi

@@ -9,11 +9,11 @@ import 'package:keyel/features/debug/debug_vault_screen.dart';
 import 'package:keyel/features/entry/entry_detail_screen.dart';
 import 'package:keyel/features/entry/entry_edit_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
-import 'package:keyel/features/onboarding/onboarding_placeholder_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
-import 'package:keyel/features/unlock/unlock_placeholder_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
+import 'package:keyel/features/vault/widgets/create_vault_view.dart';
+import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
 import 'package:keyel/ui/adaptive/keyel_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -89,11 +89,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: KeyelRoutes.onboarding,
-        builder: (context, state) => const OnboardingPlaceholderScreen(),
+        builder: (context, state) => const CreateVaultView(),
       ),
       GoRoute(
         path: KeyelRoutes.unlock,
-        builder: (context, state) => const UnlockPlaceholderScreen(),
+        builder: (context, state) => const UnlockVaultView(),
       ),
       GoRoute(
         path: KeyelRoutes.newEntry,

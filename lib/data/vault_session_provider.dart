@@ -65,8 +65,12 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
   VaultSessionState build() {
     _listenForLockEvents();
     ref.onDispose(() => _lockSubscription?.cancel());
-    unawaited(refresh());
-    return const VaultSessionState(status: VaultStatus.noVault, busy: true);
+    // Resolve the status synchronously. Do NOT call `refresh()` here: setting
+    // `state` during `build()` is overwritten by Riverpod with the value
+    // returned below, which used to make every cold start look like there was
+    // no vault even when `vault.keyel` existed (create then failed with
+    // "vault already exists").
+    return VaultSessionState(status: _readStatus());
   }
 
   void _listenForLockEvents() {
@@ -84,30 +88,22 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     }
   }
 
-  VaultStatus _lockedStatus() {
+  /// Resolve the current status from the vault file and the Rust session.
+  VaultStatus _readStatus() {
     try {
-      return ref.read(vaultRepositoryProvider).vaultExists
-          ? VaultStatus.locked
-          : VaultStatus.noVault;
+      final repository = ref.read(vaultRepositoryProvider);
+      if (!repository.vaultExists) return VaultStatus.noVault;
+      return repository.isUnlocked ? VaultStatus.unlocked : VaultStatus.locked;
     } on Object catch (_) {
       return VaultStatus.noVault;
     }
   }
 
-  /// Re-read the state from Rust.
+  VaultStatus _lockedStatus() => _readStatus();
+
+  /// Re-read the state from disk and Rust (safe to call at any time).
   Future<void> refresh() async {
-    try {
-      final repository = ref.read(vaultRepositoryProvider);
-      state = VaultSessionState(
-        status: !repository.vaultExists
-            ? VaultStatus.noVault
-            : repository.isUnlocked
-            ? VaultStatus.unlocked
-            : VaultStatus.locked,
-      );
-    } on Object catch (_) {
-      state = const VaultSessionState(status: VaultStatus.noVault);
-    }
+    state = VaultSessionState(status: _readStatus());
   }
 
   /// Create a vault and return its one-time recovery key.
@@ -119,8 +115,13 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
       state = const VaultSessionState(status: VaultStatus.unlocked);
       return recoveryKey;
     } catch (error) {
+      // The file exists but our first status read missed it (for example the
+      // storage path became available a moment later). Never leave the user
+      // stuck on the create form: switch to locked so they can unlock.
+      final alreadyExists =
+          error is VaultApiError && error == VaultApiError.vaultExists;
       state = VaultSessionState(
-        status: state.status,
+        status: alreadyExists ? VaultStatus.locked : _readStatus(),
         error: describeVaultError(error),
       );
       rethrow;

@@ -21,9 +21,16 @@ class VaultRepository {
   String? get vaultPath => _initializedPath ?? session_api.vaultPath();
 
   /// Whether a vault file exists at [vaultPath].
-  /// We use Dart's native [File] check to bypass any potential Rust-side
-  /// caching or path-mismatch issues.
+  ///
+  /// Rust owns the configured path, so it is the source of truth. The Dart
+  /// [File] check stays as a fallback for tests and for the short window where
+  /// the bridge has not been initialized yet.
   bool get vaultExists {
+    try {
+      if (session_api.vaultExists()) return true;
+    } on Object catch (_) {
+      // Bridge not initialized (widget tests): fall through to the file check.
+    }
     final path = vaultPath;
     if (path == null || path.isEmpty) return false;
     return File(path).existsSync();
