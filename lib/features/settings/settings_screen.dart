@@ -31,6 +31,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  String _autoLockLabel(Duration delay) {
+    if (delay == Duration.zero) return 'Immediately';
+    if (delay.inSeconds < 60) return 'After ${delay.inSeconds} seconds';
+    final minutes = delay.inMinutes;
+    return 'After $minutes ${minutes == 1 ? "minute" : "minutes"}';
+  }
+
+  Future<void> _showAutoLockDialog() async {
+    final notifier = ref.read(vaultSessionProvider.notifier);
+    final current = notifier.autoLockDelay;
+    const options = [
+      Duration.zero,
+      Duration(seconds: 30),
+      Duration(minutes: 1),
+      Duration(minutes: 5),
+      Duration(minutes: 15),
+    ];
+
+    final selected = await showDialog<Duration>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('Auto-lock after'),
+        children: [
+          for (final option in options)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(option),
+              child: Row(
+                children: [
+                  Icon(
+                    option == current
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_off_rounded,
+                    size: 20,
+                  ),
+                  const SizedBox(width: KeyelSpacing.sm),
+                  Text(_autoLockLabel(option)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (selected == null) return;
+    notifier.setAutoLockDelay(selected);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _showChangeMasterDialog() async {
     final oldController = TextEditingController();
     final newController = TextEditingController();
@@ -269,6 +317,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               onTap: () => unawaited(_showChangeMasterDialog()),
                             ),
                           _SettingsRow(
+                            icon: Icons.timer_outlined,
+                            title: 'Auto-lock',
+                            subtitle:
+                                'Lock the vault after time in the background',
+                            trailing: Text(
+                              _autoLockLabel(
+                                ref
+                                    .read(vaultSessionProvider.notifier)
+                                    .autoLockDelay,
+                              ),
+                            ),
+                            onTap: () => unawaited(_showAutoLockDialog()),
+                          ),
+                          _SettingsRow(
                             icon: Icons.fingerprint_rounded,
                             title: 'Biometric unlock',
                             subtitle: 'Fingerprint or face to open the vault',
@@ -310,6 +372,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                           ),
                           _SettingsRow(
+                            icon: Icons.folder_rounded,
+                            title: 'Folders',
+                            subtitle: 'Create, rename and delete vault folders',
+                            onTap: () =>
+                                unawaited(context.push(KeyelRoutes.folders)),
+                          ),
+                          _SettingsRow(
+                            icon: Icons.delete_outline_rounded,
+                            title: 'Trash',
+                            subtitle: 'Restore deleted entries or remove them forever',
+                            onTap: () =>
+                                unawaited(context.push(KeyelRoutes.trash)),
+                          ),
+                          _SettingsRow(
                             icon: Icons.delete_forever_rounded,
                             title: 'Factory reset vault',
                             subtitle:
@@ -337,7 +413,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               showLicensePage(
                                 context: context,
                                 applicationName: 'Keyel',
-                                applicationVersion: '0.4.0',
+                                applicationVersion: '0.7.0',
                               );
                             },
                           ),

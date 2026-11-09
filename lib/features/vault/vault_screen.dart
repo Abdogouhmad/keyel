@@ -10,6 +10,7 @@ import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/vault/widgets/create_vault_view.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
 import 'package:keyel/features/vault/widgets/vault_filter.dart';
+import 'package:keyel/features/vault/widgets/vault_folder_bar.dart';
 import 'package:keyel/features/vault/widgets/vault_layout.dart';
 import 'package:keyel/features/vault/widgets/vault_list_pane.dart';
 import 'package:keyel/src/rust/api/models.dart';
@@ -26,9 +27,11 @@ class VaultScreen extends ConsumerStatefulWidget {
 
 class _VaultScreenState extends ConsumerState<VaultScreen> {
   List<VaultEntry> _entries = [];
+  List<FolderDto> _folders = [];
   bool _loading = false;
   VaultFilter _filter = VaultFilter.all;
   String _query = '';
+  String? _folderId;
   String? _selectedEntryId;
 
   @override
@@ -42,20 +45,36 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
     setState(() => _loading = true);
     try {
-      final summaries = await ref
-          .read(vaultRepositoryProvider)
-          .listEntries(
-            query: _query,
-            kind: switch (_filter) {
-              VaultFilter.logins => EntryKindDto.login,
-              VaultFilter.cards => EntryKindDto.card,
-              VaultFilter.notes => EntryKindDto.note,
-              _ => null,
-            },
-            favorite: _filter == VaultFilter.favorites ? true : null,
-          );
+      final repository = ref.read(vaultRepositoryProvider);
+      final summaries = await repository.listEntries(
+        query: _query,
+        kind: switch (_filter) {
+          VaultFilter.logins => EntryKindDto.login,
+          VaultFilter.cards => EntryKindDto.card,
+          VaultFilter.notes => EntryKindDto.note,
+          _ => null,
+        },
+        favorite: _filter == VaultFilter.favorites ? true : null,
+      );
+      final folders = await repository.listFolders();
+      final folderNames = {
+        for (final folder in folders) folder.id: folder.name,
+      };
 
-      var entries = summaries.map(VaultEntry.fromSummary).toList();
+      var visible = summaries;
+      final folderId = _folderId;
+      if (folderId != null) {
+        visible = folderId == noFolderSelection
+            ? summaries.where((s) => s.folderId == null).toList()
+            : summaries.where((s) => s.folderId == folderId).toList();
+      }
+
+      var entries = visible
+          .map(
+            (summary) =>
+                VaultEntry.fromSummary(summary, folderNames: folderNames),
+          )
+          .toList();
       if (_filter == VaultFilter.twoFactor) {
         entries = entries.where((e) => e.hasTotp).toList();
       }
@@ -63,6 +82,14 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       if (!mounted) return;
       setState(() {
         _entries = entries;
+        _folders = folders;
+        // Drop a folder filter that no longer exists (for example after the
+        // folder was deleted in Settings).
+        if (_folderId != null &&
+            _folderId != noFolderSelection &&
+            !folders.any((folder) => folder.id == _folderId)) {
+          _folderId = null;
+        }
         _loading = false;
         if (_selectedEntryId != null &&
             !_entries.any((e) => e.id == _selectedEntryId)) {
@@ -104,6 +131,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     unawaited(_loadEntries());
   }
 
+  void _setFolder(String? folderId) {
+    setState(() => _folderId = folderId);
+    unawaited(_loadEntries());
+  }
+
   void _onSearchChanged(String value) {
     _query = value;
     unawaited(_loadEntries());
@@ -111,12 +143,21 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
   void _clearFilters() {
     _query = '';
+    _folderId = null;
     _setFilter(VaultFilter.all);
   }
 
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(vaultSessionProvider);
+    ref.listen(vaultSessionProvider.select((state) => state.status), (
+      previous,
+      next,
+    ) {
+      if (next == VaultStatus.unlocked && previous != VaultStatus.unlocked) {
+        unawaited(_loadEntries());
+      }
+    });
 
     return switch (session.status) {
       VaultStatus.noVault => const CreateVaultView(),
@@ -132,10 +173,13 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       filter: _filter,
       query: _query,
       selectedEntryId: _selectedEntryId,
+      folders: _folders,
+      selectedFolderId: _folderId,
       onLock: _lockVault,
       onNewItem: () => unawaited(_openNewEntry()),
       onSearchChanged: _onSearchChanged,
       onFilterChanged: _setFilter,
+      onFolderChanged: _setFolder,
       onClearFilters: _clearFilters,
       onOpenEntry: _openEntry,
       onRefresh: _loadEntries,

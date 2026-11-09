@@ -8,11 +8,13 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/debug/debug_vault_screen.dart';
 import 'package:keyel/features/entry/entry_detail_screen.dart';
 import 'package:keyel/features/entry/entry_edit_screen.dart';
+import 'package:keyel/features/folders/folders_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
+import 'package:keyel/features/onboarding/onboarding_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
+import 'package:keyel/features/trash/trash_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
-import 'package:keyel/features/vault/widgets/create_vault_view.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
 import 'package:keyel/ui/adaptive/keyel_shell.dart';
 
@@ -45,7 +47,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return switch (status) {
         VaultStatus.noVault when !isOnboarding => KeyelRoutes.onboarding,
         VaultStatus.locked when !isUnlock && !isDebug => KeyelRoutes.unlock,
-        VaultStatus.unlocked when (isOnboarding || isUnlock) => KeyelRoutes.vault,
+        // Onboarding keeps its own flow after creation so the one-time
+        // recovery key stays on screen until the user dismisses it.
+        VaultStatus.unlocked when isUnlock => KeyelRoutes.vault,
         _ => null,
       };
     },
@@ -57,7 +61,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: KeyelRoutes.vault,
-                pageBuilder: (context, state) => _tab(state, const VaultScreen()),
+                pageBuilder: (context, state) =>
+                    _tab(state, const VaultScreen()),
               ),
             ],
           ),
@@ -65,7 +70,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: KeyelRoutes.generator,
-                pageBuilder: (context, state) => _tab(state, const GeneratorScreen()),
+                pageBuilder: (context, state) =>
+                    _tab(state, const GeneratorScreen()),
               ),
             ],
           ),
@@ -73,7 +79,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: KeyelRoutes.security,
-                pageBuilder: (context, state) => _tab(state, const SecurityScreen()),
+                pageBuilder: (context, state) =>
+                    _tab(state, const SecurityScreen()),
               ),
             ],
           ),
@@ -81,7 +88,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: KeyelRoutes.settings,
-                pageBuilder: (context, state) => _tab(state, const SettingsScreen()),
+                pageBuilder: (context, state) =>
+                    _tab(state, const SettingsScreen()),
               ),
             ],
           ),
@@ -89,11 +97,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: KeyelRoutes.onboarding,
-        builder: (context, state) => const CreateVaultView(),
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: KeyelRoutes.unlock,
         builder: (context, state) => const UnlockVaultView(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.folders,
+        builder: (context, state) => const FoldersScreen(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.trash,
+        builder: (context, state) => const TrashScreen(),
       ),
       GoRoute(
         path: KeyelRoutes.newEntry,

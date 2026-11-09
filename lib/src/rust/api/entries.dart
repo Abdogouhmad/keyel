@@ -54,6 +54,18 @@ Future<void> purgeEntry({required String id}) =>
 Future<List<FolderDto>> listFolders() =>
     RustLib.instance.api.crateApiEntriesListFolders();
 
+/// Create a folder and return its id.
+Future<String> addFolder({required String name}) =>
+    RustLib.instance.api.crateApiEntriesAddFolder(name: name);
+
+/// Rename an existing folder.
+Future<void> renameFolder({required String id, required String name}) =>
+    RustLib.instance.api.crateApiEntriesRenameFolder(id: id, name: name);
+
+/// Delete a folder. Its entries move to "No folder".
+Future<void> deleteFolder({required String id}) =>
+    RustLib.instance.api.crateApiEntriesDeleteFolder(id: id);
+
 /// Return one plaintext secret field.
 ///
 /// This is the **only** bridge function that returns a password or any other

@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
@@ -29,7 +29,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
     final entry = widget.entry;
     if (entry.kind == VaultEntryKind.login) {
       if (entry.username.isNotEmpty) {
-        unawaited(Clipboard.setData(ClipboardData(text: entry.username)));
+        unawaited(SensitiveClipboard.instance.copy(entry.username));
         showKeyelSnack(
           context,
           'Username copied to clipboard',
@@ -40,7 +40,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
           final pass = await ref
               .read(vaultRepositoryProvider)
               .revealField(entry.id, SecretFieldDto.loginPassword);
-          unawaited(Clipboard.setData(ClipboardData(text: pass)));
+          unawaited(SensitiveClipboard.instance.copy(pass));
           if (mounted) {
             showKeyelSnack(
               context,
@@ -57,7 +57,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
         final cardNum = await ref
             .read(vaultRepositoryProvider)
             .revealField(entry.id, SecretFieldDto.cardNumber);
-        unawaited(Clipboard.setData(ClipboardData(text: cardNum)));
+        unawaited(SensitiveClipboard.instance.copy(cardNum));
         if (mounted) {
           showKeyelSnack(
             context,

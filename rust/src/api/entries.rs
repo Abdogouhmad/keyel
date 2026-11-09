@@ -170,6 +170,41 @@ pub fn list_folders() -> Result<Vec<FolderDto>, VaultApiError> {
     })
 }
 
+/// Create a folder and return its id.
+pub fn add_folder(name: String) -> Result<String, VaultApiError> {
+    let name = name.trim();
+    if name.is_empty() {
+        return Err(VaultApiError::InvalidField);
+    }
+    with_session(|session| {
+        let id = session.vault_mut().add_folder(name);
+        session.save()?;
+        Ok(id.to_string())
+    })
+}
+
+/// Rename an existing folder.
+pub fn rename_folder(id: String, name: String) -> Result<(), VaultApiError> {
+    let name = name.trim();
+    if name.is_empty() {
+        return Err(VaultApiError::InvalidField);
+    }
+    with_session(|session| {
+        session.vault_mut().rename_folder(parse_id(&id)?, name)?;
+        session.save()?;
+        Ok(())
+    })
+}
+
+/// Delete a folder. Its entries move to "No folder".
+pub fn delete_folder(id: String) -> Result<(), VaultApiError> {
+    with_session(|session| {
+        session.vault_mut().delete_folder(parse_id(&id)?)?;
+        session.save()?;
+        Ok(())
+    })
+}
+
 /// Return one plaintext secret field.
 ///
 /// This is the **only** bridge function that returns a password or any other

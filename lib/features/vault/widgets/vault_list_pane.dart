@@ -6,7 +6,9 @@ import 'package:keyel/features/vault/widgets/vault_entry_list.dart';
 import 'package:keyel/features/vault/widgets/vault_entry_section.dart';
 import 'package:keyel/features/vault/widgets/vault_filter.dart';
 import 'package:keyel/features/vault/widgets/vault_filter_bar.dart';
+import 'package:keyel/features/vault/widgets/vault_folder_bar.dart';
 import 'package:keyel/features/vault/widgets/vault_header.dart';
+import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// The scrollable vault list shown when the session is unlocked.
@@ -18,10 +20,13 @@ class VaultListPane extends StatefulWidget {
     required this.filter,
     required this.query,
     required this.selectedEntryId,
+    required this.folders,
+    required this.selectedFolderId,
     required this.onLock,
     required this.onNewItem,
     required this.onSearchChanged,
     required this.onFilterChanged,
+    required this.onFolderChanged,
     required this.onClearFilters,
     required this.onOpenEntry,
     required this.onRefresh,
@@ -43,6 +48,12 @@ class VaultListPane extends StatefulWidget {
   /// Identifier of the entry selected in the wide detail pane.
   final String? selectedEntryId;
 
+  /// Folders available for filtering.
+  final List<FolderDto> folders;
+
+  /// `null` for all folders, [noFolderSelection] for unfiled, or a folder id.
+  final String? selectedFolderId;
+
   /// Called when the user taps the lock action.
   final VoidCallback onLock;
 
@@ -54,6 +65,9 @@ class VaultListPane extends StatefulWidget {
 
   /// Called with the newly selected filter family.
   final ValueChanged<VaultFilter> onFilterChanged;
+
+  /// Called with the newly selected folder filter.
+  final ValueChanged<String?> onFolderChanged;
 
   /// Called when the user asks to clear search and filters.
   final VoidCallback onClearFilters;
@@ -152,6 +166,16 @@ class _VaultListPaneState extends State<VaultListPane> {
             child: VaultFilterBar(
               filter: widget.filter,
               onFilter: widget.onFilterChanged,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: KeyelSpacing.sm),
+            child: VaultFolderBar(
+              folders: widget.folders,
+              selectedFolderId: widget.selectedFolderId,
+              onFolderChanged: widget.onFolderChanged,
             ),
           ),
         ),

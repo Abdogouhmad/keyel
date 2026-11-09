@@ -61,9 +61,18 @@ class EntryDetailController {
     callbacks.rebuild();
     try {
       final record = await repository.getEntry(entryId);
+      var folderNames = const <String, String>{};
+      try {
+        folderNames = {
+          for (final folder in await repository.listFolders())
+            folder.id: folder.name,
+        };
+      } on Object catch (_) {
+        // Folder lookup is cosmetic; the entry still renders without it.
+      }
       _loading = false;
       _detail = record;
-      _entry = VaultEntry.fromDetail(record);
+      _entry = VaultEntry.fromDetail(record, folderNames: folderNames);
       callbacks.rebuild();
     } on Object catch (error) {
       _loading = false;
@@ -84,8 +93,10 @@ class EntryDetailController {
     }
 
     try {
-      final plain = await repository
-          .revealField(entryId, SecretFieldDto.loginPassword);
+      final plain = await repository.revealField(
+        entryId,
+        SecretFieldDto.loginPassword,
+      );
       _revealedPassword = plain;
       callbacks.rebuild();
       _hideTimer?.cancel();
@@ -153,8 +164,10 @@ class EntryDetailController {
     }
 
     try {
-      final plain = await repository
-          .revealField(entryId, SecretFieldDto.loginPassword);
+      final plain = await repository.revealField(
+        entryId,
+        SecretFieldDto.loginPassword,
+      );
       callbacks.copy(plain, 'Password copied • Clears in 30s');
     } on Object catch (error) {
       callbacks.notifyError(error);

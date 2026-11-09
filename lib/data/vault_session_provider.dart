@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/src/rust/api/error.dart';
 
@@ -60,17 +61,55 @@ final vaultSessionProvider =
 /// Owns create/unlock/lock actions and mirrors Rust session state.
 class VaultSessionNotifier extends Notifier<VaultSessionState> {
   StreamSubscription<String>? _lockSubscription;
+  Timer? _autoLockTimer;
+  DateTime? _backgroundedAt;
+  Duration _autoLockDelay = AppPreferences.instance.autoLockDelay;
+
+  /// How long the app may stay in the background before locking.
+  Duration get autoLockDelay => _autoLockDelay;
+
+  /// Change the auto-lock delay (options: immediately, 30 s, 1/5/15 min).
+  void setAutoLockDelay(Duration delay) {
+    _autoLockDelay = delay;
+    AppPreferences.instance.autoLockDelay = delay;
+    unawaited(AppPreferences.instance.save());
+  }
 
   @override
   VaultSessionState build() {
     _listenForLockEvents();
-    ref.onDispose(() => _lockSubscription?.cancel());
+    ref.onDispose(() {
+      unawaited(_lockSubscription?.cancel());
+      _autoLockTimer?.cancel();
+    });
     // Resolve the status synchronously. Do NOT call `refresh()` here: setting
     // `state` during `build()` is overwritten by Riverpod with the value
     // returned below, which used to make every cold start look like there was
     // no vault even when `vault.keyel` existed (create then failed with
     // "vault already exists").
     return VaultSessionState(status: _readStatus());
+  }
+
+  /// Start the auto-lock countdown when the app leaves the foreground.
+  void onAppBackgrounded() {
+    if (state.status != VaultStatus.unlocked) return;
+    _backgroundedAt = DateTime.now();
+    _autoLockTimer?.cancel();
+    if (_autoLockDelay == Duration.zero) {
+      lock();
+      return;
+    }
+    _autoLockTimer = Timer(_autoLockDelay, lock);
+  }
+
+  /// Lock immediately if the background allowance elapsed while paused.
+  void onAppResumed() {
+    _autoLockTimer?.cancel();
+    _autoLockTimer = null;
+    final since = _backgroundedAt;
+    _backgroundedAt = null;
+    if (since == null || state.status != VaultStatus.unlocked) return;
+    if (DateTime.now().difference(since) >= _autoLockDelay) lock();
   }
 
   void _listenForLockEvents() {

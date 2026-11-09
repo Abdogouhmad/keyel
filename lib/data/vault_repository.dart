@@ -83,6 +83,19 @@ class VaultRepository {
   Future<String> upsertEntry(EntryDraft draft) =>
       entries_api.upsertEntry(draft: draft);
 
+  /// List the folders in display order.
+  Future<List<FolderDto>> listFolders() => entries_api.listFolders();
+
+  /// Create a folder and return its id.
+  Future<String> addFolder(String name) => entries_api.addFolder(name: name);
+
+  /// Rename an existing folder.
+  Future<void> renameFolder(String id, String name) =>
+      entries_api.renameFolder(id: id, name: name);
+
+  /// Delete a folder. Its entries move to "No folder".
+  Future<void> deleteFolder(String id) => entries_api.deleteFolder(id: id);
+
   /// Create a login entry with the defaults used by the debug screen.
   Future<String> createLogin({
     required String title,

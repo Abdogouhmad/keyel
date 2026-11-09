@@ -9,13 +9,16 @@ import 'package:keyel/src/rust/api/models.dart';
 /// Kind and favorite flags restored from an existing entry.
 class LoadedEntry {
   /// Creates the summary.
-  const new({required this.kind, required this.favorite});
+  const new({required this.kind, required this.favorite, this.folderId});
 
   /// Entry kind restored from the vault.
   final VaultEntryKind kind;
 
   /// Favorite flag restored from the vault.
   final bool favorite;
+
+  /// Folder id restored from the vault, if any.
+  final String? folderId;
 }
 
 /// Owns the text controllers and persistence behind the entry editor.
@@ -111,7 +114,11 @@ class EntryEditController {
         } on Object catch (_) {}
       }
 
-      return LoadedEntry(kind: kind, favorite: detail.favorite);
+      return LoadedEntry(
+        kind: kind,
+        favorite: detail.favorite,
+        folderId: detail.folderId,
+      );
     } on Object catch (error) {
       callbacks.notifyError(error);
       return null;
@@ -142,6 +149,7 @@ class EntryEditController {
   Future<void> save({
     required VaultEntryKind kind,
     required bool favorite,
+    String? folderId,
   }) async {
     final entryTitle = title.text.trim();
     if (entryTitle.isEmpty) {
@@ -166,6 +174,7 @@ class EntryEditController {
           ? notes.text
           : null,
       tags: const [],
+      folderId: folderId,
       favorite: favorite,
       username: username.text.trim(),
       password: password.text.isNotEmpty ? password.text : null,
@@ -174,9 +183,7 @@ class EntryEditController {
       totpDigits: 6,
       totpPeriod: 30,
       cardholder: cardholder.text.trim(),
-      cardNumber: cardNumber.text.isNotEmpty
-          ? cardNumber.text.trim()
-          : null,
+      cardNumber: cardNumber.text.isNotEmpty ? cardNumber.text.trim() : null,
       cardExpiry: cardExpiry.text.trim(),
       noteContent: kind == VaultEntryKind.note && notes.text.isNotEmpty
           ? notes.text
