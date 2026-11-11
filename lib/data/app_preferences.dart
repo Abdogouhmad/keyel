@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,6 +19,31 @@ class AppPreferences {
   /// How long the app may stay in the background before the vault locks.
   Duration autoLockDelay = const Duration(minutes: 1);
 
+  /// Whether biometric unlock is enabled by the user.
+  bool biometricEnabled = false;
+
+  /// Most recent vault searches, newest first.
+  List<String> recentSearches = <String>[];
+
+  /// Remember a search term, keeping at most eight unique values.
+  void rememberSearch(String query) {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
+    recentSearches = [
+      trimmed,
+      ...recentSearches.where(
+        (value) => value.toLowerCase() != trimmed.toLowerCase(),
+      ),
+    ].take(8).toList();
+    unawaited(save());
+  }
+
+  /// Drop all remembered searches.
+  void clearRecentSearches() {
+    recentSearches = <String>[];
+    unawaited(save());
+  }
+
   /// File backing the preferences, or `null` when not initialized.
   File? _file;
 
@@ -36,6 +62,15 @@ class AppPreferences {
       if (seconds is int && seconds >= 0) {
         autoLockDelay = Duration(seconds: seconds);
       }
+      biometricEnabled = decoded['biometricEnabled'] == true;
+      final searches = decoded['recentSearches'];
+      if (searches is List) {
+        recentSearches = searches
+            .whereType<String>()
+            .where((value) => value.trim().isNotEmpty)
+            .take(8)
+            .toList();
+      }
     } on Object catch (_) {
       // Preferences are optional; keep the defaults on any failure.
     }
@@ -47,7 +82,11 @@ class AppPreferences {
     if (file == null) return;
     try {
       await file.writeAsString(
-        jsonEncode({'autoLockSeconds': autoLockDelay.inSeconds}),
+        jsonEncode({
+          'autoLockSeconds': autoLockDelay.inSeconds,
+          'biometricEnabled': biometricEnabled,
+          'recentSearches': recentSearches,
+        }),
         flush: true,
       );
     } on Object catch (_) {

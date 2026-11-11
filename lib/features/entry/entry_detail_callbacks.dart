@@ -8,6 +8,7 @@ class EntryDetailCallbacks {
     required this.notify,
     required this.notifyError,
     required this.copy,
+    required this.launchUrl,
     required this.confirmDelete,
     required this.pushEdit,
     required this.closeEntry,
@@ -26,6 +27,10 @@ class EntryDetailCallbacks {
 
   /// Copies a value to the clipboard with feedback.
   final void Function(String value, String message) copy;
+
+  /// Launches a URI in the default external application; resolves false
+  /// when the platform cannot open it.
+  final Future<bool> Function(Uri uri) launchUrl;
 
   /// Asks the user to confirm deletion; resolves true when confirmed.
   final Future<bool> Function(String title) confirmDelete;

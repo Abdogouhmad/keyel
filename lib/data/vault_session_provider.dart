@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/src/rust/api/error.dart';
@@ -173,6 +174,9 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     state = state.copyWith(busy: true, clearError: true);
     try {
       await repository.unlockWithMaster(master);
+      if (AppPreferences.instance.biometricEnabled) {
+        unawaited(BiometricAuth.instance.storeMaster(master));
+      }
       state = const VaultSessionState(status: VaultStatus.unlocked);
     } catch (error) {
       state = VaultSessionState(
@@ -218,7 +222,36 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
       await ref
           .read(vaultRepositoryProvider)
           .changeMaster(oldMaster: oldMaster, newMaster: newMaster);
+      if (AppPreferences.instance.biometricEnabled) {
+        unawaited(BiometricAuth.instance.storeMaster(newMaster));
+      }
       state = state.copyWith(busy: false);
+    } catch (error) {
+      state = VaultSessionState(
+        status: state.status,
+        error: describeVaultError(error),
+      );
+      rethrow;
+    }
+  }
+
+  /// Reset the master password using the recovery key.
+  Future<void> resetMasterWithRecovery({
+    required String recoveryKey,
+    required String newMaster,
+  }) async {
+    state = state.copyWith(busy: true, clearError: true);
+    try {
+      await ref
+          .read(vaultRepositoryProvider)
+          .resetMasterWithRecovery(
+            recoveryKey: recoveryKey,
+            newMaster: newMaster,
+          );
+      if (AppPreferences.instance.biometricEnabled) {
+        unawaited(BiometricAuth.instance.storeMaster(newMaster));
+      }
+      state = const VaultSessionState(status: VaultStatus.unlocked);
     } catch (error) {
       state = VaultSessionState(
         status: state.status,

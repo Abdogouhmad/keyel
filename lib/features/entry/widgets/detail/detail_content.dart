@@ -25,7 +25,7 @@ class DetailContent extends StatelessWidget {
     required this.onToggleRevealNote,
     required this.onCopy,
     required this.onCopyPassword,
-    required this.onOpenWebsite,
+    required this.onOpenUrl,
     super.key,
   });
 
@@ -62,8 +62,8 @@ class DetailContent extends StatelessWidget {
   /// Copies the password, revealing it first if needed.
   final VoidCallback onCopyPassword;
 
-  /// Opens the entry's website.
-  final VoidCallback onOpenWebsite;
+  /// Opens a URL shown on the detail screen.
+  final void Function(String url) onOpenUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,7 @@ class DetailContent extends StatelessWidget {
             onToggleReveal: onToggleRevealPassword,
             onCopy: onCopy,
             onCopyPassword: onCopyPassword,
-            onOpenWebsite: onOpenWebsite,
+            onOpenUrl: onOpenUrl,
           )
         else
           NoteDetails(

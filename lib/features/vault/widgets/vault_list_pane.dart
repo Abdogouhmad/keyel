@@ -1,58 +1,32 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/features/vault/vault_list_controller.dart';
 import 'package:keyel/features/vault/widgets/vault_alphabetical_sections.dart';
 import 'package:keyel/features/vault/widgets/vault_empty_state.dart';
 import 'package:keyel/features/vault/widgets/vault_entry_list.dart';
 import 'package:keyel/features/vault/widgets/vault_entry_section.dart';
-import 'package:keyel/features/vault/widgets/vault_filter.dart';
 import 'package:keyel/features/vault/widgets/vault_filter_bar.dart';
 import 'package:keyel/features/vault/widgets/vault_folder_bar.dart';
 import 'package:keyel/features/vault/widgets/vault_header.dart';
-import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/features/vault/widgets/vault_search_bar.dart';
+import 'package:keyel/features/vault/widgets/vault_selection_bar.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// The scrollable vault list shown when the session is unlocked.
-class VaultListPane extends StatefulWidget {
+class VaultListPane extends StatelessWidget {
   /// Creates the vault list pane.
   const new({
-    required this.entries,
-    required this.loading,
-    required this.filter,
-    required this.query,
-    required this.selectedEntryId,
-    required this.folders,
-    required this.selectedFolderId,
+    required this.controller,
     required this.onLock,
     required this.onNewItem,
-    required this.onSearchChanged,
-    required this.onFilterChanged,
-    required this.onFolderChanged,
-    required this.onClearFilters,
     required this.onOpenEntry,
-    required this.onRefresh,
     super.key,
   });
 
-  /// The entries currently loaded from the repository.
-  final List<VaultEntry> entries;
-
-  /// Whether an entry list reload is in flight.
-  final bool loading;
-
-  /// Currently selected filter family.
-  final VaultFilter filter;
-
-  /// The active search query.
-  final String query;
-
-  /// Identifier of the entry selected in the wide detail pane.
-  final String? selectedEntryId;
-
-  /// Folders available for filtering.
-  final List<FolderDto> folders;
-
-  /// `null` for all folders, [noFolderSelection] for unfiled, or a folder id.
-  final String? selectedFolderId;
+  /// Owns the entries, filters and row selection shown here.
+  final VaultListController controller;
 
   /// Called when the user taps the lock action.
   final VoidCallback onLock;
@@ -60,67 +34,64 @@ class VaultListPane extends StatefulWidget {
   /// Called when the user wants to create a new entry.
   final VoidCallback onNewItem;
 
-  /// Called with the search text whenever it changes.
-  final ValueChanged<String> onSearchChanged;
-
-  /// Called with the newly selected filter family.
-  final ValueChanged<VaultFilter> onFilterChanged;
-
-  /// Called with the newly selected folder filter.
-  final ValueChanged<String?> onFolderChanged;
-
-  /// Called when the user asks to clear search and filters.
-  final VoidCallback onClearFilters;
-
   /// Called when the user opens an entry.
   final OnVaultEntryOpen onOpenEntry;
-
-  /// Called when an entry changed so the list can reload.
-  final Future<void> Function() onRefresh;
-
-  @override
-  State<VaultListPane> createState() => _VaultListPaneState();
-}
-
-class _VaultListPaneState extends State<VaultListPane> {
-  final _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   bool _isWide(BuildContext context) {
     final windowClass = WindowSizeClass.of(context);
     return !windowClass.isCompact && MediaQuery.sizeOf(context).width >= 720;
   }
 
+  void _handleRowLongPress(VaultEntry entry) {
+    unawaited(Haptics.medium());
+    controller.startSelection(entry.id);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final entries = widget.entries;
+    final entries = controller.entries;
     final isWide = _isWide(context);
     final favorites = entries.where((e) => e.favorite).toList();
     final others = entries.where((e) => !e.favorite).toList();
     final config = VaultSectionConfig(
       isWide: isWide,
-      selectedEntryId: widget.selectedEntryId,
-      onOpenEntry: widget.onOpenEntry,
-      onRefresh: widget.onRefresh,
+      selectedEntryId: controller.selectedEntryId,
+      onOpenEntry: onOpenEntry,
+      onRefresh: controller.load,
+      selectionActive: controller.selectionMode,
+      selectedIds: controller.selectedIds,
+      onToggleSelection: (entry) {
+        unawaited(Haptics.selection());
+        controller.toggleSelection(entry.id);
+      },
+      onRowLongPress: _handleRowLongPress,
+      onSwipeCopy: (entry) => unawaited(controller.copyPrimarySecret(entry)),
+      onSwipeFavorite: (entry) => unawaited(controller.toggleFavorite(entry)),
     );
 
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
-          child: KeyelTopBar(
-            title: 'Keyel Vault',
-            icon: Icons.shield_rounded,
-            trailing: KeyelIconHull(
-              icon: Icons.lock_rounded,
-              tooltip: 'Lock vault',
-              onPressed: widget.onLock,
-            ),
-          ),
+          child: controller.selectionMode
+              ? VaultSelectionBar(
+                  selectedCount: controller.selectedIds.length,
+                  allSelected: controller.allSelected,
+                  onClose: controller.clearSelection,
+                  onSelectAll: controller.toggleSelectAll,
+                  onToggleFavorite: () =>
+                      unawaited(controller.toggleFavoriteSelection()),
+                  onMove: () => unawaited(controller.moveSelection()),
+                  onDelete: () => unawaited(controller.deleteSelection()),
+                )
+              : KeyelTopBar(
+                  title: 'Keyel Vault',
+                  icon: Icons.shield_rounded,
+                  trailing: KeyelIconHull(
+                    icon: Icons.lock_rounded,
+                    tooltip: 'Lock vault',
+                    onPressed: onLock,
+                  ),
+                ),
         ),
         SliverToBoxAdapter(
           child: Padding(
@@ -133,30 +104,16 @@ class _VaultListPaneState extends State<VaultListPane> {
             child: VaultHeader(
               entryCount: entries.length,
               isWide: isWide,
-              onNewItem: widget.onNewItem,
+              onNewItem: onNewItem,
             ),
           ),
         ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.md),
           sliver: SliverToBoxAdapter(
-            child: KeyelSearchField(
-              controller: _searchController,
-              hintText: 'Search items, tags or notes...',
-              onChanged: widget.onSearchChanged,
-              trailing: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.verified_user_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
+            child: VaultSearchBar(
+              query: controller.query,
+              onSearchChanged: controller.onSearchChanged,
             ),
           ),
         ),
@@ -164,8 +121,8 @@ class _VaultListPaneState extends State<VaultListPane> {
           child: Padding(
             padding: const EdgeInsets.only(top: KeyelSpacing.md),
             child: VaultFilterBar(
-              filter: widget.filter,
-              onFilter: widget.onFilterChanged,
+              filter: controller.filter,
+              onFilter: controller.setFilter,
             ),
           ),
         ),
@@ -173,14 +130,14 @@ class _VaultListPaneState extends State<VaultListPane> {
           child: Padding(
             padding: const EdgeInsets.only(top: KeyelSpacing.sm),
             child: VaultFolderBar(
-              folders: widget.folders,
-              selectedFolderId: widget.selectedFolderId,
-              onFolderChanged: widget.onFolderChanged,
+              folders: controller.folders,
+              selectedFolderId: controller.folderId,
+              onFolderChanged: controller.setFolder,
             ),
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: KeyelSpacing.lg)),
-        if (widget.loading)
+        if (controller.loading)
           const SliverFillRemaining(
             hasScrollBody: false,
             child: Center(child: CircularProgressIndicator()),
@@ -189,15 +146,12 @@ class _VaultListPaneState extends State<VaultListPane> {
           SliverFillRemaining(
             hasScrollBody: false,
             child: VaultEmptyState(
-              query: widget.query,
-              onClear: () {
-                _searchController.clear();
-                widget.onClearFilters();
-              },
-              onAddItem: widget.onNewItem,
+              query: controller.query,
+              onClear: controller.clearFilters,
+              onAddItem: onNewItem,
             ),
           )
-        else if (widget.query.trim().isNotEmpty)
+        else if (controller.query.trim().isNotEmpty)
           VaultEntrySection(
             config: config,
             title: 'Results',

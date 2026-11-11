@@ -73,7 +73,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -1046986858;
+  int get rustContentHash => -1215224155;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -134,11 +134,21 @@ abstract class RustLibApi extends BaseApi {
 
   Stream<String> crateApiSessionLockEvents();
 
+  Future<void> crateApiEntriesMoveEntries({
+    required List<String> ids,
+    String? folderId,
+  });
+
   Future<void> crateApiEntriesPurgeEntry({required String id});
 
   Future<void> crateApiEntriesRenameFolder({
     required String id,
     required String name,
+  });
+
+  Future<void> crateApiSessionResetMasterWithRecovery({
+    required String recoveryKey,
+    required String newMaster,
   });
 
   Future<void> crateApiEntriesRestoreEntry({required String id});
@@ -157,6 +167,8 @@ abstract class RustLibApi extends BaseApi {
   bool crateApiSessionVaultExists();
 
   String? crateApiSessionVaultPath();
+
+  Future<bool> crateApiSessionVerifyMaster({required String master});
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -618,6 +630,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "lock_events", argNames: ["sink"]);
 
   @override
+  Future<void> crateApiEntriesMoveEntries({
+    required List<String> ids,
+    String? folderId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_String(ids, serializer);
+          sse_encode_opt_String(folderId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiEntriesMoveEntriesConstMeta,
+        argValues: [ids, folderId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiEntriesMoveEntriesConstMeta => const TaskConstMeta(
+    debugName: "move_entries",
+    argNames: ["ids", "folderId"],
+  );
+
+  @override
   Future<void> crateApiEntriesPurgeEntry({required String id}) {
     return handler.executeNormal(
       NormalTask(
@@ -627,7 +673,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 17,
             port: port_,
           );
         },
@@ -659,7 +705,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 18,
             port: port_,
           );
         },
@@ -678,6 +724,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "rename_folder", argNames: ["id", "name"]);
 
   @override
+  Future<void> crateApiSessionResetMasterWithRecovery({
+    required String recoveryKey,
+    required String newMaster,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(recoveryKey, serializer);
+          sse_encode_String(newMaster, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSessionResetMasterWithRecoveryConstMeta,
+        argValues: [recoveryKey, newMaster],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSessionResetMasterWithRecoveryConstMeta =>
+      const TaskConstMeta(
+        debugName: "reset_master_with_recovery",
+        argNames: ["recoveryKey", "newMaster"],
+      );
+
+  @override
   Future<void> crateApiEntriesRestoreEntry({required String id}) {
     return handler.executeNormal(
       NormalTask(
@@ -687,7 +768,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 20,
             port: port_,
           );
         },
@@ -719,7 +800,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 21,
             port: port_,
           );
         },
@@ -747,7 +828,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 22,
             port: port_,
           );
         },
@@ -780,7 +861,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 23,
             port: port_,
           );
         },
@@ -811,7 +892,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 24,
             port: port_,
           );
         },
@@ -835,7 +916,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -857,7 +938,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_String,
@@ -872,6 +953,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiSessionVaultPathConstMeta =>
       const TaskConstMeta(debugName: "vault_path", argNames: []);
+
+  @override
+  Future<bool> crateApiSessionVerifyMaster({required String master}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(master, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSessionVerifyMasterConstMeta,
+        argValues: [master],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSessionVerifyMasterConstMeta =>
+      const TaskConstMeta(debugName: "verify_master", argNames: ["master"]);
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {

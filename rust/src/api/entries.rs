@@ -205,6 +205,26 @@ pub fn delete_folder(id: String) -> Result<(), VaultApiError> {
     })
 }
 
+/// Move several entries to a folder, or to "No folder" with `None`.
+pub fn move_entries(ids: Vec<String>, folder_id: Option<String>) -> Result<(), VaultApiError> {
+    let folder = folder_id.as_deref().map(parse_id).transpose()?;
+    with_session(|session| {
+        let parsed: Vec<Uuid> = ids
+            .iter()
+            .map(|id| parse_id(id))
+            .collect::<Result<_, _>>()?;
+        for id in parsed {
+            let entry = session
+                .vault_mut()
+                .entry_mut(id)
+                .ok_or(VaultApiError::NotFound)?;
+            entry.folder_id = folder;
+        }
+        session.save()?;
+        Ok(())
+    })
+}
+
 /// Return one plaintext secret field.
 ///
 /// This is the **only** bridge function that returns a password or any other

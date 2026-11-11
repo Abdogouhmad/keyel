@@ -43,6 +43,25 @@ Future<void> unlockWithRecovery({required String recoveryKey}) => RustLib
     .api
     .crateApiSessionUnlockWithRecovery(recoveryKey: recoveryKey);
 
+/// Verify a master password without changing the current session.
+///
+/// Opening the vault is the verification: the key must unwrap correctly. This
+/// is used before persisting a credential for biometric unlock.
+Future<bool> verifyMaster({required String master}) =>
+    RustLib.instance.api.crateApiSessionVerifyMaster(master: master);
+
+/// Reset the master password after authenticating with the recovery key.
+///
+/// The recovery keyslot is preserved, so the same recovery key remains valid.
+/// On success the session is left unlocked with the new master password.
+Future<void> resetMasterWithRecovery({
+  required String recoveryKey,
+  required String newMaster,
+}) => RustLib.instance.api.crateApiSessionResetMasterWithRecovery(
+  recoveryKey: recoveryKey,
+  newMaster: newMaster,
+);
+
 /// Lock the vault now: drop the key, the decrypted payload and the session.
 void lock() => RustLib.instance.api.crateApiSessionLock();
 

@@ -98,20 +98,44 @@ impl Session {
 
     /// Re-wrap the vault key with a new master password.
     ///
-    /// The current in-memory vault is written first, so unsaved changes are
-    /// not lost. Only the master keyslot is rewritten; the encrypted body is
-    /// copied byte for byte. The session is reopened with `new_master`, which
-    /// also refreshes the cached header.
+    /// The old master password is verified before the vault file is modified.
+    /// Unsaved changes are preserved. Only the master keyslot is rewritten;
+    /// the encrypted body is copied byte for byte.
     pub fn change_master(
         &mut self,
         old_master: &str,
         new_master: &str,
         params: Argon2Params,
     ) -> Result<(), Error> {
+        let payload = Zeroizing::new(self.vault.to_bytes()?);
+
+        // Encrypt the current in-memory vault without writing to disk.
+        let bytes = format::seal(&self.header, &payload, &self.vault_key)?;
+
+        // Verify old_master and re-wrap the master keyslot.
+        let rekeyed = format::change_master(&bytes, old_master, new_master, params)?;
+
+        // Write only after successful password verification and re-keying.
+        write_atomic(&self.path, &rekeyed)?;
+
+        // Refresh the session with the new master password.
+        *self = Self::open(&self.path, new_master)?;
+
+        Ok(())
+    }
+    /// Re-wrap the vault key with a new master password using this session's
+    /// already-authenticated key.
+    ///
+    /// This is the recovery path: the caller unlocked with the recovery key,
+    /// so the old master password is unknown. The recovery keyslot is left
+    /// untouched, so the same recovery key keeps working afterwards. The
+    /// session is reopened with `new_master`.
+    pub fn reset_master(&mut self, new_master: &str, params: Argon2Params) -> Result<(), Error> {
         self.save()?;
         let path = self.path.clone();
         let bytes = fs::read(&path).map_err(storage_error)?;
-        let rekeyed = format::change_master(&bytes, old_master, new_master, params)?;
+        let rekeyed =
+            format::change_master_with_vault_key(&bytes, &self.vault_key, new_master, params)?;
         write_atomic(&path, &rekeyed)?;
         *self = Self::open(&path, new_master)?;
         Ok(())

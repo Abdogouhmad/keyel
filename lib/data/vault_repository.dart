@@ -60,6 +60,46 @@ class VaultRepository {
     required String newMaster,
   }) => session_api.changeMaster(oldMaster: oldMaster, newMaster: newMaster);
 
+  /// Check a master password without changing the current session.
+  Future<bool> verifyMaster(String master) =>
+      session_api.verifyMaster(master: master);
+
+  /// Reset the master password using the recovery key; leaves the vault open.
+  Future<void> resetMasterWithRecovery({
+    required String recoveryKey,
+    required String newMaster,
+  }) => session_api.resetMasterWithRecovery(
+    recoveryKey: recoveryKey,
+    newMaster: newMaster,
+  );
+
+  /// Toggle an entry's favorite flag without touching its secrets.
+  Future<void> setFavorite(String id, {required bool favorite}) async {
+    final detail = await getEntry(id);
+    await upsertEntry(
+      EntryDraft(
+        id: detail.id,
+        kind: detail.kind,
+        title: detail.title,
+        tags: detail.tags,
+        folderId: detail.folderId,
+        favorite: favorite,
+        username: detail.login?.username ?? '',
+        url: detail.login?.url ?? '',
+        totpAlgorithm: detail.login?.totpAlgorithm ?? TotpAlgorithmDto.sha1,
+        totpDigits: detail.login?.totpDigits ?? 6,
+        totpPeriod: detail.login?.totpPeriod ?? 30,
+        cardholder: detail.card?.cardholder ?? '',
+        cardExpiry: detail.card?.expiry ?? '',
+        cardBrand: detail.card?.brand,
+      ),
+    );
+  }
+
+  /// Move several entries to a folder, or to "No folder" with `null`.
+  Future<void> moveEntries(List<String> ids, String? folderId) =>
+      entries_api.moveEntries(ids: ids, folderId: folderId);
+
   /// Emits `"locked"` whenever Rust drops the session.
   Stream<String> lockEvents() => session_api.lockEvents();
 

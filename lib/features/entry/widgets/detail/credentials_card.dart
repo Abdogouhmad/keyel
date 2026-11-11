@@ -14,7 +14,7 @@ class CredentialsCard extends StatelessWidget {
     required this.onToggleReveal,
     required this.onCopy,
     required this.onCopyPassword,
-    required this.onOpenWebsite,
+    required this.onOpenUrl,
     super.key,
   });
 
@@ -36,14 +36,15 @@ class CredentialsCard extends StatelessWidget {
   /// Copies the password, revealing it first if needed.
   final VoidCallback onCopyPassword;
 
-  /// Opens the entry's website.
-  final VoidCallback onOpenWebsite;
+  /// Opens a URL shown on the credentials card.
+  final void Function(String url) onOpenUrl;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final username = detail.login?.username ?? entry.username;
+    final url = detail.login?.url ?? '';
     final isRevealed = revealedPassword != null;
     final displayPass = isRevealed ? revealedPassword! : '••••••••••••';
 
@@ -122,25 +123,57 @@ class CredentialsCard extends StatelessWidget {
               ),
             ),
           ),
-          if ((detail.login?.url ?? '').isNotEmpty) ...[
+          if (url.isNotEmpty) ...[
             const SizedBox(height: KeyelSpacing.sm + 4),
-            KeyelFieldSurface(
-              label: 'Website URL',
-              trailing: KeyelIconHull(
-                icon: Icons.open_in_new_rounded,
-                tooltip: 'Website link',
-                onPressed: onOpenWebsite,
-                background: scheme.surfaceContainerHighest,
-              ),
-              child: Text(
-                detail.login!.url,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.underline,
-                  decorationColor: scheme.primary.withValues(alpha: 0.4),
+            PressableScale(
+              onTap: () => onOpenUrl(url),
+              borderRadius: BorderRadius.circular(KeyelRadii.field),
+              semanticLabel: 'Open website',
+              child: KeyelFieldSurface(
+                label: 'Website URL',
+                trailing: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(KeyelRadii.pill),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      KeyelIconHull(
+                        icon: Icons.content_copy_rounded,
+                        tooltip: 'Copy website URL',
+                        onPressed: () =>
+                            onCopy(url, 'Website URL copied to clipboard'),
+                        size: 44,
+                        iconSize: 20,
+                      ),
+                      Container(
+                        width: 1,
+                        height: 18,
+                        color: scheme.outlineVariant.withValues(alpha: 0.6),
+                      ),
+                      KeyelIconHull(
+                        icon: Icons.open_in_new_rounded,
+                        tooltip: 'Open website',
+                        onPressed: () => onOpenUrl(url),
+                        foreground: scheme.primary,
+                        size: 44,
+                        iconSize: 20,
+                      ),
+                    ],
+                  ),
+                ),
+                child: Text(
+                  url,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                    decorationColor: scheme.primary.withValues(alpha: 0.4),
+                  ),
                 ),
               ),
             ),

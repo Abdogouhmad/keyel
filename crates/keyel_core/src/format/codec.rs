@@ -196,6 +196,21 @@ pub fn change_master(
     let old_params = argon2_params(slot)?;
     let old_kek = derive_kek(old_master, slot.kdf.salt(), &old_params)?;
     let vault_key = unwrap_slot(slot, &old_kek)?;
+    change_master_with_vault_key(bytes, &vault_key, new_master, params)
+}
+
+/// Re-wrap the master keyslot with a new password using an already-unwrapped key.
+///
+/// Used after unlocking with the recovery key, where the old master password is
+/// not available. The caller must have authenticated the vault and hold its key.
+pub fn change_master_with_vault_key(
+    bytes: &[u8],
+    vault_key: &VaultKey,
+    new_master: &str,
+    params: Argon2Params,
+) -> Result<Vec<u8>, Error> {
+    params.validate()?;
+    let parsed = parse_file(bytes)?;
 
     let new_salt: [u8; SALT_LEN] = random_array();
     let new_kdf = KdfParams::Argon2id {
@@ -205,7 +220,7 @@ pub fn change_master(
         salt: new_salt,
     };
     let new_kek = derive_kek(new_master, &new_salt, &params)?;
-    let new_slot = wrap_slot(SlotKind::Master, new_kdf, &new_kek, &vault_key)?;
+    let new_slot = wrap_slot(SlotKind::Master, new_kdf, &new_kek, vault_key)?;
 
     let mut header = parsed.header;
     let index = header

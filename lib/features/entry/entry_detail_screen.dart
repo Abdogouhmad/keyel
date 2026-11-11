@@ -9,9 +9,9 @@ import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/entry_detail_callbacks.dart';
 import 'package:keyel/features/entry/entry_detail_controller.dart';
-import 'package:keyel/features/entry/vault_entry.dart';
-import 'package:keyel/features/entry/widgets/detail/detail_bar.dart';
-import 'package:keyel/features/entry/widgets/detail/detail_content.dart';
+import 'package:keyel/features/entry/entry_url.dart';
+import 'package:keyel/features/entry/widgets/detail/detail_delete_dialog.dart';
+import 'package:keyel/features/entry/widgets/detail/detail_scaffold.dart';
 import 'package:keyel/features/entry/widgets/detail/missing_entry.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -75,8 +75,9 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       notify: _notify,
       notifyError: _notifyError,
       copy: _copy,
-      confirmDelete: _confirmDeleteDialog,
-      pushEdit: _pushEdit,
+      launchUrl: launchEntryUrl,
+      confirmDelete: (title) => confirmEntryDelete(context, title),
+      pushEdit: (entryId) => context.push(KeyelRoutes.entryEdit(entryId)),
       closeEntry: _closeAfterDelete,
       onDeleted: widget.onDeleted,
       onEdited: widget.onEdited,
@@ -102,33 +103,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
   }
 
-  Future<bool> _confirmDeleteDialog(String title) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Delete $title?'),
-        content: const Text('This item will be moved to the trash.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    return confirmed ?? false;
-  }
-
-  Future<void> _pushEdit(String entryId) =>
-      context.push(KeyelRoutes.entryEdit(entryId));
-
   void _closeAfterDelete() {
-    if (!mounted) return;
-    if (!widget.isEmbedded && context.canPop()) context.pop();
+    if (mounted && !widget.isEmbedded && context.canPop()) context.pop();
   }
 
   @override
@@ -142,68 +118,24 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       return MissingEntry(entryId: widget.entryId);
     }
 
-    final scheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      backgroundColor: scheme.surface,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            DetailBar(
-              favorite: detail.favorite,
-              isEmbedded: widget.isEmbedded,
-              onBack: () => context.pop(),
-              onFavorite: _controller.toggleFavorite,
-              onEdit: _controller.openEdit,
-              onDelete: _controller.confirmDelete,
-            ),
-            Expanded(
-              child: DetailContent(
-                entry: entry,
-                detail: detail,
-                revealedPassword: _controller.revealedPassword,
-                revealedCardNumber: _controller.revealedCardNumber,
-                revealedCvv: _controller.revealedCvv,
-                revealedNote: _controller.revealedNote,
-                onToggleRevealPassword: _controller.toggleRevealPassword,
-                onToggleRevealCard: _controller.toggleRevealCard,
-                onToggleRevealNote: _controller.toggleRevealNote,
-                onCopy: _copy,
-                onCopyPassword: _controller.copyPassword,
-                onOpenWebsite: () => _notify(
-                  'Website: ${detail.login?.url ?? ''}',
-                  icon: Icons.open_in_new_rounded,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: widget.isEmbedded
-          ? null
-          : SafeArea(
-              top: false,
-              child: Container(
-                color: scheme.surface,
-                padding: const EdgeInsets.fromLTRB(
-                  KeyelSpacing.md,
-                  KeyelSpacing.sm,
-                  KeyelSpacing.md,
-                  KeyelSpacing.md,
-                ),
-                child: KeyelPillButton(
-                  label: switch (entry.kind) {
-                    VaultEntryKind.card => 'Edit card',
-                    VaultEntryKind.note => 'Edit note',
-                    VaultEntryKind.login => 'Edit login',
-                  },
-                  icon: Icons.edit_rounded,
-                  tone: KeyelButtonTone.tonal,
-                  onPressed: _controller.openEdit,
-                ),
-              ),
-            ),
+    return DetailScaffold(
+      entry: entry,
+      detail: detail,
+      isEmbedded: widget.isEmbedded,
+      revealedPassword: _controller.revealedPassword,
+      revealedCardNumber: _controller.revealedCardNumber,
+      revealedCvv: _controller.revealedCvv,
+      revealedNote: _controller.revealedNote,
+      onBack: () => context.pop(),
+      onFavorite: _controller.toggleFavorite,
+      onEdit: _controller.openEdit,
+      onDelete: _controller.confirmDelete,
+      onToggleRevealPassword: _controller.toggleRevealPassword,
+      onToggleRevealCard: _controller.toggleRevealCard,
+      onToggleRevealNote: _controller.toggleRevealNote,
+      onCopy: _copy,
+      onCopyPassword: _controller.copyPassword,
+      onOpenUrl: _controller.openUrl,
     );
   }
 }

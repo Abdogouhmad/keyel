@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/features/entry/entry_detail_callbacks.dart';
+import 'package:keyel/features/entry/entry_url.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 
@@ -171,6 +172,22 @@ class EntryDetailController {
       callbacks.copy(plain, 'Password copied • Clears in 30s');
     } on Object catch (error) {
       callbacks.notifyError(error);
+    }
+  }
+
+  /// Opens a URL shown on the detail screen in the default external app.
+  ///
+  /// Bare hosts are upgraded to https first; the user is told when the value
+  /// is not a launchable website address or the platform refuses to open it.
+  Future<void> openUrl(String rawUrl) async {
+    final uri = normalizeEntryUrl(rawUrl);
+    if (uri == null) {
+      callbacks.notify('Invalid website address', icon: Icons.link_off_rounded);
+      return;
+    }
+    final launched = await callbacks.launchUrl(uri);
+    if (!launched) {
+      callbacks.notify('Could not open website', icon: Icons.link_off_rounded);
     }
   }
 

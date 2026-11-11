@@ -66,6 +66,13 @@ Future<void> renameFolder({required String id, required String name}) =>
 Future<void> deleteFolder({required String id}) =>
     RustLib.instance.api.crateApiEntriesDeleteFolder(id: id);
 
+/// Move several entries to a folder, or to "No folder" with `None`.
+Future<void> moveEntries({required List<String> ids, String? folderId}) =>
+    RustLib.instance.api.crateApiEntriesMoveEntries(
+      ids: ids,
+      folderId: folderId,
+    );
+
 /// Return one plaintext secret field.
 ///
 /// This is the **only** bridge function that returns a password or any other

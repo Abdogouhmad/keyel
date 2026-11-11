@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/features/vault/vault_list_callbacks.dart';
+import 'package:keyel/features/vault/vault_list_controller.dart';
+import 'package:keyel/features/vault/vault_list_dialogs.dart';
 import 'package:keyel/features/vault/widgets/create_vault_view.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
-import 'package:keyel/features/vault/widgets/vault_filter.dart';
-import 'package:keyel/features/vault/widgets/vault_folder_bar.dart';
 import 'package:keyel/features/vault/widgets/vault_layout.dart';
 import 'package:keyel/features/vault/widgets/vault_list_pane.dart';
-import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// Vault screen — the home tab showing saved credentials or unlock state.
@@ -26,125 +27,70 @@ class VaultScreen extends ConsumerStatefulWidget {
 }
 
 class _VaultScreenState extends ConsumerState<VaultScreen> {
-  List<VaultEntry> _entries = [];
-  List<FolderDto> _folders = [];
-  bool _loading = false;
-  VaultFilter _filter = VaultFilter.all;
-  String _query = '';
-  String? _folderId;
-  String? _selectedEntryId;
+  late final VaultListController _controller;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_loadEntries());
-  }
-
-  Future<void> _loadEntries() async {
-    if (ref.read(vaultSessionProvider).status != VaultStatus.unlocked) return;
-
-    setState(() => _loading = true);
-    try {
-      final repository = ref.read(vaultRepositoryProvider);
-      final summaries = await repository.listEntries(
-        query: _query,
-        kind: switch (_filter) {
-          VaultFilter.logins => EntryKindDto.login,
-          VaultFilter.cards => EntryKindDto.card,
-          VaultFilter.notes => EntryKindDto.note,
-          _ => null,
-        },
-        favorite: _filter == VaultFilter.favorites ? true : null,
-      );
-      final folders = await repository.listFolders();
-      final folderNames = {
-        for (final folder in folders) folder.id: folder.name,
-      };
-
-      var visible = summaries;
-      final folderId = _folderId;
-      if (folderId != null) {
-        visible = folderId == noFolderSelection
-            ? summaries.where((s) => s.folderId == null).toList()
-            : summaries.where((s) => s.folderId == folderId).toList();
-      }
-
-      var entries = visible
-          .map(
-            (summary) =>
-                VaultEntry.fromSummary(summary, folderNames: folderNames),
-          )
-          .toList();
-      if (_filter == VaultFilter.twoFactor) {
-        entries = entries.where((e) => e.hasTotp).toList();
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _entries = entries;
-        _folders = folders;
-        // Drop a folder filter that no longer exists (for example after the
-        // folder was deleted in Settings).
-        if (_folderId != null &&
-            _folderId != noFolderSelection &&
-            !folders.any((folder) => folder.id == _folderId)) {
-          _folderId = null;
-        }
-        _loading = false;
-        if (_selectedEntryId != null &&
-            !_entries.any((e) => e.id == _selectedEntryId)) {
-          _selectedEntryId = _entries.isNotEmpty ? _entries.first.id : null;
-        }
-      });
-    } on Object catch (error) {
-      if (mounted) {
-        setState(() => _loading = false);
-        showKeyelSnack(context, describeVaultError(error));
-      }
+    _controller = VaultListController(
+      repository: ref.read(vaultRepositoryProvider),
+      callbacks: _createCallbacks(),
+    );
+    if (ref.read(vaultSessionProvider).status == VaultStatus.unlocked) {
+      unawaited(_controller.load());
     }
   }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  VaultListCallbacks _createCallbacks() => VaultListCallbacks(
+    rebuild: () {
+      if (mounted) setState(() {});
+    },
+    notify: (message, {icon, actionLabel, onAction}) {
+      if (!mounted) return;
+      showKeyelSnack(
+        context,
+        message,
+        icon: icon ?? Icons.check_circle_rounded,
+        actionLabel: actionLabel,
+        onAction: onAction,
+      );
+    },
+    notifyError: (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
+    },
+    copy: (value, message) {
+      unawaited(SensitiveClipboard.instance.copy(value));
+      if (mounted) {
+        showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
+      }
+    },
+    confirmDelete: (count) => confirmVaultDelete(context, count),
+    pickFolder: () => pickVaultFolder(context, _controller.folders),
+  );
 
   void _openEntry(VaultEntry entry, {required bool isWide}) {
-    if (isWide) {
-      setState(() => _selectedEntryId = entry.id);
-    } else {
-      unawaited(
-        context.push(KeyelRoutes.entryDetail(entry.id)).then((_) {
-          if (mounted) unawaited(_loadEntries());
-        }),
-      );
-    }
+    if (isWide) return _controller.selectDetail(entry.id);
+    unawaited(
+      context.push(KeyelRoutes.entryDetail(entry.id)).then((_) {
+        if (mounted) unawaited(_controller.load());
+      }),
+    );
   }
 
   Future<void> _openNewEntry() async {
     await context.push(KeyelRoutes.newEntry);
-    if (mounted) unawaited(_loadEntries());
+    if (mounted) unawaited(_controller.load());
   }
 
   void _lockVault() {
     ref.read(vaultSessionProvider.notifier).lock();
     showKeyelSnack(context, 'Vault locked', icon: Icons.lock_rounded);
-  }
-
-  void _setFilter(VaultFilter filter) {
-    setState(() => _filter = filter);
-    unawaited(_loadEntries());
-  }
-
-  void _setFolder(String? folderId) {
-    setState(() => _folderId = folderId);
-    unawaited(_loadEntries());
-  }
-
-  void _onSearchChanged(String value) {
-    _query = value;
-    unawaited(_loadEntries());
-  }
-
-  void _clearFilters() {
-    _query = '';
-    _folderId = null;
-    _setFilter(VaultFilter.all);
   }
 
   @override
@@ -155,7 +101,9 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       next,
     ) {
       if (next == VaultStatus.unlocked && previous != VaultStatus.unlocked) {
-        unawaited(_loadEntries());
+        unawaited(_controller.load());
+      } else if (previous == VaultStatus.unlocked && next != previous) {
+        _controller.clearSelection();
       }
     });
 
@@ -167,32 +115,25 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
   }
 
   Widget _buildUnlockedVault(BuildContext context) {
-    final listPane = VaultListPane(
-      entries: _entries,
-      loading: _loading,
-      filter: _filter,
-      query: _query,
-      selectedEntryId: _selectedEntryId,
-      folders: _folders,
-      selectedFolderId: _folderId,
-      onLock: _lockVault,
-      onNewItem: () => unawaited(_openNewEntry()),
-      onSearchChanged: _onSearchChanged,
-      onFilterChanged: _setFilter,
-      onFolderChanged: _setFolder,
-      onClearFilters: _clearFilters,
-      onOpenEntry: _openEntry,
-      onRefresh: _loadEntries,
+    // The system back button leaves selection mode instead of the screen.
+    final listPane = PopScope(
+      canPop: !_controller.selectionMode,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _controller.clearSelection();
+      },
+      child: VaultListPane(
+        controller: _controller,
+        onLock: _lockVault,
+        onNewItem: () => unawaited(_openNewEntry()),
+        onOpenEntry: _openEntry,
+      ),
     );
 
     return VaultLayout(
       listPane: listPane,
-      entryId: _selectedEntryId,
-      onDeleted: () {
-        setState(() => _selectedEntryId = null);
-        unawaited(_loadEntries());
-      },
-      onEdited: () => unawaited(_loadEntries()),
+      entryId: _controller.selectedEntryId,
+      onDeleted: () => unawaited(_controller.onDetailDeleted()),
+      onEdited: () => unawaited(_controller.load()),
       onNewItem: () => unawaited(_openNewEntry()),
     );
   }

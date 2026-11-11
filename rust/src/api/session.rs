@@ -129,6 +129,50 @@ pub fn unlock_with_recovery(recovery_key: String) -> Result<(), VaultApiError> {
     Ok(())
 }
 
+/// Verify a master password without changing the current session.
+///
+/// Opening the vault is the verification: the key must unwrap correctly. This
+/// is used before persisting a credential for biometric unlock.
+pub fn verify_master(master: String) -> Result<bool, VaultApiError> {
+    if master.is_empty() {
+        return Ok(false);
+    }
+    let path = current_path()?;
+    if !path.exists() {
+        return Err(VaultApiError::VaultMissing);
+    }
+    match Session::open(&path, &master) {
+        Ok(session) => {
+            session.lock();
+            Ok(true)
+        }
+        Err(keyel_core::error::Error::WrongPassword) => Ok(false),
+        Err(error) => Err(error.into()),
+    }
+}
+
+/// Reset the master password after authenticating with the recovery key.
+///
+/// The recovery keyslot is preserved, so the same recovery key remains valid.
+/// On success the session is left unlocked with the new master password.
+pub fn reset_master_with_recovery(
+    recovery_key: String,
+    new_master: String,
+) -> Result<(), VaultApiError> {
+    if new_master.is_empty() {
+        return Err(VaultApiError::InvalidField);
+    }
+    let path = current_path()?;
+    if !path.exists() {
+        return Err(VaultApiError::VaultMissing);
+    }
+
+    let mut session = Session::open_with_recovery(&path, &recovery_key)?;
+    session.reset_master(&new_master, Argon2Params::default())?;
+    *session_slot() = Some(session);
+    Ok(())
+}
+
 /// Lock the vault now: drop the key, the decrypted payload and the session.
 #[flutter_rust_bridge::frb(sync)]
 pub fn lock() {
