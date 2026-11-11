@@ -1,12 +1,49 @@
 # Plan — Phases 0.8.0 and 0.9.0
 
 **Branch:** `phase/0.8-0.9-generator-totp-security`
-**Base:** `phase/0.6-0.7-lock-and-vault-ui` @ `5f8210c` (clean, `flutter analyze` clean, all tests green)
-**Status:** proposal — no implementation starts until this is confirmed.
+**Base:** `phase/0.6-0.7-lock-and-vault-ui` @ `3c9e993` (clean, `flutter analyze` clean, all tests green)
+**Status:** phase 0.8 implemented (`72f3694`); phase 0.9 **not started** (see the estimate below).
 
 Priority when documents disagree: **roadmap > plan > design** (`docs/DECISIONS.md`).
 
 ---
+
+## 0. Progress update — 2026-11-11
+
+### Done (phase 0.8, commit `72f3694`)
+- **Rust TOTP** (`crates/keyel_core/src/totp.rs`): base32 decode, HOTP (RFC 4226),
+  TOTP (RFC 6238), `seconds_left`, `parse_otpauth`; RFC SHA-1/256/512 vectors
+  and malformed-input tests. Bridge `current_code` / `parse_otpauth`; bindings
+  regenerated.
+- **Generator**: passphrase `separator` (core + bridge + UI); all generator
+  options persisted in `AppPreferences`; passphrase strength corrected to
+  10 bits/word for the 1024-word list.
+- **TOTP UI**: entry detail shows a live self-refreshing code; the editor sets
+  the secret via a validated manual-entry dialog and preserves the parsed
+  algorithm/digits/period.
+- **Tests**: Rust 50 core + 12 + 10; Dart 31 (strength, preference
+  round-trip, TOTP section states). `cargo fmt/clippy/test`, FRB idempotency,
+  `flutter analyze`, `flutter test` all green.
+
+### Deferred from phase 0.8 (recorded in `docs/DECISIONS.md`)
+- 0.8.2 Rust `zxcvbn` `estimate_strength` (Dart heuristic still used).
+- 0.8.4 "Use this password" bottom sheet (the editor's inline generate button
+  already covers the core need).
+- 0.8.5 QR scanning (`mobile_scanner`); manual entry is the supported path.
+- Exposing per-class min-counts over the bridge (core already supports them;
+  no UI consumes them).
+
+### Phase 0.9 estimate
+Phase 0.9 is roughly **3–4×** the code and integration of phase 0.8: the
+encrypted backup round trip (`backup.rs`) is comparable to the vault format
+work, the CSV import adds two parsers plus a dedup/preview/report UI, the
+health analyser needs reuse detection over salted in-memory hashes, and it
+adds `zxcvbn` + `file_picker` (native picker). Phase 0.8 alone consumed a
+large share of this session. **Recommendation: stop here; phase 0.9 will not
+fit the remaining budget at the same tested quality.**
+
+---
+
 
 ## 1. Where we are today (gap analysis)
 
