@@ -128,7 +128,13 @@ abstract final class KeyelTheme {
   }
 
   static ThemeData _build(ColorScheme scheme) {
-    final textTheme = _textTheme();
+    // Colour every text style with the scheme's on-surface roles so text
+    // entered in fields (and any unstyled text) stays readable on the
+    // container surfaces in both light and dark themes.
+    final textTheme = _textTheme().apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    );
     final isLight = scheme.brightness == Brightness.light;
 
     final base = ThemeData(

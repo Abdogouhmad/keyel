@@ -52,6 +52,7 @@ captures/
 coverage/
 lcov.info
 goldens_failures/
+test/failures/
 
 # --- Release artifacts ------------------------------------------------
 dist/

@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/onboarding/widgets/finish_step.dart';
 import 'package:keyel/features/onboarding/widgets/master_password_step.dart';
-import 'package:keyel/features/onboarding/widgets/quick_unlock_step.dart';
 import 'package:keyel/features/onboarding/widgets/recovery_steps.dart';
 import 'package:keyel/features/onboarding/widgets/welcome_step.dart';
 import 'package:keyel/ui/keyel.dart';
 
-/// Five-step first-run flow: welcome, master password, recovery key, quick
-/// unlock and a closing summary.
+/// Four-step first-run flow: welcome, master password (with an optional
+/// biometric opt-in), recovery key and a closing summary.
 ///
 /// The screen owns the step machine and the vault creation; the step UIs
 /// render each frame and report their result through callbacks.
@@ -27,14 +27,32 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-enum _OnboardingStep { welcome, master, recovery, quickUnlock, finish }
+enum _OnboardingStep { welcome, master, recovery, finish }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   _OnboardingStep _step = _OnboardingStep.welcome;
   String? _recoveryKey;
-  String? _master;
   bool _quickUnlockEnabled = false;
+  bool _biometricAvailable = false;
+  bool _biometricChoice = false;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_checkBiometric());
+  }
+
+  /// Offer the biometric switch only when the device can actually use it, and
+  /// default it on so the option is discoverable during creation.
+  Future<void> _checkBiometric() async {
+    final available = await BiometricAuth.instance.isAvailable;
+    if (!mounted || !available) return;
+    setState(() {
+      _biometricAvailable = true;
+      _biometricChoice = true;
+    });
+  }
 
   Future<void> _createVault(String master) async {
     FocusManager.instance.primaryFocus?.unfocus();
@@ -43,10 +61,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       final key = await ref.read(vaultSessionProvider.notifier).create(master);
       if (!mounted) return;
+
+      // The optional biometric opt-in is honoured while the master password is
+      // still in memory, so the user never has to type it again.
+      var quickUnlock = false;
+      if (_biometricChoice) {
+        quickUnlock = await enableBiometricUnlock(master);
+        if (!mounted) return;
+      }
+
       setState(() {
         _busy = false;
-        _master = master;
         _recoveryKey = key;
+        _quickUnlockEnabled = quickUnlock;
         _step = _OnboardingStep.recovery;
       });
     } on Object catch (error) {
@@ -60,26 +87,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  /// Enables quick unlock while the freshly created master password is still
-  /// in memory, so the user does not have to type it again.
-  Future<bool> _enableQuickUnlock() async {
-    final master = _master;
-    if (master == null) return false;
-
-    final enabled = await enableBiometricUnlock(master);
-    if (!enabled || !mounted) return enabled;
-
-    setState(() => _quickUnlockEnabled = true);
-    showKeyelSnack(
-      context,
-      'Quick unlock enabled',
-      icon: Icons.fingerprint_rounded,
-    );
-    return true;
-  }
-
   void _finish() {
-    _master = null;
     context.go(KeyelRoutes.vault);
   }
 
@@ -133,6 +141,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             _OnboardingStep.master => MasterPasswordStep(
                               key: const ValueKey('onboarding-master'),
                               busy: _busy,
+                              biometricAvailable: _biometricAvailable,
+                              biometricEnabled: _biometricChoice,
+                              onBiometricChanged: (value) => setState(
+                                () => _biometricChoice = value,
+                              ),
                               onBack: () => setState(
                                 () => _step = _OnboardingStep.welcome,
                               ),
@@ -142,13 +155,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             _OnboardingStep.recovery => RecoveryKeyStep(
                               key: const ValueKey('onboarding-recovery'),
                               recoveryKey: _recoveryKey ?? '',
-                              onContinue: () => setState(
-                                () => _step = _OnboardingStep.quickUnlock,
-                              ),
-                            ),
-                            _OnboardingStep.quickUnlock => QuickUnlockStep(
-                              key: const ValueKey('onboarding-quick-unlock'),
-                              onEnable: _enableQuickUnlock,
                               onContinue: () => setState(
                                 () => _step = _OnboardingStep.finish,
                               ),

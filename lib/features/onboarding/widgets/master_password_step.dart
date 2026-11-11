@@ -13,8 +13,13 @@ import 'package:keyel/ui/keyel.dart';
 class MasterPasswordStep extends StatefulWidget {
   /// Creates the master-password step.
   const new({
-    required this.onBack, required this.onCreate, super.key,
+    required this.onBack,
+    required this.onCreate,
+    this.biometricAvailable = false,
+    this.biometricEnabled = false,
+    this.onBiometricChanged,
     this.busy = false,
+    super.key,
   });
 
   /// Returns to the welcome step.
@@ -22,6 +27,15 @@ class MasterPasswordStep extends StatefulWidget {
 
   /// Creates the vault with the validated master password.
   final ValueChanged<String> onCreate;
+
+  /// Whether the device has an enrolled biometric the user can opt into.
+  final bool biometricAvailable;
+
+  /// Whether the user turned the optional biometric switch on.
+  final bool biometricEnabled;
+
+  /// Called when the user flips the biometric switch.
+  final ValueChanged<bool>? onBiometricChanged;
 
   /// Whether vault creation is in flight.
   final bool busy;
@@ -117,6 +131,13 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
         ),
         const SizedBox(height: KeyelSpacing.lg),
         KeyelStrengthMeter(strength: _strength),
+        if (widget.biometricAvailable) ...[
+          const SizedBox(height: KeyelSpacing.md),
+          _BiometricToggle(
+            value: widget.biometricEnabled,
+            onChanged: widget.onBiometricChanged,
+          ),
+        ],
         const SizedBox(height: KeyelSpacing.xl),
         Row(
           children: [
@@ -137,6 +158,62 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Optional biometric opt-in shown while the vault is created.
+///
+/// The switch is only rendered when the device has an enrolled biometric, so
+/// the choice is genuinely optional and never blocks vault creation.
+class _BiometricToggle extends StatelessWidget {
+  const new({required this.value, this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: KeyelSpacing.md,
+        vertical: KeyelSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(KeyelRadii.field),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.fingerprint_rounded, color: scheme.primary),
+          const SizedBox(width: KeyelSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Unlock with biometrics',
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Optional — open the vault with your fingerprint or face.',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(value: value, onChanged: onChanged),
+        ],
+      ),
     );
   }
 }
