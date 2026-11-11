@@ -8,6 +8,7 @@ import 'api/error.dart';
 import 'api/generator.dart';
 import 'api/models.dart';
 import 'api/session.dart';
+import 'api/totp.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -144,6 +145,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TotpAlgorithmDto dco_decode_totp_algorithm_dto(dynamic raw);
+
+  @protected
+  TotpCodeDto dco_decode_totp_code_dto(dynamic raw);
+
+  @protected
+  TotpConfigDto dco_decode_totp_config_dto(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -305,6 +312,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TotpAlgorithmDto sse_decode_totp_algorithm_dto(SseDeserializer deserializer);
+
+  @protected
+  TotpCodeDto sse_decode_totp_code_dto(SseDeserializer deserializer);
+
+  @protected
+  TotpConfigDto sse_decode_totp_config_dto(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -506,6 +519,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     TotpAlgorithmDto self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_totp_code_dto(TotpCodeDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_totp_config_dto(TotpConfigDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

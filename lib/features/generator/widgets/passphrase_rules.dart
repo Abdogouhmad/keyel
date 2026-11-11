@@ -8,8 +8,10 @@ class PassphraseRules extends StatelessWidget {
   const new({
     required this.capitalizeFirst,
     required this.includeNumber,
+    required this.separator,
     required this.onCapitalizeFirstChanged,
     required this.onIncludeNumberChanged,
+    required this.onSeparatorChanged,
     super.key,
   });
 
@@ -19,11 +21,17 @@ class PassphraseRules extends StatelessWidget {
   /// Whether to include a random number at the end of the passphrase.
   final bool includeNumber;
 
+  /// Word separator between passphrase words.
+  final String separator;
+
   /// Callback triggered when the capitalize switch changes.
   final ValueChanged<bool> onCapitalizeFirstChanged;
 
   /// Callback triggered when the include number switch changes.
   final ValueChanged<bool> onIncludeNumberChanged;
+
+  /// Callback triggered when the separator changes.
+  final ValueChanged<String> onSeparatorChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +59,22 @@ class PassphraseRules extends StatelessWidget {
           subtitle: 'Adds two random digits at the end',
           switchValue: includeNumber,
           onSwitchChanged: onIncludeNumberChanged,
+        ),
+        const SizedBox(height: KeyelSpacing.md),
+        KeyelSectionLabel(
+          label: 'Word separator',
+          color: scheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: KeyelSpacing.sm),
+        KeyelSegmentedControl<String>(
+          selected: separator,
+          onChanged: onSeparatorChanged,
+          options: const [
+            KeyelSegmentOption(value: '-', label: '-'),
+            KeyelSegmentOption(value: '.', label: '.'),
+            KeyelSegmentOption(value: '_', label: '_'),
+            KeyelSegmentOption(value: ' ', label: 'Space'),
+          ],
         ),
       ],
     );

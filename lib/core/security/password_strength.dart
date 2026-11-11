@@ -72,13 +72,13 @@ class PasswordStrength {
     return PasswordStrength.fromBits(bits);
   }
 
-  /// Estimates the strength of a hyphen-joined passphrase.
+  /// Estimates the strength of a passphrase.
   ///
-  /// The generator draws uniformly from its built-in 128-word list, so each
-  /// word contributes roughly seven bits of entropy.
+  /// The generator draws uniformly from its built-in 1024-word list, so each
+  /// word contributes ten bits of entropy.
   factory estimatePassphrase(int words) {
     if (words <= 0) return PasswordStrength.fromBits(0);
-    return PasswordStrength.fromBits(words * 7);
+    return PasswordStrength.fromBits(words * 10);
   }
 
   /// Bucket used for colour resolution.

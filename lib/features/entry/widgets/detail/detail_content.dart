@@ -7,6 +7,7 @@ import 'package:keyel/features/entry/widgets/detail/detail_hero.dart';
 import 'package:keyel/features/entry/widgets/detail/health_card.dart';
 import 'package:keyel/features/entry/widgets/detail/note_details.dart';
 import 'package:keyel/features/entry/widgets/detail/notes_card.dart';
+import 'package:keyel/features/entry/widgets/detail/totp_card.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -103,6 +104,15 @@ class DetailContent extends StatelessWidget {
             onToggleReveal: onToggleRevealNote,
             onCopy: onCopy,
           ),
+        if (entry.kind == VaultEntryKind.login &&
+            detail.login?.totpAlgorithm != null) ...[
+          const SizedBox(height: KeyelSpacing.md),
+          EntryTotpCard(
+            entryId: detail.id,
+            period: detail.login?.totpPeriod ?? 30,
+            onCopy: onCopy,
+          ),
+        ],
         const SizedBox(height: KeyelSpacing.md),
         HealthCard(entry: entry, revealedPassword: revealedPassword),
         if (detail.hasNotes) ...[

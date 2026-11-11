@@ -8,6 +8,7 @@ pub mod error;
 pub mod format;
 pub mod generator;
 pub mod pass_words;
+pub mod totp;
 pub mod vault;
 
 pub use error::Error;

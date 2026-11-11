@@ -11,7 +11,7 @@ use super::models::{
 };
 use super::session::with_session;
 
-fn parse_id(id: &str) -> Result<Uuid, VaultApiError> {
+pub(crate) fn parse_id(id: &str) -> Result<Uuid, VaultApiError> {
     Uuid::from_str(id).map_err(|_| VaultApiError::InvalidId)
 }
 

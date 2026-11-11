@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:keyel/core/security/password_strength.dart';
+import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/features/generator/widgets/character_rules.dart';
 import 'package:keyel/features/generator/widgets/generator_result_card.dart';
 import 'package:keyel/features/generator/widgets/passphrase_config.dart';
@@ -35,6 +36,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
   bool _excludeAmbiguous = true;
   bool _capitalizeFirst = true;
   bool _includeNumber = false;
+  String _separator = '-';
 
   late String _password;
   late String _passphrase;
@@ -65,6 +67,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
         wordCount: _wordCount,
         capitalize: _capitalizeFirst,
         includeNumber: _includeNumber,
+        separator: _separator,
       );
     } on Exception {
       showKeyelSnack(
@@ -76,9 +79,42 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     }
   }
 
+  /// Remember the current options so they survive an app restart.
+  void _persist() {
+    final prefs = AppPreferences.instance
+      ..generatorMode = _mode == _GeneratorMode.passphrase
+          ? 'passphrase'
+          : 'password'
+      ..generatorLength = _length
+      ..generatorWordCount = _wordCount
+      ..generatorUppercase = _includeUppercase
+      ..generatorLowercase = _includeLowercase
+      ..generatorNumbers = _includeNumbers
+      ..generatorSymbols = _includeSymbols
+      ..generatorExcludeAmbiguous = _excludeAmbiguous
+      ..generatorCapitalize = _capitalizeFirst
+      ..generatorIncludeNumber = _includeNumber
+      ..generatorSeparator = _separator;
+    unawaited(prefs.save());
+  }
+
   @override
   void initState() {
     super.initState();
+    final prefs = AppPreferences.instance;
+    _mode = prefs.generatorMode == 'passphrase'
+        ? _GeneratorMode.passphrase
+        : _GeneratorMode.password;
+    _length = prefs.generatorLength;
+    _wordCount = prefs.generatorWordCount;
+    _includeUppercase = prefs.generatorUppercase;
+    _includeLowercase = prefs.generatorLowercase;
+    _includeNumbers = prefs.generatorNumbers;
+    _includeSymbols = prefs.generatorSymbols;
+    _excludeAmbiguous = prefs.generatorExcludeAmbiguous;
+    _capitalizeFirst = prefs.generatorCapitalize;
+    _includeNumber = prefs.generatorIncludeNumber;
+    _separator = prefs.generatorSeparator;
     _password = _generatePassword();
     _passphrase = _generatePassphrase();
   }
@@ -113,6 +149,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
         _passphrase = _generatePassphrase();
       }
     });
+    _persist();
   }
 
   void _setCharacterClass({
@@ -142,6 +179,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
       _includeSymbols = nextSymbols;
       _password = _generatePassword();
     });
+    _persist();
   }
 
   void _setExcludeAmbiguous(bool value) {
@@ -149,6 +187,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
       _excludeAmbiguous = value;
       _password = _generatePassword();
     });
+    _persist();
   }
 
   void _copy() {
@@ -224,13 +263,19 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
                   if (_mode == _GeneratorMode.password)
                     PasswordConfig(
                       length: _length,
-                      onChanged: (value) => setState(() => _length = value),
+                      onChanged: (value) {
+                        setState(() => _length = value);
+                        _persist();
+                      },
                       onChangeEnd: _regenerate,
                     )
                   else
                     PassphraseConfig(
                       wordCount: _wordCount,
-                      onChanged: (value) => setState(() => _wordCount = value),
+                      onChanged: (value) {
+                        setState(() => _wordCount = value);
+                        _persist();
+                      },
                       onChangeEnd: _regenerate,
                     ),
                   const SizedBox(height: KeyelSpacing.lg),
@@ -257,17 +302,27 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
                         PassphraseRules(
                           capitalizeFirst: _capitalizeFirst,
                           includeNumber: _includeNumber,
+                          separator: _separator,
                           onCapitalizeFirstChanged: (v) {
                             setState(() {
                               _capitalizeFirst = v;
-                              _regenerate();
+                              _passphrase = _generatePassphrase();
                             });
+                            _persist();
                           },
                           onIncludeNumberChanged: (v) {
                             setState(() {
                               _includeNumber = v;
-                              _regenerate();
+                              _passphrase = _generatePassphrase();
                             });
+                            _persist();
+                          },
+                          onSeparatorChanged: (v) {
+                            setState(() {
+                              _separator = v;
+                              _passphrase = _generatePassphrase();
+                            });
+                            _persist();
                           },
                         ),
                         const SizedBox(height: KeyelSpacing.lg),

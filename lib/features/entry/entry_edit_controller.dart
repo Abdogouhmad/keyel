@@ -48,6 +48,25 @@ class EntryEditController {
   /// Controller for the password field.
   final TextEditingController password = TextEditingController();
 
+  /// Controller for the TOTP shared secret (base32 or `otpauth://` URI).
+  final TextEditingController totpSecret = TextEditingController();
+
+  /// Whether the loaded entry already had TOTP configured, so clearing the
+  /// field can remove it.
+  bool _hadTotp = false;
+
+  TotpAlgorithmDto _totpAlgorithm = TotpAlgorithmDto.sha1;
+  int _totpDigits = 6;
+  int _totpPeriod = 30;
+
+  /// Apply a validated TOTP configuration from the setup dialog.
+  void setTotpConfig(TotpConfigDto config) {
+    totpSecret.text = config.secret;
+    _totpAlgorithm = config.algorithm;
+    _totpDigits = config.digits;
+    _totpPeriod = config.period;
+  }
+
   /// Controller for the website field.
   final TextEditingController website = TextEditingController();
 
@@ -85,6 +104,18 @@ class EntryEditController {
             password.text = await repository.revealField(
               id,
               SecretFieldDto.loginPassword,
+            );
+          } on Object catch (_) {}
+        }
+        if (detail.login!.totpAlgorithm != null) {
+          _hadTotp = true;
+          _totpAlgorithm = detail.login!.totpAlgorithm!;
+          _totpDigits = detail.login!.totpDigits ?? 6;
+          _totpPeriod = detail.login!.totpPeriod ?? 30;
+          try {
+            totpSecret.text = await repository.revealField(
+              id,
+              SecretFieldDto.loginTotpSecret,
             );
           } on Object catch (_) {}
         }
@@ -145,6 +176,14 @@ class EntryEditController {
     }
   }
 
+  /// The TOTP value to persist: `null` keeps the stored secret, an empty
+  /// string removes it, and a non-empty string replaces it.
+  String? _totpDraftValue() {
+    final value = totpSecret.text.trim();
+    if (value.isNotEmpty) return value;
+    return _hadTotp ? '' : null;
+  }
+
   /// Builds a draft from the editors and persists it to the vault.
   Future<void> save({
     required VaultEntryKind kind,
@@ -179,9 +218,10 @@ class EntryEditController {
       username: username.text.trim(),
       password: password.text.isNotEmpty ? password.text : null,
       url: website.text.trim(),
-      totpAlgorithm: TotpAlgorithmDto.sha1,
-      totpDigits: 6,
-      totpPeriod: 30,
+      totpSecret: _totpDraftValue(),
+      totpAlgorithm: _totpAlgorithm,
+      totpDigits: _totpDigits,
+      totpPeriod: _totpPeriod,
       cardholder: cardholder.text.trim(),
       cardNumber: cardNumber.text.isNotEmpty ? cardNumber.text.trim() : null,
       cardExpiry: cardExpiry.text.trim(),
@@ -206,6 +246,7 @@ class EntryEditController {
     title.dispose();
     username.dispose();
     password.dispose();
+    totpSecret.dispose();
     website.dispose();
     notes.dispose();
     cardNumber.dispose();

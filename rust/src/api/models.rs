@@ -354,3 +354,30 @@ pub struct FolderDto {
     /// Zero-based position.
     pub order: u32,
 }
+
+/// TOTP parameters parsed from an `otpauth://` URI or a typed secret.
+///
+/// Unlike the vault DTOs this carries the shared secret, because the caller
+/// supplied it (scanned or typed) and needs it back to save the entry.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TotpConfigDto {
+    /// Normalised base32 secret.
+    pub secret: String,
+    /// Hash algorithm.
+    pub algorithm: TotpAlgorithmDto,
+    /// Number of digits.
+    pub digits: u8,
+    /// Time step in seconds.
+    pub period: u32,
+}
+
+/// A live one-time code for an entry.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TotpCodeDto {
+    /// The zero-padded numeric code.
+    pub code: String,
+    /// Seconds until the code rolls over.
+    pub seconds_left: u32,
+    /// The configured period, for the countdown ring.
+    pub period: u32,
+}

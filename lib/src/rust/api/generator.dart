@@ -31,10 +31,12 @@ String generatePassphrase({
   required int wordCount,
   required bool capitalize,
   required bool includeNumber,
+  required String separator,
 }) => RustLib.instance.api.crateApiGeneratorGeneratePassphrase(
   wordCount: wordCount,
   capitalize: capitalize,
   includeNumber: includeNumber,
+  separator: separator,
 );
 
 /// Error surface for the generator API.

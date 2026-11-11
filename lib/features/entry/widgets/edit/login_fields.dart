@@ -22,6 +22,7 @@ class LoginFields extends StatelessWidget {
     required this.websiteController,
     required this.onScan,
     required this.onManual,
+    this.totpConfigured = false,
     super.key,
   });
 
@@ -58,6 +59,9 @@ class LoginFields extends StatelessWidget {
   /// Called when the manual TOTP entry button is tapped.
   final VoidCallback onManual;
 
+  /// Whether the login already has a TOTP secret.
+  final bool totpConfigured;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -78,7 +82,11 @@ class LoginFields extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.md),
         WebsiteSection(controller: websiteController),
         const SizedBox(height: KeyelSpacing.md),
-        TotpSection(onScan: onScan, onManual: onManual),
+        TotpSection(
+          onScan: onScan,
+          onManual: onManual,
+          configured: totpConfigured,
+        ),
       ],
     );
   }

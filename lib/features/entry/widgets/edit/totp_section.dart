@@ -6,13 +6,21 @@ import 'package:keyel/ui/keyel.dart';
 /// TOTP onboarding block with scan and manual-entry actions.
 class TotpSection extends StatelessWidget {
   /// Creates the TOTP section.
-  const new({required this.onScan, required this.onManual, super.key});
+  const new({
+    required this.onScan,
+    required this.onManual,
+    this.configured = false,
+    super.key,
+  });
 
   /// Called when the scan QR code button is tapped.
   final VoidCallback onScan;
 
   /// Called when the manual entry button is tapped.
   final VoidCallback onManual;
+
+  /// Whether the entry already has a TOTP secret.
+  final bool configured;
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +48,23 @@ class TotpSection extends StatelessWidget {
                 ),
               ),
               KeyelBadge(
-                label: 'TOTP',
-                background: scheme.surfaceContainerHigh,
-                foreground: scheme.onSurfaceVariant,
+                label: configured ? 'Configured' : 'TOTP',
+                background: configured
+                    ? scheme.primaryContainer
+                    : scheme.surfaceContainerHigh,
+                foreground: configured
+                    ? scheme.onPrimaryContainer
+                    : scheme.onSurfaceVariant,
               ),
             ],
           ),
           const SizedBox(height: KeyelSpacing.sm),
           Text(
-            'Generate integrated 30-second rotating security codes directly '
-            'inside Keyel.',
+            configured
+                ? 'A rotating code is stored for this entry. Enter a new key '
+                      'to replace it.'
+                : 'Generate integrated 30-second rotating security codes '
+                      'directly inside Keyel.',
             style: textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -69,7 +84,7 @@ class TotpSection extends StatelessWidget {
               const SizedBox(width: KeyelSpacing.sm),
               Expanded(
                 child: KeyelPillButton(
-                  label: 'Enter Manually',
+                  label: configured ? 'Replace Key' : 'Enter Manually',
                   icon: Icons.keyboard_rounded,
                   tone: KeyelButtonTone.neutral,
                   height: 48,

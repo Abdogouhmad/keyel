@@ -15,6 +15,7 @@ import 'package:keyel/features/entry/widgets/edit/notes_section.dart';
 import 'package:keyel/features/entry/widgets/edit/organization_section.dart';
 import 'package:keyel/features/entry/widgets/edit/password_section.dart';
 import 'package:keyel/features/entry/widgets/edit/totp_section.dart';
+import 'package:keyel/features/entry/widgets/edit/totp_setup_dialog.dart';
 import 'package:keyel/features/entry/widgets/edit/username_section.dart';
 import 'package:keyel/features/entry/widgets/edit/website_section.dart';
 import 'package:keyel/features/folders/folder_picker_sheet.dart';
@@ -185,7 +186,11 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _passwordSection(),
       const SizedBox(height: KeyelSpacing.md),
-      TotpSection(onScan: _scanQr, onManual: _enterTotpManually),
+      TotpSection(
+        onScan: _scanQr,
+        onManual: _enterTotpManually,
+        configured: _totpConfigured,
+      ),
     ],
     VaultEntryKind.card => [_cardSection()],
     VaultEntryKind.note => [_noteContentSection()],
@@ -223,6 +228,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
         websiteController: widget.controller.website,
         onScan: _scanQr,
         onManual: _enterTotpManually,
+        totpConfigured: _totpConfigured,
       ),
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
@@ -293,15 +299,25 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     setState(() => _obscurePassword = !_obscurePassword);
   }
 
+  bool get _totpConfigured => widget.controller.totpSecret.text.trim().isNotEmpty;
+
   void _scanQr() => showKeyelSnack(
     context,
-    'QR scanning arrives with the TOTP engine.',
+    'Camera scanning arrives in a later update. Enter the key manually for now.',
     icon: Icons.qr_code_scanner_rounded,
   );
 
-  void _enterTotpManually() => showKeyelSnack(
-    context,
-    'Manual TOTP setup arrives with the TOTP engine.',
-    icon: Icons.keyboard_rounded,
-  );
+  Future<void> _enterTotpManually() async {
+    final config = await TotpSetupDialog.show(
+      context,
+      initialValue: widget.controller.totpSecret.text,
+    );
+    if (config == null || !mounted) return;
+    setState(() => widget.controller.setTotpConfig(config));
+    showKeyelSnack(
+      context,
+      'Two-factor key ready. Save the entry to store it.',
+      icon: Icons.verified_user_rounded,
+    );
+  }
 }

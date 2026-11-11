@@ -14,7 +14,7 @@ use zeroize::Zeroizing;
 use crate::pass_words::{AMBIGUOUS, DIGITS, LOWER, SYMBOLS, UPPER, WORDLIST};
 
 /// Options for [`generate_passphrase`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PassphraseOptions {
     /// Number of words in the passphrase.
     pub word_count: usize,
@@ -22,6 +22,9 @@ pub struct PassphraseOptions {
     pub capitalize: bool,
     /// Include a random number at the end.
     pub include_number: bool,
+    /// Word separator. Clamped to at most four characters; empty joins words
+    /// directly. Defaults to `-`.
+    pub separator: String,
 }
 
 impl Default for PassphraseOptions {
@@ -30,6 +33,7 @@ impl Default for PassphraseOptions {
             word_count: 8,
             capitalize: true,
             include_number: false,
+            separator: "-".to_owned(),
         }
     }
 }
@@ -194,6 +198,7 @@ pub fn generate_passphrase(
     options: &PassphraseOptions,
 ) -> Result<Zeroizing<String>, GenerateError> {
     let word_count = options.word_count.clamp(3, 12);
+    let separator: String = options.separator.chars().take(4).collect();
     let mut rng = rand::rng();
 
     let mut words = Vec::with_capacity(word_count);
@@ -211,10 +216,10 @@ pub fn generate_passphrase(
         words.push(word);
     }
 
-    let mut passphrase = words.join("-");
+    let mut passphrase = words.join(&separator);
     if options.include_number {
         let num = rng.random_range(10..99);
-        passphrase = format!("{}-{}", passphrase, num);
+        passphrase = format!("{passphrase}{separator}{num}");
     }
 
     Ok(Zeroizing::new(passphrase))
@@ -395,5 +400,52 @@ mod tests {
             .unwrap();
             assert_eq!(pw.len(), len);
         }
+    }
+
+    #[test]
+    fn passphrase_default_separator_is_hyphen() {
+        let opts = PassphraseOptions {
+            word_count: 5,
+            capitalize: false,
+            include_number: false,
+            separator: "-".to_owned(),
+        };
+        let phrase = generate_passphrase(&opts).unwrap();
+        assert_eq!(phrase.matches('-').count(), 4, "{}", &**phrase);
+    }
+
+    #[test]
+    fn passphrase_custom_and_empty_separator() {
+        let custom = generate_passphrase(&PassphraseOptions {
+            word_count: 4,
+            capitalize: false,
+            include_number: false,
+            separator: ".".to_owned(),
+        })
+        .unwrap();
+        assert_eq!(custom.matches('.').count(), 3, "{}", &**custom);
+
+        let none = generate_passphrase(&PassphraseOptions {
+            word_count: 4,
+            capitalize: false,
+            include_number: false,
+            separator: String::new(),
+        })
+        .unwrap();
+        assert!(!none.contains('-'), "{}", &**none);
+    }
+
+    #[test]
+    fn passphrase_number_uses_separator() {
+        let phrase = generate_passphrase(&PassphraseOptions {
+            word_count: 3,
+            capitalize: false,
+            include_number: true,
+            separator: "_".to_owned(),
+        })
+        .unwrap();
+        // two separators between three words, one more before the number.
+        assert_eq!(phrase.matches('_').count(), 3, "{}", &**phrase);
+        assert!(phrase.rsplit('_').next().unwrap().parse::<u8>().is_ok());
     }
 }

@@ -35,11 +35,13 @@ pub fn generate_passphrase(
     word_count: i32,
     capitalize: bool,
     include_number: bool,
+    separator: String,
 ) -> Result<String, GeneratorApiError> {
     let options = PassphraseOptions {
         word_count: word_count.clamp(3, 12) as usize,
         capitalize,
         include_number,
+        separator,
     };
     core_generate_passphrase(&options)
         .map_err(GeneratorApiError::from)

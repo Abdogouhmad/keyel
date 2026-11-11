@@ -8,7 +8,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `into_card`, `into_login`, `into_note`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Non-secret card fields. Secrets are exposed only as presence flags.
 class CardDetailDto {
@@ -494,4 +494,73 @@ enum TotpAlgorithmDto {
 
   /// SHA-512.
   sha512,
+}
+
+/// A live one-time code for an entry.
+class TotpCodeDto {
+  /// The zero-padded numeric code.
+  final String code;
+
+  /// Seconds until the code rolls over.
+  final int secondsLeft;
+
+  /// The configured period, for the countdown ring.
+  final int period;
+
+  const TotpCodeDto({
+    required this.code,
+    required this.secondsLeft,
+    required this.period,
+  });
+
+  @override
+  int get hashCode => code.hashCode ^ secondsLeft.hashCode ^ period.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TotpCodeDto &&
+          runtimeType == other.runtimeType &&
+          code == other.code &&
+          secondsLeft == other.secondsLeft &&
+          period == other.period;
+}
+
+/// TOTP parameters parsed from an `otpauth://` URI or a typed secret.
+///
+/// Unlike the vault DTOs this carries the shared secret, because the caller
+/// supplied it (scanned or typed) and needs it back to save the entry.
+class TotpConfigDto {
+  /// Normalised base32 secret.
+  final String secret;
+
+  /// Hash algorithm.
+  final TotpAlgorithmDto algorithm;
+
+  /// Number of digits.
+  final int digits;
+
+  /// Time step in seconds.
+  final int period;
+
+  const TotpConfigDto({
+    required this.secret,
+    required this.algorithm,
+    required this.digits,
+    required this.period,
+  });
+
+  @override
+  int get hashCode =>
+      secret.hashCode ^ algorithm.hashCode ^ digits.hashCode ^ period.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TotpConfigDto &&
+          runtimeType == other.runtimeType &&
+          secret == other.secret &&
+          algorithm == other.algorithm &&
+          digits == other.digits &&
+          period == other.period;
 }

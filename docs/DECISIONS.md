@@ -4,6 +4,31 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-11
+
+- **Phase 0.8 (generator + TOTP) is implemented on
+  `phase/0.8-0.9-generator-totp-security`.** It supersedes the two stale
+  generator notes dated 2026-11-05 below:
+  - The bridge now exposes `length`, all four character classes,
+    `exclude_ambiguous` and a passphrase `separator`; the UI no longer shows
+    fake enforced rules.
+  - Passphrase generation lives in Rust over a curated **1024-word** list
+    (10 bits/word, matching the UI copy). The Dart strength estimate now
+    accounts for ten bits per word instead of seven.
+  - TOTP is hand-rolled in `crates/keyel_core/src/totp.rs` on `hmac` + `sha1`
+    + `sha2` + `data-encoding`, with RFC 4226/6238 vectors. It is exposed as
+    `current_code` (computes from the stored secret; the secret never reaches
+    Dart) and `parse_otpauth` (validates a URI or bare base32 key). The one
+    exception to "only `reveal_field` returns secrets" is `parse_otpauth`,
+    which only echoes a secret the caller supplied.
+  - Entry detail shows a live code (`EntryTotpCard`); the editor sets the
+    secret via a validated manual-entry dialog. QR scanning is deferred.
+
+- **Optional biometric during vault creation.** The separate onboarding
+  quick-unlock step was replaced by an optional switch on the create-vault
+  step; biometric is only offered when the device has an enrolled credential
+  and defaults on. Field text colour is now the scheme's `onSurface`.
+
 ## 2026-11-03
 
 - **`keyel-design.md` is missing from the Desktop.**

@@ -25,6 +25,39 @@ class AppPreferences {
   /// Most recent vault searches, newest first.
   List<String> recentSearches = <String>[];
 
+  /// Remembered generator mode (`password` or `passphrase`).
+  String generatorMode = 'password';
+
+  /// Remembered password length.
+  int generatorLength = 20;
+
+  /// Remembered passphrase word count.
+  int generatorWordCount = 8;
+
+  /// Remembered character-class switches.
+  bool generatorUppercase = true;
+
+  /// Whether generated passwords include lowercase letters.
+  bool generatorLowercase = true;
+
+  /// Whether generated passwords include digits.
+  bool generatorNumbers = true;
+
+  /// Whether generated passwords include symbols.
+  bool generatorSymbols = true;
+
+  /// Whether generated passwords drop look-alike characters.
+  bool generatorExcludeAmbiguous = true;
+
+  /// Whether passphrase words are capitalised.
+  bool generatorCapitalize = true;
+
+  /// Whether a random number is appended to passphrases.
+  bool generatorIncludeNumber = false;
+
+  /// Remembered passphrase word separator.
+  String generatorSeparator = '-';
+
   /// Remember a search term, keeping at most eight unique values.
   void rememberSearch(String query) {
     final trimmed = query.trim();
@@ -71,6 +104,29 @@ class AppPreferences {
             .take(8)
             .toList();
       }
+
+      final generator = decoded['generator'];
+      if (generator is Map) {
+        generatorMode = generator['mode'] == 'passphrase'
+            ? 'passphrase'
+            : 'password';
+        if (generator['length'] is int) {
+          generatorLength = (generator['length'] as int).clamp(4, 128);
+        }
+        if (generator['wordCount'] is int) {
+          generatorWordCount = (generator['wordCount'] as int).clamp(4, 12);
+        }
+        generatorUppercase = generator['uppercase'] != false;
+        generatorLowercase = generator['lowercase'] != false;
+        generatorNumbers = generator['numbers'] != false;
+        generatorSymbols = generator['symbols'] != false;
+        generatorExcludeAmbiguous = generator['excludeAmbiguous'] != false;
+        generatorCapitalize = generator['capitalize'] != false;
+        generatorIncludeNumber = generator['includeNumber'] == true;
+        if (generator['separator'] is String) {
+          generatorSeparator = generator['separator'] as String;
+        }
+      }
     } on Object catch (_) {
       // Preferences are optional; keep the defaults on any failure.
     }
@@ -86,6 +142,19 @@ class AppPreferences {
           'autoLockSeconds': autoLockDelay.inSeconds,
           'biometricEnabled': biometricEnabled,
           'recentSearches': recentSearches,
+          'generator': {
+            'mode': generatorMode,
+            'length': generatorLength,
+            'wordCount': generatorWordCount,
+            'uppercase': generatorUppercase,
+            'lowercase': generatorLowercase,
+            'numbers': generatorNumbers,
+            'symbols': generatorSymbols,
+            'excludeAmbiguous': generatorExcludeAmbiguous,
+            'capitalize': generatorCapitalize,
+            'includeNumber': generatorIncludeNumber,
+            'separator': generatorSeparator,
+          },
         }),
         flush: true,
       );
