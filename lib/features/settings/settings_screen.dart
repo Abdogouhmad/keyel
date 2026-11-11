@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
-// import 'package:keyel/data/vault_repository.dart';
+import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -19,9 +21,17 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool _biometricUnlock = false;
+  bool _biometricBusy = false;
+  bool _biometricEnabled = false;
   bool _clearClipboard = true;
   bool _offlineOnly = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize local state from preferences
+    _biometricEnabled = AppPreferences.instance.biometricEnabled;
+  }
 
   void _notImplemented(String feature) {
     showKeyelSnack(
@@ -29,6 +39,151 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       '$feature is planned for a future update.',
       icon: Icons.construction_rounded,
     );
+  }
+
+  Future<void> _toggleBiometric({required bool enable}) async {
+    if (_biometricBusy) return;
+    setState(() => _biometricBusy = true);
+
+    try {
+      if (enable) {
+        final enabled = await _enableBiometric();
+        if (mounted && enabled) {
+          setState(() => _biometricEnabled = true);
+          showKeyelSnack(
+            context,
+            'Biometric unlock enabled',
+            icon: Icons.fingerprint_rounded,
+          );
+        }
+      } else {
+        await disableBiometricUnlock();
+        if (mounted) {
+          setState(() => _biometricEnabled = false);
+          showKeyelSnack(
+            context,
+            'Biometric unlock disabled.',
+            icon: Icons.fingerprint_rounded,
+          );
+        }
+      }
+    } on Object catch (error) {
+      if (!mounted) return;
+      showKeyelSnack(context, 'Could not update biometric settings: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _biometricBusy = false);
+      }
+    }
+  }
+
+  /// Confirm the master password, then let the OS prompt and Keystore storage
+  /// take over. The password is verified against the vault before anything is
+  /// stored.
+  Future<bool> _enableBiometric() async {
+    if (!await BiometricAuth.instance.isAvailable) {
+      if (mounted) {
+        showKeyelSnack(context, 'Biometrics are not available on this device.');
+      }
+      return false;
+    }
+
+    final master = await _confirmMaster();
+    if (master == null || master.isEmpty) return false;
+
+    final enabled = await enableBiometricUnlock(master);
+    return enabled;
+  }
+
+  /// Ask for the master password and verify it against the vault.
+  Future<String?> _confirmMaster() async {
+    final controller = TextEditingController();
+
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          var verifying = false;
+          String? errorText;
+
+          return StatefulBuilder(
+            builder: (context, setState) => AlertDialog(
+              title: const Text('Confirm master password'),
+              content: TextField(
+                controller: controller,
+                obscureText: true,
+                autofocus: true,
+                enabled: !verifying,
+                decoration: InputDecoration(
+                  labelText: 'Master password',
+                  errorText: errorText,
+                ),
+                onSubmitted: (value) {
+                  if (!verifying && value.isNotEmpty) {
+                    Navigator.of(dialogContext).pop(value);
+                  }
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: verifying
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: verifying
+                      ? null
+                      : () async {
+                          if (controller.text.isEmpty) {
+                            setState(() => errorText = 'Password required');
+                            return;
+                          }
+
+                          setState(() {
+                            verifying = true;
+                            errorText = null;
+                          });
+
+                          try {
+                            final valid = await ref
+                                .read(vaultRepositoryProvider)
+                                .verifyMaster(controller.text);
+
+                            if (!valid) {
+                              setState(() {
+                                verifying = false;
+                                errorText = 'Incorrect password';
+                              });
+                              return;
+                            }
+
+                            if (dialogContext.mounted) {
+                              Navigator.of(dialogContext).pop(controller.text);
+                            }
+                          } on Object {
+                            setState(() {
+                              verifying = false;
+                              errorText = 'Verification failed';
+                            });
+                          }
+                        },
+                  child: verifying
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Continue'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   String _autoLockLabel(Duration delay) {
@@ -41,6 +196,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _showAutoLockDialog() async {
     final notifier = ref.read(vaultSessionProvider.notifier);
     final current = notifier.autoLockDelay;
+
     const options = [
       Duration.zero,
       Duration(seconds: 30),
@@ -75,7 +231,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
 
     if (selected == null) return;
+
     notifier.setAutoLockDelay(selected);
+
     if (mounted) setState(() {});
   }
 
@@ -84,82 +242,85 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final newController = TextEditingController();
     final confirmController = TextEditingController();
 
-    await showDialog<void>(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: const Text('Change Master Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: oldController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Current Master Password',
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('Change Master Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Current Master Password',
+                ),
               ),
+              const SizedBox(height: KeyelSpacing.sm),
+              TextField(
+                controller: newController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'New Master Password',
+                ),
+              ),
+              const SizedBox(height: KeyelSpacing.sm),
+              TextField(
+                controller: confirmController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm New Master Password',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('Cancel'),
             ),
-            const SizedBox(height: KeyelSpacing.sm),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'New Master Password',
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.sm),
-            TextField(
-              controller: confirmController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm New Master Password',
-              ),
+            FilledButton(
+              onPressed: () async {
+                if (newController.text != confirmController.text) {
+                  showKeyelSnack(dialogCtx, 'New passwords do not match.');
+                  return;
+                }
+                if (newController.text.isEmpty) {
+                  showKeyelSnack(dialogCtx, 'New password cannot be empty.');
+                  return;
+                }
+
+                try {
+                  await ref
+                      .read(vaultSessionProvider.notifier)
+                      .changeMaster(
+                        oldMaster: oldController.text,
+                        newMaster: newController.text,
+                      );
+
+                  if (!mounted || !dialogCtx.mounted) return;
+                  Navigator.of(dialogCtx).pop();
+                  showKeyelSnack(
+                    context,
+                    'Master password changed successfully',
+                  );
+                } on Object catch (error) {
+                  if (dialogCtx.mounted) {
+                    showKeyelSnack(dialogCtx, describeVaultError(error));
+                  }
+                }
+              },
+              child: const Text('Change Password'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (newController.text != confirmController.text) {
-                showKeyelSnack(dialogCtx, 'New passwords do not match.');
-                return;
-              }
-              if (newController.text.isEmpty) {
-                showKeyelSnack(dialogCtx, 'New password cannot be empty.');
-                return;
-              }
-
-              try {
-                await ref
-                    .read(vaultSessionProvider.notifier)
-                    .changeMaster(
-                      oldMaster: oldController.text,
-                      newMaster: newController.text,
-                    );
-
-                if (!mounted) return;
-                if (!dialogCtx.mounted) return;
-
-                Navigator.of(dialogCtx).pop();
-                showKeyelSnack(context, 'Master password changed successfully');
-              } on Object catch (error) {
-                if (dialogCtx.mounted) {
-                  showKeyelSnack(dialogCtx, describeVaultError(error));
-                }
-              }
-            },
-            child: const Text('Change Password'),
-          ),
-        ],
-      ),
-    );
-
-    oldController.dispose();
-    newController.dispose();
-    confirmController.dispose();
+      );
+    } finally {
+      oldController.dispose();
+      newController.dispose();
+      confirmController.dispose();
+    }
   }
 
   Future<void> _factoryReset() async {
@@ -194,23 +355,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
 
-    // This is a State method, so `mounted` guards `State.context` correctly.
-    if (confirm != true) return;
-    if (!mounted) return;
+    if (confirm != true || !mounted) return;
 
-    // 1. Force delete the file via Dart
-    ref.read(vaultRepositoryProvider).forceDeleteVault();
+    try {
+      await disableBiometricUnlock();
+      await Future.sync(
+        () => ref.read(vaultRepositoryProvider).forceDeleteVault(),
+      );
+      ref.read(vaultSessionProvider.notifier).lock();
 
-    // 2. Lock the session to ensure clean state
-    ref.read(vaultSessionProvider.notifier).lock();
-
-    showKeyelSnack(context, 'Vault permanently deleted. Resetting...');
+      if (!mounted) return;
+      showKeyelSnack(context, 'Vault permanently deleted. Resetting...');
+    } on Object catch (error) {
+      if (!mounted) return;
+      showKeyelSnack(context, 'Factory reset failed: $error');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
     final session = ref.watch(vaultSessionProvider);
     final repo = ref.watch(vaultRepositoryProvider);
 
@@ -234,6 +400,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
+
+                // Header
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                     KeyelSpacing.lg,
@@ -252,6 +420,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             fontSize: 28,
                             height: 36 / 28,
                             letterSpacing: -0.6,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -265,6 +434,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
+
+                // Vault profile
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: KeyelSpacing.md,
@@ -276,9 +447,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                 ),
+
                 const SliverToBoxAdapter(
                   child: SizedBox(height: KeyelSpacing.lg),
                 ),
+
+                // Settings sections
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: KeyelSpacing.md,
@@ -290,6 +464,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         icon: Icons.shield_rounded,
                       ),
                       const SizedBox(height: KeyelSpacing.sm),
+
                       _SettingsCard(
                         children: [
                           if (session.status == VaultStatus.unlocked)
@@ -307,6 +482,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 );
                               },
                             ),
+
                           if (session.status == VaultStatus.unlocked)
                             _SettingsRow(
                               icon: Icons.password_rounded,
@@ -316,6 +492,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   'master',
                               onTap: () => unawaited(_showChangeMasterDialog()),
                             ),
+
                           _SettingsRow(
                             icon: Icons.timer_outlined,
                             title: 'Auto-lock',
@@ -327,37 +504,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     .read(vaultSessionProvider.notifier)
                                     .autoLockDelay,
                               ),
+                              style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                             onTap: () => unawaited(_showAutoLockDialog()),
                           ),
+
+                          // Biometric authentication
                           _SettingsRow(
                             icon: Icons.fingerprint_rounded,
                             title: 'Biometric unlock',
                             subtitle: 'Fingerprint or face to open the vault',
-                            trailing: Switch.adaptive(
-                              value: _biometricUnlock,
-                              onChanged: (value) =>
-                                  setState(() => _biometricUnlock = value),
-                            ),
+                            trailing: _biometricBusy
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Switch.adaptive(
+                                    value: _biometricEnabled,
+                                    onChanged: (value) => unawaited(
+                                      _toggleBiometric(enable: value),
+                                    ),
+                                  ),
                           ),
+
                           _SettingsRow(
                             icon: Icons.content_paste_off_rounded,
                             title: 'Clear clipboard',
                             subtitle: 'Wipe copied secrets after 30 seconds',
                             trailing: Switch.adaptive(
                               value: _clearClipboard,
-                              onChanged: (value) =>
-                                  setState(() => _clearClipboard = value),
+                              onChanged: (value) {
+                                setState(() => _clearClipboard = value);
+                              },
                             ),
                           ),
                         ],
                       ),
+
                       const SizedBox(height: KeyelSpacing.lg),
+
                       const KeyelSectionLabel(
                         label: 'Storage & Diagnostics',
                         icon: Icons.storage_rounded,
                       ),
                       const SizedBox(height: KeyelSpacing.sm),
+
                       _SettingsCard(
                         children: [
                           _SettingsRow(
@@ -367,10 +564,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 'Zero telemetry, zero cloud synchronisation',
                             trailing: Switch.adaptive(
                               value: _offlineOnly,
-                              onChanged: (value) =>
-                                  setState(() => _offlineOnly = value),
+                              onChanged: (value) {
+                                setState(() => _offlineOnly = value);
+                              },
                             ),
                           ),
+
                           _SettingsRow(
                             icon: Icons.folder_rounded,
                             title: 'Folders',
@@ -378,13 +577,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             onTap: () =>
                                 unawaited(context.push(KeyelRoutes.folders)),
                           ),
+
                           _SettingsRow(
                             icon: Icons.delete_outline_rounded,
                             title: 'Trash',
-                            subtitle: 'Restore deleted entries or remove them forever',
+                            subtitle:
+                                'Restore deleted entries or remove them forever',
                             onTap: () =>
                                 unawaited(context.push(KeyelRoutes.trash)),
                           ),
+
                           _SettingsRow(
                             icon: Icons.delete_forever_rounded,
                             title: 'Factory reset vault',
@@ -397,6 +599,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                             onTap: () => unawaited(_factoryReset()),
                           ),
+
                           _SettingsRow(
                             icon: Icons.bug_report_outlined,
                             title: 'Bridge diagnostics & test suite',
@@ -405,6 +608,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             onTap: () =>
                                 unawaited(context.push(KeyelRoutes.debug)),
                           ),
+
                           _SettingsRow(
                             icon: Icons.gavel_rounded,
                             title: 'Open source licenses',
@@ -419,6 +623,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: KeyelSpacing.xxl),
                     ],
                   ),
@@ -432,6 +637,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
+/// Displays the current vault status and storage location.
 class _VaultProfileCard extends StatelessWidget {
   const new({required this.session, this.vaultPath});
 
@@ -495,7 +701,7 @@ class _VaultProfileCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  vaultPath != null ? vaultPath! : 'Storage not initialized',
+                  vaultPath ?? 'Storage not initialized',
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                     fontFamily: KeyelTheme.monoFamily,
@@ -519,6 +725,7 @@ class _VaultProfileCard extends StatelessWidget {
   }
 }
 
+/// Groups related settings rows into a single card.
 class _SettingsCard extends StatelessWidget {
   const new({required this.children});
 
@@ -555,6 +762,7 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
+/// Individual settings row with an optional trailing widget or action.
 class _SettingsRow extends StatelessWidget {
   const new({
     required this.icon,
@@ -626,6 +834,9 @@ class _SettingsRow extends StatelessWidget {
 
     if (onTap == null) return row;
 
-    return PressableScale(onTap: onTap, semanticLabel: title, child: row);
+    return InkWell(
+      onTap: onTap,
+      child: row,
+    );
   }
 }

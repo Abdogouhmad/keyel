@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- System biometric prompt (Android BiometricPrompt / Keyguard).
+         USE_BIOMETRIC is required by local_auth on every supported version;
+         USE_FINGERPRINT covers the fingerprint fallback on Android 8.x. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <application
         android:label="Keyel"
         android:name="${applicationName}"

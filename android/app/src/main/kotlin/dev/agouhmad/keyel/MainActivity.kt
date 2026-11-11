@@ -1,11 +1,14 @@
 package dev.agouhmad.keyel
 
 import android.view.WindowManager
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+// local_auth drives the system BiometricPrompt, which requires the host
+// activity to be a FragmentActivity, so this extends FlutterFragmentActivity
+// rather than the default FlutterActivity.
+class MainActivity : FlutterFragmentActivity() {
     private val channelName = "keyel/platform"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
