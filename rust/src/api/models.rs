@@ -4,6 +4,7 @@
 //! function that returns a secret value is
 //! [`crate::api::entries::reveal_field`], and only for the requested field.
 
+use keyel_core::health::{HealthIssue, HealthReport};
 use keyel_core::vault::{
     Card, Entry, EntryBody, EntryKind, EntrySummary, Login, Note, TotpAlgorithm, TotpConfig,
 };
@@ -380,4 +381,83 @@ pub struct TotpCodeDto {
     pub seconds_left: u32,
     /// The configured period, for the countdown ring.
     pub period: u32,
+}
+
+/// A secret-free reference to an affected entry in a health report.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HealthIssueDto {
+    /// Stable entry id.
+    pub id: String,
+    /// Entry title.
+    pub title: String,
+    /// Secondary line (username or URL). Never a password.
+    pub subtitle: String,
+}
+
+impl From<HealthIssue> for HealthIssueDto {
+    fn from(issue: HealthIssue) -> Self {
+        Self {
+            id: issue.id.to_string(),
+            title: issue.title,
+            subtitle: issue.subtitle,
+        }
+    }
+}
+
+/// Entries that share one password.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReuseGroupDto {
+    /// The entries in this group.
+    pub entries: Vec<HealthIssueDto>,
+}
+
+/// A secret-free vault health report.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HealthReportDto {
+    /// Overall health score, `0..=100`.
+    pub score: u8,
+    /// Number of login entries considered.
+    pub total_logins: u32,
+    /// Entries whose password is weak.
+    pub weak: Vec<HealthIssueDto>,
+    /// Groups of entries that share a password.
+    pub reused: Vec<ReuseGroupDto>,
+    /// Entries whose password is over a year old.
+    pub old: Vec<HealthIssueDto>,
+    /// Entries without two-factor authentication.
+    pub no_two_factor: Vec<HealthIssueDto>,
+    /// Entries whose website uses plain HTTP.
+    pub insecure_url: Vec<HealthIssueDto>,
+}
+
+impl From<HealthReport> for HealthReportDto {
+    fn from(report: HealthReport) -> Self {
+        Self {
+            score: report.score,
+            total_logins: report.total_logins,
+            weak: report.weak.into_iter().map(HealthIssueDto::from).collect(),
+            reused: report
+                .reused
+                .into_iter()
+                .map(|group| ReuseGroupDto {
+                    entries: group
+                        .entries
+                        .into_iter()
+                        .map(HealthIssueDto::from)
+                        .collect(),
+                })
+                .collect(),
+            old: report.old.into_iter().map(HealthIssueDto::from).collect(),
+            no_two_factor: report
+                .no_two_factor
+                .into_iter()
+                .map(HealthIssueDto::from)
+                .collect(),
+            insecure_url: report
+                .insecure_url
+                .into_iter()
+                .map(HealthIssueDto::from)
+                .collect(),
+        }
+    }
 }

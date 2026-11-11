@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:keyel/src/rust/api/entries.dart' as entries_api;
+import 'package:keyel/src/rust/api/health.dart' as health_api;
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/src/rust/api/session.dart' as session_api;
 
@@ -102,6 +103,9 @@ class VaultRepository {
 
   /// Emits `"locked"` whenever Rust drops the session.
   Stream<String> lockEvents() => session_api.lockEvents();
+
+  /// Analyze the unlocked vault and return a secret-free health report.
+  Future<HealthReportDto> analyzeHealth() => health_api.analyzeHealth();
 
   /// Search entries. Results contain no secrets.
   Future<List<EntrySummaryDto>> listEntries({

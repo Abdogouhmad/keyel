@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1359219883;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 750754142;
 
 // Section: executor
 
@@ -74,6 +74,38 @@ fn wire__crate__api__entries__add_folder_impl(
             move |context| {
                 transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
                     let output_ok = crate::api::entries::add_folder(api_name)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__health__analyze_health_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "analyze_health",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::health::analyze_health()?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -1223,6 +1255,44 @@ impl SseDecode for crate::api::generator::GeneratorApiError {
     }
 }
 
+impl SseDecode for crate::api::models::HealthIssueDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_subtitle = <String>::sse_decode(deserializer);
+        return crate::api::models::HealthIssueDto {
+            id: var_id,
+            title: var_title,
+            subtitle: var_subtitle,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::HealthReportDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_score = <u8>::sse_decode(deserializer);
+        let mut var_totalLogins = <u32>::sse_decode(deserializer);
+        let mut var_weak = <Vec<crate::api::models::HealthIssueDto>>::sse_decode(deserializer);
+        let mut var_reused = <Vec<crate::api::models::ReuseGroupDto>>::sse_decode(deserializer);
+        let mut var_old = <Vec<crate::api::models::HealthIssueDto>>::sse_decode(deserializer);
+        let mut var_noTwoFactor =
+            <Vec<crate::api::models::HealthIssueDto>>::sse_decode(deserializer);
+        let mut var_insecureUrl =
+            <Vec<crate::api::models::HealthIssueDto>>::sse_decode(deserializer);
+        return crate::api::models::HealthReportDto {
+            score: var_score,
+            total_logins: var_totalLogins,
+            weak: var_weak,
+            reused: var_reused,
+            old: var_old,
+            no_two_factor: var_noTwoFactor,
+            insecure_url: var_insecureUrl,
+        };
+    }
+}
+
 impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1268,6 +1338,20 @@ impl SseDecode for Vec<crate::api::models::FolderDto> {
     }
 }
 
+impl SseDecode for Vec<crate::api::models::HealthIssueDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::models::HealthIssueDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1275,6 +1359,20 @@ impl SseDecode for Vec<u8> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<u8>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::models::ReuseGroupDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::models::ReuseGroupDto>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -1431,6 +1529,16 @@ impl SseDecode for Option<u8> {
     }
 }
 
+impl SseDecode for crate::api::models::ReuseGroupDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_entries = <Vec<crate::api::models::HealthIssueDto>>::sse_decode(deserializer);
+        return crate::api::models::ReuseGroupDto {
+            entries: var_entries,
+        };
+    }
+}
+
 impl SseDecode for crate::api::models::SecretFieldDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1551,34 +1659,35 @@ fn pde_ffi_dispatcher_primary_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__entries__add_folder_impl(port, ptr, rust_vec_len, data_len),
-        2 => wire__crate__api__session__change_master_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__session__create_vault_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__totp__current_code_impl(port, ptr, rust_vec_len, data_len),
-        5 => wire__crate__api__entries__delete_entry_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__entries__delete_folder_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__entries__get_entry_impl(port, ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__generator__init_app_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__entries__list_entries_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__entries__list_folders_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__session__lock_events_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__entries__move_entries_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__totp__parse_otpauth_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__entries__purge_entry_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__entries__rename_folder_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__session__reset_master_with_recovery_impl(
+        2 => wire__crate__api__health__analyze_health_impl(port, ptr, rust_vec_len, data_len),
+        3 => wire__crate__api__session__change_master_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__session__create_vault_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__totp__current_code_impl(port, ptr, rust_vec_len, data_len),
+        6 => wire__crate__api__entries__delete_entry_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__entries__delete_folder_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__entries__get_entry_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__generator__init_app_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__entries__list_entries_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__entries__list_folders_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__session__lock_events_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__entries__move_entries_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__totp__parse_otpauth_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__entries__purge_entry_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__entries__rename_folder_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__session__reset_master_with_recovery_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
-        25 => {
+        23 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
+        26 => {
             wire__crate__api__session__unlock_with_recovery_impl(port, ptr, rust_vec_len, data_len)
         }
-        26 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1591,13 +1700,13 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        7 => wire__crate__api__generator__generate_passphrase_impl(ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__generator__generate_password_impl(ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__generator__generate_passphrase_impl(ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__generator__generate_password_impl(ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1790,6 +1899,54 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::generator::GeneratorApiError>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::HealthIssueDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.subtitle.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::HealthIssueDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::HealthIssueDto>
+    for crate::api::models::HealthIssueDto
+{
+    fn into_into_dart(self) -> crate::api::models::HealthIssueDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::HealthReportDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.score.into_into_dart().into_dart(),
+            self.total_logins.into_into_dart().into_dart(),
+            self.weak.into_into_dart().into_dart(),
+            self.reused.into_into_dart().into_dart(),
+            self.old.into_into_dart().into_dart(),
+            self.no_two_factor.into_into_dart().into_dart(),
+            self.insecure_url.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::HealthReportDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::HealthReportDto>
+    for crate::api::models::HealthReportDto
+{
+    fn into_into_dart(self) -> crate::api::models::HealthReportDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::LoginDetailDto {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -1829,6 +1986,23 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::NoteDetailDto>
     for crate::api::models::NoteDetailDto
 {
     fn into_into_dart(self) -> crate::api::models::NoteDetailDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::ReuseGroupDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [self.entries.into_into_dart().into_dart()].into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::ReuseGroupDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::ReuseGroupDto>
+    for crate::api::models::ReuseGroupDto
+{
+    fn into_into_dart(self) -> crate::api::models::ReuseGroupDto {
         self
     }
 }
@@ -2100,6 +2274,28 @@ impl SseEncode for crate::api::generator::GeneratorApiError {
     }
 }
 
+impl SseEncode for crate::api::models::HealthIssueDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.subtitle, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::HealthReportDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u8>::sse_encode(self.score, serializer);
+        <u32>::sse_encode(self.total_logins, serializer);
+        <Vec<crate::api::models::HealthIssueDto>>::sse_encode(self.weak, serializer);
+        <Vec<crate::api::models::ReuseGroupDto>>::sse_encode(self.reused, serializer);
+        <Vec<crate::api::models::HealthIssueDto>>::sse_encode(self.old, serializer);
+        <Vec<crate::api::models::HealthIssueDto>>::sse_encode(self.no_two_factor, serializer);
+        <Vec<crate::api::models::HealthIssueDto>>::sse_encode(self.insecure_url, serializer);
+    }
+}
+
 impl SseEncode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2137,12 +2333,32 @@ impl SseEncode for Vec<crate::api::models::FolderDto> {
     }
 }
 
+impl SseEncode for Vec<crate::api::models::HealthIssueDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::HealthIssueDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <u8>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::models::ReuseGroupDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::ReuseGroupDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -2264,6 +2480,13 @@ impl SseEncode for Option<u8> {
         if let Some(value) = self {
             <u8>::sse_encode(value, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::models::ReuseGroupDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<crate::api::models::HealthIssueDto>>::sse_encode(self.entries, serializer);
     }
 }
 

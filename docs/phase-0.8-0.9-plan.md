@@ -2,7 +2,7 @@
 
 **Branch:** `phase/0.8-0.9-generator-totp-security`
 **Base:** `phase/0.6-0.7-lock-and-vault-ui` @ `3c9e993` (clean, `flutter analyze` clean, all tests green)
-**Status:** phase 0.8 implemented (`72f3694`); phase 0.9 **not started** (see the estimate below).
+**Status:** phase 0.8 implemented (`72f3694`); phase 0.9 **health slice implemented** (0.9.1 + 0.9.2), backup/import still pending (see the estimate below).
 
 Priority when documents disagree: **roadmap > plan > design** (`docs/DECISIONS.md`).
 
@@ -32,6 +32,27 @@ Priority when documents disagree: **roadmap > plan > design** (`docs/DECISIONS.m
 - 0.8.5 QR scanning (`mobile_scanner`); manual entry is the supported path.
 - Exposing per-class min-counts over the bridge (core already supports them;
   no UI consumes them).
+
+### Done (phase 0.9 health slice, roadmap 0.9.1 + 0.9.2)
+- **Rust health analyser** (`crates/keyel_core/src/health.rs`): pure
+  `analyze(vault, now)` returning weak / reused / old / no-2FA / insecure-URL
+  lists and a 0..=100 score. Reuse is compared over salted SHA-256 digests in
+  memory; the report carries only ids and non-secret metadata. 10 tests cover
+  each category, an empty vault and the perfect-score state.
+- **Bridge + DTOs**: `analyze_health` (`rust/src/api/health.rs`) with
+  `HealthReportDto` / `HealthIssueDto` / `ReuseGroupDto`; bindings regenerated.
+- **Dashboard**: `lib/data/health_provider.dart` plus a rewritten
+  `security_screen.dart` and its widgets — real score ring, four issue cards,
+  filtered bottom-sheet lists, an all-clear state, and a "Fix" action that
+  opens `entryEdit(id)` and invalidates the provider.
+- **Tests**: 32 Dart (dashboard layout + all-clear) and the Rust suite
+  (60 core + 12 + 10) all green; `flutter analyze` clean; FRB idempotent.
+
+### Deferred from phase 0.9 (recorded in `docs/DECISIONS.md`)
+- 0.9.3 encrypted backup (`backup.rs`, separate backup password).
+- 0.9.4 Bitwarden / Chrome CSV import (parsers, dedup, preview, report).
+- `file_picker` / SAF and the optional unencrypted CSV export.
+- Rust `zxcvbn`: the health weak heuristic is the shared placeholder.
 
 ### Phase 0.9 estimate
 Phase 0.9 is roughly **3–4×** the code and integration of phase 0.8: the

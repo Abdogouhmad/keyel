@@ -8,7 +8,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `into_card`, `into_login`, `into_note`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Non-secret card fields. Secrets are exposed only as presence flags.
 class CardDetailDto {
@@ -388,6 +388,93 @@ class FolderDto {
           order == other.order;
 }
 
+/// A secret-free reference to an affected entry in a health report.
+class HealthIssueDto {
+  /// Stable entry id.
+  final String id;
+
+  /// Entry title.
+  final String title;
+
+  /// Secondary line (username or URL). Never a password.
+  final String subtitle;
+
+  const HealthIssueDto({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  int get hashCode => id.hashCode ^ title.hashCode ^ subtitle.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HealthIssueDto &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          subtitle == other.subtitle;
+}
+
+/// A secret-free vault health report.
+class HealthReportDto {
+  /// Overall health score, `0..=100`.
+  final int score;
+
+  /// Number of login entries considered.
+  final int totalLogins;
+
+  /// Entries whose password is weak.
+  final List<HealthIssueDto> weak;
+
+  /// Groups of entries that share a password.
+  final List<ReuseGroupDto> reused;
+
+  /// Entries whose password is over a year old.
+  final List<HealthIssueDto> old;
+
+  /// Entries without two-factor authentication.
+  final List<HealthIssueDto> noTwoFactor;
+
+  /// Entries whose website uses plain HTTP.
+  final List<HealthIssueDto> insecureUrl;
+
+  const HealthReportDto({
+    required this.score,
+    required this.totalLogins,
+    required this.weak,
+    required this.reused,
+    required this.old,
+    required this.noTwoFactor,
+    required this.insecureUrl,
+  });
+
+  @override
+  int get hashCode =>
+      score.hashCode ^
+      totalLogins.hashCode ^
+      weak.hashCode ^
+      reused.hashCode ^
+      old.hashCode ^
+      noTwoFactor.hashCode ^
+      insecureUrl.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HealthReportDto &&
+          runtimeType == other.runtimeType &&
+          score == other.score &&
+          totalLogins == other.totalLogins &&
+          weak == other.weak &&
+          reused == other.reused &&
+          old == other.old &&
+          noTwoFactor == other.noTwoFactor &&
+          insecureUrl == other.insecureUrl;
+}
+
 /// Non-secret login fields. Secrets are exposed only as presence flags.
 class LoginDetailDto {
   /// Username or email address.
@@ -461,6 +548,24 @@ class NoteDetailDto {
       other is NoteDetailDto &&
           runtimeType == other.runtimeType &&
           hasContent == other.hasContent;
+}
+
+/// Entries that share one password.
+class ReuseGroupDto {
+  /// The entries in this group.
+  final List<HealthIssueDto> entries;
+
+  const ReuseGroupDto({required this.entries});
+
+  @override
+  int get hashCode => entries.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReuseGroupDto &&
+          runtimeType == other.runtimeType &&
+          entries == other.entries;
 }
 
 /// A secret that can be requested with `reveal_field`.

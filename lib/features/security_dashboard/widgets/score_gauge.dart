@@ -11,6 +11,7 @@ class ScoreGauge extends StatelessWidget {
     required this.score,
     required this.accent,
     required this.track,
+    this.statusLabel = 'SECURE',
     super.key,
   });
 
@@ -22,6 +23,9 @@ class ScoreGauge extends StatelessWidget {
 
   /// Color of the unfilled remaining arc.
   final Color track;
+
+  /// Short uppercase status word under the score.
+  final String statusLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -53,29 +57,32 @@ class ScoreGauge extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '$score',
-                    style: KeyelTheme.mono(
-                      context,
-                      fontSize: 44,
-                      fontWeight: FontWeight.w700,
-                      color: accent,
-                      letterSpacing: -1,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '$score',
+                      style: KeyelTheme.mono(
+                        context,
+                        fontSize: 44,
+                        fontWeight: FontWeight.w700,
+                        color: accent,
+                        letterSpacing: -1,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: KeyelSpacing.xs),
-                  Text(
-                    '/ 100',
-                    style: textTheme.labelMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
+                    const SizedBox(width: KeyelSpacing.xs),
+                    Text(
+                      '/ 100',
+                      style: textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 2),
               Row(
@@ -84,7 +91,7 @@ class ScoreGauge extends StatelessWidget {
                   Icon(Icons.verified_rounded, size: 15, color: accent),
                   const SizedBox(width: KeyelSpacing.xs),
                   Text(
-                    'SECURE',
+                    statusLabel,
                     style: textTheme.labelSmall?.copyWith(
                       color: accent,
                       fontWeight: FontWeight.w700,

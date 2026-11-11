@@ -3,18 +3,36 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/security_dashboard/widgets/score_gauge.dart';
 import 'package:keyel/ui/keyel.dart';
 
-/// Hero card summarizing overall vault health with a call to optimize.
+/// Hero card summarizing overall vault health with a call to review issues.
 class ScoreCard extends StatelessWidget {
   /// Creates the score card.
-  const new({required this.onOptimize, super.key});
+  const new({
+    required this.score,
+    required this.issueCount,
+    required this.onOptimize,
+    super.key,
+  });
 
-  /// Invoked when the optimize vault button is pressed.
+  /// Vault health score from 0 to 100.
+  final int score;
+
+  /// Number of affected credentials across all categories.
+  final int issueCount;
+
+  /// Invoked when the review button is pressed.
   final VoidCallback onOptimize;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    final (accent, label, status) = switch (score) {
+      >= 90 => (scheme.strong, 'Excellent', 'SECURE'),
+      >= 70 => (scheme.strong, 'Good', 'SECURE'),
+      >= 40 => (scheme.fair, 'Fair', 'REVIEW'),
+      _ => (scheme.weak, 'At risk', 'AT RISK'),
+    };
 
     return Container(
       padding: const EdgeInsets.all(KeyelSpacing.lg - 4),
@@ -25,9 +43,10 @@ class ScoreCard extends StatelessWidget {
       child: Column(
         children: [
           ScoreGauge(
-            score: 88,
-            accent: scheme.strong,
+            score: score,
+            accent: accent,
             track: scheme.surfaceContainerHighest,
+            statusLabel: status,
           ),
           const SizedBox(height: KeyelSpacing.md),
           Container(
@@ -46,16 +65,20 @@ class ScoreCard extends StatelessWidget {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: scheme.strong,
+                    color: accent,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: KeyelSpacing.sm),
-                Text(
-                  'Vault health: Good',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w500,
+                Flexible(
+                  child: Text(
+                    'Vault health: $label',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleSmall?.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -63,19 +86,24 @@ class ScoreCard extends StatelessWidget {
           ),
           const SizedBox(height: KeyelSpacing.sm),
           Text(
-            '4 items need your attention to reach 100%',
+            issueCount == 0
+                ? 'No issues found. Your vault is in great shape.'
+                : '$issueCount ${issueCount == 1 ? 'item needs' : 'items need'} '
+                      'your attention',
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: KeyelSpacing.md),
-          KeyelPillButton(
-            label: 'Optimize vault',
-            icon: Icons.auto_fix_high_rounded,
-            height: 52,
-            onPressed: onOptimize,
-          ),
+          if (issueCount > 0) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            KeyelPillButton(
+              label: 'Review issues',
+              icon: Icons.auto_fix_high_rounded,
+              height: 52,
+              onPressed: onOptimize,
+            ),
+          ],
         ],
       ),
     );

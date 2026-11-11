@@ -29,6 +29,31 @@ design (docs/roadmap.md header).
   step; biometric is only offered when the device has an enrolled credential
   and defaults on. Field text colour is now the scheme's `onSurface`.
 
+- **Phase 0.9 starts with the health analyser only (roadmap 0.9.1 + 0.9.2).**
+  The backup, CSV import and file-picker work is deliberately deferred; the
+  branch ships the read-only dashboard over the existing vault.
+  - `keyel_core::health::analyze(vault, now)` is pure and deterministic (the
+    clock is injected). It returns only ids and non-secret metadata — never a
+    password. Reuse is detected by hashing each password with a **random
+    16-byte salt generated per call**, so the comparison map is keyed by
+    salted SHA-256 digests rather than plaintext.
+  - Weak is the entropy heuristic (charset pool × length) below **50 bits**,
+    mirroring the Dart `PasswordStrength.estimate`. This is a placeholder
+    until the deferred Rust `zxcvbn` lands; it is documented as such.
+  - Score = `100 × (1 − mean per-entry severity)`, severity weights weak
+    `1.0`, reused `0.5`, insecure-URL `0.4`, old `0.2`, no-2FA `0.2`, capped
+    at `1.0` per entry. An empty vault scores `100`.
+  - Only non-deleted logins with a non-empty password are considered. "Old"
+    means `updated_at` older than 365 days; "no-2FA" means a login with a
+    password and no TOTP; "insecure" means the URL starts with `http://`.
+  - The dashboard is wired to the real report with a typed `HealthCategory`
+    enum, an all-clear state at a perfect score, and a bottom sheet whose
+    "Fix" pops an entry id, navigates to `entryEdit(id)` and invalidates
+    `healthProvider`.
+  - **Still deferred from 0.9:** encrypted backup (`backup.rs`), Bitwarden /
+    Chrome CSV import, `file_picker`/SAF, and the optional unencrypted CSV
+    export. `docs/phase-0.8-0.9-plan.md` §6 open questions remain open.
+
 ## 2026-11-03
 
 - **`keyel-design.md` is missing from the Desktop.**

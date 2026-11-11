@@ -7,6 +7,7 @@ pub mod crypto;
 pub mod error;
 pub mod format;
 pub mod generator;
+pub mod health;
 pub mod pass_words;
 pub mod totp;
 pub mod vault;
