@@ -10,10 +10,10 @@ import 'package:keyel/ui/design_system/button_type.dart';
 /// flows through this widget so press feedback, corner radius and type scale
 /// stay identical app-wide.
 class KeyelButtonM3 extends StatelessWidget {
-
   /// Creates the app button.
   const new({
-    required this.onPressed, super.key,
+    required this.onPressed,
+    super.key,
     this.label,
     this.type = ButtonType.primary,
     this.size = ButtonSize.medium,
@@ -40,6 +40,7 @@ class KeyelButtonM3 extends StatelessWidget {
          type != ButtonType.fab || size != ButtonSize.extended || label != null,
          'label is required for extended FAB',
        );
+
   /// The button label. Required unless [type] is [ButtonType.iconOnly] or
   /// [ButtonType.fab].
   final String? label;

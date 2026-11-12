@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 750754142;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 75988047;
 
 // Section: executor
 
@@ -279,6 +279,74 @@ fn wire__crate__api__entries__delete_folder_impl(
         },
     )
 }
+fn wire__crate__api__import_export__export_backup_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "export_backup",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_password = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok =
+                        crate::api::import_export::export_backup(api_path, api_password)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__import_export__export_csv_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "export_csv",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::import_export::export_csv(api_path)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__generator__generate_passphrase_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -386,6 +454,76 @@ fn wire__crate__api__entries__get_entry_impl(
             move |context| {
                 transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
                     let output_ok = crate::api::entries::get_entry(api_id)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__import_export__import_backup_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "import_backup",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_password = <String>::sse_decode(&mut deserializer);
+            let api_mode = <crate::api::models::ImportModeDto>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok =
+                        crate::api::import_export::import_backup(api_path, api_password, api_mode)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__import_export__import_csv_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "import_csv",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_mode = <crate::api::models::ImportModeDto>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::import_export::import_csv(api_path, api_mode)?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -689,6 +827,39 @@ fn wire__crate__api__totp__parse_otpauth_impl(
             move |context| {
                 transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
                     let output_ok = crate::api::totp::parse_otpauth(api_uri)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__import_export__preview_import_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "preview_import",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::import_export::preview_import(api_path)?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -1300,6 +1471,88 @@ impl SseDecode for i32 {
     }
 }
 
+impl SseDecode for crate::api::models::ImportFailureDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_row = <u32>::sse_decode(deserializer);
+        let mut var_reason = <String>::sse_decode(deserializer);
+        return crate::api::models::ImportFailureDto {
+            row: var_row,
+            reason: var_reason,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::ImportFormatDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::ImportFormatDto::Bitwarden,
+            1 => crate::api::models::ImportFormatDto::Chrome,
+            _ => unreachable!("Invalid variant for ImportFormatDto: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::ImportModeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::ImportModeDto::Merge,
+            1 => crate::api::models::ImportModeDto::Replace,
+            _ => unreachable!("Invalid variant for ImportModeDto: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::ImportPreviewDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_format = <crate::api::models::ImportFormatDto>::sse_decode(deserializer);
+        let mut var_total = <u32>::sse_decode(deserializer);
+        let mut var_logins = <u32>::sse_decode(deserializer);
+        let mut var_cards = <u32>::sse_decode(deserializer);
+        let mut var_notes = <u32>::sse_decode(deserializer);
+        let mut var_failures =
+            <Vec<crate::api::models::ImportFailureDto>>::sse_decode(deserializer);
+        return crate::api::models::ImportPreviewDto {
+            format: var_format,
+            total: var_total,
+            logins: var_logins,
+            cards: var_cards,
+            notes: var_notes,
+            failures: var_failures,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::ImportReportDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_added = <u32>::sse_decode(deserializer);
+        let mut var_skipped = <u32>::sse_decode(deserializer);
+        let mut var_failed = <u32>::sse_decode(deserializer);
+        let mut var_logins = <u32>::sse_decode(deserializer);
+        let mut var_cards = <u32>::sse_decode(deserializer);
+        let mut var_notes = <u32>::sse_decode(deserializer);
+        let mut var_foldersAdded = <u32>::sse_decode(deserializer);
+        let mut var_failures =
+            <Vec<crate::api::models::ImportFailureDto>>::sse_decode(deserializer);
+        return crate::api::models::ImportReportDto {
+            added: var_added,
+            skipped: var_skipped,
+            failed: var_failed,
+            logins: var_logins,
+            cards: var_cards,
+            notes: var_notes,
+            folders_added: var_foldersAdded,
+            failures: var_failures,
+        };
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1345,6 +1598,20 @@ impl SseDecode for Vec<crate::api::models::HealthIssueDto> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::models::HealthIssueDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::models::ImportFailureDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::models::ImportFailureDto>::sse_decode(
                 deserializer,
             ));
         }
@@ -1643,7 +1910,10 @@ impl SseDecode for crate::api::error::VaultApiError {
             11 => crate::api::error::VaultApiError::InvalidId,
             12 => crate::api::error::VaultApiError::InvalidField,
             13 => crate::api::error::VaultApiError::Storage,
-            14 => crate::api::error::VaultApiError::Internal,
+            14 => crate::api::error::VaultApiError::EmptyImport,
+            15 => crate::api::error::VaultApiError::UnsupportedFormat,
+            16 => crate::api::error::VaultApiError::MalformedImport,
+            17 => crate::api::error::VaultApiError::Internal,
             _ => unreachable!("Invalid variant for VaultApiError: {}", inner),
         };
     }
@@ -1665,29 +1935,38 @@ fn pde_ffi_dispatcher_primary_impl(
         5 => wire__crate__api__totp__current_code_impl(port, ptr, rust_vec_len, data_len),
         6 => wire__crate__api__entries__delete_entry_impl(port, ptr, rust_vec_len, data_len),
         7 => wire__crate__api__entries__delete_folder_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__entries__get_entry_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__generator__init_app_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__entries__list_entries_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__entries__list_folders_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__session__lock_events_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__entries__move_entries_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__totp__parse_otpauth_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__entries__purge_entry_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__entries__rename_folder_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__session__reset_master_with_recovery_impl(
+        8 => wire__crate__api__import_export__export_backup_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__import_export__export_csv_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__entries__get_entry_impl(port, ptr, rust_vec_len, data_len),
+        13 => {
+            wire__crate__api__import_export__import_backup_impl(port, ptr, rust_vec_len, data_len)
+        }
+        14 => wire__crate__api__import_export__import_csv_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__generator__init_app_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__entries__list_entries_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__entries__list_folders_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__session__lock_events_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__entries__move_entries_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__totp__parse_otpauth_impl(port, ptr, rust_vec_len, data_len),
+        24 => {
+            wire__crate__api__import_export__preview_import_impl(port, ptr, rust_vec_len, data_len)
+        }
+        25 => wire__crate__api__entries__purge_entry_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__entries__rename_folder_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__session__reset_master_with_recovery_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
-        26 => {
+        28 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
+        31 => {
             wire__crate__api__session__unlock_with_recovery_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1700,13 +1979,13 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        8 => wire__crate__api__generator__generate_passphrase_impl(ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__generator__generate_password_impl(ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__generator__generate_passphrase_impl(ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__generator__generate_password_impl(ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1947,6 +2226,121 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::HealthReportDto>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::ImportFailureDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.row.into_into_dart().into_dart(),
+            self.reason.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::ImportFailureDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::ImportFailureDto>
+    for crate::api::models::ImportFailureDto
+{
+    fn into_into_dart(self) -> crate::api::models::ImportFailureDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::ImportFormatDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Bitwarden => 0.into_dart(),
+            Self::Chrome => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::ImportFormatDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::ImportFormatDto>
+    for crate::api::models::ImportFormatDto
+{
+    fn into_into_dart(self) -> crate::api::models::ImportFormatDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::ImportModeDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Merge => 0.into_dart(),
+            Self::Replace => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::ImportModeDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::ImportModeDto>
+    for crate::api::models::ImportModeDto
+{
+    fn into_into_dart(self) -> crate::api::models::ImportModeDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::ImportPreviewDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.format.into_into_dart().into_dart(),
+            self.total.into_into_dart().into_dart(),
+            self.logins.into_into_dart().into_dart(),
+            self.cards.into_into_dart().into_dart(),
+            self.notes.into_into_dart().into_dart(),
+            self.failures.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::ImportPreviewDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::ImportPreviewDto>
+    for crate::api::models::ImportPreviewDto
+{
+    fn into_into_dart(self) -> crate::api::models::ImportPreviewDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::ImportReportDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.added.into_into_dart().into_dart(),
+            self.skipped.into_into_dart().into_dart(),
+            self.failed.into_into_dart().into_dart(),
+            self.logins.into_into_dart().into_dart(),
+            self.cards.into_into_dart().into_dart(),
+            self.notes.into_into_dart().into_dart(),
+            self.folders_added.into_into_dart().into_dart(),
+            self.failures.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::ImportReportDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::ImportReportDto>
+    for crate::api::models::ImportReportDto
+{
+    fn into_into_dart(self) -> crate::api::models::ImportReportDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::LoginDetailDto {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -2116,7 +2510,10 @@ impl flutter_rust_bridge::IntoDart for crate::api::error::VaultApiError {
             Self::InvalidId => 11.into_dart(),
             Self::InvalidField => 12.into_dart(),
             Self::Storage => 13.into_dart(),
-            Self::Internal => 14.into_dart(),
+            Self::EmptyImport => 14.into_dart(),
+            Self::UnsupportedFormat => 15.into_dart(),
+            Self::MalformedImport => 16.into_dart(),
+            Self::Internal => 17.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -2303,6 +2700,72 @@ impl SseEncode for i32 {
     }
 }
 
+impl SseEncode for crate::api::models::ImportFailureDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.row, serializer);
+        <String>::sse_encode(self.reason, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::ImportFormatDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::ImportFormatDto::Bitwarden => 0,
+                crate::api::models::ImportFormatDto::Chrome => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::models::ImportModeDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::ImportModeDto::Merge => 0,
+                crate::api::models::ImportModeDto::Replace => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::models::ImportPreviewDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::models::ImportFormatDto>::sse_encode(self.format, serializer);
+        <u32>::sse_encode(self.total, serializer);
+        <u32>::sse_encode(self.logins, serializer);
+        <u32>::sse_encode(self.cards, serializer);
+        <u32>::sse_encode(self.notes, serializer);
+        <Vec<crate::api::models::ImportFailureDto>>::sse_encode(self.failures, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::ImportReportDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.added, serializer);
+        <u32>::sse_encode(self.skipped, serializer);
+        <u32>::sse_encode(self.failed, serializer);
+        <u32>::sse_encode(self.logins, serializer);
+        <u32>::sse_encode(self.cards, serializer);
+        <u32>::sse_encode(self.notes, serializer);
+        <u32>::sse_encode(self.folders_added, serializer);
+        <Vec<crate::api::models::ImportFailureDto>>::sse_encode(self.failures, serializer);
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2339,6 +2802,16 @@ impl SseEncode for Vec<crate::api::models::HealthIssueDto> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::models::HealthIssueDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::models::ImportFailureDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::ImportFailureDto>::sse_encode(item, serializer);
         }
     }
 }
@@ -2591,7 +3064,10 @@ impl SseEncode for crate::api::error::VaultApiError {
                 crate::api::error::VaultApiError::InvalidId => 11,
                 crate::api::error::VaultApiError::InvalidField => 12,
                 crate::api::error::VaultApiError::Storage => 13,
-                crate::api::error::VaultApiError::Internal => 14,
+                crate::api::error::VaultApiError::EmptyImport => 14,
+                crate::api::error::VaultApiError::UnsupportedFormat => 15,
+                crate::api::error::VaultApiError::MalformedImport => 16,
+                crate::api::error::VaultApiError::Internal => 17,
                 _ => {
                     unimplemented!("");
                 }

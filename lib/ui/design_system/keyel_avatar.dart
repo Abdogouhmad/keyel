@@ -102,8 +102,8 @@ final class KeyelAvatarProfile {
   /// stepping) so consecutive UUID v7 ids give varied combinations.
   factory fromId(String id) {
     final hash = Object.hash(id, 0x9E3779B9);
-    final shape = KeyelAvatarShape
-        .values[hash % KeyelAvatarShape.values.length];
+    final shape =
+        KeyelAvatarShape.values[hash % KeyelAvatarShape.values.length];
     final tone =
         KeyelAvatarTone.values[(hash ~/ 31) % KeyelAvatarTone.values.length];
     return KeyelAvatarProfile(shape: shape, tone: tone);

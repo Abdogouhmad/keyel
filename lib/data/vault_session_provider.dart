@@ -281,6 +281,10 @@ String describeVaultError(Object error) {
       VaultApiError.invalidId => 'Invalid entry id.',
       VaultApiError.invalidField => 'Please fill in the required fields.',
       VaultApiError.storage => 'Could not read or write the vault file.',
+      VaultApiError.emptyImport => 'That file has no entries to import.',
+      VaultApiError.unsupportedFormat =>
+        'That CSV format is not supported. Use a Bitwarden or Chrome export.',
+      VaultApiError.malformedImport => 'That file is not a valid CSV export.',
       VaultApiError.internal => 'Internal error.',
     };
   }

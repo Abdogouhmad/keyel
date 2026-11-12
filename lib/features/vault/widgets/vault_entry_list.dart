@@ -6,8 +6,10 @@ import 'package:keyel/features/vault/widgets/vault_row.dart';
 import 'package:keyel/ui/keyel.dart';
 
 /// Typed callback invoked when a vault entry is opened.
-typedef OnVaultEntryOpen =
-    void Function(VaultEntry entry, {required bool isWide});
+typedef OnVaultEntryOpen = void Function(
+  VaultEntry entry, {
+  required bool isWide,
+});
 
 /// Shared callbacks and state used by the vault entry sections.
 class VaultSectionConfig {
@@ -133,11 +135,7 @@ class VaultEntryList extends StatelessWidget {
 
 /// Direction-appropriate colored backdrop revealed behind a swiped row.
 class _SwipeBackdrop extends StatelessWidget {
-  const new({
-    required this.icon,
-    required this.label,
-    required this.alignEnd,
-  });
+  const new({required this.icon, required this.label, required this.alignEnd});
 
   final IconData icon;
 
@@ -152,7 +150,9 @@ class _SwipeBackdrop extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      alignment: alignEnd ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      alignment: alignEnd
+          ? AlignmentDirectional.centerEnd
+          : AlignmentDirectional.centerStart,
       padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.lg),
       decoration: BoxDecoration(
         color: alignEnd ? scheme.secondaryContainer : scheme.primaryContainer,

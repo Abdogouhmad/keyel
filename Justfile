@@ -26,8 +26,10 @@ watch:
 # --- Quality Control ---
 
 # Run linter and static analysis
-lint:
+lint: fix format
     flutter analyze
+fix:
+    dart fix --apply
 # Format all files
 format:
     dart format .

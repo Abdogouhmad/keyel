@@ -87,7 +87,9 @@ class _KeyelPasswordFieldState extends State<KeyelPasswordField> {
             // losing the tap — secrets never stay visible by accident.
             onPressed: () => setState(() => _obscure = !_obscure),
             icon: Icon(
-              _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              _obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               size: 22,
             ),
             tooltip: _obscure ? 'Show password' : 'Hide password',

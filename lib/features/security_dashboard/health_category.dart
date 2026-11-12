@@ -38,16 +38,18 @@ enum HealthCategory {
 }
 
 /// The entries affected by [category] in [report].
-List<HealthIssueDto> issuesFor(HealthReportDto report, HealthCategory category) =>
-    switch (category) {
-      HealthCategory.weak => report.weak,
-      HealthCategory.reused => [
-        for (final group in report.reused) ...group.entries,
-      ],
-      HealthCategory.old => report.old,
-      HealthCategory.noTwoFactor => report.noTwoFactor,
-      HealthCategory.insecureUrl => report.insecureUrl,
-    };
+List<HealthIssueDto> issuesFor(
+  HealthReportDto report,
+  HealthCategory category,
+) => switch (category) {
+  HealthCategory.weak => report.weak,
+  HealthCategory.reused => [
+    for (final group in report.reused) ...group.entries,
+  ],
+  HealthCategory.old => report.old,
+  HealthCategory.noTwoFactor => report.noTwoFactor,
+  HealthCategory.insecureUrl => report.insecureUrl,
+};
 
 /// Number of entries affected by [category].
 int countFor(HealthReportDto report, HealthCategory category) =>

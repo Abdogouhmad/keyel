@@ -63,7 +63,7 @@ class VaultSelectionBar extends StatelessWidget {
             Expanded(
               child: Text(
                 '$selectedCount ${selectedCount == 1 ? 'item' : 'items'} '
-                    'selected',
+                'selected',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.headlineSmall?.copyWith(

@@ -53,9 +53,8 @@ class SecurityScreen extends ConsumerWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 720),
                   child: health.when(
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (error, _) => _HealthError(
                       message: describeVaultError(error),
                       onRetry: () => ref.invalidate(healthProvider),

@@ -579,10 +579,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
 
                           _SettingsRow(
+                            icon: Icons.swap_vert_rounded,
+                            title: 'Backup & import',
+                            subtitle:
+                                'Encrypted backups and CSV import or export',
+                            onTap: () => unawaited(
+                              context.push(KeyelRoutes.importExport),
+                            ),
+                          ),
+
+                          _SettingsRow(
                             icon: Icons.delete_outline_rounded,
                             title: 'Trash',
-                            subtitle:
-                                'Restore deleted entries or remove them forever',
+                            subtitle: 'Restore deleted entries or remove them forever',
                             onTap: () =>
                                 unawaited(context.push(KeyelRoutes.trash)),
                           ),
@@ -834,9 +843,6 @@ class _SettingsRow extends StatelessWidget {
 
     if (onTap == null) return row;
 
-    return InkWell(
-      onTap: onTap,
-      child: row,
-    );
+    return InkWell(onTap: onTap, child: row);
   }
 }

@@ -3,11 +3,14 @@
 //! Everything the app does — crypto, vault format, generator, TOTP,
 //! health — is implemented and unit-tested here, independent of any UI.
 
+pub mod backup;
 pub mod crypto;
+pub mod csv;
 pub mod error;
 pub mod format;
 pub mod generator;
 pub mod health;
+pub mod import;
 pub mod pass_words;
 pub mod totp;
 pub mod vault;

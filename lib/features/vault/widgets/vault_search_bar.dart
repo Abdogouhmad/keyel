@@ -11,11 +11,7 @@ import 'package:keyel/ui/keyel.dart';
 /// [AppPreferences.rememberSearch] when the field is left or cleared.
 class VaultSearchBar extends StatefulWidget {
   /// Creates the search field area.
-  const new({
-    required this.query,
-    required this.onSearchChanged,
-    super.key,
-  });
+  const new({required this.query, required this.onSearchChanged, super.key});
 
   /// The query the list is currently filtered by.
   final String query;
@@ -78,8 +74,7 @@ class _VaultSearchBarState extends State<VaultSearchBar> {
     widget.onSearchChanged(term);
   }
 
-  bool get _showRecentSearches =>
-      _searchFocused && widget.query.trim().isEmpty;
+  bool get _showRecentSearches => _searchFocused && widget.query.trim().isEmpty;
 
   @override
   Widget build(BuildContext context) {

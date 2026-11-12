@@ -32,9 +32,8 @@ class CardSection extends StatelessWidget {
         children: [
           Text(
             'Card details',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: scheme.onSurface),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(color: scheme.onSurface),
           ),
           const SizedBox(height: KeyelSpacing.sm + 2),
           TextField(
@@ -65,9 +64,7 @@ class CardSection extends StatelessWidget {
                 child: TextField(
                   controller: cardholderController,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
-                    labelText: 'Cardholder',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Cardholder'),
                 ),
               ),
             ],

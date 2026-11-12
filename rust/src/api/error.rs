@@ -8,6 +8,7 @@
 //! instead of a `freezed` union. Diagnostic detail is deliberately dropped:
 //! the UI only needs an actionable category.
 
+use keyel_core::import::ImportError;
 use keyel_core::Error;
 
 /// Errors returned by the vault bridge.
@@ -41,6 +42,12 @@ pub enum VaultApiError {
     InvalidField,
     /// Reading or writing the vault file failed.
     Storage,
+    /// An import file has no data rows.
+    EmptyImport,
+    /// An import file's header is not a supported export format.
+    UnsupportedFormat,
+    /// An import file is not valid CSV.
+    MalformedImport,
     /// An unexpected internal failure.
     Internal,
 }
@@ -56,6 +63,16 @@ impl From<Error> for VaultApiError {
             Error::NotFound => Self::NotFound,
             Error::Storage(_) => Self::Storage,
             Error::Crypto => Self::Internal,
+        }
+    }
+}
+
+impl From<ImportError> for VaultApiError {
+    fn from(error: ImportError) -> Self {
+        match error {
+            ImportError::Empty => Self::EmptyImport,
+            ImportError::UnsupportedFormat => Self::UnsupportedFormat,
+            ImportError::Malformed => Self::MalformedImport,
         }
     }
 }

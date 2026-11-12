@@ -4,6 +4,56 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-12
+
+- **Phase 0.9 is complete: encrypted backup, CSV import and CSV export.**
+  This finishes roadmap 0.9.3–0.9.5, which the 2026-11-11 entry had deferred.
+  - **Encrypted backup reuses the vault file format with a single master
+    slot.** `format::seal_new(master, plaintext, params)` generates a fresh
+    vault key wrapped by one Argon2id master slot and no recovery slot, so a
+    backup only ever needs one password to open. `backup::read_encrypted`
+    opens it with the existing `unlock_with_master`. A backup is therefore a
+    complete `vault.keyel` file, not a bespoke container.
+  - **Backup merge/replace de-duplicates by stable id, not by content.**
+    Restoring the same backup twice is a no-op; entries the user edited on
+    either side are never merged field-by-field. This is deliberately
+    different from the CSV importer, which de-duplicates by
+    `title + username + url` because third-party exports carry no ids.
+  - **`backup::export_encrypted` writes atomically** (`.tmp` → `fsync` →
+    rename), mirroring `vault::store`. `Vault` wipes its secrets on drop, so
+    `replace` uses `std::mem::replace` and drops the old contents.
+  - **CSV parsing is a small RFC 4180 reader in `keyel_core::csv`** (quotes,
+    embedded commas/quotes/newlines, CRLF, UTF-8 BOM stripped by the caller's
+    string decode). It is paired with `escape`/`write_row` for export. Two
+    formats are recognised by header: Bitwarden (individual and organization
+    `collections` variant) and Chrome. Cards and identities from Bitwarden
+    map to secure notes, since the vault has no identity type yet.
+  - **CSV export uses the Bitwarden column layout** so logins (with TOTP) and
+    notes round-trip losslessly through our own importer; cards are written
+    into the note column with their fields spelled out. It is unencrypted, so
+    the UI guards it behind a red confirmation dialog.
+  - **Rust owns all file I/O.** Dart passes paths from `file_picker` (or a
+    temp directory) and never handles plaintext secrets: the bridge exposes
+    `preview_import(path)`, `import_csv(path, mode)`, `export_backup(path,
+    password)`, `import_backup(path, password, mode)` and `export_csv(path)`.
+  - **The unencrypted export temp file is deleted on screen dispose**, and
+    every export first clears the app's `keyel-export` temp directory so a
+    stale plaintext file never lingers across sessions. (The roadmap says
+    "delete after sharing"; deleting on dispose is safer because `share_plus`
+    resolves before the receiving app has necessarily read the file.)
+  - **New error variants** `EmptyImport`, `UnsupportedFormat`,
+    `MalformedImport` map from `keyel_core::import::ImportError`.
+  - **A `vaultRevisionProvider` counter** lets the import/export screen ask
+    the (branch-resident) vault list to reload after a bulk mutation; it also
+    invalidates `foldersProvider` and `healthProvider`.
+  - **Tests:** Rust 92 core (incl. 1,000-row import, malformed CSV, duplicate
+    detection, export round trip, backup round trip/wrong password/corrupt,
+    merge vs replace) + 12 + 10; Dart 5 new widget tests drive the flows with
+    a fake `FileTransferService`. `cargo fmt/clippy/test`, FRB idempotency,
+    `flutter analyze` and `flutter test` are green.
+  - **Deferred from 0.9:** Rust `zxcvbn` (the entropy heuristic is still the
+    shared placeholder) and Bitwarden `.json` import.
+
 ## 2026-11-11
 
 - **Phase 0.8 (generator + TOTP) is implemented on

@@ -2,6 +2,7 @@ pub mod entries;
 pub mod error;
 pub mod generator;
 pub mod health;
+pub mod import_export;
 pub mod models;
 pub mod session;
 pub mod totp;

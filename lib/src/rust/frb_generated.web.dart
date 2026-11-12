@@ -9,8 +9,10 @@
 import 'api/entries.dart';
 import 'api/error.dart';
 import 'api/generator.dart';
+import 'api/health.dart';
 import 'api/models.dart';
 import 'api/session.dart';
+import 'api/totp.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -91,6 +93,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GeneratorApiError dco_decode_generator_api_error(dynamic raw);
 
   @protected
+  HealthIssueDto dco_decode_health_issue_dto(dynamic raw);
+
+  @protected
+  HealthReportDto dco_decode_health_report_dto(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
@@ -103,7 +111,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<FolderDto> dco_decode_list_folder_dto(dynamic raw);
 
   @protected
+  List<HealthIssueDto> dco_decode_list_health_issue_dto(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<ReuseGroupDto> dco_decode_list_reuse_group_dto(dynamic raw);
 
   @protected
   LoginDetailDto dco_decode_login_detail_dto(dynamic raw);
@@ -142,10 +156,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
   @protected
+  ReuseGroupDto dco_decode_reuse_group_dto(dynamic raw);
+
+  @protected
   SecretFieldDto dco_decode_secret_field_dto(dynamic raw);
 
   @protected
   TotpAlgorithmDto dco_decode_totp_algorithm_dto(dynamic raw);
+
+  @protected
+  TotpCodeDto dco_decode_totp_code_dto(dynamic raw);
+
+  @protected
+  TotpConfigDto dco_decode_totp_config_dto(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -240,6 +263,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  HealthIssueDto sse_decode_health_issue_dto(SseDeserializer deserializer);
+
+  @protected
+  HealthReportDto sse_decode_health_report_dto(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
@@ -254,7 +283,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<FolderDto> sse_decode_list_folder_dto(SseDeserializer deserializer);
 
   @protected
+  List<HealthIssueDto> sse_decode_list_health_issue_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<ReuseGroupDto> sse_decode_list_reuse_group_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   LoginDetailDto sse_decode_login_detail_dto(SseDeserializer deserializer);
@@ -303,10 +342,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
+  ReuseGroupDto sse_decode_reuse_group_dto(SseDeserializer deserializer);
+
+  @protected
   SecretFieldDto sse_decode_secret_field_dto(SseDeserializer deserializer);
 
   @protected
   TotpAlgorithmDto sse_decode_totp_algorithm_dto(SseDeserializer deserializer);
+
+  @protected
+  TotpCodeDto sse_decode_totp_code_dto(SseDeserializer deserializer);
+
+  @protected
+  TotpConfigDto sse_decode_totp_config_dto(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -420,6 +468,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_health_issue_dto(
+    HealthIssueDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_health_report_dto(
+    HealthReportDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
@@ -438,8 +498,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_health_issue_dto(
+    List<HealthIssueDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_reuse_group_dto(
+    List<ReuseGroupDto> self,
     SseSerializer serializer,
   );
 
@@ -498,6 +570,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_reuse_group_dto(ReuseGroupDto self, SseSerializer serializer);
+
+  @protected
   void sse_encode_secret_field_dto(
     SecretFieldDto self,
     SseSerializer serializer,
@@ -508,6 +583,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     TotpAlgorithmDto self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_totp_code_dto(TotpCodeDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_totp_config_dto(TotpConfigDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

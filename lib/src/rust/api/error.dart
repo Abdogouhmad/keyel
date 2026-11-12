@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `fmt`, `from`, `from`
 
 /// Errors returned by the vault bridge.
 enum VaultApiError {
@@ -52,6 +52,15 @@ enum VaultApiError {
 
   /// Reading or writing the vault file failed.
   storage,
+
+  /// An import file has no data rows.
+  emptyImport,
+
+  /// An import file's header is not a supported export format.
+  unsupportedFormat,
+
+  /// An import file is not valid CSV.
+  malformedImport,
 
   /// An unexpected internal failure.
   internal,

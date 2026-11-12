@@ -299,7 +299,8 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     setState(() => _obscurePassword = !_obscurePassword);
   }
 
-  bool get _totpConfigured => widget.controller.totpSecret.text.trim().isNotEmpty;
+  bool get _totpConfigured =>
+      widget.controller.totpSecret.text.trim().isNotEmpty;
 
   void _scanQr() => showKeyelSnack(
     context,

@@ -7,7 +7,11 @@ import 'package:keyel/ui/theme/keyel_theme.dart';
 /// reveal/copy/paste style pills, wrapping on narrow panes.
 class KeyelActionButtonGroup extends StatelessWidget {
   /// Creates an action group.
-  const new({required this.actions, this.alignment = WrapAlignment.start, super.key});
+  const new({
+    required this.actions,
+    this.alignment = WrapAlignment.start,
+    super.key,
+  });
 
   /// The actions, in logical order.
   final List<KeyelActionSpec> actions;
@@ -63,8 +67,9 @@ class _ActionButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.md),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color:
-              enabled ? scheme.surfaceContainerHigh : scheme.surfaceContainerLow,
+          color: enabled
+              ? scheme.surfaceContainerHigh
+              : scheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(KeyelRadii.pill),
         ),
         child: Row(
@@ -73,19 +78,17 @@ class _ActionButton extends StatelessWidget {
             Icon(
               spec.icon,
               size: 18,
-              color:
-                  enabled
-                      ? scheme.primary
-                      : scheme.onSurface.withValues(alpha: 0.38),
+              color: enabled
+                  ? scheme.primary
+                  : scheme.onSurface.withValues(alpha: 0.38),
             ),
             const SizedBox(width: KeyelSpacing.xs),
             Text(
               spec.label,
               style: textTheme.labelLarge?.copyWith(
-                color:
-                    enabled
-                        ? scheme.onSurface
-                        : scheme.onSurface.withValues(alpha: 0.38),
+                color: enabled
+                    ? scheme.onSurface
+                    : scheme.onSurface.withValues(alpha: 0.38),
                 fontWeight: FontWeight.w600,
               ),
             ),

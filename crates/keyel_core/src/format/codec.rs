@@ -104,6 +104,31 @@ pub fn create(master: &str, plaintext: &[u8], params: Argon2Params) -> Result<Cr
     })
 }
 
+/// Encrypt a payload under a fresh vault key protected by a single master slot.
+///
+/// Unlike [`create`] this generates no recovery slot: it is the format used for
+/// encrypted backups, which only ever need one password to open. The resulting
+/// bytes are a complete `vault.keyel` file that [`unlock_with_master`] reads.
+pub fn seal_new(master: &str, plaintext: &[u8], params: Argon2Params) -> Result<Vec<u8>, Error> {
+    params.validate()?;
+
+    let vault_key = VaultKey::generate();
+    let vault_id: [u8; VAULT_ID_LEN] = random_array();
+
+    let salt: [u8; SALT_LEN] = random_array();
+    let kdf = KdfParams::Argon2id {
+        m_kib: params.m_kib,
+        t: params.t,
+        p: params.p,
+        salt,
+    };
+    let kek = derive_kek(master, &salt, &params)?;
+    let slot = wrap_slot(SlotKind::Master, kdf, &kek, &vault_key)?;
+
+    let header = Header::new(vault_id, vec![slot]);
+    seal(&header, plaintext, &vault_key)
+}
+
 /// Encrypt a payload with an already-unlocked vault key.
 pub fn seal(header: &Header, plaintext: &[u8], vault_key: &VaultKey) -> Result<Vec<u8>, Error> {
     header.validate()?;

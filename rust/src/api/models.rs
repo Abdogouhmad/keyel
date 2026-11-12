@@ -5,6 +5,7 @@
 //! [`crate::api::entries::reveal_field`], and only for the requested field.
 
 use keyel_core::health::{HealthIssue, HealthReport};
+use keyel_core::import::{ImportFailure, ImportFormat, ImportMode, ImportReport, ParsedImport};
 use keyel_core::vault::{
     Card, Entry, EntryBody, EntryKind, EntrySummary, Login, Note, TotpAlgorithm, TotpConfig,
 };
@@ -458,6 +459,134 @@ impl From<HealthReport> for HealthReportDto {
                 .into_iter()
                 .map(HealthIssueDto::from)
                 .collect(),
+        }
+    }
+}
+
+/// A third-party CSV export format the importer understands.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ImportFormatDto {
+    /// Bitwarden individual or organization CSV export.
+    Bitwarden,
+    /// Google Chrome / Chromium password CSV export.
+    Chrome,
+}
+
+impl From<ImportFormat> for ImportFormatDto {
+    fn from(format: ImportFormat) -> Self {
+        match format {
+            ImportFormat::Bitwarden => Self::Bitwarden,
+            ImportFormat::Chrome => Self::Chrome,
+        }
+    }
+}
+
+/// How imported data combines with the live vault.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ImportModeDto {
+    /// Add what is missing and keep the existing vault.
+    Merge,
+    /// Replace the vault contents with the imported data.
+    Replace,
+}
+
+impl From<ImportModeDto> for ImportMode {
+    fn from(mode: ImportModeDto) -> Self {
+        match mode {
+            ImportModeDto::Merge => Self::Merge,
+            ImportModeDto::Replace => Self::Replace,
+        }
+    }
+}
+
+/// One row that could not be imported, with a non-secret reason.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImportFailureDto {
+    /// 1-based row number in the source file, counting the header as row 1.
+    pub row: u32,
+    /// Short explanation. Never contains secret material.
+    pub reason: String,
+}
+
+impl From<ImportFailure> for ImportFailureDto {
+    fn from(failure: ImportFailure) -> Self {
+        Self {
+            row: failure.row,
+            reason: failure.reason,
+        }
+    }
+}
+
+/// What an import file contains, shown before the user commits to it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImportPreviewDto {
+    /// The detected source format.
+    pub format: ImportFormatDto,
+    /// Number of entries that will be imported.
+    pub total: u32,
+    /// Login entries.
+    pub logins: u32,
+    /// Card entries.
+    pub cards: u32,
+    /// Secure notes.
+    pub notes: u32,
+    /// Rows that could not be parsed.
+    pub failures: Vec<ImportFailureDto>,
+}
+
+impl From<ParsedImport> for ImportPreviewDto {
+    fn from(parsed: ParsedImport) -> Self {
+        let mut preview = Self {
+            format: parsed.format.into(),
+            total: parsed.entries.len() as u32,
+            logins: 0,
+            cards: 0,
+            notes: 0,
+            failures: parsed.failed.into_iter().map(Into::into).collect(),
+        };
+        for parsed_entry in &parsed.entries {
+            match parsed_entry.entry.kind() {
+                EntryKind::Login => preview.logins += 1,
+                EntryKind::Card => preview.cards += 1,
+                EntryKind::Note => preview.notes += 1,
+            }
+        }
+        preview
+    }
+}
+
+/// Counts produced by an applied import or restore.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImportReportDto {
+    /// Entries added to the vault.
+    pub added: u32,
+    /// Entries skipped because an equivalent one already exists.
+    pub skipped: u32,
+    /// Rows that could not be imported.
+    pub failed: u32,
+    /// Imported login count.
+    pub logins: u32,
+    /// Imported card count.
+    pub cards: u32,
+    /// Imported note count.
+    pub notes: u32,
+    /// Folders created for imported entries.
+    pub folders_added: u32,
+    /// Row-level failures, for display.
+    pub failures: Vec<ImportFailureDto>,
+}
+
+impl From<ImportReport> for ImportReportDto {
+    fn from(report: ImportReport) -> Self {
+        Self {
+            added: report.added,
+            skipped: report.skipped,
+            failed: report.failed,
+            logins: report.logins,
+            cards: report.cards,
+            notes: report.notes,
+            folders_added: report.folders_added,
+            failures: report.failures.into_iter().map(Into::into).collect(),
         }
     }
 }

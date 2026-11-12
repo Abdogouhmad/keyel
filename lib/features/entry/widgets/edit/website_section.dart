@@ -21,9 +21,8 @@ class WebsiteSection extends StatelessWidget {
         children: [
           Text(
             'Web Vault Matcher',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: scheme.onSurface),
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(color: scheme.onSurface),
           ),
           const SizedBox(height: KeyelSpacing.sm + 2),
           TextField(

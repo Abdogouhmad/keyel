@@ -42,9 +42,7 @@ class BiometricAuth {
   ///
   /// Returns `true` only when the system reported a successful match;
   /// cancellations, lockouts and platform errors all return `false`.
-  Future<bool> authenticate({
-    String reason = 'Unlock your Keyel vault',
-  }) async {
+  Future<bool> authenticate({String reason = 'Unlock your Keyel vault'}) async {
     try {
       return await _localAuth.authenticate(
         localizedReason: reason,

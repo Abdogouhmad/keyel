@@ -11,9 +11,7 @@ HealthReportDto _report({required bool clean}) => HealthReportDto(
   totalLogins: 4,
   weak: clean
       ? const []
-      : const [
-          HealthIssueDto(id: 'a', title: 'Mail', subtitle: 'ada'),
-        ],
+      : const [HealthIssueDto(id: 'a', title: 'Mail', subtitle: 'ada')],
   reused: clean
       ? const []
       : const [
@@ -28,9 +26,7 @@ HealthReportDto _report({required bool clean}) => HealthReportDto(
   noTwoFactor: const [],
   insecureUrl: clean
       ? const []
-      : const [
-          HealthIssueDto(id: 'd', title: 'Forum', subtitle: 'ada'),
-        ],
+      : const [HealthIssueDto(id: 'd', title: 'Forum', subtitle: 'ada')],
 );
 
 Widget _host(HealthReportDto report) => ProviderScope(

@@ -4,7 +4,7 @@ pub mod codec;
 pub mod header;
 
 pub use codec::{
-    change_master, change_master_with_vault_key, create, seal, unlock_with_master,
+    change_master, change_master_with_vault_key, create, seal, seal_new, unlock_with_master,
     unlock_with_recovery, unlock_with_vault_key, CreatedVault, UnlockedVault,
 };
 pub use header::{

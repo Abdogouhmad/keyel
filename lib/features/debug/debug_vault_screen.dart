@@ -217,10 +217,7 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
     await _guard(() async {
       await ref
           .read(vaultSessionProvider.notifier)
-          .changeMaster(
-            oldMaster: _oldMaster.text,
-            newMaster: _newMaster.text,
-          );
+          .changeMaster(oldMaster: _oldMaster.text, newMaster: _newMaster.text);
       _oldMaster.clear();
       _newMaster.clear();
       if (mounted) {
@@ -246,10 +243,7 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
             const SizedBox(height: 16),
             SelectableText(
               recoveryKey,
-              style: const TextStyle(
-                fontFamily: 'JetBrainsMono',
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 16),
             ),
           ],
         ),
@@ -478,13 +472,11 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
         for (final entry in _entries)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(
-              switch (entry.kind) {
-                EntryKindDto.login => Icons.key_rounded,
-                EntryKindDto.card => Icons.credit_card_rounded,
-                EntryKindDto.note => Icons.sticky_note_2_rounded,
-              },
-            ),
+            leading: Icon(switch (entry.kind) {
+              EntryKindDto.login => Icons.key_rounded,
+              EntryKindDto.card => Icons.credit_card_rounded,
+              EntryKindDto.note => Icons.sticky_note_2_rounded,
+            }),
             title: Text(entry.title),
             subtitle: Text(
               entry.deletedAt != null
@@ -501,7 +493,9 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
                     icon: const Icon(Icons.visibility_rounded),
                   ),
                 IconButton(
-                  tooltip: entry.deletedAt == null ? 'Move to trash' : 'Restore',
+                  tooltip: entry.deletedAt == null
+                      ? 'Move to trash'
+                      : 'Restore',
                   onPressed: () => _toggleDeleted(entry),
                   icon: Icon(
                     entry.deletedAt == null
@@ -514,10 +508,7 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
           ),
       if (session.error != null) ...[
         const SizedBox(height: KeyelSpacing.sm),
-        Text(
-          session.error!,
-          style: TextStyle(color: scheme.error),
-        ),
+        Text(session.error!, style: TextStyle(color: scheme.error)),
       ],
     ]);
   }
@@ -573,11 +564,7 @@ class _StatusCard extends StatelessWidget {
         Icons.add_circle_outline_rounded,
         scheme.onSurfaceVariant,
       ),
-      VaultStatus.locked => (
-        'Locked',
-        Icons.lock_rounded,
-        scheme.primary,
-      ),
+      VaultStatus.locked => ('Locked', Icons.lock_rounded, scheme.primary),
       VaultStatus.unlocked => (
         'Unlocked',
         Icons.lock_open_rounded,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:keyel/src/rust/api/entries.dart' as entries_api;
 import 'package:keyel/src/rust/api/health.dart' as health_api;
+import 'package:keyel/src/rust/api/import_export.dart' as import_export_api;
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/src/rust/api/session.dart' as session_api;
 
@@ -106,6 +107,33 @@ class VaultRepository {
 
   /// Analyze the unlocked vault and return a secret-free health report.
   Future<HealthReportDto> analyzeHealth() => health_api.analyzeHealth();
+
+  /// Parse an import file and report its contents without changing anything.
+  Future<ImportPreviewDto> previewImport(String path) =>
+      import_export_api.previewImport(path: path);
+
+  /// Import a Bitwarden or Chrome CSV export into the unlocked vault.
+  Future<ImportReportDto> importCsv(String path, ImportModeDto mode) =>
+      import_export_api.importCsv(path: path, mode: mode);
+
+  /// Write the unlocked vault to [path] as an encrypted backup.
+  Future<void> exportBackup({required String path, required String password}) =>
+      import_export_api.exportBackup(path: path, password: password);
+
+  /// Restore an encrypted backup into the unlocked vault.
+  Future<ImportReportDto> importBackup({
+    required String path,
+    required String password,
+    required ImportModeDto mode,
+  }) => import_export_api.importBackup(
+    path: path,
+    password: password,
+    mode: mode,
+  );
+
+  /// Write the unlocked vault to [path] as an **unencrypted** CSV export.
+  Future<void> exportCsv(String path) =>
+      import_export_api.exportCsv(path: path);
 
   /// Search entries. Results contain no secrets.
   Future<List<EntrySummaryDto>> listEntries({

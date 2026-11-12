@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/data/vault_revision_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/vault/vault_list_callbacks.dart';
@@ -104,6 +105,14 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
         unawaited(_controller.load());
       } else if (previous == VaultStatus.unlocked && next != previous) {
         _controller.clearSelection();
+      }
+    });
+
+    // A bulk mutation (import, restore) bumps the revision so the list reloads
+    // even though this screen stays alive in its navigation branch.
+    ref.listen(vaultRevisionProvider, (_, _) {
+      if (ref.read(vaultSessionProvider).status == VaultStatus.unlocked) {
+        unawaited(_controller.load());
       }
     });
 

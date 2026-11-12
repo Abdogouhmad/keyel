@@ -47,10 +47,9 @@ abstract final class KeyelFold {
 
       final isVertical = rect.width <= rect.height;
       // Treat the hinge as a barrier only when it spans the split axis.
-      final spans =
-          isVertical
-              ? rect.height >= size.height * 0.5
-              : rect.width >= size.width * 0.5;
+      final spans = isVertical
+          ? rect.height >= size.height * 0.5
+          : rect.width >= size.width * 0.5;
       if (!spans) continue;
 
       return KeyelHinge(rectangle: rect, isVertical: isVertical);

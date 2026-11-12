@@ -2,13 +2,48 @@
 
 **Branch:** `phase/0.8-0.9-generator-totp-security`
 **Base:** `phase/0.6-0.7-lock-and-vault-ui` @ `3c9e993` (clean, `flutter analyze` clean, all tests green)
-**Status:** phase 0.8 implemented (`72f3694`); phase 0.9 **health slice implemented** (0.9.1 + 0.9.2), backup/import still pending (see the estimate below).
+**Status:** phase 0.8 implemented (`72f3694`); phase 0.9 **complete** — health slice (`92f8439`), then encrypted backup, CSV import/export and the file picker.
 
 Priority when documents disagree: **roadmap > plan > design** (`docs/DECISIONS.md`).
 
 ---
 
-## 0. Progress update — 2026-11-11
+## 0. Progress update — 2026-11-12
+
+### Done (phase 0.9 backup + import/export, roadmap 0.9.3–0.9.5)
+- **Rust core** (`crates/keyel_core/`):
+  - `csv.rs`: small RFC 4180 parser plus `escape`/`write_row` for export.
+  - `import.rs`: Bitwarden (individual + organization) and Chrome parsers,
+    field mapping, content de-duplication (`title + username + url`),
+    `apply(Merge | Replace)`, `ImportReport`, and `export_csv` in the
+    Bitwarden column layout. Tests include a 1,000-row import, malformed CSV,
+    duplicate detection and an export→import round trip.
+  - `backup.rs`: `export_encrypted` / `read_encrypted` / `apply`, reusing the
+    vault format with a **single master slot** (`format::seal_new`). Merge and
+    replace de-duplicate by stable entry/folder id. Atomic writes.
+- **Bridge** (`rust/src/api/import_export.rs`): `preview_import`,
+  `import_csv`, `export_backup`, `import_backup`, `export_csv`; new DTOs and
+  the `EmptyImport`/`UnsupportedFormat`/`MalformedImport` error variants.
+- **Dart**: `FileTransferService` (platform + Riverpod-injectable fake),
+  repository methods, `describeVaultError` cases, the `import_export`
+  feature (hub screen + export/restore/CSV-preview/report sheets), the
+  `vaultRevisionProvider` reload hook, route and Settings entry.
+- **Tests**: Rust 92 core + 12 + 10; Dart 5 new widget tests (hub, export
+  confirmation, export+share+cleanup, password validation, CSV import flow).
+  `cargo fmt/clippy/test`, FRB idempotency, `flutter analyze`, `flutter test`
+  all green.
+
+### Still deferred (recorded in `docs/DECISIONS.md`)
+- Rust `zxcvbn` (0.8.2 / the health weak heuristic remains the shared
+  placeholder).
+- Bitwarden `.json` import and QR scanning for TOTP.
+
+### Phase 0.10 (Autofill)
+Not started; the remaining budget went into finishing 0.9 at tested quality.
+
+---
+
+## 0b. Progress update — 2026-11-11
 
 ### Done (phase 0.8, commit `72f3694`)
 - **Rust TOTP** (`crates/keyel_core/src/totp.rs`): base32 decode, HOTP (RFC 4226),

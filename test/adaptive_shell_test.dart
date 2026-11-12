@@ -69,9 +69,7 @@ Future<void> _golden(
 }
 
 void main() {
-  testWidgets('compact window shows the bottom navigation bar', (
-    tester,
-  ) async {
+  testWidgets('compact window shows the bottom navigation bar', (tester) async {
     await _pump(tester, 400, Brightness.light);
     await tester.pumpAndSettle();
 

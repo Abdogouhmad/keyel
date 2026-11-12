@@ -18,6 +18,9 @@ abstract final class KeyelRoutes {
   /// Soft-deleted entries.
   static const trash = '/trash';
 
+  /// Encrypted backup, restore and CSV import/export.
+  static const importExport = '/import-export';
+
   /// First-run vault creation.
   static const onboarding = '/onboarding';
 

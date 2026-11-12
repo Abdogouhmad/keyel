@@ -143,9 +143,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               busy: _busy,
                               biometricAvailable: _biometricAvailable,
                               biometricEnabled: _biometricChoice,
-                              onBiometricChanged: (value) => setState(
-                                () => _biometricChoice = value,
-                              ),
+                              onBiometricChanged: (value) =>
+                                  setState(() => _biometricChoice = value),
                               onBack: () => setState(
                                 () => _step = _OnboardingStep.welcome,
                               ),

@@ -41,14 +41,13 @@ class KeyelConfirmDialog extends StatelessWidget {
   }) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => KeyelConfirmDialog(
-            title: title,
-            body: body,
-            confirmLabel: confirmLabel,
-            cancelLabel: cancelLabel,
-            destructive: destructive,
-          ),
+      builder: (context) => KeyelConfirmDialog(
+        title: title,
+        body: body,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+        destructive: destructive,
+      ),
     );
     return confirmed ?? false;
   }
@@ -69,9 +68,7 @@ class KeyelConfirmDialog extends StatelessWidget {
       ),
       content: Text(
         body,
-        style: textTheme.bodyMedium?.copyWith(
-          color: scheme.onSurfaceVariant,
-        ),
+        style: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
       ),
       actions: [
         TextButton(
@@ -81,10 +78,8 @@ class KeyelConfirmDialog extends StatelessWidget {
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
           style: FilledButton.styleFrom(
-            backgroundColor:
-                destructive ? scheme.error : scheme.primary,
-            foregroundColor:
-                destructive ? scheme.onError : scheme.onPrimary,
+            backgroundColor: destructive ? scheme.error : scheme.primary,
+            foregroundColor: destructive ? scheme.onError : scheme.onPrimary,
           ),
           child: Text(confirmLabel),
         ),

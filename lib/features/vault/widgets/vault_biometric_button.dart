@@ -65,7 +65,9 @@ class _VaultBiometricButtonState extends ConsumerState<VaultBiometricButton> {
       await ref.read(vaultSessionProvider.notifier).unlockWithMaster(master);
     } on Object catch (error) {
       if (error is VaultApiError && error == VaultApiError.wrongPassword) {
-        await _reset('Your master password changed. Set up quick unlock again.');
+        await _reset(
+          'Your master password changed. Set up quick unlock again.',
+        );
       } else if (mounted) {
         showKeyelSnack(context, describeVaultError(error));
       }

@@ -106,11 +106,7 @@ class KeyelEntryTile extends StatelessWidget {
             ],
             if (favorite) ...[
               const SizedBox(width: KeyelSpacing.sm),
-              Icon(
-                Icons.star_rounded,
-                size: 20,
-                color: scheme.primary,
-              ),
+              Icon(Icons.star_rounded, size: 20, color: scheme.primary),
             ],
           ],
         ),

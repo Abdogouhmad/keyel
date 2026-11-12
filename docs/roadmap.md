@@ -29,7 +29,7 @@ git tag v0.X.0 && git push --tags
 | 0.6.0 | Onboarding, unlock, auto-lock | 1 week | ☑ |
 | 0.7.0 | Vault UI (CRUD) | 1.5 weeks | ☑ |
 | 0.8.0 | Generator and TOTP | 1 week | ☑ |
-| 0.9.0 | Security dashboard, backup, import | 1 week | ☐ |
+| 0.9.0 | Security dashboard, backup, import | 1 week | ☑ |
 | 0.10.0 | Autofill | 1.5 weeks | ☐ |
 | 0.11.0 | Hardening and accessibility | 1 week | ☐ |
 | 0.12.0 | Beta (dogfood and polish) | 2 weeks | ☐ |

@@ -10,6 +10,7 @@ import 'package:keyel/features/entry/entry_detail_screen.dart';
 import 'package:keyel/features/entry/entry_edit_screen.dart';
 import 'package:keyel/features/folders/folders_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
+import 'package:keyel/features/import_export/import_export_screen.dart';
 import 'package:keyel/features/onboarding/onboarding_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
@@ -110,6 +111,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: KeyelRoutes.trash,
         builder: (context, state) => const TrashScreen(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.importExport,
+        builder: (context, state) => const ImportExportScreen(),
       ),
       GoRoute(
         path: KeyelRoutes.newEntry,

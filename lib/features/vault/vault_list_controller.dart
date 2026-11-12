@@ -57,9 +57,8 @@ class VaultListController extends ChangeNotifier {
   Set<String> get selectedIds => Set.unmodifiable(_selectedIds);
 
   /// Entries backing [selectedIds], in list order.
-  List<VaultEntry> get selectedEntries => _entries
-      .where((entry) => _selectedIds.contains(entry.id))
-      .toList();
+  List<VaultEntry> get selectedEntries =>
+      _entries.where((entry) => _selectedIds.contains(entry.id)).toList();
 
   /// Whether every visible row is marked.
   bool get allSelected =>
@@ -231,7 +230,7 @@ class VaultListController extends ChangeNotifier {
       await load();
       callbacks.notify(
         '${targets.length} ${targets.length == 1 ? 'item' : 'items'} '
-            '${makeFavorite ? 'pinned to favorites' : 'removed from favorites'}',
+        '${makeFavorite ? 'pinned to favorites' : 'removed from favorites'}',
         icon: makeFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
       );
     } on Object catch (error) {
@@ -252,7 +251,7 @@ class VaultListController extends ChangeNotifier {
       await load();
       callbacks.notify(
         'Moved ${ids.length} ${ids.length == 1 ? 'item' : 'items'} '
-            'to ${_folderLabel(selection.id)}',
+        'to ${_folderLabel(selection.id)}',
         icon: Icons.drive_file_move_rounded,
       );
     } on Object catch (error) {
@@ -278,7 +277,7 @@ class VaultListController extends ChangeNotifier {
       await load();
       callbacks.notify(
         '${ids.length} ${ids.length == 1 ? 'item' : 'items'} '
-            'moved to trash',
+        'moved to trash',
         icon: Icons.delete_outline_rounded,
       );
     } on Object catch (error) {

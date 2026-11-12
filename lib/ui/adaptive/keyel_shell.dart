@@ -318,11 +318,7 @@ class _RailScaffold extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _DrawerScaffold extends StatelessWidget {
-  const new({
-    required this.shell,
-    required this.content,
-    required this.onTap,
-  });
+  const new({required this.shell, required this.content, required this.onTap});
 
   final StatefulNavigationShell shell;
   final Widget content;

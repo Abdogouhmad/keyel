@@ -8,7 +8,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `into_card`, `into_login`, `into_note`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Non-secret card fields. Secrets are exposed only as presence flags.
 class CardDetailDto {
@@ -473,6 +473,160 @@ class HealthReportDto {
           old == other.old &&
           noTwoFactor == other.noTwoFactor &&
           insecureUrl == other.insecureUrl;
+}
+
+/// One row that could not be imported, with a non-secret reason.
+class ImportFailureDto {
+  /// 1-based row number in the source file, counting the header as row 1.
+  final int row;
+
+  /// Short explanation. Never contains secret material.
+  final String reason;
+
+  const ImportFailureDto({required this.row, required this.reason});
+
+  @override
+  int get hashCode => row.hashCode ^ reason.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportFailureDto &&
+          runtimeType == other.runtimeType &&
+          row == other.row &&
+          reason == other.reason;
+}
+
+/// A third-party CSV export format the importer understands.
+enum ImportFormatDto {
+  /// Bitwarden individual or organization CSV export.
+  bitwarden,
+
+  /// Google Chrome / Chromium password CSV export.
+  chrome,
+}
+
+/// How imported data combines with the live vault.
+enum ImportModeDto {
+  /// Add what is missing and keep the existing vault.
+  merge,
+
+  /// Replace the vault contents with the imported data.
+  replace,
+}
+
+/// What an import file contains, shown before the user commits to it.
+class ImportPreviewDto {
+  /// The detected source format.
+  final ImportFormatDto format;
+
+  /// Number of entries that will be imported.
+  final int total;
+
+  /// Login entries.
+  final int logins;
+
+  /// Card entries.
+  final int cards;
+
+  /// Secure notes.
+  final int notes;
+
+  /// Rows that could not be parsed.
+  final List<ImportFailureDto> failures;
+
+  const ImportPreviewDto({
+    required this.format,
+    required this.total,
+    required this.logins,
+    required this.cards,
+    required this.notes,
+    required this.failures,
+  });
+
+  @override
+  int get hashCode =>
+      format.hashCode ^
+      total.hashCode ^
+      logins.hashCode ^
+      cards.hashCode ^
+      notes.hashCode ^
+      failures.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportPreviewDto &&
+          runtimeType == other.runtimeType &&
+          format == other.format &&
+          total == other.total &&
+          logins == other.logins &&
+          cards == other.cards &&
+          notes == other.notes &&
+          failures == other.failures;
+}
+
+/// Counts produced by an applied import or restore.
+class ImportReportDto {
+  /// Entries added to the vault.
+  final int added;
+
+  /// Entries skipped because an equivalent one already exists.
+  final int skipped;
+
+  /// Rows that could not be imported.
+  final int failed;
+
+  /// Imported login count.
+  final int logins;
+
+  /// Imported card count.
+  final int cards;
+
+  /// Imported note count.
+  final int notes;
+
+  /// Folders created for imported entries.
+  final int foldersAdded;
+
+  /// Row-level failures, for display.
+  final List<ImportFailureDto> failures;
+
+  const ImportReportDto({
+    required this.added,
+    required this.skipped,
+    required this.failed,
+    required this.logins,
+    required this.cards,
+    required this.notes,
+    required this.foldersAdded,
+    required this.failures,
+  });
+
+  @override
+  int get hashCode =>
+      added.hashCode ^
+      skipped.hashCode ^
+      failed.hashCode ^
+      logins.hashCode ^
+      cards.hashCode ^
+      notes.hashCode ^
+      foldersAdded.hashCode ^
+      failures.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImportReportDto &&
+          runtimeType == other.runtimeType &&
+          added == other.added &&
+          skipped == other.skipped &&
+          failed == other.failed &&
+          logins == other.logins &&
+          cards == other.cards &&
+          notes == other.notes &&
+          foldersAdded == other.foldersAdded &&
+          failures == other.failures;
 }
 
 /// Non-secret login fields. Secrets are exposed only as presence flags.
