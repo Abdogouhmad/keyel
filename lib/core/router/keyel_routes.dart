@@ -21,6 +21,9 @@ abstract final class KeyelRoutes {
   /// Encrypted backup, restore and CSV import/export.
   static const importExport = '/import-export';
 
+  /// Autofill credential picker, launched by the Android autofill service.
+  static const autofillPicker = '/autofill-picker';
+
   /// First-run vault creation.
   static const onboarding = '/onboarding';
 

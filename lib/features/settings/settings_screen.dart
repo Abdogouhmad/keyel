@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/platform/autofill_platform.dart';
 import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/app_preferences.dart';
@@ -25,12 +26,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _biometricEnabled = false;
   bool _clearClipboard = true;
   bool _offlineOnly = true;
+  bool? _autofillEnabled;
 
   @override
   void initState() {
     super.initState();
     // Initialize local state from preferences
     _biometricEnabled = AppPreferences.instance.biometricEnabled;
+    unawaited(_checkAutofillStatus());
   }
 
   void _notImplemented(String feature) {
@@ -39,6 +42,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       '$feature is planned for a future update.',
       icon: Icons.construction_rounded,
     );
+  }
+
+  Future<void> _checkAutofillStatus() async {
+    final enabled = await isAutofillServiceEnabled();
+    if (mounted) setState(() => _autofillEnabled = enabled);
+  }
+
+  Future<void> _openAutofillSettings() async {
+    await openAutofillSettings();
+    // Re-check after returning from the settings screen.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await _checkAutofillStatus();
   }
 
   Future<void> _toggleBiometric({required bool enable}) async {
@@ -543,6 +558,71 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 setState(() => _clearClipboard = value);
                               },
                             ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: KeyelSpacing.lg),
+
+                      const KeyelSectionLabel(
+                        label: 'Autofill',
+                        icon: Icons.auto_awesome_rounded,
+                      ),
+                      const SizedBox(height: KeyelSpacing.sm),
+
+                      _SettingsCard(
+                        children: [
+                          _SettingsRow(
+                            icon: _autofillEnabled == true
+                                ? Icons.check_circle_outline_rounded
+                                : Icons.app_registration_rounded,
+                            title: 'Autofill service',
+                            subtitle: _autofillEnabled == null
+                                ? 'Checking…'
+                                : _autofillEnabled!
+                                ? 'Keyel is your autofill provider'
+                                : 'Tap to enable Keyel as your autofill provider',
+                            trailing: _autofillEnabled == true
+                                ? Icon(
+                                    Icons.check_circle_rounded,
+                                    color: scheme.primary,
+                                  )
+                                : null,
+                            onTap: () => unawaited(_openAutofillSettings()),
+                          ),
+                          _SettingsRow(
+                            icon: Icons.save_rounded,
+                            title: 'Ask to save',
+                            subtitle:
+                                'Offer to save new credentials after a login',
+                            trailing: Switch.adaptive(
+                              value: AppPreferences.instance.autofillAskToSave,
+                              onChanged: (value) {
+                                setState(() {
+                                  AppPreferences.instance.autofillAskToSave =
+                                      value;
+                                });
+                                unawaited(AppPreferences.instance.save());
+                              },
+                            ),
+                          ),
+                          _SettingsRow(
+                            icon: Icons.language_rounded,
+                            title: 'Match mode',
+                            subtitle:
+                                AppPreferences.instance.autofillMatchMode ==
+                                    'exact'
+                                ? 'Exact host only'
+                                : 'Domain (includes subdomains)',
+                            onTap: () {
+                              final current =
+                                  AppPreferences.instance.autofillMatchMode;
+                              setState(() {
+                                AppPreferences.instance.autofillMatchMode =
+                                    current == 'exact' ? 'domain' : 'exact';
+                              });
+                              unawaited(AppPreferences.instance.save());
+                            },
                           ),
                         ],
                       ),

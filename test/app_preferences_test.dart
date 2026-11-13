@@ -60,4 +60,27 @@ void main() {
     expect(prefs.generatorWordCount, 8);
     expect(prefs.generatorSeparator, '-');
   });
+
+  test('autofill options round-trip through settings.json', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_autofill');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    prefs
+      ..autofillAskToSave = false
+      ..autofillMatchMode = 'exact';
+
+    await prefs.load(vaultPath);
+    await prefs.save();
+
+    // Clobber the in-memory values, then read them back from disk.
+    prefs
+      ..autofillAskToSave = true
+      ..autofillMatchMode = 'domain';
+
+    await prefs.load(vaultPath);
+
+    expect(prefs.autofillAskToSave, isFalse);
+    expect(prefs.autofillMatchMode, 'exact');
+  });
 }

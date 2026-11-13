@@ -30,12 +30,15 @@ git tag v0.X.0 && git push --tags
 | 0.7.0 | Vault UI (CRUD) | 1.5 weeks | ☑ |
 | 0.8.0 | Generator and TOTP | 1 week | ☑ |
 | 0.9.0 | Security dashboard, backup, import | 1 week | ☑ |
-| 0.10.0 | Autofill | 1.5 weeks | ☐ |
+| 0.10.0 | Autofill | 1.5 weeks | ◐ |
 | 0.11.0 | Hardening and accessibility | 1 week | ☐ |
 | 0.12.0 | Beta (dogfood and polish) | 2 weeks | ☐ |
 | 1.0.0 | Release | 3-4 days | ☐ |
 
 Estimates assume part-time work. Adjust to your pace.
+
+Legend: ☑ done · ◐ code complete, on-device verification pending · ☐ not
+started.
 
 > The vault, generator, security and settings screens already exist as
 > design-system prototypes running on demo data. They are wired to the real
@@ -364,6 +367,20 @@ Estimates assume part-time work. Adjust to your pace.
 
 ### Definition of done
 - Fill works in Chrome and at least 3 native apps; saving a new login works; a phishing-style domain mismatch shows the warning.
+
+### Status (2026-11-13)
+
+Code complete and unit/widget tested; the definition of done still needs a
+physical device. Implemented: manifest service/activity, `FieldParser`,
+Rust `find_matches` + FRB, `AuthActivity` + `mainAutofill` picker entrypoint,
+picker UI, save flow, and the Settings "Autofill" card. Matching lives in Rust
+rather than a Kotlin `DomainMatcher` (see `docs/DECISIONS.md`, 2026-11-13).
+
+Still open before tagging: inline keyboard suggestions (item 11), Digital
+Asset Links, a persisted "Never for this site" list (item 8), and the manual
+test matrix (item 12: Chrome, Firefox, 3 native apps, a WebView app, split
+screen). Item 3 (`DomainMatcher.kt`) is intentionally superseded by the Rust
+matcher.
 
 **Tag:** `v0.10.0`
 

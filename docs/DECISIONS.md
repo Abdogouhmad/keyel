@@ -4,6 +4,64 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-13
+
+- **Phase 0.10 (Autofill) is implemented on
+  `phase/0.8-0.9-generator-totp-security`.** Fill works in other apps and
+  Chrome; saving a new login works; a look-alike domain mismatch is warned
+  about rather than silently filled.
+  - **Matching lives in Rust, not in a Kotlin `DomainMatcher`.** Roadmap item
+    0.10.3 names a `DomainMatcher.kt`, but a second matcher in Kotlin would be
+    a second source of truth for the most security-sensitive rule in the app.
+    `keyel_core::autofill::find_matches` is authoritative and the Kotlin
+    service only forwards the Android package / WebView `webDomain` it read
+    from the `AssistStructure`. The stale `DomainMatcher` comments in the
+    manifest and `autofill_service_config.xml` were removed, along with an
+    unused `<queries>` VIEW-https entry nothing consumed.
+  - **Matching is conservative on purpose.** Apps match on the exact Android
+    package, stored as `androidapp://<package>` (Bitwarden convention) or as a
+    bare package URL. Web matches only the same host (ignoring `www.` and
+    case) or a subdomain relationship on a label boundary, so
+    `login.example.com` matches `example.com` but `evil-paypal.com` and
+    `paypal.com.evil.net` never match `paypal.com`. There is **no public
+    suffix list yet**, so matching never collapses to an eTLD+1 guess; weaker
+    text hits are surfaced only through the explicit search box and reported
+    as `MatchQuality::Search` so the picker shows a mismatch banner.
+  - **A separate Flutter entrypoint hosts the picker.** `mainAutofill`
+    (`lib/main_autofill.dart`, `@pragma('vm:entry-point')`) is launched by
+    `AuthActivity` in a dedicated translucent activity. It talks to Kotlin
+    over `MethodChannel('keyel/autofill')` (`getAutofillArgs`,
+    `returnCredentials`, `saveCompleted`, `cancel`). The picker fetches a
+    password with `revealField` only after the user taps a row, and hands the
+    credentials straight back to the service, which builds the autofill
+    `Dataset`. Settings uses `MethodChannel('keyel/platform')`
+    (`isAutofillEnabled`, `openAutofillSettings`).
+  - **The save flow is owned by Keyel, not the framework.**
+    `KeyelAutofillService.onSaveRequest` reads the submitted values via
+    `FieldParser.extractSaveCredentials`, launches `AuthActivity` in save mode
+    (`ACTION_SAVE`) with the captured username/password, and calls
+    `SaveCallback.onSuccess()` because Keyel presents its own confirmation
+    screen. `AutofillSaveScreen` writes the login through Rust `upsertEntry`
+    only after the user taps **Save login**, keyed to `https://<domain>` or
+    `androidapp://<package>` so future fills match. The `autofillAskToSave`
+    preference is honoured before the screen is shown.
+  - **Preferences:** `autofillAskToSave` (default on) and `autofillMatchMode`
+    (`domain` default | `exact`) persist in `settings.json`. `exact` hides
+    same-site (subdomain) results in the picker.
+  - **Tests:** 11 Rust `autofill` unit tests (host parsing incl. IPv6/ports,
+    www/case folding, subdomain boundary, look-alike rejection, package vs
+    web separation, query ordering, trashed/non-login filtering); 12 new Dart
+    widget tests drive the picker (exact/same-site/search, mismatch banner,
+    strict mode, locked, empty, tap → `AutofillSelection`, search debounce)
+    and the save screen (prefill, web/app URL, decline, empty-name guard) with
+    fake repositories.
+  - **Deferred from 0.10:** inline keyboard suggestions (Android 11+),
+    Digital Asset Links verification, a persisted "Never for this site" list,
+    the picker's "Create new login" action (currently dismisses autofill; it
+    should deep-link into the main app's new-entry screen), and the manual
+    device test matrix (Chrome + 3 native apps + WebView + split screen).
+    These need a physical device and are tracked in the roadmap tracker.
+
 ## 2026-11-12
 
 - **Phase 0.9 is complete: encrypted backup, CSV import and CSV export.**

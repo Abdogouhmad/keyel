@@ -8,6 +8,19 @@ Priority when documents disagree: **roadmap > plan > design** (`docs/DECISIONS.m
 
 ---
 
+## Phase 0.10 (Autofill) — 2026-11-13
+
+Beyond this plan's original 0.8/0.9 scope, phase 0.10 was implemented on the
+same branch. Summary and rationale live in `docs/DECISIONS.md` (2026-11-13):
+matching is Rust-authoritative (`keyel_core::autofill::find_matches`), the
+picker runs in a second Flutter entrypoint (`mainAutofill`) hosted by
+`AuthActivity`, and the save flow is owned by Keyel via
+`AutofillSaveScreen`. On-device verification (Chrome + native apps) and the
+optional inline-suggestions / Digital Asset Links work remain open; see the
+roadmap 0.10 status note.
+
+---
+
 ## 0. Progress update — 2026-11-12
 
 ### Done (phase 0.9 backup + import/export, roadmap 0.9.3–0.9.5)

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:keyel/src/rust/api/autofill.dart' as autofill_api;
 import 'package:keyel/src/rust/api/entries.dart' as entries_api;
 import 'package:keyel/src/rust/api/health.dart' as health_api;
 import 'package:keyel/src/rust/api/import_export.dart' as import_export_api;
@@ -107,6 +108,21 @@ class VaultRepository {
 
   /// Analyze the unlocked vault and return a secret-free health report.
   Future<HealthReportDto> analyzeHealth() => health_api.analyzeHealth();
+
+  /// Find logins that can fill the requesting app or site.
+  ///
+  /// Pass the Android `package` and/or `webDomain`, plus a free-text `query`
+  /// for the picker's search box. Results carry no secrets; fetch the chosen
+  /// password afterwards with [revealField].
+  Future<List<AutofillMatchDto>> findAutofillMatches({
+    String? package,
+    String? webDomain,
+    String query = '',
+  }) => autofill_api.findAutofillMatches(
+    package: package,
+    webDomain: webDomain,
+    query: query,
+  );
 
   /// Parse an import file and report its contents without changing anything.
   Future<ImportPreviewDto> previewImport(String path) =>

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/router/vault_session_listenable.dart';
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/autofill/autofill_picker_screen.dart';
 import 'package:keyel/features/debug/debug_vault_screen.dart';
 import 'package:keyel/features/entry/entry_detail_screen.dart';
 import 'package:keyel/features/entry/entry_edit_screen.dart';
@@ -115,6 +116,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: KeyelRoutes.importExport,
         builder: (context, state) => const ImportExportScreen(),
+      ),
+      GoRoute(
+        path: KeyelRoutes.autofillPicker,
+        builder: (context, state) => AutofillPickerScreen(
+          package: state.uri.queryParameters['package'],
+          webDomain: state.uri.queryParameters['webDomain'],
+        ),
       ),
       GoRoute(
         path: KeyelRoutes.newEntry,

@@ -6,10 +6,12 @@
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
+import 'api/autofill.dart';
 import 'api/entries.dart';
 import 'api/error.dart';
 import 'api/generator.dart';
 import 'api/health.dart';
+import 'api/import_export.dart';
 import 'api/models.dart';
 import 'api/session.dart';
 import 'api/totp.dart';
@@ -37,6 +39,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String dco_decode_String(dynamic raw);
+
+  @protected
+  AutofillMatchDto dco_decode_autofill_match_dto(dynamic raw);
+
+  @protected
+  AutofillQualityDto dco_decode_autofill_quality_dto(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
@@ -102,7 +110,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  ImportFailureDto dco_decode_import_failure_dto(dynamic raw);
+
+  @protected
+  ImportFormatDto dco_decode_import_format_dto(dynamic raw);
+
+  @protected
+  ImportModeDto dco_decode_import_mode_dto(dynamic raw);
+
+  @protected
+  ImportPreviewDto dco_decode_import_preview_dto(dynamic raw);
+
+  @protected
+  ImportReportDto dco_decode_import_report_dto(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<AutofillMatchDto> dco_decode_list_autofill_match_dto(dynamic raw);
 
   @protected
   List<EntrySummaryDto> dco_decode_list_entry_summary_dto(dynamic raw);
@@ -112,6 +138,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<HealthIssueDto> dco_decode_list_health_issue_dto(dynamic raw);
+
+  @protected
+  List<ImportFailureDto> dco_decode_list_import_failure_dto(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -197,6 +226,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  AutofillMatchDto sse_decode_autofill_match_dto(SseDeserializer deserializer);
+
+  @protected
+  AutofillQualityDto sse_decode_autofill_quality_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
@@ -272,7 +309,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  ImportFailureDto sse_decode_import_failure_dto(SseDeserializer deserializer);
+
+  @protected
+  ImportFormatDto sse_decode_import_format_dto(SseDeserializer deserializer);
+
+  @protected
+  ImportModeDto sse_decode_import_mode_dto(SseDeserializer deserializer);
+
+  @protected
+  ImportPreviewDto sse_decode_import_preview_dto(SseDeserializer deserializer);
+
+  @protected
+  ImportReportDto sse_decode_import_report_dto(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<AutofillMatchDto> sse_decode_list_autofill_match_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<EntrySummaryDto> sse_decode_list_entry_summary_dto(
@@ -284,6 +341,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<HealthIssueDto> sse_decode_list_health_issue_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<ImportFailureDto> sse_decode_list_import_failure_dto(
     SseDeserializer deserializer,
   );
 
@@ -387,6 +449,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_autofill_match_dto(
+    AutofillMatchDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_autofill_quality_dto(
+    AutofillQualityDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
@@ -483,7 +557,40 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_import_failure_dto(
+    ImportFailureDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_import_format_dto(
+    ImportFormatDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_import_mode_dto(ImportModeDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_import_preview_dto(
+    ImportPreviewDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_import_report_dto(
+    ImportReportDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_autofill_match_dto(
+    List<AutofillMatchDto> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_entry_summary_dto(
@@ -500,6 +607,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_health_issue_dto(
     List<HealthIssueDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_import_failure_dto(
+    List<ImportFailureDto> self,
     SseSerializer serializer,
   );
 

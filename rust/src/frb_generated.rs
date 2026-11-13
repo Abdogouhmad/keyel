@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 75988047;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1363391542;
 
 // Section: executor
 
@@ -341,6 +341,45 @@ fn wire__crate__api__import_export__export_csv_impl(
             move |context| {
                 transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
                     let output_ok = crate::api::import_export::export_csv(api_path)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__autofill__find_autofill_matches_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "find_autofill_matches",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_package = <Option<String>>::sse_decode(&mut deserializer);
+            let api_web_domain = <Option<String>>::sse_decode(&mut deserializer);
+            let api_query = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::autofill::find_autofill_matches(
+                        api_package,
+                        api_web_domain,
+                        api_query,
+                    )?;
                     std::result::Result::Ok(output_ok)
                 })())
             }
@@ -1254,6 +1293,31 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for crate::api::models::AutofillMatchDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_summary = <crate::api::models::EntrySummaryDto>::sse_decode(deserializer);
+        let mut var_quality = <crate::api::models::AutofillQualityDto>::sse_decode(deserializer);
+        return crate::api::models::AutofillMatchDto {
+            summary: var_summary,
+            quality: var_quality,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::AutofillQualityDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::AutofillQualityDto::Exact,
+            1 => crate::api::models::AutofillQualityDto::SameSite,
+            2 => crate::api::models::AutofillQualityDto::Search,
+            _ => unreachable!("Invalid variant for AutofillQualityDto: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1560,6 +1624,20 @@ impl SseDecode for Vec<String> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<String>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::models::AutofillMatchDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::models::AutofillMatchDto>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -1937,36 +2015,42 @@ fn pde_ffi_dispatcher_primary_impl(
         7 => wire__crate__api__entries__delete_folder_impl(port, ptr, rust_vec_len, data_len),
         8 => wire__crate__api__import_export__export_backup_impl(port, ptr, rust_vec_len, data_len),
         9 => wire__crate__api__import_export__export_csv_impl(port, ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__entries__get_entry_impl(port, ptr, rust_vec_len, data_len),
-        13 => {
-            wire__crate__api__import_export__import_backup_impl(port, ptr, rust_vec_len, data_len)
-        }
-        14 => wire__crate__api__import_export__import_csv_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__generator__init_app_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__entries__list_entries_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__entries__list_folders_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__session__lock_events_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__entries__move_entries_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__totp__parse_otpauth_impl(port, ptr, rust_vec_len, data_len),
-        24 => {
-            wire__crate__api__import_export__preview_import_impl(port, ptr, rust_vec_len, data_len)
-        }
-        25 => wire__crate__api__entries__purge_entry_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__entries__rename_folder_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__session__reset_master_with_recovery_impl(
+        10 => wire__crate__api__autofill__find_autofill_matches_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
-        31 => {
+        13 => wire__crate__api__entries__get_entry_impl(port, ptr, rust_vec_len, data_len),
+        14 => {
+            wire__crate__api__import_export__import_backup_impl(port, ptr, rust_vec_len, data_len)
+        }
+        15 => wire__crate__api__import_export__import_csv_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__generator__init_app_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__entries__list_entries_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__entries__list_folders_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__session__lock_events_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__entries__move_entries_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__totp__parse_otpauth_impl(port, ptr, rust_vec_len, data_len),
+        25 => {
+            wire__crate__api__import_export__preview_import_impl(port, ptr, rust_vec_len, data_len)
+        }
+        26 => wire__crate__api__entries__purge_entry_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__entries__rename_folder_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__session__reset_master_with_recovery_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        29 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
+        32 => {
             wire__crate__api__session__unlock_with_recovery_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1979,19 +2063,62 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        10 => wire__crate__api__generator__generate_passphrase_impl(ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__generator__generate_password_impl(ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__generator__generate_passphrase_impl(ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__generator__generate_password_impl(ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
 
 // Section: rust2dart
 
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::AutofillMatchDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.summary.into_into_dart().into_dart(),
+            self.quality.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::AutofillMatchDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::AutofillMatchDto>
+    for crate::api::models::AutofillMatchDto
+{
+    fn into_into_dart(self) -> crate::api::models::AutofillMatchDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::AutofillQualityDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Exact => 0.into_dart(),
+            Self::SameSite => 1.into_dart(),
+            Self::Search => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::AutofillQualityDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::AutofillQualityDto>
+    for crate::api::models::AutofillQualityDto
+{
+    fn into_into_dart(self) -> crate::api::models::AutofillQualityDto {
+        self
+    }
+}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::CardDetailDto {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -2551,6 +2678,31 @@ impl SseEncode for String {
     }
 }
 
+impl SseEncode for crate::api::models::AutofillMatchDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::models::EntrySummaryDto>::sse_encode(self.summary, serializer);
+        <crate::api::models::AutofillQualityDto>::sse_encode(self.quality, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::AutofillQualityDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::AutofillQualityDto::Exact => 0,
+                crate::api::models::AutofillQualityDto::SameSite => 1,
+                crate::api::models::AutofillQualityDto::Search => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2772,6 +2924,16 @@ impl SseEncode for Vec<String> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <String>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::models::AutofillMatchDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::AutofillMatchDto>::sse_encode(item, serializer);
         }
     }
 }

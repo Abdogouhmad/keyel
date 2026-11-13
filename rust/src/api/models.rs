@@ -4,6 +4,7 @@
 //! function that returns a secret value is
 //! [`crate::api::entries::reveal_field`], and only for the requested field.
 
+use keyel_core::autofill::{AutofillMatch, MatchQuality};
 use keyel_core::health::{HealthIssue, HealthReport};
 use keyel_core::import::{ImportFailure, ImportFormat, ImportMode, ImportReport, ParsedImport};
 use keyel_core::vault::{
@@ -587,6 +588,45 @@ impl From<ImportReport> for ImportReportDto {
             notes: report.notes,
             folders_added: report.folders_added,
             failures: report.failures.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+/// How confidently a login matches the autofill request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AutofillQualityDto {
+    /// Same host or same Android package.
+    Exact,
+    /// Same registrable domain (a subdomain relationship).
+    SameSite,
+    /// Only a text-search hit; the UI must warn about a possible mismatch.
+    Search,
+}
+
+impl From<MatchQuality> for AutofillQualityDto {
+    fn from(quality: MatchQuality) -> Self {
+        match quality {
+            MatchQuality::Exact => Self::Exact,
+            MatchQuality::SameSite => Self::SameSite,
+            MatchQuality::Search => Self::Search,
+        }
+    }
+}
+
+/// A login suggested for autofill, with no secrets attached.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AutofillMatchDto {
+    /// Secret-free summary for the picker row.
+    pub summary: EntrySummaryDto,
+    /// Match strength, used to decide whether to warn the user.
+    pub quality: AutofillQualityDto,
+}
+
+impl From<AutofillMatch> for AutofillMatchDto {
+    fn from(item: AutofillMatch) -> Self {
+        Self {
+            summary: item.summary.into(),
+            quality: item.quality.into(),
         }
     }
 }

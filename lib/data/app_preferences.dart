@@ -58,6 +58,13 @@ class AppPreferences {
   /// Remembered passphrase word separator.
   String generatorSeparator = '-';
 
+  /// Whether the autofill save prompt is offered after a successful fill.
+  bool autofillAskToSave = true;
+
+  /// Autofill matching strictness: `domain` also matches subdomains, while
+  /// `exact` requires the same host or Android package.
+  String autofillMatchMode = 'domain';
+
   /// Remember a search term, keeping at most eight unique values.
   void rememberSearch(String query) {
     final trimmed = query.trim();
@@ -96,6 +103,10 @@ class AppPreferences {
         autoLockDelay = Duration(seconds: seconds);
       }
       biometricEnabled = decoded['biometricEnabled'] == true;
+      autofillAskToSave = decoded['autofillAskToSave'] != false;
+      autofillMatchMode = decoded['autofillMatchMode'] == 'exact'
+          ? 'exact'
+          : 'domain';
       final searches = decoded['recentSearches'];
       if (searches is List) {
         recentSearches = searches
@@ -141,6 +152,8 @@ class AppPreferences {
         jsonEncode({
           'autoLockSeconds': autoLockDelay.inSeconds,
           'biometricEnabled': biometricEnabled,
+          'autofillAskToSave': autofillAskToSave,
+          'autofillMatchMode': autofillMatchMode,
           'recentSearches': recentSearches,
           'generator': {
             'mode': generatorMode,
