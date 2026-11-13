@@ -61,6 +61,24 @@ design (docs/roadmap.md header).
     should deep-link into the main app's new-entry screen), and the manual
     device test matrix (Chrome + 3 native apps + WebView + split screen).
     These need a physical device and are tracked in the roadmap tracker.
+- **Release APKs no longer depend on a freshly regenerated plugin
+  registrant.** Since Flutter 3.32, dev-dependency plugins such as
+  `integration_test` are excluded from release builds, but the shared
+  `GeneratedPluginRegistrant.java` is only rewritten for release mode when the
+  Flutter tool's pre-generation step runs. That step is skipped for `--no-pub`
+  and for IDE/direct Gradle builds, so a registrant left over from a debug
+  build referenced `integration_test` while Gradle omitted it from the release
+  classpath, failing `:app:compileReleaseJavaWithJavac`. This is
+  [flutter/flutter#169336](https://github.com/flutter/flutter/issues/169336),
+  still open. Rather than drop the on-device smoke test (the only test that
+  exercises the real Rust FFI), `android/app/build.gradle.kts` registers
+  `stripDevDependencyPluginsForRelease`, which removes registrations for
+  plugins marked `dev_dependency: true` in `.flutter-plugins-dependencies`
+  before any `compileRelease*JavaWithJavac` task. It is a no-op when the
+  Flutter tool already generated a release-correct registrant, and never runs
+  for debug builds. Verified with a full `flutter build apk --release` started
+  from a stale debug registrant; the release APK contains no
+  `integration_test` classes.
 
 ## 2026-11-12
 

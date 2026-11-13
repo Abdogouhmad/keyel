@@ -45,3 +45,105 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// ---------------------------------------------------------------------------
+// Workaround for https://github.com/flutter/flutter/issues/169336
+//
+// Since Flutter 3.32, dev-dependency plugins (such as `integration_test`) are
+// excluded from release builds. However, the shared generated file
+// `GeneratedPluginRegistrant.java` is only rewritten for release mode when the
+// Flutter tool's pre-generation step runs. That step is skipped for `--no-pub`
+// builds and for IDE/direct Gradle builds, so a registrant produced by a debug
+// build can still reference `integration_test` while Gradle omits it from the
+// release classpath, failing `:app:compileReleaseJavaWithJavac`.
+//
+// Strip dev-dependency plugin registrations from the generated file before any
+// release Java compilation so release builds are always self-consistent.
+// ---------------------------------------------------------------------------
+val flutterPluginsDependenciesFile = rootProject.file("../.flutter-plugins-dependencies")
+val generatedPluginRegistrantFile =
+    file("src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java")
+
+val stripDevDependencyPluginsForRelease =
+    tasks.register("stripDevDependencyPluginsForRelease") {
+        description =
+            "Removes dev-dependency plugin registrations from " +
+                "GeneratedPluginRegistrant.java for release builds."
+        group = "flutter"
+
+        val pluginsFile = flutterPluginsDependenciesFile
+        val registrantFile = generatedPluginRegistrantFile
+
+        doLast {
+            if (!pluginsFile.exists() || !registrantFile.exists()) {
+                return@doLast
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val root = groovy.json.JsonSlurper().parse(pluginsFile) as? Map<String, Any?>
+                ?: return@doLast
+            @Suppress("UNCHECKED_CAST")
+            val plugins = root["plugins"] as? Map<String, Any?> ?: return@doLast
+            val androidPlugins = plugins["android"] as? List<Any?> ?: return@doLast
+            val devDependencyNames =
+                androidPlugins
+                    .mapNotNull { entry ->
+                        @Suppress("UNCHECKED_CAST")
+                        val plugin = entry as? Map<String, Any?> ?: return@mapNotNull null
+                        if (plugin["dev_dependency"] == true) {
+                            plugin["name"] as? String
+                        } else {
+                            null
+                        }
+                    }
+                    .toSet()
+
+            if (devDependencyNames.isEmpty()) {
+                return@doLast
+            }
+
+            val lines = registrantFile.readLines()
+            val kept = ArrayList<String>(lines.size)
+            var index = 0
+            while (index < lines.size) {
+                if (lines[index].trim() == "try {") {
+                    var cursor = index + 1
+                    var pluginName: String? = null
+                    var blockEnd = -1
+                    while (cursor < lines.size) {
+                        val line = lines[cursor]
+                        if (line.contains("Error registering plugin ")) {
+                            pluginName =
+                                line.substringAfter("Error registering plugin ")
+                                    .substringBefore(",")
+                                    .trim()
+                        }
+                        if (line.trim() == "}" && cursor > index + 2) {
+                            blockEnd = cursor
+                            break
+                        }
+                        cursor++
+                    }
+                    if (pluginName != null &&
+                        pluginName in devDependencyNames &&
+                        blockEnd != -1
+                    ) {
+                        index = blockEnd + 1
+                        continue
+                    }
+                }
+                kept.add(lines[index])
+                index++
+            }
+
+            if (kept.size != lines.size) {
+                registrantFile.writeText(kept.joinToString("\n") + "\n")
+            }
+        }
+    }
+
+tasks.matching {
+    it.name.startsWith("compileRelease") && it.name.endsWith("JavaWithJavac")
+}.configureEach {
+    dependsOn(stripDevDependencyPluginsForRelease)
+}
