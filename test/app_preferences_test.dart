@@ -16,6 +16,7 @@ void _reset(AppPreferences prefs) {
     ..generatorCapitalize = true
     ..generatorIncludeNumber = false
     ..generatorSeparator = '-'
+    ..clipboardClearSeconds = 30
     ..unlockFailures = 0
     ..unlockLockedUntilMs = null;
 }
@@ -107,5 +108,29 @@ void main() {
 
     expect(prefs.unlockFailures, 4);
     expect(prefs.unlockLockedUntilMs, 1700000000000);
+  });
+
+  test('clipboard timeout round-trips through settings.json', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_clipboard');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    prefs.clipboardClearSeconds = 60;
+    await prefs.load(vaultPath);
+    await prefs.save();
+
+    // Clobber the in-memory value, then read it back from disk.
+    prefs.clipboardClearSeconds = 30;
+    await prefs.load(vaultPath);
+    expect(prefs.clipboardClearSeconds, 60);
+    expect(prefs.clipboardClearDelay, const Duration(minutes: 1));
+
+    // Zero means never, and must survive the round trip too.
+    prefs.clipboardClearSeconds = 0;
+    await prefs.save();
+    prefs.clipboardClearSeconds = 30;
+    await prefs.load(vaultPath);
+    expect(prefs.clipboardClearSeconds, 0);
+    expect(prefs.clipboardClearDelay, isNull);
   });
 }

@@ -65,6 +65,15 @@ class AppPreferences {
   /// `exact` requires the same host or Android package.
   String autofillMatchMode = 'domain';
 
+  /// How long copied secrets stay on the clipboard, in seconds. Zero means
+  /// never clear them. Not a secret.
+  int clipboardClearSeconds = 30;
+
+  /// How long copied secrets stay on the clipboard, or `null` to never clear.
+  Duration? get clipboardClearDelay => clipboardClearSeconds <= 0
+      ? null
+      : Duration(seconds: clipboardClearSeconds);
+
   /// Consecutive failed master-password attempts, persisted so the unlock
   /// throttle survives an app restart. Not a secret.
   int unlockFailures = 0;
@@ -115,6 +124,10 @@ class AppPreferences {
       autofillMatchMode = decoded['autofillMatchMode'] == 'exact'
           ? 'exact'
           : 'domain';
+      final clipboard = decoded['clipboardClearSeconds'];
+      if (clipboard is int && clipboard >= 0) {
+        clipboardClearSeconds = clipboard;
+      }
       final failures = decoded['unlockFailures'];
       if (failures is int && failures >= 0) {
         unlockFailures = failures;
@@ -170,6 +183,7 @@ class AppPreferences {
           'biometricEnabled': biometricEnabled,
           'autofillAskToSave': autofillAskToSave,
           'autofillMatchMode': autofillMatchMode,
+          'clipboardClearSeconds': clipboardClearSeconds,
           'unlockFailures': unlockFailures,
           'unlockLockedUntilMs': unlockLockedUntilMs,
           'recentSearches': recentSearches,

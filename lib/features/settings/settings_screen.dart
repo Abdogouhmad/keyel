@@ -24,7 +24,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _biometricBusy = false;
   bool _biometricEnabled = false;
-  bool _clearClipboard = true;
   bool _offlineOnly = true;
   bool? _autofillEnabled;
 
@@ -248,6 +247,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (selected == null) return;
 
     notifier.setAutoLockDelay(selected);
+
+    if (mounted) setState(() {});
+  }
+
+  String _clipboardLabel(int seconds) {
+    if (seconds <= 0) return 'Never';
+    if (seconds < 60) return '$seconds seconds';
+    final minutes = seconds ~/ 60;
+    return '$minutes ${minutes == 1 ? "minute" : "minutes"}';
+  }
+
+  Future<void> _showClipboardDialog() async {
+    final prefs = AppPreferences.instance;
+    final current = prefs.clipboardClearSeconds;
+    const options = [15, 30, 60, 0];
+
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('Clear clipboard after'),
+        children: [
+          for (final option in options)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(option),
+              child: Row(
+                children: [
+                  Icon(
+                    option == current
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_off_rounded,
+                    size: 20,
+                  ),
+                  const SizedBox(width: KeyelSpacing.sm),
+                  Text(_clipboardLabel(option)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (selected == null) return;
+
+    prefs.clipboardClearSeconds = selected;
+    await prefs.save();
 
     if (mounted) setState(() {});
   }
@@ -551,13 +595,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           _SettingsRow(
                             icon: Icons.content_paste_off_rounded,
                             title: 'Clear clipboard',
-                            subtitle: 'Wipe copied secrets after 30 seconds',
-                            trailing: Switch.adaptive(
-                              value: _clearClipboard,
-                              onChanged: (value) {
-                                setState(() => _clearClipboard = value);
-                              },
+                            subtitle: 'Wipe copied secrets from the clipboard',
+                            trailing: Text(
+                              _clipboardLabel(
+                                AppPreferences.instance.clipboardClearSeconds,
+                              ),
+                              style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
+                            onTap: () => unawaited(_showClipboardDialog()),
                           ),
                         ],
                       ),

@@ -59,6 +59,15 @@ design (docs/roadmap.md header).
   thief who wants deniability, and the recovery key already covers a real
   lockout. Argon2id remains the primary per-guess cost.
 
+- **The clipboard-clear timeout is a user setting, stored as an integer
+  number of seconds with `0` meaning never.** Plan §11 item 3 asks for
+  15 s / 30 s / 1 min / never options. `SensitiveClipboard.copy` reads
+  `AppPreferences.clipboardClearDelay` (a `Duration?`, `null` for never) rather
+  than hard-coding 30 s, so every copy site honours the choice without passing
+  it. `0`/`null` is used for "never" instead of a nullable JSON field because a
+  nullable field cannot be distinguished from an absent one on load without a
+  `containsKey` check; an integer sentinel keeps `load` simple and total.
+
 ## 2026-11-13
 
 - **Phase 0.10 (Autofill) is implemented on

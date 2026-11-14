@@ -132,7 +132,9 @@ reveals on demand and clears the clipboard after a delay.
 - The autofill picker activity is `excludeFromRecents` and `noHistory`.
 - Passwords are masked by default in the UI.
 - Copied secrets are flagged sensitive and auto-cleared
-  (`lib/core/platform/sensitive_clipboard.dart`).
+  (`lib/core/platform/sensitive_clipboard.dart`). The clear delay is
+  user-configurable (15 s / 30 s / 1 min / never, default 30 s) via
+  `AppPreferences.clipboardClearDelay`.
 
 *Open:* an on-device check that `FLAG_SECURE` is actually engaged on every
 secret-bearing screen.
