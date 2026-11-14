@@ -68,6 +68,20 @@ design (docs/roadmap.md header).
   nullable field cannot be distinguished from an absent one on load without a
   `containsKey` check; an integer sentinel keeps `load` simple and total.
 
+- **The 5,000-entry performance work is a regression guard, not a
+  micro-benchmark.** Roadmap item 12 asks for a 5,000-entry vault benchmark. The
+  one real defect found was in the UI, not the core: `VaultEntryList` used
+  `SliverList.list`, which builds every child eagerly, so a large vault inflated
+  every row (and a gap) on first paint. It now uses `SliverList.builder`, and
+  `test/vault_list_perf_test.dart` asserts that only a window of rows exists
+  before and after a scroll. The Rust test
+  (`five_thousand_entry_vault_stays_within_budget`) uses deliberately loose
+  ceilings (seconds, not milliseconds) because a shared CI runner is slow and
+  the goal is to catch an accidental O(n²) in save/open/search/filter, not to
+  pin a number; it prints its timings so a human can watch the trend. True
+  device budgets (scroll fps, cold unlock) still need a phone, so the checklist
+  item stays device-pending.
+
 ## 2026-11-13
 
 - **Phase 0.10 (Autofill) is implemented on

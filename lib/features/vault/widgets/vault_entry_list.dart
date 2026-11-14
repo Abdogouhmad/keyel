@@ -77,13 +77,16 @@ class VaultEntryList extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.md),
-      sliver: SliverList.list(
-        children: [
-          for (final entry in entries) ...[
-            _buildSwipeableRow(entry),
-            const SizedBox(height: KeyelSpacing.sm),
-          ],
-        ],
+      // Lazily build only the rows near the viewport. A 5,000-entry vault must
+      // not inflate 5,000 row widgets (or 10,000 with gaps) on first paint;
+      // `SliverList.list` did exactly that. See `docs/hardening-checklist.md`
+      // (roadmap item 12).
+      sliver: SliverList.builder(
+        itemCount: entries.length,
+        itemBuilder: (context, index) => Padding(
+          padding: const EdgeInsets.only(bottom: KeyelSpacing.sm),
+          child: _buildSwipeableRow(entries[index]),
+        ),
       ),
     );
   }

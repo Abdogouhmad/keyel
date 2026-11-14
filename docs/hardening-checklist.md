@@ -39,7 +39,7 @@ Legend: ✅ done · 🟡 partial · ⏳ open · 📱 device-pending.
 | 9 | TalkBack pass on every screen | ⏳ 📱 | Accessibility chunk not started (deferred by scope). |
 | 10 | 200 % font scale, high contrast, reduce motion | ⏳ | Deferred. |
 | 11 | RTL (Arabic) pass + `app_ar.arb`/`app_fr.arb` | ⏳ | l10n not started; `lib/l10n/` is empty. |
-| 12 | Performance: 5,000-entry vault benchmark | ⏳ | Not started. |
+| 12 | Performance: 5,000-entry vault benchmark | ✅ 📱 | Rust: `five_thousand_entry_vault_stays_within_budget` (`crates/keyel_core/tests/vault_model.rs`) builds/saves/opens/searches/filters 5,000 entries under loose ceilings that catch O(n²). Dart: `test/vault_list_perf_test.dart` proves `VaultEntryList` stays lazy (the `SliverList.list` → `SliverList.builder` fix in `lib/features/vault/widgets/vault_entry_list.dart`). On-device scroll fps and cold-unlock timing pending. |
 | 13 | Review crypto-design + threat-model docs | 🟡 | `docs/threat-model.md` written; external review pending. |
 
 ## What this chunk changed
@@ -64,8 +64,15 @@ Legend: ✅ done · 🟡 partial · ⏳ open · 📱 device-pending.
   `clipboardClearSeconds` in `lib/data/app_preferences.dart`; `SensitiveClipboard`
   honours it; Settings offers 15 s / 30 s / 1 min / never; tests in
   `test/sensitive_clipboard_test.dart` and `test/app_preferences_test.dart`.
+- Performance (roadmap item 12): `VaultEntryList` switched from eager
+  `SliverList.list` to lazy `SliverList.builder`
+  (`lib/features/vault/widgets/vault_entry_list.dart`), so a 5,000-entry vault
+  no longer inflates every row on first paint; `test/vault_list_perf_test.dart`
+  asserts only a window of rows is built. Rust adds a 5,000-entry regression
+  test with generous ceilings (guards O(n²)) and an ignored production-KDF
+  timing test.
 
 ## Recommended next hardening steps
 
 1. Exact Rust toolchain pin (`rust-toolchain.toml`) once a version is chosen.
-2. On-device verification sweep (items 2, 4, 5, 6, 9).
+2. On-device verification sweep (items 2, 4, 5, 6, 9, 12).

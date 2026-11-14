@@ -335,6 +335,101 @@ fn change_master_rewraps_the_same_body() {
     assert!(Session::open(&path, "new-master").is_ok());
 }
 
+/// Roadmap item 12: a 5,000-entry vault must stay usable.
+///
+/// This is a regression guard, not a micro-benchmark: the ceilings are loose
+/// on purpose so a slow shared CI runner does not flake, but an accidental
+/// O(n^2) in save, open, search or filtering would blow through them. The
+/// measured timings are printed so a human can spot a trend; run with
+/// `cargo test -p keyel_core --test vault_model -- --nocapture` to see them.
+#[test]
+fn five_thousand_entry_vault_stays_within_budget() {
+    use std::time::{Duration, Instant};
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = temp_vault_path(&dir);
+
+    let started = Instant::now();
+    let (mut session, _recovery) = Session::create(&path, "master", fast_params()).unwrap();
+    for index in 0..5_000 {
+        session.add_entry(sample_login(index));
+    }
+    let build = started.elapsed();
+
+    let started = Instant::now();
+    session.save().unwrap();
+    let save = started.elapsed();
+
+    session.lock();
+    let started = Instant::now();
+    let reopened = Session::open(&path, "master").unwrap();
+    let open = started.elapsed();
+
+    let started = Instant::now();
+    let hits = search(reopened.vault(), "entry 4999", &EntryFilter::default());
+    let search_time = started.elapsed();
+
+    let started = Instant::now();
+    let favorites = search(
+        reopened.vault(),
+        "",
+        &EntryFilter {
+            favorite: Some(true),
+            ..EntryFilter::default()
+        },
+    );
+    let filter_time = started.elapsed();
+
+    assert_eq!(reopened.vault().entries.len(), 5_000);
+    assert_eq!(hits.len(), 1);
+    assert_eq!(hits[0].title, "Entry 4999");
+    // `sample_login` marks every seventh entry a favorite: 0, 7, ..., 4998.
+    assert_eq!(favorites.len(), 715);
+
+    // Generous ceilings: this guards against accidental O(n^2) work rather
+    // than pinning a micro-benchmark. Debug builds on a shared runner are
+    // several times slower than the numbers printed below.
+    assert!(build < Duration::from_secs(15), "build took {build:?}");
+    assert!(save < Duration::from_secs(20), "save took {save:?}");
+    assert!(open < Duration::from_secs(20), "open took {open:?}");
+    assert!(
+        search_time < Duration::from_secs(5),
+        "search took {search_time:?}"
+    );
+    assert!(
+        filter_time < Duration::from_secs(5),
+        "filter took {filter_time:?}"
+    );
+
+    println!(
+        "5,000-entry vault: build={build:?} save={save:?} open={open:?} \
+         search={search_time:?} filter={filter_time:?}"
+    );
+}
+
+/// Measures the production Argon2id cost on this machine.
+///
+/// Ignored by default because the default parameters are deliberately slow.
+/// The roadmap's "cold unlock under ~1.5 s on a mid-range phone" budget is a
+/// device measurement; this gives a desktop reference point and catches a
+/// parameter change that would make unlock far too slow. Run with:
+///
+/// ```text
+/// cargo test --release -p keyel_core --test vault_model -- --ignored --nocapture
+/// ```
+#[test]
+#[ignore = "measures production Argon2id; run manually"]
+fn production_kdf_cost_is_measured() {
+    use std::time::Duration;
+
+    use keyel_core::crypto::kdf::{benchmark, random_salt};
+
+    let params = Argon2Params::default();
+    let elapsed = benchmark(&params, &random_salt()).unwrap();
+    println!("Argon2id {params:?} took {elapsed:?}");
+    assert!(elapsed < Duration::from_secs(5), "KDF took {elapsed:?}");
+}
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(48))]
 

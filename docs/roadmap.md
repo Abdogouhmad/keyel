@@ -426,12 +426,14 @@ secret-hygiene pass (bridge password/recovery/backup arguments wiped,
 `zeroize_secrets` test); a wrong-attempt exponential delay (3 free tries then
 1/2/4/8/16 s capped at 30 s, persisted, applied to password and biometric
 unlock, never a wipe); a configurable clipboard-clear timeout (15 s / 30 s /
-1 min / never, persisted); and `docs/hardening-checklist.md` with the
-item-by-item status.
+1 min / never, persisted); a performance pass (lazy `VaultEntryList` so a
+5,000-entry vault builds only a window of rows, plus Rust and Dart 5,000-entry
+regression tests); and `docs/hardening-checklist.md` with the item-by-item
+status.
 
 Still open: an exact Rust toolchain pin, and every on-device check (storage
-dump, `logcat` sweep, release-APK test, TalkBack). Accessibility (items 9-10),
-localization (item 11) and the 5,000-entry benchmark (item 12) are not started.
+dump, `logcat` sweep, release-APK test, TalkBack, scroll-fps and cold-unlock
+timing). Accessibility (items 9-10) and localization (item 11) are not started.
 See `docs/hardening-checklist.md` for the full breakdown.
 
 **Tag:** `v0.11.0` (not yet — phase incomplete)
