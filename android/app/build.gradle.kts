@@ -32,6 +32,12 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // R8 code shrinking, obfuscation and resource shrinking are enabled
+            // for this build type by the Flutter Gradle plugin
+            // (`FlutterPluginUtils.shouldShrinkResources`), which also adds
+            // `proguard-android-optimize.txt`, the Flutter embedding rules and
+            // `proguard-rules.pro`. Do not set `isMinifyEnabled` here: turning it
+            // on without Flutter's rule files would break the release build.
         }
     }
 }

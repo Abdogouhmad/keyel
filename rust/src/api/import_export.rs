@@ -8,6 +8,7 @@
 use keyel_core::backup;
 use keyel_core::crypto::kdf::Argon2Params;
 use keyel_core::import::{self, ParsedImport};
+use zeroize::Zeroizing;
 
 use super::error::VaultApiError;
 use super::models::{ImportModeDto, ImportPreviewDto, ImportReportDto};
@@ -36,11 +37,17 @@ pub fn import_csv(path: String, mode: ImportModeDto) -> Result<ImportReportDto, 
 /// The backup uses a separate password and the same on-disk format as the
 /// vault, so it can be restored with [`import_backup`] or opened on its own.
 pub fn export_backup(path: String, password: String) -> Result<(), VaultApiError> {
+    let password = Zeroizing::new(password);
     if password.is_empty() {
         return Err(VaultApiError::InvalidField);
     }
     with_session(|session| {
-        backup::export_encrypted(&path, session.vault(), &password, Argon2Params::default())?;
+        backup::export_encrypted(
+            &path,
+            session.vault(),
+            password.as_str(),
+            Argon2Params::default(),
+        )?;
         Ok(())
     })
 }
@@ -54,7 +61,8 @@ pub fn import_backup(
     password: String,
     mode: ImportModeDto,
 ) -> Result<ImportReportDto, VaultApiError> {
-    let source = backup::read_encrypted(&path, &password)?;
+    let password = Zeroizing::new(password);
+    let source = backup::read_encrypted(&path, password.as_str())?;
     with_session(|session| {
         let report = backup::apply(session.vault_mut(), source, mode.into());
         session.save()?;

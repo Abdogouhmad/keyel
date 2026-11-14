@@ -31,7 +31,7 @@ git tag v0.X.0 && git push --tags
 | 0.8.0 | Generator and TOTP | 1 week | ☑ |
 | 0.9.0 | Security dashboard, backup, import | 1 week | ☑ |
 | 0.10.0 | Autofill | 1.5 weeks | ◐ |
-| 0.11.0 | Hardening and accessibility | 1 week | ☐ |
+| 0.11.0 | Hardening and accessibility | 1 week | ◐ |
 | 0.12.0 | Beta (dogfood and polish) | 2 weeks | ☐ |
 | 1.0.0 | Release | 3-4 days | ☐ |
 
@@ -415,7 +415,24 @@ matcher.
 ### Definition of done
 - Checklist complete, release build verified, TalkBack usable, no plaintext on disk, fuzzing clean.
 
-**Tag:** `v0.11.0`
+### Status (2026-11-14)
+
+**Security hardening slice complete; accessibility, l10n and performance
+deferred.** The work was scoped to security first (see `docs/DECISIONS.md`,
+2026-11-14). Implemented: R8 confirmed on for release (Flutter drives it) plus
+`android/app/proguard-rules.pro`; `cargo audit` + `cargo deny` in CI; a nightly
+one-hour parser fuzz workflow; `docs/threat-model.md`; a `zeroize`-based
+secret-hygiene pass (bridge password/recovery/backup arguments wiped,
+`zeroize_secrets` test); and `docs/hardening-checklist.md` with the item-by-item
+status.
+
+Still open: wrong-attempt exponential delay (T9), the clipboard-timeout setting,
+an exact Rust toolchain pin, and every on-device check (storage dump, `logcat`
+sweep, release-APK test, TalkBack). Accessibility (items 9-10), localization
+(item 11) and the 5,000-entry benchmark (item 12) are not started. See
+`docs/hardening-checklist.md` for the full breakdown.
+
+**Tag:** `v0.11.0` (not yet — phase incomplete)
 
 ---
 

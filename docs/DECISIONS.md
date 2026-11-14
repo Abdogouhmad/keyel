@@ -4,6 +4,47 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-14
+
+- **Phase 0.11 (Hardening and accessibility) is scoped to security hardening
+  first.** The user chose the security slice explicitly. Accessibility,
+  localization (EN/FR/AR + RTL) and the 5,000-entry performance benchmark are
+  deferred to later commits in the phase. The roadmap 0.11 row and section now
+  carry a `Status (2026-11-14)` block; the item-by-item truth lives in
+  `docs/hardening-checklist.md`.
+
+- **R8/minify is already on; we did not set `isMinifyEnabled` by hand.**
+  Flutter's Gradle plugin (`FlutterPluginUtils.shouldShrinkResources`) enables
+  `isMinifyEnabled` and `isShrinkResources` for release and adds
+  `proguard-android-optimize.txt`, the Flutter embedding rules and
+  `proguard-rules.pro`. Setting `isMinifyEnabled = true` in `build.gradle.kts`
+  would turn R8 on *without* Flutter's rule files (the plugin only adds them
+  inside that branch), so instead we left the flag to Flutter, documented it,
+  and added `android/app/proguard-rules.pro` to pin the autofill components and
+  the native-method surface. Verified by the release build's R8 `mapping.txt`.
+
+- **`cargo audit` and `cargo deny` run in a dedicated CI `security` job** using
+  prebuilt binaries (`taiki-e/install-action`) so PRs stay fast. The vault
+  parser fuzzes nightly for one hour in a separate `fuzz.yml` workflow rather
+  than on every PR, because a useful fuzz run is far longer than a PR check.
+
+- **Bridge password arguments are wiped with `Zeroizing`.** `create_vault`,
+  `unlock_with_master`, `unlock_with_recovery`, `verify_master`,
+  `reset_master_with_recovery`, `change_master`, `export_backup` and
+  `import_backup` now wrap the owned secret `String` so the Rust heap buffer is
+  cleared on return. `EntryDraft` DTO secrets are *not* wrapped: adding `Drop`
+  to the DTO would forbid moving fields out of it, and the exposure is a single
+  bridge call. This residual risk is recorded in `docs/threat-model.md` (T4).
+
+- **No exact Rust toolchain pin yet.** `Cargo.lock` is committed, which gives
+  dependency reproducibility, but there is no `rust-toolchain.toml`. Pinning an
+  exact version would make rustup fetch a second toolchain on every machine and
+  in CI; the decision is deferred until a version is chosen deliberately.
+
+- **`docs/threat-model.md` and `docs/hardening-checklist.md` added.** The threat
+  model names each mitigation's code and each open item; the checklist maps the
+  plan §11 and roadmap 0.11 items to done / partial / open / device-pending.
+
 ## 2026-11-13
 
 - **Phase 0.10 (Autofill) is implemented on

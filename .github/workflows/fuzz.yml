@@ -1,0 +1,38 @@
+name: fuzz
+
+# The vault parser is the only code that consumes untrusted bytes, so it is
+# fuzzed continuously rather than on every pull request (a useful run takes far
+# longer than a PR check should). See docs/threat-model.md (T6) and
+# crates/keyel_core/fuzz/fuzz_targets/parse_vault.rs.
+on:
+  schedule:
+    # Nightly at 03:17 UTC (off the top of the hour to avoid the cron thundering herd).
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  parse_vault:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/keyel_core/fuzz -> target
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-fuzz
+      - name: Fuzz the vault parser for one hour
+        working-directory: crates/keyel_core/fuzz
+        run: cargo fuzz run parse_vault -- -max_total_time=3600 -print_final_stats=1
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crash-artifacts
+          path: crates/keyel_core/fuzz/artifacts/
+          if-no-files-found: ignore
+          retention-days: 30

@@ -9,6 +9,7 @@ use std::sync::{Mutex, MutexGuard};
 
 use keyel_core::crypto::kdf::Argon2Params;
 use keyel_core::vault::Session;
+use zeroize::Zeroizing;
 
 use crate::frb_generated::StreamSink;
 
@@ -89,6 +90,12 @@ pub fn vault_path() -> Option<String> {
 /// Returns the one-time recovery key. Show it to the user once and let them
 /// store it offline; it is never returned again.
 pub fn create_vault(master: String) -> Result<String, VaultApiError> {
+    // Wrap caller-supplied secrets in `Zeroizing` so the Rust-owned heap buffer
+    // is wiped when this function returns, whatever the outcome. FRB hands us an
+    // owned `String`; without this, the allocator would keep the plaintext in
+    // freed memory. (Dart's own copy is out of our reach; see
+    // `docs/threat-model.md`.)
+    let master = Zeroizing::new(master);
     if master.is_empty() {
         return Err(VaultApiError::InvalidField);
     }
@@ -97,13 +104,14 @@ pub fn create_vault(master: String) -> Result<String, VaultApiError> {
         return Err(VaultApiError::VaultExists);
     }
 
-    let (session, recovery_key) = Session::create(&path, &master, Argon2Params::default())?;
+    let (session, recovery_key) = Session::create(&path, master.as_str(), Argon2Params::default())?;
     *session_slot() = Some(session);
     Ok(recovery_key)
 }
 
 /// Unlock the vault with the master password.
 pub fn unlock_with_master(master: String) -> Result<(), VaultApiError> {
+    let master = Zeroizing::new(master);
     if master.is_empty() {
         return Err(VaultApiError::WrongPassword);
     }
@@ -112,19 +120,20 @@ pub fn unlock_with_master(master: String) -> Result<(), VaultApiError> {
         return Err(VaultApiError::VaultMissing);
     }
 
-    let session = Session::open(&path, &master)?;
+    let session = Session::open(&path, master.as_str())?;
     *session_slot() = Some(session);
     Ok(())
 }
 
 /// Unlock the vault with the one-time recovery key.
 pub fn unlock_with_recovery(recovery_key: String) -> Result<(), VaultApiError> {
+    let recovery_key = Zeroizing::new(recovery_key);
     let path = current_path()?;
     if !path.exists() {
         return Err(VaultApiError::VaultMissing);
     }
 
-    let session = Session::open_with_recovery(&path, &recovery_key)?;
+    let session = Session::open_with_recovery(&path, recovery_key.as_str())?;
     *session_slot() = Some(session);
     Ok(())
 }
@@ -134,6 +143,7 @@ pub fn unlock_with_recovery(recovery_key: String) -> Result<(), VaultApiError> {
 /// Opening the vault is the verification: the key must unwrap correctly. This
 /// is used before persisting a credential for biometric unlock.
 pub fn verify_master(master: String) -> Result<bool, VaultApiError> {
+    let master = Zeroizing::new(master);
     if master.is_empty() {
         return Ok(false);
     }
@@ -141,7 +151,7 @@ pub fn verify_master(master: String) -> Result<bool, VaultApiError> {
     if !path.exists() {
         return Err(VaultApiError::VaultMissing);
     }
-    match Session::open(&path, &master) {
+    match Session::open(&path, master.as_str()) {
         Ok(session) => {
             session.lock();
             Ok(true)
@@ -159,6 +169,8 @@ pub fn reset_master_with_recovery(
     recovery_key: String,
     new_master: String,
 ) -> Result<(), VaultApiError> {
+    let recovery_key = Zeroizing::new(recovery_key);
+    let new_master = Zeroizing::new(new_master);
     if new_master.is_empty() {
         return Err(VaultApiError::InvalidField);
     }
@@ -167,8 +179,8 @@ pub fn reset_master_with_recovery(
         return Err(VaultApiError::VaultMissing);
     }
 
-    let mut session = Session::open_with_recovery(&path, &recovery_key)?;
-    session.reset_master(&new_master, Argon2Params::default())?;
+    let mut session = Session::open_with_recovery(&path, recovery_key.as_str())?;
+    session.reset_master(new_master.as_str(), Argon2Params::default())?;
     *session_slot() = Some(session);
     Ok(())
 }
@@ -181,13 +193,19 @@ pub fn lock() {
 
 /// Re-wrap the vault key with a new master password.
 pub fn change_master(old_master: String, new_master: String) -> Result<(), VaultApiError> {
+    let old_master = Zeroizing::new(old_master);
+    let new_master = Zeroizing::new(new_master);
     if new_master.is_empty() {
         return Err(VaultApiError::InvalidField);
     }
 
     let mut guard = session_slot();
     let session = guard.as_mut().ok_or(VaultApiError::Locked)?;
-    session.change_master(&old_master, &new_master, Argon2Params::default())?;
+    session.change_master(
+        old_master.as_str(),
+        new_master.as_str(),
+        Argon2Params::default(),
+    )?;
     Ok(())
 }
 

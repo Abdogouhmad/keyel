@@ -533,6 +533,7 @@ impl Drop for Vault {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::vault::history::PasswordHistoryEntry;
 
     fn login(password: &str) -> Login {
         Login {
@@ -652,5 +653,57 @@ mod tests {
         vault.reorder_folders(&[b, a]).unwrap();
         assert_eq!(vault.folders[0].id, b);
         assert_eq!(vault.folders[1].id, a);
+    }
+
+    #[test]
+    fn zeroize_secrets_clears_every_secret_field() {
+        let mut entry = Entry::login(
+            "Mail",
+            Login {
+                password: "hunter2".into(),
+                totp: Some(TotpConfig::new("JBSWY3DPEHPK3PXP")),
+                password_history: vec![PasswordHistoryEntry {
+                    password: "old".into(),
+                    changed_at: 0,
+                }],
+                ..login("hunter2")
+            },
+        );
+        entry.notes = "recovery codes".into();
+        entry.zeroize_secrets();
+        assert!(entry.notes.is_empty());
+        let EntryBody::Login(login) = &entry.body else {
+            panic!("expected login");
+        };
+        assert!(login.password.is_empty());
+        assert!(login.password_history.iter().all(|h| h.password.is_empty()));
+        assert!(login.totp.as_ref().unwrap().secret.is_empty());
+
+        let mut card = Entry::card(
+            "Visa",
+            Card {
+                number: "4111111111111111".into(),
+                cvv: "123".into(),
+                ..Card::default()
+            },
+        );
+        card.zeroize_secrets();
+        let EntryBody::Card(card) = &card.body else {
+            panic!("expected card");
+        };
+        assert!(card.number.is_empty());
+        assert!(card.cvv.is_empty());
+
+        let mut note = Entry::note(
+            "Note",
+            Note {
+                content: "top secret".into(),
+            },
+        );
+        note.zeroize_secrets();
+        let EntryBody::Note(note) = &note.body else {
+            panic!("expected note");
+        };
+        assert!(note.content.is_empty());
     }
 }
