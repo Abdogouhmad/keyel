@@ -12,6 +12,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # The repository root pins stable 1.97.0 (rust-toolchain.toml) and
+  # `cargo fuzz` needs nightly. RUSTUP_TOOLCHAIN overrides the toolchain file
+  # for every step in this workflow, including the cache action.
+  RUSTUP_TOOLCHAIN: nightly
 
 jobs:
   parse_vault:

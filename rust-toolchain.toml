@@ -1,0 +1,12 @@
+# Pin the Rust compiler so a local build and CI use exactly the same version
+# (plan §11 item 9; roadmap 0.11). rustup installs this channel on first use.
+#
+# Bump the channel and the `dtolnay/rust-toolchain@<version>` refs in
+# .github/workflows/ci.yml together. `Cargo.lock` covers dependency
+# reproducibility; this file covers the compiler.
+#
+# The fuzz crate needs nightly and overrides this pin with
+# crates/keyel_core/fuzz/rust-toolchain.toml.
+[toolchain]
+channel = "1.97.0"
+components = ["rustfmt", "clippy"]

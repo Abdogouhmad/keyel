@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.97.0
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
@@ -45,8 +45,10 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Rust targets for bridge check
-        run: rustup target add x86_64-unknown-linux-gnu
+      - name: Rust toolchain for bridge check
+        uses: dtolnay/rust-toolchain@1.97.0
+        with:
+          targets: x86_64-unknown-linux-gnu
       - name: Regenerate FRB bindings and fail if out of date
         run: |
           cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
@@ -69,8 +71,10 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: rustup android targets
-        run: rustup target add aarch64-linux-android
+      - name: Rust toolchain with android target
+        uses: dtolnay/rust-toolchain@1.97.0
+        with:
+          targets: aarch64-linux-android
       - name: Build debug APK (debug only, device matrix in roadmap 0.11)
         run: flutter build apk --debug --target-platform android-arm64
       - name: upload artifact

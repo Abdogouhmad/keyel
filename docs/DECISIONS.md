@@ -36,10 +36,18 @@ design (docs/roadmap.md header).
   to the DTO would forbid moving fields out of it, and the exposure is a single
   bridge call. This residual risk is recorded in `docs/threat-model.md` (T4).
 
-- **No exact Rust toolchain pin yet.** `Cargo.lock` is committed, which gives
-  dependency reproducibility, but there is no `rust-toolchain.toml`. Pinning an
-  exact version would make rustup fetch a second toolchain on every machine and
-  in CI; the decision is deferred until a version is chosen deliberately.
+- **The Rust toolchain is pinned to 1.97.0 (`rust-toolchain.toml`).** An
+  earlier note in this same entry deferred the pin because rustup would fetch a
+  second toolchain on every machine. That cost is now accepted, deliberately:
+  the compiler is pinned so a local `cargo build`/`cargo test` and CI agree
+  exactly (plan §11 item 9). CI installs the matching
+  `dtolnay/rust-toolchain@1.97.0` ref in every job that needs Rust, and
+  `Cargo.lock` continues to cover dependency reproducibility. The fuzz crate
+  overrides the pin with an unpinned nightly
+  (`crates/keyel_core/fuzz/rust-toolchain.toml`) because `cargo fuzz` requires
+  nightly and fuzzing wants a recent compiler; the fuzz workflow also sets
+  `RUSTUP_TOOLCHAIN=nightly` so the root pin cannot leak into the cache step.
+  Bumping the pin means editing the channel and the CI refs together.
 
 - **`docs/threat-model.md` and `docs/hardening-checklist.md` added.** The threat
   model names each mitigation's code and each open item; the checklist maps the

@@ -431,10 +431,10 @@ unlock, never a wipe); a configurable clipboard-clear timeout (15 s / 30 s /
 regression tests); and `docs/hardening-checklist.md` with the item-by-item
 status.
 
-Still open: an exact Rust toolchain pin, and every on-device check (storage
-dump, `logcat` sweep, release-APK test, TalkBack, scroll-fps and cold-unlock
-timing). Accessibility (items 9-10) and localization (item 11) are not started.
-See `docs/hardening-checklist.md` for the full breakdown.
+Still open: every on-device check (storage dump, `logcat` sweep, release-APK
+test, TalkBack, scroll-fps and cold-unlock timing). Accessibility (items 9-10)
+and localization (item 11) are not started. See
+`docs/hardening-checklist.md` for the full breakdown.
 
 **Tag:** `v0.11.0` (not yet — phase incomplete)
 

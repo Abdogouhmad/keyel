@@ -19,7 +19,7 @@ Legend: ✅ done · 🟡 partial · ⏳ open · 📱 device-pending.
 | 6 | No secrets in logs; release strips prints | ✅ | No `println!`/`eprintln!`/`dbg!`/`log::` in Rust; the only Dart log is `lib/main.dart:41` (a storage error, no secret). Release can strip Dart symbols with `build.sh --obfuscate`. |
 | 7 | R8 minify + ProGuard rules for FRB | ✅ | Flutter enables R8 + resource shrinking for release; `android/app/proguard-rules.pro` pins the autofill components and the native surface. See `docs/DECISIONS.md` (2026-11-14). |
 | 8 | `cargo audit` + `cargo deny` in CI | ✅ | `security` job in `.github/workflows/ci.yml`; `deny.toml` allow-lists licences. |
-| 9 | Reproducible Rust build | 🟡 | `Cargo.lock` is committed and used. An exact toolchain pin is **not** in place (no `rust-toolchain.toml`); CI follows `stable`. |
+| 9 | Reproducible Rust build | ✅ | `Cargo.lock` is committed and used; `rust-toolchain.toml` pins the compiler to 1.97.0 (with `rustfmt` + `clippy`), and CI installs the matching `dtolnay/rust-toolchain@1.97.0`. The fuzz crate overrides the pin with nightly. |
 | 10 | Constant-time comparisons where relevant | ✅ | Secret comparisons happen inside the audited AEAD (constant-time tag check). Keyel's own equality checks compare non-secret user input only. |
 | 11 | Vault parser fuzzed 1 h+ nightly | ✅ | `.github/workflows/fuzz.yml` runs `cargo fuzz run parse_vault -- -max_total_time=3600` nightly. |
 | 12 | Independent review of crypto design before 1.0 | ⏳ | Not done; scheduled before 1.0. |
@@ -71,8 +71,11 @@ Legend: ✅ done · 🟡 partial · ⏳ open · 📱 device-pending.
   asserts only a window of rows is built. Rust adds a 5,000-entry regression
   test with generous ceilings (guards O(n²)) and an ignored production-KDF
   timing test.
+- Reproducible toolchain (plan item 9): `rust-toolchain.toml` pins Rust 1.97.0
+  (`rustfmt` + `clippy`); CI installs the matching
+  `dtolnay/rust-toolchain@1.97.0`; the fuzz crate overrides the pin with nightly
+  (`crates/keyel_core/fuzz/rust-toolchain.toml`).
 
 ## Recommended next hardening steps
 
-1. Exact Rust toolchain pin (`rust-toolchain.toml`) once a version is chosen.
-2. On-device verification sweep (items 2, 4, 5, 6, 9, 12).
+1. On-device verification sweep (items 2, 4, 5, 6, 9, 12).

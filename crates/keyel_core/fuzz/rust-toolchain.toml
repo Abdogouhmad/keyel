@@ -1,0 +1,7 @@
+# `cargo fuzz` requires nightly, but the repository root pins a stable release
+# (rust-toolchain.toml). This nested file selects nightly for everything under
+# the fuzz crate; rustup uses the toolchain file nearest to the working
+# directory. Nightly is deliberately not date-pinned: fuzzing wants a recent
+# compiler, and a crashing input is reproducible regardless of the toolchain.
+[toolchain]
+channel = "nightly"
