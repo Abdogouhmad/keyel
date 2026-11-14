@@ -169,13 +169,21 @@ identified; it never returns the whole vault.
 
 ### T9 — Brute force against the running app (A1)
 
-*Gap.* The plan's checklist asks for an **exponential delay** on repeated wrong
-master-password attempts (never a wipe). This is **not implemented yet**: the
-unlock path (`lib/data/vault_session_provider.dart`) currently reports a wrong
-password immediately with no backoff. Argon2id still makes each online guess
-expensive, and a thief with the device can also attack the file offline (T1),
-so the delay is a usability-vs-security speed bump rather than the primary
-defence. Tracked in `docs/hardening-checklist.md`.
+The plan's checklist asks for an **exponential delay** on repeated wrong
+master-password attempts (never a wipe); `lib/core/security/unlock_throttle.dart`
+implements it. The first three failures are free, then the delay doubles from
+1s (1, 2, 4, 8, 16, …) and is capped at 30s. The failure count and the deadline
+are persisted in `settings.json` (`unlockFailures`, `unlockLockedUntilMs`) so
+closing and reopening the app does not reset the clock. The delay is enforced
+inside `VaultSessionNotifier.unlockWithMaster`, so it applies to the master
+password **and** the biometric path (which also re-opens with the master), and
+the unlock form shows a live countdown while the throttle is active.
+
+Keyel never destroys the vault on repeated failures: a wipe would punish the
+legitimate owner and reward a thief who wants deniability. Argon2id still makes
+each online guess expensive, and a thief with the device can also attack the
+file offline (T1), so the delay is a usability-vs-security speed bump rather
+than the primary defence. A user can always recover with the recovery key.
 
 ### T10 — Recovery key and biometric credential (A1, A6)
 
@@ -218,15 +226,15 @@ biometric unlock off; the setting is explicit.
 | T4 | `zeroize_secrets` unit test; `Zeroizing` wrappers; review |
 | T5 | Manual on-device pass pending |
 | T7, T8 | `keyel_core::autofill` unit tests |
+| T9 | `test/unlock_throttle_test.dart` (schedule, lock, reset, restore); `test/vault_session_provider_test.dart` (count, refuse, clear) |
 | T12 | `cargo audit` + `cargo deny` CI job |
 
 ## 7. Open items
 
-1. Wrong-attempt exponential delay (T9) — design + implement + test.
-2. On-device storage dump, `adb logcat` sweep, `FLAG_SECURE` verification,
+1. On-device storage dump, `adb logcat` sweep, `FLAG_SECURE` verification,
    release-APK functional test (T2, T3, T5) — need a physical device.
-3. Multi-hour fuzz soak and crash-to-regression promotion (T6).
-4. Independent review of this document and `docs/crypto-design.md` before 1.0.
-5. Optional: a public suffix list for web matching (T7).
+2. Multi-hour fuzz soak and crash-to-regression promotion (T6).
+3. Independent review of this document and `docs/crypto-design.md` before 1.0.
+4. Optional: a public suffix list for web matching (T7).
 
 _Last updated: 2026-11-14._

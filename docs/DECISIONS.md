@@ -45,6 +45,20 @@ design (docs/roadmap.md header).
   model names each mitigation's code and each open item; the checklist maps the
   plan §11 and roadmap 0.11 items to done / partial / open / device-pending.
 
+- **Wrong-attempt delay is a pure-Dart exponential throttle, never a wipe.**
+  Plan §11 item 4 asks for an exponential delay on repeated wrong master
+  passwords. `UnlockThrottle` (`lib/core/security/unlock_throttle.dart`) allows
+  three free attempts, then doubles from 1s and caps at 30s. It is deliberately
+  a plain Dart class with an injectable "now", not a Rust or platform feature,
+  so the schedule is unit-testable without a device or clock mocking. State is
+  persisted as `unlockFailures`/`unlockLockedUntilMs` in `settings.json` (both
+  non-secret) so closing the app does not reset the clock, and the throttle is
+  enforced inside `VaultSessionNotifier.unlockWithMaster`, which covers the
+  biometric path too because it re-opens with the stored master. We never wipe
+  the vault: a destructive response punishes the legitimate owner and rewards a
+  thief who wants deniability, and the recovery key already covers a real
+  lockout. Argon2id remains the primary per-guess cost.
+
 ## 2026-11-13
 
 - **Phase 0.10 (Autofill) is implemented on

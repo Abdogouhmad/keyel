@@ -65,6 +65,14 @@ class AppPreferences {
   /// `exact` requires the same host or Android package.
   String autofillMatchMode = 'domain';
 
+  /// Consecutive failed master-password attempts, persisted so the unlock
+  /// throttle survives an app restart. Not a secret.
+  int unlockFailures = 0;
+
+  /// Epoch milliseconds before which unlock attempts are refused, or `null`.
+  /// Persisted alongside [unlockFailures]; not a secret.
+  int? unlockLockedUntilMs;
+
   /// Remember a search term, keeping at most eight unique values.
   void rememberSearch(String query) {
     final trimmed = query.trim();
@@ -107,6 +115,14 @@ class AppPreferences {
       autofillMatchMode = decoded['autofillMatchMode'] == 'exact'
           ? 'exact'
           : 'domain';
+      final failures = decoded['unlockFailures'];
+      if (failures is int && failures >= 0) {
+        unlockFailures = failures;
+      }
+      final lockedUntil = decoded['unlockLockedUntilMs'];
+      if (lockedUntil is int) {
+        unlockLockedUntilMs = lockedUntil;
+      }
       final searches = decoded['recentSearches'];
       if (searches is List) {
         recentSearches = searches
@@ -154,6 +170,8 @@ class AppPreferences {
           'biometricEnabled': biometricEnabled,
           'autofillAskToSave': autofillAskToSave,
           'autofillMatchMode': autofillMatchMode,
+          'unlockFailures': unlockFailures,
+          'unlockLockedUntilMs': unlockLockedUntilMs,
           'recentSearches': recentSearches,
           'generator': {
             'mode': generatorMode,

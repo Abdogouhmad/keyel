@@ -423,13 +423,15 @@ deferred.** The work was scoped to security first (see `docs/DECISIONS.md`,
 `android/app/proguard-rules.pro`; `cargo audit` + `cargo deny` in CI; a nightly
 one-hour parser fuzz workflow; `docs/threat-model.md`; a `zeroize`-based
 secret-hygiene pass (bridge password/recovery/backup arguments wiped,
-`zeroize_secrets` test); and `docs/hardening-checklist.md` with the item-by-item
+`zeroize_secrets` test); a wrong-attempt exponential delay (3 free tries then
+1/2/4/8/16 s capped at 30 s, persisted, applied to password and biometric
+unlock, never a wipe); and `docs/hardening-checklist.md` with the item-by-item
 status.
 
-Still open: wrong-attempt exponential delay (T9), the clipboard-timeout setting,
-an exact Rust toolchain pin, and every on-device check (storage dump, `logcat`
-sweep, release-APK test, TalkBack). Accessibility (items 9-10), localization
-(item 11) and the 5,000-entry benchmark (item 12) are not started. See
+Still open: the clipboard-timeout setting, an exact Rust toolchain pin, and
+every on-device check (storage dump, `logcat` sweep, release-APK test,
+TalkBack). Accessibility (items 9-10), localization (item 11) and the
+5,000-entry benchmark (item 12) are not started. See
 `docs/hardening-checklist.md` for the full breakdown.
 
 **Tag:** `v0.11.0` (not yet — phase incomplete)

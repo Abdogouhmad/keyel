@@ -15,7 +15,9 @@ void _reset(AppPreferences prefs) {
     ..generatorExcludeAmbiguous = true
     ..generatorCapitalize = true
     ..generatorIncludeNumber = false
-    ..generatorSeparator = '-';
+    ..generatorSeparator = '-'
+    ..unlockFailures = 0
+    ..unlockLockedUntilMs = null;
 }
 
 void main() {
@@ -82,5 +84,28 @@ void main() {
 
     expect(prefs.autofillAskToSave, isFalse);
     expect(prefs.autofillMatchMode, 'exact');
+  });
+
+  test('unlock throttle state round-trips through settings.json', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_unlock');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    prefs
+      ..unlockFailures = 4
+      ..unlockLockedUntilMs = 1700000000000;
+
+    await prefs.load(vaultPath);
+    await prefs.save();
+
+    // Clobber the in-memory values, then read them back from disk.
+    prefs
+      ..unlockFailures = 0
+      ..unlockLockedUntilMs = null;
+
+    await prefs.load(vaultPath);
+
+    expect(prefs.unlockFailures, 4);
+    expect(prefs.unlockLockedUntilMs, 1700000000000);
   });
 }

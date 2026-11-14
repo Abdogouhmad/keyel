@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/core/security/unlock_throttle.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/vault/widgets/vault_biometric_button.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
@@ -27,22 +28,61 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
   final _passwordController = TextEditingController();
   bool _obscure = true;
   bool _busy = false;
+  Duration _cooldown = Duration.zero;
+  Timer? _cooldownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCooldown(
+      ref.read(vaultSessionProvider.notifier).unlockDelayRemaining,
+    );
+  }
 
   @override
   void dispose() {
+    _cooldownTimer?.cancel();
     _passwordController.dispose();
     super.dispose();
   }
 
+  /// Reflect the throttle's remaining delay and tick it down once a second.
+  void _startCooldown(Duration remaining) {
+    _cooldownTimer?.cancel();
+    _cooldownTimer = null;
+    if (!mounted) return;
+    setState(() => _cooldown = remaining);
+    if (remaining <= Duration.zero) return;
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final left = ref
+          .read(vaultSessionProvider.notifier)
+          .unlockDelayRemaining;
+      setState(() => _cooldown = left);
+      if (left <= Duration.zero) {
+        _cooldownTimer?.cancel();
+        _cooldownTimer = null;
+      }
+    });
+  }
+
   Future<void> _unlock() async {
     if (_passwordController.text.isEmpty || _busy) return;
+    if (_cooldown > Duration.zero) return;
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _busy = true);
     try {
       await ref
           .read(vaultSessionProvider.notifier)
           .unlockWithMaster(_passwordController.text);
+    } on UnlockThrottledException catch (error) {
+      _startCooldown(error.remaining);
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
     } on Object catch (error) {
+      // A wrong password may have just started a cooldown; show it inline.
+      _startCooldown(
+        ref.read(vaultSessionProvider.notifier).unlockDelayRemaining,
+      );
       if (mounted) {
         showKeyelSnack(context, describeVaultError(error));
       }
@@ -55,6 +95,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final throttled = _cooldown > Duration.zero;
 
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -104,7 +145,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                   controller: _passwordController,
                   obscureText: _obscure,
                   autofocus: true,
-                  enabled: !_busy,
+                  enabled: !_busy && !throttled,
                   style: TextStyle(color: scheme.onSurface),
                   cursorColor: scheme.primary,
                   onSubmitted: (_) => unawaited(_unlock()),
@@ -130,8 +171,19 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                   label: _busy ? 'Unlocking…' : 'Unlock',
                   icon: _busy ? null : Icons.lock_open_rounded,
                   isFullWidth: true,
-                  onPressed: _busy ? null : () => unawaited(_unlock()),
+                  onPressed: (_busy || throttled)
+                      ? null
+                      : () => unawaited(_unlock()),
                 ),
+                if (throttled) ...[
+                  const SizedBox(height: KeyelSpacing.sm),
+                  Text(
+                    'Too many attempts. Try again in '
+                    '${_cooldown.inSeconds}s.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodySmall?.copyWith(color: scheme.error),
+                  ),
+                ],
                 const SizedBox(height: KeyelSpacing.sm),
                 TextButton(
                   onPressed: _busy ? null : widget.onForgotPassword,

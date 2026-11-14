@@ -14,7 +14,7 @@ Legend: ✅ done · 🟡 partial · ⏳ open · 📱 device-pending.
 | 1 | `FLAG_SECURE` on secret screens | ✅ 📱 | `MainActivity.kt` `setSecure`; enabled at startup in `lib/main.dart` and `lib/main_autofill.dart`. Always-on rather than a setting (stronger); per-screen verification is device-pending. |
 | 2 | Recents thumbnail hidden when locked | ✅ 📱 | `FLAG_SECURE` blanks the Recents thumbnail; verify on device. |
 | 3 | Sensitive clipboard flag + auto-clear | 🟡 | `lib/core/platform/sensitive_clipboard.dart` flags the clip sensitive on Android 13+ and clears after a timeout (default 30 s). The 15 s / 1 min / never options are **not** wired to a setting yet. |
-| 4 | Wrong attempts: exponential delay (not a wipe) | ⏳ | **Not implemented.** `unlockWithMaster` reports a wrong password immediately. See `docs/threat-model.md` T9. |
+| 4 | Wrong attempts: exponential delay (not a wipe) | ✅ | `lib/core/security/unlock_throttle.dart`: 3 free tries, then 1/2/4/8/16 s capped at 30 s, persisted in `settings.json` and applied to password and biometric unlock; `UnlockPasswordForm` shows a countdown. Never wipes. See `docs/threat-model.md` T9. |
 | 5 | Biometric requires `BIOMETRIC_STRONG` | ✅ | `BiometricAuth._isStrong` rejects Class-2 modalities; the OS `BiometricPrompt` performs the check. |
 | 6 | No secrets in logs; release strips prints | ✅ | No `println!`/`eprintln!`/`dbg!`/`log::` in Rust; the only Dart log is `lib/main.dart:41` (a storage error, no secret). Release can strip Dart symbols with `build.sh --obfuscate`. |
 | 7 | R8 minify + ProGuard rules for FRB | ✅ | Flutter enables R8 + resource shrinking for release; `android/app/proguard-rules.pro` pins the autofill components and the native surface. See `docs/DECISIONS.md` (2026-11-14). |
@@ -53,12 +53,16 @@ Legend: ✅ done · 🟡 partial · ⏳ open · 📱 device-pending.
 - `.github/workflows/ci.yml`: new `security` job (`cargo audit`, `cargo deny`).
 - `.github/workflows/fuzz.yml`: nightly one-hour parser fuzz.
 - `docs/threat-model.md`: initial threat model.
+- Wrong-attempt exponential delay (plan item 4 / T9):
+  `lib/core/security/unlock_throttle.dart`; persisted `unlockFailures` /
+  `unlockLockedUntilMs` in `lib/data/app_preferences.dart`; enforced in
+  `VaultSessionNotifier.unlockWithMaster`; countdown in
+  `lib/features/vault/widgets/unlock_password_form.dart`; tests in
+  `test/unlock_throttle_test.dart`, `test/vault_session_provider_test.dart`
+  and `test/app_preferences_test.dart`.
 
 ## Recommended next hardening steps
 
-1. Wrong-attempt exponential delay (T9): a small, testable Dart throttle plus a
-   persisted `failedAttempts`/`lockedUntil` in `settings.json`, wired into
-   `UnlockPasswordForm`.
-2. Clipboard-timeout setting (15 s / 30 s / 1 min / never) in Settings.
-3. Exact Rust toolchain pin (`rust-toolchain.toml`) once a version is chosen.
-4. On-device verification sweep (items 2, 4, 5, 6, 9).
+1. Clipboard-timeout setting (15 s / 30 s / 1 min / never) in Settings.
+2. Exact Rust toolchain pin (`rust-toolchain.toml`) once a version is chosen.
+3. On-device verification sweep (items 2, 4, 5, 6, 9).

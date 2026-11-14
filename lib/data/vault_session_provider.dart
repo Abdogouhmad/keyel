@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/platform/biometric_auth.dart';
+import 'package:keyel/core/security/unlock_throttle.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/src/rust/api/error.dart';
@@ -65,9 +66,19 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
   Timer? _autoLockTimer;
   DateTime? _backgroundedAt;
   Duration _autoLockDelay = AppPreferences.instance.autoLockDelay;
+  final UnlockThrottle _throttle = UnlockThrottle();
 
   /// How long the app may stay in the background before locking.
   Duration get autoLockDelay => _autoLockDelay;
+
+  /// How long the user must wait before the next master-password attempt.
+  ///
+  /// Zero when an attempt is allowed now. Driven by [UnlockThrottle]; see
+  /// `docs/threat-model.md` (T9).
+  Duration get unlockDelayRemaining => _throttle.remaining(DateTime.now());
+
+  /// Whether master-password attempts are currently refused by the throttle.
+  bool get isUnlockThrottled => _throttle.isLocked(DateTime.now());
 
   /// Change the auto-lock delay (options: immediately, 30 s, 1/5/15 min).
   void setAutoLockDelay(Duration delay) {
@@ -79,6 +90,7 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
   @override
   VaultSessionState build() {
     _listenForLockEvents();
+    _restoreThrottle();
     ref.onDispose(() {
       unawaited(_lockSubscription?.cancel());
       _autoLockTimer?.cancel();
@@ -128,6 +140,24 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     }
   }
 
+  void _restoreThrottle() {
+    final prefs = AppPreferences.instance;
+    final untilMs = prefs.unlockLockedUntilMs;
+    _throttle.restore(
+      failures: prefs.unlockFailures,
+      lockedUntil: untilMs == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(untilMs),
+    );
+  }
+
+  void _persistThrottle() {
+    final prefs = AppPreferences.instance
+      ..unlockFailures = _throttle.failures
+      ..unlockLockedUntilMs = _throttle.lockedUntil?.millisecondsSinceEpoch;
+    unawaited(prefs.save());
+  }
+
   /// Resolve the current status from the vault file and the Rust session.
   VaultStatus _readStatus() {
     try {
@@ -170,15 +200,25 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
 
   /// Unlock with the master password.
   Future<void> unlockWithMaster(String master) async {
+    final remaining = _throttle.remaining(DateTime.now());
+    if (remaining > Duration.zero) {
+      throw UnlockThrottledException(remaining);
+    }
     final repository = ref.read(vaultRepositoryProvider);
     state = state.copyWith(busy: true, clearError: true);
     try {
       await repository.unlockWithMaster(master);
+      _throttle.recordSuccess();
+      _persistThrottle();
       if (AppPreferences.instance.biometricEnabled) {
         unawaited(BiometricAuth.instance.storeMaster(master));
       }
       state = const VaultSessionState(status: VaultStatus.unlocked);
     } catch (error) {
+      if (error is VaultApiError && error == VaultApiError.wrongPassword) {
+        _throttle.recordFailure(DateTime.now());
+        _persistThrottle();
+      }
       state = VaultSessionState(
         status: state.status,
         error: describeVaultError(error),
@@ -193,6 +233,8 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     state = state.copyWith(busy: true, clearError: true);
     try {
       await repository.unlockWithRecovery(recoveryKey);
+      _throttle.recordSuccess();
+      _persistThrottle();
       state = const VaultSessionState(status: VaultStatus.unlocked);
     } catch (error) {
       state = VaultSessionState(
@@ -225,6 +267,8 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
       if (AppPreferences.instance.biometricEnabled) {
         unawaited(BiometricAuth.instance.storeMaster(newMaster));
       }
+      _throttle.recordSuccess();
+      _persistThrottle();
       state = state.copyWith(busy: false);
     } catch (error) {
       state = VaultSessionState(
@@ -251,6 +295,8 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
       if (AppPreferences.instance.biometricEnabled) {
         unawaited(BiometricAuth.instance.storeMaster(newMaster));
       }
+      _throttle.recordSuccess();
+      _persistThrottle();
       state = const VaultSessionState(status: VaultStatus.unlocked);
     } catch (error) {
       state = VaultSessionState(
@@ -264,6 +310,10 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
 
 /// Turn a bridge error into a short, non-sensitive message.
 String describeVaultError(Object error) {
+  if (error is UnlockThrottledException) {
+    final seconds = error.remaining.inSeconds.clamp(1, 3600);
+    return 'Too many attempts. Try again in ${seconds}s.';
+  }
   if (error is VaultApiError) {
     return switch (error) {
       VaultApiError.notInitialized => 'Vault storage is not initialized.',
