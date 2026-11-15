@@ -66,14 +66,15 @@ void main() {
         ..restore(failures: 4)
         ..recordFailure(t0);
 
-      expect(throttle.remaining(t0.add(const Duration(seconds: 1))),
-          const Duration(seconds: 1));
       expect(
-        throttle.isLocked(t0.add(const Duration(seconds: 2))),
-        isFalse,
+        throttle.remaining(t0.add(const Duration(seconds: 1))),
+        const Duration(seconds: 1),
       );
-      expect(throttle.remaining(t0.add(const Duration(minutes: 1))),
-          Duration.zero);
+      expect(throttle.isLocked(t0.add(const Duration(seconds: 2))), isFalse);
+      expect(
+        throttle.remaining(t0.add(const Duration(minutes: 1))),
+        Duration.zero,
+      );
     });
   });
 

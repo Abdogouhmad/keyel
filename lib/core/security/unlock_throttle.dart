@@ -12,10 +12,8 @@ import 'dart:math' as math;
 class UnlockThrottle {
   /// Creates a throttle with the default policy: three free attempts, then
   /// 1s, 2s, 4s, ... capped at [maxDelay].
-  new({
-    this.freeAttempts = 3,
-    this.maxDelay = const Duration(seconds: 30),
-  }) : assert(freeAttempts >= 0, 'freeAttempts must not be negative');
+  new({this.freeAttempts = 3, this.maxDelay = const Duration(seconds: 30)})
+    : assert(freeAttempts >= 0, 'freeAttempts must not be negative');
 
   /// Consecutive failures allowed before any delay is imposed.
   final int freeAttempts;

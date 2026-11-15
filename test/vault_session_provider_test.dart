@@ -144,25 +144,27 @@ void main() {
       expect(AppPreferences.instance.unlockLockedUntilMs, isNotNull);
     });
 
-    test('a restored deadline refuses attempts before they reach Rust',
-        () async {
-      AppPreferences.instance
-        ..unlockFailures = 4
-        ..unlockLockedUntilMs = DateTime.now()
-            .add(const Duration(minutes: 1))
-            .millisecondsSinceEpoch;
-      final repository = _UnlockRepository();
-      final container = _container(repository);
-      final notifier = container.read(vaultSessionProvider.notifier);
+    test(
+      'a restored deadline refuses attempts before they reach Rust',
+      () async {
+        AppPreferences.instance
+          ..unlockFailures = 4
+          ..unlockLockedUntilMs = DateTime.now()
+              .add(const Duration(minutes: 1))
+              .millisecondsSinceEpoch;
+        final repository = _UnlockRepository();
+        final container = _container(repository);
+        final notifier = container.read(vaultSessionProvider.notifier);
 
-      expect(notifier.isUnlockThrottled, isTrue);
-      expect(notifier.unlockDelayRemaining, greaterThan(Duration.zero));
-      await expectLater(
-        notifier.unlockWithMaster('nope'),
-        throwsA(isA<UnlockThrottledException>()),
-      );
-      expect(repository.unlockCalls, 0);
-    });
+        expect(notifier.isUnlockThrottled, isTrue);
+        expect(notifier.unlockDelayRemaining, greaterThan(Duration.zero));
+        await expectLater(
+          notifier.unlockWithMaster('nope'),
+          throwsA(isA<UnlockThrottledException>()),
+        );
+        expect(repository.unlockCalls, 0);
+      },
+    );
 
     test('a successful unlock clears the failure count', () async {
       final repository = _UnlockRepository();
