@@ -67,6 +67,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     },
     copy: (value, message) {
       unawaited(SensitiveClipboard.instance.copy(value));
+      unawaited(Haptics.light());
       if (mounted) {
         showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
       }

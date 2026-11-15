@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/vault/vault_list_callbacks.dart';
@@ -297,7 +298,10 @@ class VaultListController extends ChangeNotifier {
               SecretFieldDto.loginPassword,
             );
             if (secret.isNotEmpty) {
-              callbacks.copy(secret, 'Password copied • Clears in 30s');
+              callbacks.copy(
+                secret,
+                'Password copied${SensitiveClipboard.instance.clearHint}',
+              );
               return;
             }
           }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/features/entry/entry_detail_callbacks.dart';
 import 'package:keyel/features/entry/entry_url.dart';
@@ -160,7 +161,10 @@ class EntryDetailController {
   /// Copies the password, revealing it first if needed.
   Future<void> copyPassword() async {
     if (_revealedPassword != null) {
-      callbacks.copy(_revealedPassword!, 'Password copied • Clears in 30s');
+      callbacks.copy(
+        _revealedPassword!,
+        'Password copied${SensitiveClipboard.instance.clearHint}',
+      );
       return;
     }
 
@@ -169,7 +173,10 @@ class EntryDetailController {
         entryId,
         SecretFieldDto.loginPassword,
       );
-      callbacks.copy(plain, 'Password copied • Clears in 30s');
+      callbacks.copy(
+        plain,
+        'Password copied${SensitiveClipboard.instance.clearHint}',
+      );
     } on Object catch (error) {
       callbacks.notifyError(error);
     }

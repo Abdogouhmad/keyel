@@ -515,8 +515,19 @@ FAQ is deferred.
   CBOR, slot AAD and body layout, so any format change that would strand
   existing vaults fails CI before it ships; a bumped version byte is asserted to
   fail closed.
-- Next code-level slices: item 5 (design-spec polish pass), item 9 (README
-  quick start + FAQ, English).
+- **Item 9 — user docs: done (English).** The README now has a user-facing
+  *Using Keyel* section: quick start, an FAQ (forgotten master password, where
+  data lives, what the diagnostics file contains, unencrypted CSV) and backup
+  advice. The `EN/FR/AR` part of item 9 and item 10's translated store
+  descriptions are deferred with localization.
+- **Item 5 — polish pass: started.** First fix is a real copy-text bug: the
+  password snackbar hardcoded "Clears in 30s" while the clear delay is
+  user-configurable. `SensitiveClipboard.clearHint` now derives the suffix from
+  the preference (15 s / 30 s / 1 min, empty for "Never") and all four password
+  copy sites use it; copying also gives a light haptic. Covered by
+  `test/sensitive_clipboard_test.dart`. Motion, empty states and icons were
+  already in good shape from the design-system phases; remaining polish is the
+  on-device motion/haptics feel check.
 
 **Tag:** `v0.12.0` (and `v1.0.0-rc.1` when ready)
 

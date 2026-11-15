@@ -72,4 +72,22 @@ void main() {
     expect(calls, hasLength(3));
     expect((calls.last.arguments as Map<Object?, Object?>)['text'], '');
   });
+
+  group('clearHint', () {
+    test('reflects the configured delay instead of hardcoding 30s', () {
+      AppPreferences.instance.clipboardClearSeconds = 15;
+      expect(SensitiveClipboard.instance.clearHint, ' • Clears in 15s');
+
+      AppPreferences.instance.clipboardClearSeconds = 30;
+      expect(SensitiveClipboard.instance.clearHint, ' • Clears in 30s');
+
+      AppPreferences.instance.clipboardClearSeconds = 60;
+      expect(SensitiveClipboard.instance.clearHint, ' • Clears in 1 min');
+    });
+
+    test('is empty when the clipboard never clears', () {
+      AppPreferences.instance.clipboardClearSeconds = 0;
+      expect(SensitiveClipboard.instance.clearHint, isEmpty);
+    });
+  });
 }

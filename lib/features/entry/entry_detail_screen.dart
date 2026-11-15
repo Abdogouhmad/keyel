@@ -100,6 +100,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
   void _copy(String value, String message) {
     unawaited(SensitiveClipboard.instance.copy(value));
+    unawaited(Haptics.light());
     showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
   }
 

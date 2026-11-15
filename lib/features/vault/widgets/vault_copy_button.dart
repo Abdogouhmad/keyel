@@ -27,6 +27,7 @@ class VaultCopyButton extends ConsumerStatefulWidget {
 class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
   Future<void> _copy() async {
     final entry = widget.entry;
+    unawaited(Haptics.light());
     if (entry.kind == VaultEntryKind.login) {
       if (entry.username.isNotEmpty) {
         unawaited(SensitiveClipboard.instance.copy(entry.username));
@@ -44,7 +45,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
           if (mounted) {
             showKeyelSnack(
               context,
-              'Password copied • Clears in 30s',
+              'Password copied${SensitiveClipboard.instance.clearHint}',
               icon: Icons.content_copy_rounded,
             );
           }

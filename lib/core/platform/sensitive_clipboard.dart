@@ -44,4 +44,16 @@ class SensitiveClipboard {
     _clearTimer?.cancel();
     _clearTimer = null;
   }
+
+  /// Snackbar suffix describing when the copied value is wiped.
+  ///
+  /// The clear delay is user-configurable (15 s / 30 s / 1 min / never), so the
+  /// message must not hardcode a number. Empty when the user chose "Never", so
+  /// the message reads as just "… copied".
+  String get clearHint {
+    final seconds = AppPreferences.instance.clipboardClearSeconds;
+    if (seconds <= 0) return '';
+    final label = seconds < 60 ? '${seconds}s' : '${seconds ~/ 60} min';
+    return ' • Clears in $label';
+  }
 }
