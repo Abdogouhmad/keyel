@@ -6,9 +6,65 @@
 - All crypto and storage in a pure Rust core (`crates/keyel_core`), bridged to Flutter with [flutter_rust_bridge](https://flutter_rust_bridge.dev).
 - Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet).
 
-**Status:** phase 0.3.0 — Vault model and storage. See
-[`docs/roadmap.md`](docs/roadmap.md), [`docs/crypto-design.md`](docs/crypto-design.md)
-and [`docs/vault-model.md`](docs/vault-model.md).
+**Status:** phase 0.12.0 — Beta (dogfood and polish). English-only for now;
+localization is deferred. See [`docs/roadmap.md`](docs/roadmap.md),
+[`docs/crypto-design.md`](docs/crypto-design.md) and
+[`docs/vault-model.md`](docs/vault-model.md).
+
+## Using Keyel
+
+### Quick start
+
+1. Install the app (a signed APK from Releases, or `flutter run` for a dev
+   build — see below).
+2. On first launch, **create a vault** and choose a strong master password.
+   Write it down: it is never stored on the device and never sent anywhere.
+3. **Save the recovery key** when it is shown. It is displayed once and is the
+   only way back into the vault if you forget the master password.
+4. Optionally enable **biometric unlock**.
+5. Add entries — logins, payment cards and secure notes — and use the built-in
+   **password generator** and **TOTP** (2FA codes) as needed.
+6. Lock the vault with the lock button, or let **auto-lock** close it when the
+   app goes to the background. Copied secrets are wiped from the clipboard
+   after the timeout you set.
+
+### FAQ
+
+**What if I forget my master password?**
+On the unlock screen, choose *Use recovery key* and enter the key you saved at
+setup. You can then set a new master password. If you have lost **both** the
+master password and the recovery key, the vault **cannot** be recovered — there
+is no server, no backdoor and no reset. Restore from an encrypted backup if you
+have one.
+
+**Does Keyel send my data anywhere?**
+No. Release builds have no `INTERNET` permission. Data leaves the device only
+when you explicitly export it or share the diagnostics file from *Report a
+problem* (which contains no secrets — see below).
+
+**Where is my data stored?**
+In a single encrypted `vault.keyel` file in the app's private storage. The key
+that decrypts it exists only in memory, and only while the vault is unlocked.
+Cloud/device backups are excluded for the vault file.
+
+**What is "Report a problem"?**
+*Settings → Report a problem* shares a redacted diagnostics file: app version,
+device model and OS, and non-secret settings. It never includes vault contents,
+entry titles, passwords, the recovery key or key material.
+
+**Is the CSV export encrypted?**
+No. The plain CSV export is unencrypted and readable by anyone who gets the
+file. Use the **encrypted backup** for anything you intend to keep.
+
+### Backups
+
+- Use *Settings → Backup & import → Encrypted backup*. The backup password is
+  independent of your master password.
+- Keep at least one copy **offline and separate** from the device (an encrypted
+  USB drive, or the printed recovery key in a safe).
+- **Test a restore** before you rely on the backup.
+- The recovery key is a second, independent way in — store it offline too.
+- Never keep the plain CSV export on a shared or cloud drive.
 
 ## Build & run
 
