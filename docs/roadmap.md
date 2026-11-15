@@ -510,10 +510,13 @@ FAQ is deferred.
   device here).
 - **Item 1 / 7 / 8** (daily use, multi-device matrix, testers) need a phone and
   people; **item 6** (upgrade/format-migration test) needs an installable older
-  APK. These stay open.
-- Next code-level slices: item 5 (design-spec polish pass), item 6 (a
-  format-migration unit test that does not need a device), item 9 (README quick
-  start + FAQ, English).
+  APK. These stay open. Item 6's code-level half is done: a frozen v1
+  `vault.keyel` fixture (`format::codec::tests`) pins the magic, version, header
+  CBOR, slot AAD and body layout, so any format change that would strand
+  existing vaults fails CI before it ships; a bumped version byte is asserted to
+  fail closed.
+- Next code-level slices: item 5 (design-spec polish pass), item 9 (README
+  quick start + FAQ, English).
 
 **Tag:** `v0.12.0` (and `v1.0.0-rc.1` when ready)
 
