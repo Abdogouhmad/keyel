@@ -6,6 +6,26 @@ design (docs/roadmap.md header).
 
 ## 2026-11-15
 
+- **Phase 0.12 (Beta) starts on `phase/0.12-beta`; localization is deferred.**
+  Per the user's request, no l10n work happens now, so the beta ships English
+  only and item 10's store descriptions are English. The phase is code-first:
+  the parts that need a device or testers (daily use, multi-device matrix,
+  recruiting) are tracked as open, not silently claimed.
+
+- **Diagnostics are redacted by construction, not by filtering.** The "Report a
+  problem" bundle is built from an explicit allow-list of fields
+  (`buildDebugBundle`) rather than by dumping `AppPreferences` and stripping
+  secrets afterwards. `recentSearches` holds site names (user data) and is the
+  obvious leak, so it is simply never read; `test/debug_bundle_test.dart` pins
+  that. This mirrors the Rust side's secret-free DTO rule.
+
+- **The app version is a compile-time constant, not a plugin read.** Rather than
+  adding `package_info_plus`, `build.sh` passes
+  `--dart-define=KEYEL_VERSION="$VERSION"` and `AppInfo.version` falls back to
+  `dev` in debug runs. This keeps the release build honest (the bundle version
+  cannot drift from `pubspec.yaml`) with no new dependency and no platform
+  channel.
+
 - **Accessibility is implemented in the theme layer, not per screen.** High
   contrast is a `ThemeData` transform (`KeyelTheme.highContrast`) installed once
   in `MaterialApp.builder` (`KeyelTheme.highContrastBuilder`), and reduce motion

@@ -30,6 +30,11 @@ abstract class FileTransferService {
   /// The file is not created; callers hand the path to Rust, which writes it.
   Future<String> temporaryFilePath(String fileName);
 
+  /// Write [contents] to [path], creating or replacing the file.
+  ///
+  /// Used for text artifacts such as the redacted diagnostics bundle.
+  Future<void> writeTextFile(String path, String contents);
+
   /// Delete every file left in the temporary export directory.
   ///
   /// Called at the start of each export so a stale plaintext export from a
@@ -62,6 +67,10 @@ class PlatformFileTransferService implements FileTransferService {
     final folder = await _exportDirectory();
     return '${folder.path}/$fileName';
   }
+
+  @override
+  Future<void> writeTextFile(String path, String contents) =>
+      File(path).writeAsString(contents, flush: true);
 
   @override
   Future<void> clearTemporaryExports() async {

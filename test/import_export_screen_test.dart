@@ -90,6 +90,7 @@ class _FakeFiles implements FileTransferService {
   PickedFile? picked;
   final List<String> shared = [];
   final List<String> deleted = [];
+  final Map<String, String> written = {};
   bool cleared = false;
 
   @override
@@ -98,6 +99,11 @@ class _FakeFiles implements FileTransferService {
   @override
   Future<String> temporaryFilePath(String fileName) async =>
       '/tmp/keyel-export/$fileName';
+
+  @override
+  Future<void> writeTextFile(String path, String contents) async {
+    written[path] = contents;
+  }
 
   @override
   Future<void> clearTemporaryExports() async => cleared = true;

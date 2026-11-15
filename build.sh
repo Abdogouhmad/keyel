@@ -309,12 +309,16 @@ if [[ "$OBFUSCATE" == true ]]; then
   OBF_ARGS=(--obfuscate --split-debug-info=build/symbols)
 fi
 
+# Compile-time metadata so AppInfo.version matches pubspec.yaml.
+DEFINE_ARGS=(--dart-define=KEYEL_VERSION="$VERSION")
+
 # One slim APK per supported ABI (arm32 / arm64) ...
 # (cargokit compiles the Rust crate for exactly these targets.)
 build_split_abis() {
   info "Building split-per-ABI release APKs (arm / arm64) ..."
   run flutter build apk --release --split-per-abi \
     --target-platform android-arm,android-arm64 \
+    "${DEFINE_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}" \
     -Pforce-version-code-ignoring-abi=true
 }
@@ -324,6 +328,7 @@ build_universal() {
   info "Building universal release APK (arm + arm64) ..."
   run flutter build apk --release \
     --target-platform android-arm,android-arm64 \
+    "${DEFINE_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 
@@ -331,6 +336,7 @@ build_aab() {
   info "Building Play Store app bundle ..."
   run flutter build appbundle --release \
     --target-platform android-arm,android-arm64 \
+    "${DEFINE_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 
@@ -339,6 +345,7 @@ build_fast() {
   info "Fast build: single arm64 release APK (local only) ..."
   run flutter build apk --release \
     --target-platform android-arm64 \
+    "${DEFINE_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 

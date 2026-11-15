@@ -32,7 +32,7 @@ git tag v0.X.0 && git push --tags
 | 0.9.0 | Security dashboard, backup, import | 1 week | ☑ |
 | 0.10.0 | Autofill | 1.5 weeks | ◐ |
 | 0.11.0 | Hardening and accessibility | 1 week | ◐ |
-| 0.12.0 | Beta (dogfood and polish) | 2 weeks | ☐ |
+| 0.12.0 | Beta (dogfood and polish) | 2 weeks | ◐ |
 | 1.0.0 | Release | 3-4 days | ☐ |
 
 Estimates assume part-time work. Adjust to your pace.
@@ -489,6 +489,31 @@ the checklist is done or device-pending.
 
 ### Definition of done
 - Two weeks of daily use with **zero** data loss, no known crashes, and tester feedback addressed.
+
+### Status (2026-11-15)
+
+**Beta started on `phase/0.12-beta`; first code slice done.** Localization is
+explicitly out of scope for now (see `docs/DECISIONS.md`, 2026-11-15), so item
+10's store descriptions ship in English only and the `EN/FR/AR` part of item 9's
+FAQ is deferred.
+
+- **Item 3 — "Report a problem" redacted diagnostics bundle: done.** Settings
+  has a **Report a problem** row that writes `keyel-diagnostics.txt` (app
+  version, platform, non-secret settings only) and hands it to the share sheet.
+  The app version is compiled in via `--dart-define=KEYEL_VERSION` from
+  `build.sh`, so it always matches `pubspec.yaml`; the stale `0.7.0` in the
+  licenses page is fixed. `test/debug_bundle_test.dart` asserts the bundle never
+  leaks recent searches. Code: `lib/core/platform/debug_bundle.dart`,
+  `lib/core/app_info.dart`.
+- **Item 2 — friction log: started.** `ISSUES.md` holds the running log with a
+  severity scale and a "Report a problem" hook; nothing logged yet (no daily-use
+  device here).
+- **Item 1 / 7 / 8** (daily use, multi-device matrix, testers) need a phone and
+  people; **item 6** (upgrade/format-migration test) needs an installable older
+  APK. These stay open.
+- Next code-level slices: item 5 (design-spec polish pass), item 6 (a
+  format-migration unit test that does not need a device), item 9 (README quick
+  start + FAQ, English).
 
 **Tag:** `v0.12.0` (and `v1.0.0-rc.1` when ready)
 

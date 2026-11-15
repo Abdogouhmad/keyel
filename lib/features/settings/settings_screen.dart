@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/app_info.dart';
 import 'package:keyel/core/platform/autofill_platform.dart';
 import 'package:keyel/core/platform/biometric_auth.dart';
+import 'package:keyel/core/platform/debug_bundle.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/biometric_settings.dart';
+import 'package:keyel/data/file_transfer_service.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -431,6 +434,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  /// Builds a redacted diagnostics bundle and hands it to the share sheet so
+  /// the user can attach it to a bug report (roadmap 0.12 item 3).
+  ///
+  /// The bundle contains build/device facts and non-secret settings only; it
+  /// never includes vault contents, passwords or key material.
+  Future<void> _reportProblem() async {
+    final files = ref.read(fileTransferServiceProvider);
+    try {
+      final path = await files.temporaryFilePath('keyel-diagnostics.txt');
+      await files.writeTextFile(path, collectDebugBundle());
+      await files.shareFile(
+        path,
+        subject: 'Keyel diagnostics (${AppInfo.version})',
+      );
+    } on Object catch (error) {
+      if (!mounted) return;
+      showKeyelSnack(context, 'Could not prepare the report: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -739,6 +762,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                           _SettingsRow(
                             icon: Icons.bug_report_outlined,
+                            title: 'Report a problem',
+                            subtitle: 'Share a redacted diagnostics file (no secrets)',
+                            onTap: () => unawaited(_reportProblem()),
+                          ),
+
+                          _SettingsRow(
+                            icon: Icons.construction_rounded,
                             title: 'Bridge diagnostics & test suite',
                             subtitle:
                                 'Raw FRB bridge operations and diagnostics',
@@ -754,7 +784,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               showLicensePage(
                                 context: context,
                                 applicationName: 'Keyel',
-                                applicationVersion: '0.7.0',
+                                applicationVersion: AppInfo.version,
                               );
                             },
                           ),
