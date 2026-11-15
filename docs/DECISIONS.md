@@ -66,6 +66,16 @@ design (docs/roadmap.md header).
   verification is pending closes at `◐` with tag `v0.11.0`, exactly as 0.10 did.
   Phase 0.12 (Beta) starts on a new branch, `phase/0.12-beta`.
 
+- **The on-disk vault format is frozen and guarded by a byte-exact fixture.**
+  Because the beta is about not losing data, `format::codec::tests` pins a
+  complete v1 `vault.keyel` file assembled from fixed inputs. Any change to the
+  magic, version, header CBOR, slot AAD or body layout fails CI immediately;
+  regenerating the fixture to make the test pass is explicitly the wrong move —
+  it means existing vaults would stop opening, so a migration and a
+  `docs/crypto-design.md` update are required instead. This is the code-level
+  half of the upgrade-path check (item 6); the device half still needs an older
+  APK installed over a newer one.
+
 ## 2026-11-14
 
 - **Phase 0.11 (Hardening and accessibility) is scoped to security hardening
