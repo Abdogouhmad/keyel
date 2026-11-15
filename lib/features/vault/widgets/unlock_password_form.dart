@@ -55,9 +55,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
     if (remaining <= Duration.zero) return;
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-      final left = ref
-          .read(vaultSessionProvider.notifier)
-          .unlockDelayRemaining;
+      final left = ref.read(vaultSessionProvider.notifier).unlockDelayRemaining;
       setState(() => _cooldown = left);
       if (left <= Duration.zero) {
         _cooldownTimer?.cancel();
@@ -156,6 +154,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                       color: scheme.onSurfaceVariant,
                     ),
                     suffixIcon: IconButton(
+                      tooltip: _obscure ? 'Show password' : 'Hide password',
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_outlined

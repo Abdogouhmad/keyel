@@ -64,4 +64,24 @@ void main() {
     expect(find.text('Everything looks healthy'), findsOneWidget);
     expect(find.text('All clear'), findsOneWidget);
   });
+
+  testWidgets('security dashboard has no overflow at 200% text scale', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(_host(_report(clean: false)));
+    await tester.pumpAndSettle();
+
+    // A RenderFlex overflow is reported as a Flutter error; none may occur.
+    expect(tester.takeException(), isNull);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -700));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

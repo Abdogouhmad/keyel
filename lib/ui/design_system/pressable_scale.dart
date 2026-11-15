@@ -52,6 +52,12 @@ class _PressableScaleState extends State<PressableScale> {
 
   @override
   Widget build(BuildContext context) {
+    // When the platform asks for reduced motion the press snaps instead of
+    // scaling: the duration collapses to zero and the scale is skipped
+    // entirely, so nothing moves (roadmap 0.11, accessibility).
+    final duration = KeyelMotion.resolve(context, KeyelMotion.fast);
+    final animate = duration > Duration.zero;
+
     return Semantics(
       button: _enabled,
       label: widget.semanticLabel,
@@ -64,8 +70,8 @@ class _PressableScaleState extends State<PressableScale> {
         onTapCancel: () => _setPressed(false),
         onLongPressEnd: (_) => _setPressed(false),
         child: AnimatedScale(
-          scale: _pressed ? widget.scale : 1,
-          duration: KeyelMotion.fast,
+          scale: _pressed && animate ? widget.scale : 1,
+          duration: duration,
           curve: KeyelMotion.spring,
           child: ClipRRect(
             borderRadius: widget.borderRadius ?? BorderRadius.zero,

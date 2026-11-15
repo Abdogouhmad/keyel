@@ -207,7 +207,7 @@ class _NavItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(KeyelRadii.pill),
         semanticLabel: destination.label,
         child: AnimatedContainer(
-          duration: KeyelMotion.fast,
+          duration: KeyelMotion.resolve(context, KeyelMotion.fast),
           curve: Curves.easeOut,
           padding: EdgeInsets.symmetric(
             horizontal: selected ? 14 : 10,
@@ -423,7 +423,7 @@ class _DrawerItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(KeyelRadii.pill),
       semanticLabel: destination.label,
       child: AnimatedContainer(
-        duration: KeyelMotion.fast,
+        duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
         width: double.infinity,
         margin: const EdgeInsets.symmetric(vertical: 4),
@@ -484,7 +484,7 @@ class _RailItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(KeyelRadii.tile),
       semanticLabel: destination.label,
       child: AnimatedContainer(
-        duration: KeyelMotion.fast,
+        duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
         width: 80,
         padding: const EdgeInsets.symmetric(vertical: KeyelSpacing.sm + 2),

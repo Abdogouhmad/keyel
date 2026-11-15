@@ -124,6 +124,10 @@ class _AutofillApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: KeyelTheme.light(),
       darkTheme: KeyelTheme.dark(),
+      // Honour the platform high-contrast setting on the autofill screens too.
+      builder: (context, child) => KeyelTheme.highContrastBuilder(
+        child: child ?? const SizedBox.shrink(),
+      ),
       home: isUnlocked
           ? _unlockedScreen()
           // The UnlockVaultView updates vaultSessionProvider on success,

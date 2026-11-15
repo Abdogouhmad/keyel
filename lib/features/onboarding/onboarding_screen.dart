@@ -118,7 +118,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
+                          duration: KeyelMotion.resolve(
+                            context,
+                            KeyelMotion.medium,
+                          ),
                           transitionBuilder: (child, animation) {
                             return FadeTransition(
                               opacity: animation,

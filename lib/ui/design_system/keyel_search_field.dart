@@ -62,7 +62,7 @@ class _KeyelSearchFieldState extends State<KeyelSearchField> {
     final textTheme = Theme.of(context).textTheme;
 
     return AnimatedContainer(
-      duration: KeyelMotion.fast,
+      duration: KeyelMotion.resolve(context, KeyelMotion.fast),
       curve: Curves.easeOut,
       height: 56,
       decoration: BoxDecoration(

@@ -61,7 +61,7 @@ class _ActionButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(KeyelRadii.pill),
       semanticLabel: spec.label,
       child: AnimatedContainer(
-        duration: KeyelMotion.fast,
+        duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.md),

@@ -104,6 +104,8 @@ class IssueCard extends StatelessWidget {
           const SizedBox(height: KeyelSpacing.sm + 2),
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: textTheme.titleSmall?.copyWith(
               color: content,
               fontWeight: FontWeight.w600,

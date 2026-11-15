@@ -23,10 +23,7 @@ AutofillMatchDto _match(String id, String title, AutofillQualityDto quality) =>
 
 /// A repository whose autofill calls are recorded instead of hitting Rust.
 class _FakeRepository extends VaultRepository {
-  new({
-    this.matches = const [],
-    this.unlocked = true,
-  });
+  new({this.matches = const [], this.unlocked = true});
 
   final List<AutofillMatchDto> matches;
   final bool unlocked;
@@ -235,5 +232,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.lastQuery, 'bank');
+  });
+
+  testWidgets('picker has no overflow at 200% text scale', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final repository = _FakeRepository(
+      matches: [
+        _match('a', 'Exact login', AutofillQualityDto.exact),
+        _match('b', 'Sub login', AutofillQualityDto.sameSite),
+        _match('c', 'Text login', AutofillQualityDto.search),
+      ],
+    );
+    await tester.pumpWidget(_host(repository));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 }

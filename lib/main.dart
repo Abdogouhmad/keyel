@@ -62,6 +62,10 @@ class KeyelApp extends ConsumerWidget {
       theme: KeyelTheme.light(),
       darkTheme: KeyelTheme.dark(),
       routerConfig: ref.watch(appRouterProvider),
+      // Honour the platform high-contrast setting on every route and sheet.
+      builder: (context, child) => KeyelTheme.highContrastBuilder(
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }

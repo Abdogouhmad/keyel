@@ -61,6 +61,15 @@ abstract final class KeyelMotion {
 
   /// Pressed scale for cards and buttons.
   static const double pressedScale = 0.97;
+
+  /// Returns [duration] unchanged, or [Duration.zero] when the platform asks
+  /// for reduced motion (`MediaQuery.disableAnimationsOf`).
+  ///
+  /// Motion is decoration, never information: honouring the system "remove
+  /// animations" switch keeps every state change instant for people who are
+  /// sensitive to movement (roadmap 0.11, accessibility).
+  static Duration resolve(BuildContext context, Duration duration) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
 }
 
 /// Soft, colour-tinted ambient elevation from design.md §Elevation.
@@ -106,6 +115,61 @@ abstract final class KeyelTheme {
 
   /// Static dark theme.
   static ThemeData dark() => _build(KeyelColors.darkScheme);
+
+  /// A higher-contrast variant of [base] for the platform's high-contrast
+  /// setting (`MediaQuery.highContrastOf`).
+  ///
+  /// Keyel never derives its palette from the wallpaper, so there is no
+  /// platform "high contrast" scheme to adopt. Instead the low-emphasis roles
+  /// that carry text and boundaries are pushed to their full-contrast
+  /// counterparts: secondary text uses the on-surface colour, and the hairline
+  /// outline becomes a solid rule that also draws input borders and dividers.
+  static ThemeData highContrast(ThemeData base) {
+    final scheme = base.colorScheme;
+    final rule = scheme.brightness == Brightness.light
+        ? KeyelColors.onSurfaceVariantLight
+        : KeyelColors.onSurfaceVariantDark;
+    final hcScheme = scheme.copyWith(
+      onSurfaceVariant: scheme.onSurface,
+      outline: rule,
+      outlineVariant: rule,
+    );
+    final border = OutlineInputBorder(
+      borderRadius: shapeMd,
+      borderSide: BorderSide(color: rule, width: 1.5),
+    );
+    return base.copyWith(
+      colorScheme: hcScheme,
+      dividerColor: rule,
+      dividerTheme: DividerThemeData(color: rule, thickness: 1.5, space: 1),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        border: border,
+        enabledBorder: border,
+        disabledBorder: border,
+        hintStyle: base.inputDecorationTheme.hintStyle?.copyWith(
+          color: hcScheme.onSurfaceVariant,
+        ),
+        labelStyle: base.inputDecorationTheme.labelStyle?.copyWith(
+          color: hcScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  /// Wraps [child] in the high-contrast theme when the platform asks for it.
+  ///
+  /// Install in `MaterialApp.builder` so every route, dialog and bottom sheet
+  /// inherits the stronger palette. The ambient [Theme] is read from the
+  /// builder context (which sits below MaterialApp's own theme) and only the
+  /// contrast-bearing roles are overridden.
+  static Widget highContrastBuilder({required Widget child}) {
+    return Builder(
+      builder: (context) {
+        if (!MediaQuery.highContrastOf(context)) return child;
+        return Theme(data: highContrast(Theme.of(context)), child: child);
+      },
+    );
+  }
 
   /// Mono style for secrets, TOTP codes and master passphrases.
   static TextStyle mono(

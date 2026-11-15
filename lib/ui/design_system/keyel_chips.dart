@@ -37,7 +37,7 @@ class KeyelFilterChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(KeyelRadii.pill),
       semanticLabel: label,
       child: AnimatedContainer(
-        duration: KeyelMotion.fast,
+        duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
         height: 40,
         padding: EdgeInsets.symmetric(
@@ -126,7 +126,7 @@ class KeyelSegmentedControl<T> extends StatelessWidget {
                 borderRadius: BorderRadius.circular(KeyelRadii.pill),
                 semanticLabel: option.label,
                 child: AnimatedContainer(
-                  duration: KeyelMotion.fast,
+                  duration: KeyelMotion.resolve(context, KeyelMotion.fast),
                   curve: Curves.easeOut,
                   height: 40,
                   decoration: BoxDecoration(

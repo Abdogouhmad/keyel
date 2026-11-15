@@ -49,6 +49,13 @@ class VaultRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final highlighted = isSelected || (selectionActive && isMarked);
 
+    // The row is a fixed-height tile by default, but the title/subtitle stack
+    // must not clip when the platform text scale is enlarged (roadmap 0.11
+    // item 10). Grow the row with the text scale so the two lines always fit.
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final baseHeight = favorite ? 76.0 : 72.0;
+    final height = textScale > 1 ? baseHeight * textScale : baseHeight;
+
     return PressableScale(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -57,7 +64,7 @@ class VaultRow extends StatelessWidget {
           ? 'Select ${entry.title}'
           : 'Open ${entry.title}',
       child: Container(
-        height: favorite ? 76 : 72,
+        height: height,
         padding: const EdgeInsets.symmetric(
           horizontal: KeyelSpacing.sm + 4,
           vertical: KeyelSpacing.sm,

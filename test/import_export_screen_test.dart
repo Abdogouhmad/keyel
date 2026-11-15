@@ -253,4 +253,23 @@ void main() {
     expect(find.text('Import complete'), findsOneWidget);
     expect(find.text('Added'), findsOneWidget);
   });
+
+  testWidgets('import/export screens have no overflow at 200% text scale', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(_host(_FakeRepository(), _FakeFiles()));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    // The encrypted-backup sheet is the densest form on this screen.
+    await tester.tap(find.text('Export encrypted backup'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }

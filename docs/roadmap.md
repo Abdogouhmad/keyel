@@ -436,7 +436,33 @@ test, TalkBack, scroll-fps and cold-unlock timing). Accessibility (items 9-10)
 and localization (item 11) are not started. See
 `docs/hardening-checklist.md` for the full breakdown.
 
-**Tag:** `v0.11.0` (not yet — phase incomplete)
+**Status (2026-11-15): accessibility started.** High contrast and reduce motion
+are implemented and tested: `KeyelTheme.highContrast` + `highContrastBuilder`
+honour `MediaQuery.highContrastOf` on every route and sheet, and
+`KeyelMotion.resolve` makes every animation instant when
+`MediaQuery.disableAnimationsOf` is set (`test/accessibility_test.dart`). The
+code-level TalkBack pass is done — password reveal toggles in onboarding,
+create-vault, recovery-reset and unlock now carry labels, and every icon button
+has a tooltip/semantic label. The 200 % font-scale pass fixed a real
+vulnerability-summary grid overflow and added no-overflow regression tests for
+the shell, autofill and import/export screens. Still open in this chunk: the
+on-device TalkBack sweep, the 200 % sweep for the vault list/detail/edit
+screens, and localization (item 11).
+
+**Status (2026-11-15): phase closed — code complete, on-device verification
+pending.** The accessibility chunk finished the 200 % sweep on the vault list:
+`VaultRow` grows with the text scale and no longer clips its title/subtitle,
+with a no-overflow regression test in `test/vault_list_perf_test.dart`; the
+detail and edit screens are scrollable (`ListView`) so they reflow rather than
+clip. Two items are consciously carried past the phase: (1) the on-device
+checks — storage dump, `logcat` sweep, release-APK test, TalkBack sweep,
+scroll-fps and cold-unlock timing — need a phone and are listed as
+**device-pending** in `docs/hardening-checklist.md`; (2) localization
+(EN/FR/AR + RTL, roadmap 0.11 item 11) was explicitly deferred at the user's
+request and is recorded in `docs/DECISIONS.md` (2026-11-15). Everything else on
+the checklist is done or device-pending.
+
+**Tag:** `v0.11.0`
 
 ---
 

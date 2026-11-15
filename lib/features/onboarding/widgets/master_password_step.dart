@@ -99,6 +99,7 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
               color: scheme.onSurfaceVariant,
             ),
             suffixIcon: IconButton(
+              tooltip: _obscure ? 'Show password' : 'Hide password',
               icon: Icon(
                 _obscure
                     ? Icons.visibility_outlined

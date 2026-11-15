@@ -38,9 +38,13 @@ final _testRouter = GoRouter(
   ],
 );
 
-Widget _harness(double width, Brightness brightness) {
+Widget _harness(
+  double width,
+  Brightness brightness, {
+  TextScaler textScaler = TextScaler.noScaling,
+}) {
   return MediaQuery(
-    data: MediaQueryData(size: Size(width, 800)),
+    data: MediaQueryData(size: Size(width, 800), textScaler: textScaler),
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: brightness == Brightness.light
@@ -51,8 +55,12 @@ Widget _harness(double width, Brightness brightness) {
   );
 }
 
-Future<void> _pump(WidgetTester tester, double width, Brightness brightness) =>
-    tester.pumpWidget(_harness(width, brightness));
+Future<void> _pump(
+  WidgetTester tester,
+  double width,
+  Brightness brightness, {
+  TextScaler textScaler = TextScaler.noScaling,
+}) => tester.pumpWidget(_harness(width, brightness, textScaler: textScaler));
 
 Future<void> _golden(
   WidgetTester tester,
@@ -127,6 +135,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('generator-content'), findsOneWidget);
     expect(find.text('vault-content'), findsNothing);
+  });
+
+  testWidgets('compact shell has no overflow at 200% text scale', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      400,
+      Brightness.light,
+      textScaler: const TextScaler.linear(2),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    // Every destination stays reachable.
+    for (final label in ['Vault', 'Generator', 'Security', 'Settings']) {
+      expect(find.text(label), findsOneWidget);
+    }
   });
 
   // -----------------------------------------------------------------------

@@ -100,7 +100,7 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
 
         // Recovery Key Display Box with Gradient Border
         AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: KeyelMotion.resolve(context, KeyelMotion.medium),
           padding: const EdgeInsets.all(
             1.5,
           ), // This padding becomes the border width
@@ -201,7 +201,10 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
             splashColor: scheme.primary.withValues(alpha: 0.1),
             highlightColor: scheme.primary.withValues(alpha: 0.05),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: KeyelMotion.resolve(
+                context,
+                const Duration(milliseconds: 200),
+              ),
               padding: const EdgeInsets.symmetric(
                 horizontal: KeyelSpacing.md,
                 vertical: KeyelSpacing.md,

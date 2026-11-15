@@ -29,7 +29,7 @@ class _UnlockVaultViewState extends ConsumerState<UnlockVaultView> {
     return Scaffold(
       body: SafeArea(
         child: AnimatedSwitcher(
-          duration: KeyelMotion.medium,
+          duration: KeyelMotion.resolve(context, KeyelMotion.medium),
           child: _resetFlow
               ? RecoveryResetView(
                   key: const ValueKey('unlock-recovery-reset'),

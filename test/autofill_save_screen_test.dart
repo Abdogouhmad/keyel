@@ -67,7 +67,9 @@ void main() {
     expect(find.text('Save login?'), findsOneWidget);
     expect(find.textContaining('www.example.com'), findsOneWidget);
 
-    final fields = tester.widgetList<TextField>(find.byType(TextField)).toList();
+    final fields = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .toList();
     expect(fields[0].controller!.text, 'example.com'); // default name
     expect(fields[1].controller!.text, 'ada@example.com');
 
@@ -83,11 +85,7 @@ void main() {
     final repository = _FakeRepository();
     var saved = false;
     await tester.pumpWidget(
-      _host(
-        repository,
-        webDomain: 'example.com',
-        onSaved: () => saved = true,
-      ),
+      _host(repository, webDomain: 'example.com', onSaved: () => saved = true),
     );
     await tester.pumpAndSettle();
 
@@ -155,5 +153,20 @@ void main() {
 
     expect(repository.lastDraft, isNull);
     expect(find.text('Give this login a name first.'), findsOneWidget);
+  });
+
+  testWidgets('save screen has no overflow at 200% text scale', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(
+      _host(_FakeRepository(), webDomain: 'www.example.com'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 }

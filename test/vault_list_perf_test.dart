@@ -58,4 +58,32 @@ void main() {
     expect(find.text('Entry 00000'), findsNothing);
     expect(find.byType(VaultRow).evaluate().length, lessThan(200));
   });
+
+  testWidgets('vault rows have no overflow at 200% text scale', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final entries = List<VaultEntry>.generate(12, _entry);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: KeyelTheme.light(),
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: CustomScrollView(
+                slivers: [VaultEntryList(entries: entries, config: _config())],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(VaultRow), findsWidgets);
+  });
 }

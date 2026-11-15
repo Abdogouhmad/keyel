@@ -4,6 +4,48 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-15
+
+- **Accessibility is implemented in the theme layer, not per screen.** High
+  contrast is a `ThemeData` transform (`KeyelTheme.highContrast`) installed once
+  in `MaterialApp.builder` (`KeyelTheme.highContrastBuilder`), and reduce motion
+  is a single helper (`KeyelMotion.resolve`) called at each animated site. Keyel
+  never derives its palette from the wallpaper, so there is no platform
+  high-contrast *scheme* to adopt; instead the low-emphasis roles that carry
+  text and boundaries (`onSurfaceVariant`, `outline`, `outlineVariant`) are
+  promoted to full-contrast values and the hairline borders become solid rules.
+  This keeps the change reviewable and testable in one place
+  (`test/accessibility_test.dart`) rather than scattered across screens.
+
+- **Reduce motion snaps, it does not merely shorten.** When
+  `MediaQuery.disableAnimationsOf` is true, `PressableScale` skips the pressed
+  scale entirely instead of animating it quickly, and every `AnimatedContainer`
+  / `AnimatedSwitcher` duration collapses to zero. Motion is decoration, never
+  information, so nothing is lost when it is removed.
+
+- **TalkBack labels come from `tooltip` on icon-only buttons.** Material's
+  `IconButton` announces its `tooltip` as the button label; the password reveal
+  toggles in onboarding, create-vault, recovery-reset and unlock were the only
+  icon buttons without one and now match the rest of the design system.
+
+- **Large text scales reflow grids instead of clipping them.** The
+  vulnerability-summary tiles used a fixed `childAspectRatio`, so at 200 % text
+  scale the `IssueCard` column overflowed its tile. The grid now grows its row
+  extent with `MediaQuery.textScalerOf` and relaxes to a single column past
+  1.4×; `VaultRow` likewise grows its height with the text scale. This is the
+  general pattern to follow for any fixed-height tile in the vault screens. The
+  entry detail and edit screens are scrollable, so they reflow rather than clip.
+
+- **Phase 0.11 is closed with two conscious carry-overs.** (1) Localization
+  (EN/FR/AR + RTL, roadmap 0.11 item 11) is **not** being done at this time, at
+  the user's explicit request; it is recorded here and in the checklist rather
+  than silently dropped. (2) The on-device checks — storage dump, `logcat`
+  sweep, release-APK functional test, TalkBack sweep, scroll-fps and cold-unlock
+  timing — cannot be run in this environment and stay marked **device-pending**.
+  Per the roadmap legend, a phase whose code is complete but whose on-device
+  verification is pending closes at `◐` with tag `v0.11.0`, exactly as 0.10 did.
+  Phase 0.12 (Beta) starts on a new branch, `phase/0.12-beta`.
+
 ## 2026-11-14
 
 - **Phase 0.11 (Hardening and accessibility) is scoped to security hardening

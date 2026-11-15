@@ -188,6 +188,7 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                     labelText: 'Master Password',
                     prefixIcon: const Icon(Icons.key_rounded),
                     suffixIcon: IconButton(
+                      tooltip: _obscure ? 'Show password' : 'Hide password',
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_rounded
