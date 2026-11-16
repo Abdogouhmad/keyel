@@ -545,7 +545,10 @@ FAQ is deferred.
   `android/key.properties` for a real keystore and falls back to the debug key
   only when it is absent; `build.sh verify_signing` now fails a debug-signed
   artifact in CI (or whenever `key.properties` exists) instead of silently
-  accepting it.
+  accepting it. Release builds also stamp the APK `versionCode` from the
+  semantic version (`major*10000 + minor*100 + patch`), which `build.sh`
+  previously computed and printed but never applied — the APK silently carried
+  `versionCode 1`, which the Play Store rejects on the second upload.
 
 **Tag:** `v0.12.0` (and `v1.0.0-rc.1` when ready)
 

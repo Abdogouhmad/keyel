@@ -32,10 +32,16 @@ android {
         applicationId = "dev.agouhmad.keyel"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
+        // versionCode/versionName come from Flutter's `flutter.versionCode` /
+        // `flutter.versionName`, which `flutter build` fills from the pubspec
+        // `version:` (the `+N` build number is the versionCode). build.sh
+        // overrides both with --build-number / --build-name so the versionCode
+        // is major*10000 + minor*100 + patch (0.12.0 -> 1200) and always
+        // increases between releases. A bare `flutter build` still works and
+        // falls back to the pubspec build number.
+        // When using split APKs, 1000 * ABI_VERSION is added automatically by
+        // Flutter unless `-Pforce-version-code-ignoring-abi=true` is passed.
+        // (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

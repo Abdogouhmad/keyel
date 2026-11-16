@@ -145,8 +145,9 @@ sdk_tool() {
 
 # ── Versioning ────────────────────────────────────────────────────────────────
 # `pubspec.yaml` is the single source of truth. The tag is `v<semver>` and the
-# versionCode is major*10000 + minor*100 + patch, the SAME formula
-# android/app/build.gradle.kts must use, so the versionCode is always predictable.
+# versionCode is major*10000 + minor*100 + patch. build.sh hands it to Flutter
+# via --build-number (see VERSION_ARGS), so the APK's versionCode is always
+# predictable and strictly increases between releases.
 get_version() { sed -n 's/^version: *//p' pubspec.yaml | head -n1; }
 
 VERSION="$(get_version)"
@@ -312,6 +313,12 @@ fi
 # Compile-time metadata so AppInfo.version matches pubspec.yaml.
 DEFINE_ARGS=(--dart-define=KEYEL_VERSION="$VERSION")
 
+# Force the versionCode/versionName the versioning section computed. Without
+# this Flutter fills them from the pubspec build number (`0.12.0+1` -> 1), so
+# every release would ship versionCode 1 and the Play Store would reject the
+# next upload as a duplicate.
+VERSION_ARGS=(--build-name="$VERSION" --build-number="$VERSION_CODE")
+
 # One slim APK per supported ABI (arm32 / arm64) ...
 # (cargokit compiles the Rust crate for exactly these targets.)
 build_split_abis() {
@@ -319,6 +326,7 @@ build_split_abis() {
   run flutter build apk --release --split-per-abi \
     --target-platform android-arm,android-arm64 \
     "${DEFINE_ARGS[@]}" \
+    "${VERSION_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}" \
     -Pforce-version-code-ignoring-abi=true
 }
@@ -329,6 +337,7 @@ build_universal() {
   run flutter build apk --release \
     --target-platform android-arm,android-arm64 \
     "${DEFINE_ARGS[@]}" \
+    "${VERSION_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 
@@ -337,6 +346,7 @@ build_aab() {
   run flutter build appbundle --release \
     --target-platform android-arm,android-arm64 \
     "${DEFINE_ARGS[@]}" \
+    "${VERSION_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 
@@ -346,6 +356,7 @@ build_fast() {
   run flutter build apk --release \
     --target-platform android-arm64 \
     "${DEFINE_ARGS[@]}" \
+    "${VERSION_ARGS[@]}" \
     "${OBF_ARGS[@]+"${OBF_ARGS[@]}"}"
 }
 

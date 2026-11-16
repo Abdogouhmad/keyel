@@ -35,6 +35,10 @@ Beta: daily-use polish, self-service diagnostics and a responsive UI reform.
 - Release builds use the provisioned keystore when `android/key.properties`
   exists and fall back to the debug key only on a fresh clone; `build.sh`
   refuses to publish a debug-signed APK.
+- Release builds stamp the APK's `versionCode` from the semantic version
+  (`major*10000 + minor*100 + patch`, so 0.12.0 → 1200) instead of the pubspec
+  build number, so successive releases always increase it and the Play Store
+  accepts the next upload.
 
 ### Fixed
 
