@@ -419,12 +419,32 @@ verify_signing() {
     return
   fi
 
-  local apk
+  local apk certs subject
+  local debug_signed=false
   for apk in dist/${PKG_NAME}-v${VERSION}-*.apk; do
     info "Verifying signature: ${apk##*/}"
-    "$apksigner" verify --print-certs "$apk" >/dev/null
+    certs="$("$apksigner" verify --print-certs "$apk")"
+    subject="$(sed -n 's/^Signer #1 certificate DN: //p' <<<"$certs")"
+    if grep -qi "Android Debug" <<<"$subject"; then
+      debug_signed=true
+      warn "  ${apk##*/} is signed with the ANDROID DEBUG key."
+    fi
   done
-  info "All APKs verify; release-signing confirmed."
+
+  if [[ "$debug_signed" == true ]]; then
+    if [[ "$CI_RUNNER" == true ]]; then
+      err "CI produced a debug-signed APK: the release keystore was not applied."
+      exit 1
+    fi
+    if [[ -f android/key.properties ]]; then
+      err "android/key.properties exists but the APK is debug-signed."
+      err "Check storeFile in key.properties and the release signingConfig."
+      exit 1
+    fi
+    warn "Debug-signed (no release keystore configured). Do NOT publish this build."
+  else
+    info "All APKs verify; release-signing confirmed."
+  fi
 }
 
 # ── Privacy policy checks (Keyel is a password manager) ──────────────────────

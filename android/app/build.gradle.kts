@@ -1,7 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Release signing is provisioned by build.sh from the KEYEL_* secrets into
+// android/key.properties (see build.sh). Read it here so the configured
+// keystore is actually used; fall back to the debug key only when it is
+// absent, which keeps a fresh clone's `flutter run --release` working.
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -27,11 +40,30 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Populated only when android/key.properties exists (build.sh writes it
+        // from the KEYEL_* secrets). An empty config is harmless: the release
+        // build type selects it only when the file is present.
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Use the provisioned release keystore when present; otherwise fall
+            // back to the debug key so a fresh clone's `flutter run --release`
+            // works. build.sh refuses to publish a debug-signed build.
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             // R8 code shrinking, obfuscation and resource shrinking are enabled
             // for this build type by the Flutter Gradle plugin
             // (`FlutterPluginUtils.shouldShrinkResources`), which also adds
