@@ -31,24 +31,28 @@ class VaultLayout extends StatelessWidget {
   /// Called when the user wants to create a new entry.
   final VoidCallback onNewItem;
 
-  /// Whether the two-pane wide layout is active.
-  bool _isWide(BuildContext context) {
-    final windowClass = WindowSizeClass.of(context);
-    return !windowClass.isCompact && MediaQuery.sizeOf(context).width >= 720;
+  /// Width of the master list pane in the two-pane layout.
+  ///
+  /// Scales with the window between 320 and 420 dp so a narrow tablet keeps a
+  /// usable detail pane and a desktop window does not strand the list in a sea
+  /// of empty space.
+  double _listPaneWidth(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return (width * 0.34).clamp(320.0, 420.0);
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    if (_isWide(context)) {
+    if (WindowSizeClass.of(context).supportsListDetail) {
       return Scaffold(
         backgroundColor: scheme.surface,
         body: SafeArea(
           bottom: false,
           child: Row(
             children: [
-              SizedBox(width: 380, child: listPane),
+              SizedBox(width: _listPaneWidth(context), child: listPane),
               VerticalDivider(
                 width: 1,
                 thickness: 1,

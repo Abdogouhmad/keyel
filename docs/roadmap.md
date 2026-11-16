@@ -490,7 +490,7 @@ the checklist is done or device-pending.
 ### Definition of done
 - Two weeks of daily use with **zero** data loss, no known crashes, and tester feedback addressed.
 
-### Status (2026-11-15)
+### Status (2026-11-16)
 
 **Beta started on `phase/0.12-beta`; first code slice done.** Localization is
 explicitly out of scope for now (see `docs/DECISIONS.md`, 2026-11-15), so item
@@ -528,6 +528,24 @@ FAQ is deferred.
   `test/sensitive_clipboard_test.dart`. Motion, empty states and icons were
   already in good shape from the design-system phases; remaining polish is the
   on-device motion/haptics feel check.
+- **Responsive reform (desktop / tablet / mobile): done at the code level.** All
+  screen bodies now share one adaptive content helper
+  (`lib/ui/adaptive/content.dart`): content centers in a width-capped column
+  (form 560 / reading 720 / page 1000 dp) with window-dependent page margins
+  (16 / 24 / 32 dp). The generator, folders, trash, import/export, entry detail
+  and entry editor were previously edge-to-edge on wide windows and are now
+  capped. The vault list-detail two-pane layout activates at the design-spec
+  840 dp (it used to split at 720 dp, which squeezed the detail pane beside the
+  medium nav rail) and the list pane scales between 320 and 420 dp. Covered by
+  `test/responsive_layout_test.dart`. "Desktop" here means large windows and the
+  Linux target, not new Windows/macOS/web targets (see `docs/DECISIONS.md`).
+- **Release readiness: started.** `pubspec.yaml` is bumped to `0.12.0+1` and a
+  new `CHANGELOG.md` carries the `[0.12.0]` section that
+  `build.sh --release-notes` requires. The Android release build reads
+  `android/key.properties` for a real keystore and falls back to the debug key
+  only when it is absent; `build.sh verify_signing` now fails a debug-signed
+  artifact in CI (or whenever `key.properties` exists) instead of silently
+  accepting it.
 
 **Tag:** `v0.12.0` (and `v1.0.0-rc.1` when ready)
 

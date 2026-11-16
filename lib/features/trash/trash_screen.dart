@@ -195,14 +195,16 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
                 ],
               ),
             ),
-            Expanded(child: _buildBody(textTheme)),
+            Expanded(
+              child: KeyelContent(child: _buildBody(context, textTheme)),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBody(TextTheme textTheme) {
+  Widget _buildBody(BuildContext context, TextTheme textTheme) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -211,10 +213,10 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(
-        KeyelSpacing.md,
+      padding: EdgeInsets.fromLTRB(
+        context.pageMargin,
         KeyelSpacing.sm,
-        KeyelSpacing.md,
+        context.pageMargin,
         KeyelSpacing.xxl,
       ),
       itemCount: _deleted.length,

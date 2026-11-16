@@ -466,337 +466,334 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       backgroundColor: scheme.surface,
       body: SafeArea(
         bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: KeyelTopBar(
-                    title: 'Settings',
-                    icon: Icons.tune_rounded,
-                    trailing: KeyelIconHull(
-                      icon: Icons.help_outline_rounded,
-                      tooltip: 'Help & support',
-                      onPressed: () => _notImplemented('Guided help'),
-                    ),
+        child: KeyelContent(
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: KeyelTopBar(
+                  title: 'Settings',
+                  icon: Icons.tune_rounded,
+                  trailing: KeyelIconHull(
+                    icon: Icons.help_outline_rounded,
+                    tooltip: 'Help & support',
+                    onPressed: () => _notImplemented('Guided help'),
                   ),
                 ),
+              ),
 
-                // Header
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    KeyelSpacing.lg,
-                    KeyelSpacing.xs,
-                    KeyelSpacing.lg,
-                    KeyelSpacing.md,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Your vault',
-                          style: textTheme.headlineLarge?.copyWith(
-                            color: scheme.onSurface,
-                            fontSize: 28,
-                            height: 36 / 28,
-                            letterSpacing: -0.6,
-                            fontWeight: FontWeight.w800,
-                          ),
+              // Header
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  KeyelSpacing.lg,
+                  KeyelSpacing.xs,
+                  KeyelSpacing.lg,
+                  KeyelSpacing.md,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your vault',
+                        style: textTheme.headlineLarge?.copyWith(
+                          color: scheme.onSurface,
+                          fontSize: 28,
+                          height: 36 / 28,
+                          letterSpacing: -0.6,
+                          fontWeight: FontWeight.w800,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Security tuned for this device, kept local.',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Security tuned for this device, kept local.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Vault profile
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KeyelSpacing.md,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _VaultProfileCard(
+                    session: session,
+                    vaultPath: repo.vaultPath,
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(
+                child: SizedBox(height: KeyelSpacing.lg),
+              ),
+
+              // Settings sections
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KeyelSpacing.md,
+                ),
+                sliver: SliverList.list(
+                  children: [
+                    const KeyelSectionLabel(
+                      label: 'Security & Access',
+                      icon: Icons.shield_rounded,
+                    ),
+                    const SizedBox(height: KeyelSpacing.sm),
+
+                    _SettingsCard(
+                      children: [
+                        if (session.status == VaultStatus.unlocked)
+                          _SettingsRow(
+                            icon: Icons.lock_outline_rounded,
+                            title: 'Lock vault now',
+                            subtitle:
+                                'Wipe decryption key from memory immediately',
+                            onTap: () {
+                              ref.read(vaultSessionProvider.notifier).lock();
+                              showKeyelSnack(
+                                context,
+                                'Vault locked',
+                                icon: Icons.lock_rounded,
+                              );
+                            },
                           ),
+
+                        if (session.status == VaultStatus.unlocked)
+                          _SettingsRow(
+                            icon: Icons.password_rounded,
+                            title: 'Change master password',
+                            subtitle:
+                                'Re-encrypt the vault keyslot with a new '
+                                'master',
+                            onTap: () => unawaited(_showChangeMasterDialog()),
+                          ),
+
+                        _SettingsRow(
+                          icon: Icons.timer_outlined,
+                          title: 'Auto-lock',
+                          subtitle:
+                              'Lock the vault after time in the background',
+                          trailing: Text(
+                            _autoLockLabel(
+                              ref
+                                  .read(vaultSessionProvider.notifier)
+                                  .autoLockDelay,
+                            ),
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          onTap: () => unawaited(_showAutoLockDialog()),
+                        ),
+
+                        // Biometric authentication
+                        _SettingsRow(
+                          icon: Icons.fingerprint_rounded,
+                          title: 'Biometric unlock',
+                          subtitle: 'Fingerprint or face to open the vault',
+                          trailing: _biometricBusy
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Switch.adaptive(
+                                  value: _biometricEnabled,
+                                  onChanged: (value) => unawaited(
+                                    _toggleBiometric(enable: value),
+                                  ),
+                                ),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.content_paste_off_rounded,
+                          title: 'Clear clipboard',
+                          subtitle: 'Wipe copied secrets from the clipboard',
+                          trailing: Text(
+                            _clipboardLabel(
+                              AppPreferences.instance.clipboardClearSeconds,
+                            ),
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          onTap: () => unawaited(_showClipboardDialog()),
                         ),
                       ],
                     ),
-                  ),
-                ),
 
-                // Vault profile
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: KeyelSpacing.md,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: _VaultProfileCard(
-                      session: session,
-                      vaultPath: repo.vaultPath,
+                    const SizedBox(height: KeyelSpacing.lg),
+
+                    const KeyelSectionLabel(
+                      label: 'Autofill',
+                      icon: Icons.auto_awesome_rounded,
                     ),
-                  ),
-                ),
+                    const SizedBox(height: KeyelSpacing.sm),
 
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: KeyelSpacing.lg),
-                ),
-
-                // Settings sections
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: KeyelSpacing.md,
-                  ),
-                  sliver: SliverList.list(
-                    children: [
-                      const KeyelSectionLabel(
-                        label: 'Security & Access',
-                        icon: Icons.shield_rounded,
-                      ),
-                      const SizedBox(height: KeyelSpacing.sm),
-
-                      _SettingsCard(
-                        children: [
-                          if (session.status == VaultStatus.unlocked)
-                            _SettingsRow(
-                              icon: Icons.lock_outline_rounded,
-                              title: 'Lock vault now',
-                              subtitle:
-                                  'Wipe decryption key from memory immediately',
-                              onTap: () {
-                                ref.read(vaultSessionProvider.notifier).lock();
-                                showKeyelSnack(
-                                  context,
-                                  'Vault locked',
-                                  icon: Icons.lock_rounded,
-                                );
-                              },
-                            ),
-
-                          if (session.status == VaultStatus.unlocked)
-                            _SettingsRow(
-                              icon: Icons.password_rounded,
-                              title: 'Change master password',
-                              subtitle:
-                                  'Re-encrypt the vault keyslot with a new '
-                                  'master',
-                              onTap: () => unawaited(_showChangeMasterDialog()),
-                            ),
-
-                          _SettingsRow(
-                            icon: Icons.timer_outlined,
-                            title: 'Auto-lock',
-                            subtitle:
-                                'Lock the vault after time in the background',
-                            trailing: Text(
-                              _autoLockLabel(
-                                ref
-                                    .read(vaultSessionProvider.notifier)
-                                    .autoLockDelay,
-                              ),
-                              style: TextStyle(
-                                color: scheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            onTap: () => unawaited(_showAutoLockDialog()),
-                          ),
-
-                          // Biometric authentication
-                          _SettingsRow(
-                            icon: Icons.fingerprint_rounded,
-                            title: 'Biometric unlock',
-                            subtitle: 'Fingerprint or face to open the vault',
-                            trailing: _biometricBusy
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Switch.adaptive(
-                                    value: _biometricEnabled,
-                                    onChanged: (value) => unawaited(
-                                      _toggleBiometric(enable: value),
-                                    ),
-                                  ),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.content_paste_off_rounded,
-                            title: 'Clear clipboard',
-                            subtitle: 'Wipe copied secrets from the clipboard',
-                            trailing: Text(
-                              _clipboardLabel(
-                                AppPreferences.instance.clipboardClearSeconds,
-                              ),
-                              style: TextStyle(
-                                color: scheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            onTap: () => unawaited(_showClipboardDialog()),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: KeyelSpacing.lg),
-
-                      const KeyelSectionLabel(
-                        label: 'Autofill',
-                        icon: Icons.auto_awesome_rounded,
-                      ),
-                      const SizedBox(height: KeyelSpacing.sm),
-
-                      _SettingsCard(
-                        children: [
-                          _SettingsRow(
-                            icon: _autofillEnabled == true
-                                ? Icons.check_circle_outline_rounded
-                                : Icons.app_registration_rounded,
-                            title: 'Autofill service',
-                            subtitle: _autofillEnabled == null
-                                ? 'Checking…'
-                                : _autofillEnabled!
-                                ? 'Keyel is your autofill provider'
-                                : 'Tap to enable Keyel as your autofill provider',
-                            trailing: _autofillEnabled == true
-                                ? Icon(
-                                    Icons.check_circle_rounded,
-                                    color: scheme.primary,
-                                  )
-                                : null,
-                            onTap: () => unawaited(_openAutofillSettings()),
-                          ),
-                          _SettingsRow(
-                            icon: Icons.save_rounded,
-                            title: 'Ask to save',
-                            subtitle:
-                                'Offer to save new credentials after a login',
-                            trailing: Switch.adaptive(
-                              value: AppPreferences.instance.autofillAskToSave,
-                              onChanged: (value) {
-                                setState(() {
-                                  AppPreferences.instance.autofillAskToSave =
-                                      value;
-                                });
-                                unawaited(AppPreferences.instance.save());
-                              },
-                            ),
-                          ),
-                          _SettingsRow(
-                            icon: Icons.language_rounded,
-                            title: 'Match mode',
-                            subtitle:
-                                AppPreferences.instance.autofillMatchMode ==
-                                    'exact'
-                                ? 'Exact host only'
-                                : 'Domain (includes subdomains)',
-                            onTap: () {
-                              final current =
-                                  AppPreferences.instance.autofillMatchMode;
+                    _SettingsCard(
+                      children: [
+                        _SettingsRow(
+                          icon: _autofillEnabled == true
+                              ? Icons.check_circle_outline_rounded
+                              : Icons.app_registration_rounded,
+                          title: 'Autofill service',
+                          subtitle: _autofillEnabled == null
+                              ? 'Checking…'
+                              : _autofillEnabled!
+                              ? 'Keyel is your autofill provider'
+                              : 'Tap to enable Keyel as your autofill provider',
+                          trailing: _autofillEnabled == true
+                              ? Icon(
+                                  Icons.check_circle_rounded,
+                                  color: scheme.primary,
+                                )
+                              : null,
+                          onTap: () => unawaited(_openAutofillSettings()),
+                        ),
+                        _SettingsRow(
+                          icon: Icons.save_rounded,
+                          title: 'Ask to save',
+                          subtitle:
+                              'Offer to save new credentials after a login',
+                          trailing: Switch.adaptive(
+                            value: AppPreferences.instance.autofillAskToSave,
+                            onChanged: (value) {
                               setState(() {
-                                AppPreferences.instance.autofillMatchMode =
-                                    current == 'exact' ? 'domain' : 'exact';
+                                AppPreferences.instance.autofillAskToSave =
+                                    value;
                               });
                               unawaited(AppPreferences.instance.save());
                             },
                           ),
-                        ],
-                      ),
+                        ),
+                        _SettingsRow(
+                          icon: Icons.language_rounded,
+                          title: 'Match mode',
+                          subtitle:
+                              AppPreferences.instance.autofillMatchMode ==
+                                  'exact'
+                              ? 'Exact host only'
+                              : 'Domain (includes subdomains)',
+                          onTap: () {
+                            final current =
+                                AppPreferences.instance.autofillMatchMode;
+                            setState(() {
+                              AppPreferences.instance.autofillMatchMode =
+                                  current == 'exact' ? 'domain' : 'exact';
+                            });
+                            unawaited(AppPreferences.instance.save());
+                          },
+                        ),
+                      ],
+                    ),
 
-                      const SizedBox(height: KeyelSpacing.lg),
+                    const SizedBox(height: KeyelSpacing.lg),
 
-                      const KeyelSectionLabel(
-                        label: 'Storage & Diagnostics',
-                        icon: Icons.storage_rounded,
-                      ),
-                      const SizedBox(height: KeyelSpacing.sm),
+                    const KeyelSectionLabel(
+                      label: 'Storage & Diagnostics',
+                      icon: Icons.storage_rounded,
+                    ),
+                    const SizedBox(height: KeyelSpacing.sm),
 
-                      _SettingsCard(
-                        children: [
-                          _SettingsRow(
-                            icon: Icons.cloud_off_rounded,
-                            title: 'Offline vault mode',
-                            subtitle:
-                                'Zero telemetry, zero cloud synchronisation',
-                            trailing: Switch.adaptive(
-                              value: _offlineOnly,
-                              onChanged: (value) {
-                                setState(() => _offlineOnly = value);
-                              },
-                            ),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.folder_rounded,
-                            title: 'Folders',
-                            subtitle: 'Create, rename and delete vault folders',
-                            onTap: () =>
-                                unawaited(context.push(KeyelRoutes.folders)),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.swap_vert_rounded,
-                            title: 'Backup & import',
-                            subtitle:
-                                'Encrypted backups and CSV import or export',
-                            onTap: () => unawaited(
-                              context.push(KeyelRoutes.importExport),
-                            ),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.delete_outline_rounded,
-                            title: 'Trash',
-                            subtitle: 'Restore deleted entries or remove them forever',
-                            onTap: () =>
-                                unawaited(context.push(KeyelRoutes.trash)),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.delete_forever_rounded,
-                            title: 'Factory reset vault',
-                            subtitle:
-                                'Permanently delete vault file and reset app '
-                                'state',
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: Colors.red,
-                            ),
-                            onTap: () => unawaited(_factoryReset()),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.bug_report_outlined,
-                            title: 'Report a problem',
-                            subtitle: 'Share a redacted diagnostics file (no secrets)',
-                            onTap: () => unawaited(_reportProblem()),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.construction_rounded,
-                            title: 'Bridge diagnostics & test suite',
-                            subtitle:
-                                'Raw FRB bridge operations and diagnostics',
-                            onTap: () =>
-                                unawaited(context.push(KeyelRoutes.debug)),
-                          ),
-
-                          _SettingsRow(
-                            icon: Icons.gavel_rounded,
-                            title: 'Open source licenses',
-                            subtitle: 'Libraries bundled with this build',
-                            onTap: () {
-                              showLicensePage(
-                                context: context,
-                                applicationName: 'Keyel',
-                                applicationVersion: AppInfo.version,
-                              );
+                    _SettingsCard(
+                      children: [
+                        _SettingsRow(
+                          icon: Icons.cloud_off_rounded,
+                          title: 'Offline vault mode',
+                          subtitle:
+                              'Zero telemetry, zero cloud synchronisation',
+                          trailing: Switch.adaptive(
+                            value: _offlineOnly,
+                            onChanged: (value) {
+                              setState(() => _offlineOnly = value);
                             },
                           ),
-                        ],
-                      ),
+                        ),
 
-                      const SizedBox(height: KeyelSpacing.xxl),
-                    ],
-                  ),
+                        _SettingsRow(
+                          icon: Icons.folder_rounded,
+                          title: 'Folders',
+                          subtitle: 'Create, rename and delete vault folders',
+                          onTap: () =>
+                              unawaited(context.push(KeyelRoutes.folders)),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.swap_vert_rounded,
+                          title: 'Backup & import',
+                          subtitle:
+                              'Encrypted backups and CSV import or export',
+                          onTap: () =>
+                              unawaited(context.push(KeyelRoutes.importExport)),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.delete_outline_rounded,
+                          title: 'Trash',
+                          subtitle:
+                              'Restore deleted entries or remove them forever',
+                          onTap: () =>
+                              unawaited(context.push(KeyelRoutes.trash)),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.delete_forever_rounded,
+                          title: 'Factory reset vault',
+                          subtitle:
+                              'Permanently delete vault file and reset app '
+                              'state',
+                          trailing: const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.red,
+                          ),
+                          onTap: () => unawaited(_factoryReset()),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.bug_report_outlined,
+                          title: 'Report a problem',
+                          subtitle:
+                              'Share a redacted diagnostics file (no secrets)',
+                          onTap: () => unawaited(_reportProblem()),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.construction_rounded,
+                          title: 'Bridge diagnostics & test suite',
+                          subtitle: 'Raw FRB bridge operations and diagnostics',
+                          onTap: () =>
+                              unawaited(context.push(KeyelRoutes.debug)),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.gavel_rounded,
+                          title: 'Open source licenses',
+                          subtitle: 'Libraries bundled with this build',
+                          onTap: () {
+                            showLicensePage(
+                              context: context,
+                              applicationName: 'Keyel',
+                              applicationVersion: AppInfo.version,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: KeyelSpacing.xxl),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

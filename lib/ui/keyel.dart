@@ -3,6 +3,7 @@
 /// Screens import this barrel instead of individual widget files.
 library;
 
+export 'adaptive/content.dart';
 export 'adaptive/hinge.dart';
 export 'adaptive/keyel_shell.dart';
 export 'adaptive/keyel_shortcuts.dart';

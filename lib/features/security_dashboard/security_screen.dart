@@ -49,21 +49,18 @@ class SecurityScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 720),
-                  child: health.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (error, _) => _HealthError(
-                      message: describeVaultError(error),
-                      onRetry: () => ref.invalidate(healthProvider),
-                    ),
-                    data: (report) => _Dashboard(
-                      report: report,
-                      onOpen: (category) =>
-                          _openCategory(context, ref, report, category),
-                    ),
+              child: KeyelContent(
+                child: health.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => _HealthError(
+                    message: describeVaultError(error),
+                    onRetry: () => ref.invalidate(healthProvider),
+                  ),
+                  data: (report) => _Dashboard(
+                    report: report,
+                    onOpen: (category) =>
+                        _openCategory(context, ref, report, category),
                   ),
                 ),
               ),
@@ -105,10 +102,10 @@ class _Dashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        KeyelSpacing.md,
+      padding: EdgeInsets.fromLTRB(
+        context.pageMargin,
         KeyelSpacing.xs,
-        KeyelSpacing.md,
+        context.pageMargin,
         KeyelSpacing.xl,
       ),
       children: [

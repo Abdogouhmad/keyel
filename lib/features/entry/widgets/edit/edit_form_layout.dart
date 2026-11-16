@@ -121,49 +121,52 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
   Widget build(BuildContext context) {
     final twoColumns = WindowSizeClass.of(context).supportsListDetail;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        KeyelSpacing.md,
-        KeyelSpacing.xs,
-        KeyelSpacing.md,
-        KeyelSpacing.lg,
-      ),
-      children: [
-        KeyelSegmentedControl<VaultEntryKind>(
-          selected: widget.kind,
-          onChanged: widget.onKindChanged,
-          options: const [
-            KeyelSegmentOption(
-              value: VaultEntryKind.login,
-              label: 'Login',
-              icon: Icons.key_rounded,
-            ),
-            KeyelSegmentOption(
-              value: VaultEntryKind.card,
-              label: 'Card',
-              icon: Icons.credit_card_rounded,
-            ),
-            KeyelSegmentOption(
-              value: VaultEntryKind.note,
-              label: 'Note',
-              icon: Icons.description_rounded,
-            ),
-          ],
+    return KeyelContent(
+      maxWidth: twoColumns ? KeyelContentWidth.page : KeyelContentWidth.form,
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(
+          context.pageMargin,
+          KeyelSpacing.xs,
+          context.pageMargin,
+          KeyelSpacing.lg,
         ),
-        const SizedBox(height: KeyelSpacing.lg),
-        IdentityCard(
-          icon: editKindIcon(widget.kind),
-          titleController: widget.controller.title,
-          onIconTap: () => showKeyelSnack(
-            context,
-            'Choosing a custom avatar arrives later.',
-            icon: Icons.palette_rounded,
+        children: [
+          KeyelSegmentedControl<VaultEntryKind>(
+            selected: widget.kind,
+            onChanged: widget.onKindChanged,
+            options: const [
+              KeyelSegmentOption(
+                value: VaultEntryKind.login,
+                label: 'Login',
+                icon: Icons.key_rounded,
+              ),
+              KeyelSegmentOption(
+                value: VaultEntryKind.card,
+                label: 'Card',
+                icon: Icons.credit_card_rounded,
+              ),
+              KeyelSegmentOption(
+                value: VaultEntryKind.note,
+                label: 'Note',
+                icon: Icons.description_rounded,
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: KeyelSpacing.md),
-        if (twoColumns) _buildColumns() else ..._stackedSections(),
-        const SizedBox(height: KeyelSpacing.lg),
-      ],
+          const SizedBox(height: KeyelSpacing.lg),
+          IdentityCard(
+            icon: editKindIcon(widget.kind),
+            titleController: widget.controller.title,
+            onIconTap: () => showKeyelSnack(
+              context,
+              'Choosing a custom avatar arrives later.',
+              icon: Icons.palette_rounded,
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.md),
+          if (twoColumns) _buildColumns() else ..._stackedSections(),
+          const SizedBox(height: KeyelSpacing.lg),
+        ],
+      ),
     );
   }
 

@@ -109,40 +109,43 @@ class FoldersScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: folders.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(KeyelSpacing.xl),
-                    child: Text(describeVaultError(error)),
-                  ),
-                ),
-                data: (items) {
-                  if (items.isEmpty) {
-                    return const _FoldersEmptyState();
-                  }
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(
-                      KeyelSpacing.md,
-                      KeyelSpacing.sm,
-                      KeyelSpacing.md,
-                      KeyelSpacing.xxl,
+              child: KeyelContent(
+                child: folders.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(KeyelSpacing.xl),
+                      child: Text(describeVaultError(error)),
                     ),
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: KeyelSpacing.sm),
-                    itemBuilder: (context, index) {
-                      final folder = items[index];
-                      return _FolderTile(
-                        folder: folder,
-                        onRename: () =>
-                            unawaited(_renameFolder(context, ref, folder)),
-                        onDelete: () =>
-                            unawaited(_deleteFolder(context, ref, folder)),
-                      );
-                    },
-                  );
-                },
+                  ),
+                  data: (items) {
+                    if (items.isEmpty) {
+                      return const _FoldersEmptyState();
+                    }
+                    return ListView.separated(
+                      padding: EdgeInsets.fromLTRB(
+                        context.pageMargin,
+                        KeyelSpacing.sm,
+                        context.pageMargin,
+                        KeyelSpacing.xxl,
+                      ),
+                      itemCount: items.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: KeyelSpacing.sm),
+                      itemBuilder: (context, index) {
+                        final folder = items[index];
+                        return _FolderTile(
+                          folder: folder,
+                          onRename: () =>
+                              unawaited(_renameFolder(context, ref, folder)),
+                          onDelete: () =>
+                              unawaited(_deleteFolder(context, ref, folder)),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ],

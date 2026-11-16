@@ -240,77 +240,80 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
                 child: LinearProgressIndicator(minHeight: 3),
               ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  KeyelSpacing.lg,
-                  KeyelSpacing.sm,
-                  KeyelSpacing.lg,
-                  KeyelSpacing.xxl,
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: KeyelSpacing.md),
-                    child: Text(
-                      'Move your vault in and out safely. Encrypted backups use '
-                      'their own password; CSV exports are plain text.',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
+              child: KeyelContent(
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    context.pageMargin,
+                    KeyelSpacing.sm,
+                    context.pageMargin,
+                    KeyelSpacing.xxl,
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: KeyelSpacing.md),
+                      child: Text(
+                        'Move your vault in and out safely. Encrypted backups use '
+                        'their own password; CSV exports are plain text.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                  ),
-                  const KeyelSectionLabel(
-                    label: 'Encrypted backup',
-                    icon: Icons.shield_rounded,
-                  ),
-                  const SizedBox(height: KeyelSpacing.sm),
-                  KeyelSectionCard(
-                    child: Column(
-                      children: [
-                        _ActionRow(
-                          icon: Icons.file_download_outlined,
-                          title: 'Export encrypted backup',
-                          subtitle: 'Save an encrypted copy of your vault',
-                          enabled: !_busy,
-                          onTap: () => unawaited(_exportBackup()),
-                        ),
-                        _ActionRow(
-                          icon: Icons.restore_rounded,
-                          title: 'Restore from backup',
-                          subtitle: 'Merge or replace your vault from a backup',
-                          enabled: !_busy,
-                          onTap: () => unawaited(_restoreBackup()),
-                        ),
-                      ],
+                    const KeyelSectionLabel(
+                      label: 'Encrypted backup',
+                      icon: Icons.shield_rounded,
                     ),
-                  ),
-                  const SizedBox(height: KeyelSpacing.lg),
-                  const KeyelSectionLabel(
-                    label: 'Import & export',
-                    icon: Icons.swap_vert_rounded,
-                  ),
-                  const SizedBox(height: KeyelSpacing.sm),
-                  KeyelSectionCard(
-                    child: Column(
-                      children: [
-                        _ActionRow(
-                          icon: Icons.upload_file_rounded,
-                          title: 'Import from CSV',
-                          subtitle: 'Bitwarden or Chrome password exports',
-                          enabled: !_busy,
-                          onTap: () => unawaited(_importCsv()),
-                        ),
-                        _ActionRow(
-                          icon: Icons.file_upload_outlined,
-                          title: 'Export as plain CSV',
-                          subtitle: 'Unencrypted — for moving to another app',
-                          danger: true,
-                          enabled: !_busy,
-                          onTap: () => unawaited(_exportCsv()),
-                        ),
-                      ],
+                    const SizedBox(height: KeyelSpacing.sm),
+                    KeyelSectionCard(
+                      child: Column(
+                        children: [
+                          _ActionRow(
+                            icon: Icons.file_download_outlined,
+                            title: 'Export encrypted backup',
+                            subtitle: 'Save an encrypted copy of your vault',
+                            enabled: !_busy,
+                            onTap: () => unawaited(_exportBackup()),
+                          ),
+                          _ActionRow(
+                            icon: Icons.restore_rounded,
+                            title: 'Restore from backup',
+                            subtitle:
+                                'Merge or replace your vault from a backup',
+                            enabled: !_busy,
+                            onTap: () => unawaited(_restoreBackup()),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: KeyelSpacing.lg),
+                    const KeyelSectionLabel(
+                      label: 'Import & export',
+                      icon: Icons.swap_vert_rounded,
+                    ),
+                    const SizedBox(height: KeyelSpacing.sm),
+                    KeyelSectionCard(
+                      child: Column(
+                        children: [
+                          _ActionRow(
+                            icon: Icons.upload_file_rounded,
+                            title: 'Import from CSV',
+                            subtitle: 'Bitwarden or Chrome password exports',
+                            enabled: !_busy,
+                            onTap: () => unawaited(_importCsv()),
+                          ),
+                          _ActionRow(
+                            icon: Icons.file_upload_outlined,
+                            title: 'Export as plain CSV',
+                            subtitle: 'Unencrypted — for moving to another app',
+                            danger: true,
+                            enabled: !_busy,
+                            onTap: () => unawaited(_exportCsv()),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

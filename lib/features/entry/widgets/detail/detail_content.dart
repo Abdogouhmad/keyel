@@ -68,59 +68,61 @@ class DetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        KeyelSpacing.md,
-        0,
-        KeyelSpacing.md,
-        KeyelSpacing.lg,
+    return KeyelContent(
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(
+          context.pageMargin,
+          0,
+          context.pageMargin,
+          KeyelSpacing.lg,
+        ),
+        children: [
+          DetailHero(entry: entry),
+          if (entry.kind == VaultEntryKind.card)
+            CardDetails(
+              entry: entry,
+              detail: detail,
+              revealedNumber: revealedCardNumber,
+              revealedCvv: revealedCvv,
+              onToggleReveal: onToggleRevealCard,
+              onCopy: onCopy,
+            )
+          else if (entry.kind == VaultEntryKind.login)
+            CredentialsCard(
+              entry: entry,
+              detail: detail,
+              revealedPassword: revealedPassword,
+              onToggleReveal: onToggleRevealPassword,
+              onCopy: onCopy,
+              onCopyPassword: onCopyPassword,
+              onOpenUrl: onOpenUrl,
+            )
+          else
+            NoteDetails(
+              entry: entry,
+              detail: detail,
+              revealedContent: revealedNote,
+              onToggleReveal: onToggleRevealNote,
+              onCopy: onCopy,
+            ),
+          if (entry.kind == VaultEntryKind.login &&
+              detail.login?.totpAlgorithm != null) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            EntryTotpCard(
+              entryId: detail.id,
+              period: detail.login?.totpPeriod ?? 30,
+              onCopy: onCopy,
+            ),
+          ],
+          const SizedBox(height: KeyelSpacing.md),
+          HealthCard(entry: entry, revealedPassword: revealedPassword),
+          if (detail.hasNotes) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            NotesCard(entryId: detail.id, onCopy: onCopy),
+          ],
+          const SizedBox(height: KeyelSpacing.lg),
+        ],
       ),
-      children: [
-        DetailHero(entry: entry),
-        if (entry.kind == VaultEntryKind.card)
-          CardDetails(
-            entry: entry,
-            detail: detail,
-            revealedNumber: revealedCardNumber,
-            revealedCvv: revealedCvv,
-            onToggleReveal: onToggleRevealCard,
-            onCopy: onCopy,
-          )
-        else if (entry.kind == VaultEntryKind.login)
-          CredentialsCard(
-            entry: entry,
-            detail: detail,
-            revealedPassword: revealedPassword,
-            onToggleReveal: onToggleRevealPassword,
-            onCopy: onCopy,
-            onCopyPassword: onCopyPassword,
-            onOpenUrl: onOpenUrl,
-          )
-        else
-          NoteDetails(
-            entry: entry,
-            detail: detail,
-            revealedContent: revealedNote,
-            onToggleReveal: onToggleRevealNote,
-            onCopy: onCopy,
-          ),
-        if (entry.kind == VaultEntryKind.login &&
-            detail.login?.totpAlgorithm != null) ...[
-          const SizedBox(height: KeyelSpacing.md),
-          EntryTotpCard(
-            entryId: detail.id,
-            period: detail.login?.totpPeriod ?? 30,
-            onCopy: onCopy,
-          ),
-        ],
-        const SizedBox(height: KeyelSpacing.md),
-        HealthCard(entry: entry, revealedPassword: revealedPassword),
-        if (detail.hasNotes) ...[
-          const SizedBox(height: KeyelSpacing.md),
-          NotesCard(entryId: detail.id, onCopy: onCopy),
-        ],
-        const SizedBox(height: KeyelSpacing.lg),
-      ],
     );
   }
 }

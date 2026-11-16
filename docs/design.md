@@ -185,6 +185,25 @@ Typography is split intentionally between human-scale interaction and high-preci
 ## Layout & Spacing
 The layout follows a responsive 4-column structure on mobile devices (width &lt; 600dp), stepping up to an 8-column layout on foldable unfolding states and small tablets (600dp to 839dp), and a 12-column dual-pane layout for large displays (&gt;= 840dp).
 
+### Content Width & Adaptive Margins
+Every screen body is wrapped in a shared `KeyelContent` column
+(`lib/ui/adaptive/content.dart`) that centers the content and caps its width, so
+a single column of text and controls never stretches across a tablet or desktop
+window. The cap depends on the screen:
+
+- **Form (560dp)** — focused, single-column tasks: onboarding, unlock, the
+  generator and the entry editor on narrow windows.
+- **Reading (720dp)** — settings, the security dashboard, list pages and the
+  entry detail body.
+- **Page (1000dp)** — wide, multi-column pages such as the two-column entry
+  editor.
+
+Page margins and card gaps grow with the window size class: `pageMargin` is
+16dp on phones, 24dp on tablets and 32dp on large windows, and `contentGap` is
+16dp on phones and 24dp above. The master/detail two-pane layout activates at
+840dp (`WindowSizeClass.supportsListDetail`), with the list pane scaling
+between 320dp and 420dp.
+
 ### Touch Ergonomics & Reachability
 - Primary actions live in the thumb-accessible bottom quadrant. 
 - Touch targets must never fall below `48dp x 48dp`, with standard operational triggers optimized to `56dp` height.

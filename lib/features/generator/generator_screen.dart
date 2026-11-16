@@ -228,117 +228,120 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(
-                  KeyelSpacing.md,
-                  KeyelSpacing.xs,
-                  KeyelSpacing.md,
-                  KeyelSpacing.xl,
-                ),
-                children: [
-                  KeyelSegmentedControl<_GeneratorMode>(
-                    selected: _mode,
-                    onChanged: _setMode,
-                    options: const [
-                      KeyelSegmentOption(
-                        value: _GeneratorMode.password,
-                        label: 'Password',
-                      ),
-                      KeyelSegmentOption(
-                        value: _GeneratorMode.passphrase,
-                        label: 'Passphrase',
-                      ),
-                    ],
+              child: KeyelContent(
+                maxWidth: KeyelContentWidth.form,
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    context.pageMargin,
+                    KeyelSpacing.xs,
+                    context.pageMargin,
+                    KeyelSpacing.xl,
                   ),
-                  const SizedBox(height: KeyelSpacing.lg),
-                  GeneratorResultCard(
-                    value: _display,
-                    modeName: _modeName,
-                    onRegenerate: _regenerate,
-                    onCopy: _copy,
-                  ),
-                  const SizedBox(height: KeyelSpacing.lg),
-                  KeyelStrengthMeter(strength: _strength),
-                  const SizedBox(height: KeyelSpacing.lg),
-                  if (_mode == _GeneratorMode.password)
-                    PasswordConfig(
-                      length: _length,
-                      onChanged: (value) {
-                        setState(() => _length = value);
-                        _persist();
-                      },
-                      onChangeEnd: _regenerate,
-                    )
-                  else
-                    PassphraseConfig(
-                      wordCount: _wordCount,
-                      onChanged: (value) {
-                        setState(() => _wordCount = value);
-                        _persist();
-                      },
-                      onChangeEnd: _regenerate,
-                    ),
-                  const SizedBox(height: KeyelSpacing.lg),
-                  if (_mode == _GeneratorMode.password)
-                    CharacterRules(
-                      includeUppercase: _includeUppercase,
-                      includeLowercase: _includeLowercase,
-                      includeNumbers: _includeNumbers,
-                      includeSymbols: _includeSymbols,
-                      excludeAmbiguous: _excludeAmbiguous,
-                      onUppercaseChanged: (value) =>
-                          _setCharacterClass(uppercase: value),
-                      onLowercaseChanged: (value) =>
-                          _setCharacterClass(lowercase: value),
-                      onNumbersChanged: (value) =>
-                          _setCharacterClass(numbers: value),
-                      onSymbolsChanged: (value) =>
-                          _setCharacterClass(symbols: value),
-                      onExcludeAmbiguousChanged: _setExcludeAmbiguous,
-                    )
-                  else
-                    Column(
-                      children: [
-                        PassphraseRules(
-                          capitalizeFirst: _capitalizeFirst,
-                          includeNumber: _includeNumber,
-                          separator: _separator,
-                          onCapitalizeFirstChanged: (v) {
-                            setState(() {
-                              _capitalizeFirst = v;
-                              _passphrase = _generatePassphrase();
-                            });
-                            _persist();
-                          },
-                          onIncludeNumberChanged: (v) {
-                            setState(() {
-                              _includeNumber = v;
-                              _passphrase = _generatePassphrase();
-                            });
-                            _persist();
-                          },
-                          onSeparatorChanged: (v) {
-                            setState(() {
-                              _separator = v;
-                              _passphrase = _generatePassphrase();
-                            });
-                            _persist();
-                          },
+                  children: [
+                    KeyelSegmentedControl<_GeneratorMode>(
+                      selected: _mode,
+                      onChanged: _setMode,
+                      options: const [
+                        KeyelSegmentOption(
+                          value: _GeneratorMode.password,
+                          label: 'Password',
                         ),
-                        const SizedBox(height: KeyelSpacing.lg),
-                        const PassphraseTip(),
+                        KeyelSegmentOption(
+                          value: _GeneratorMode.passphrase,
+                          label: 'Passphrase',
+                        ),
                       ],
                     ),
-                  const SizedBox(height: KeyelSpacing.lg),
-                  KeyelPillButton(
-                    label: _mode == _GeneratorMode.password
-                        ? 'Use this password'
-                        : 'Use this passphrase',
-                    icon: Icons.check_rounded,
-                    onPressed: _copy,
-                  ),
-                  const SizedBox(height: KeyelSpacing.lg),
-                ],
+                    const SizedBox(height: KeyelSpacing.lg),
+                    GeneratorResultCard(
+                      value: _display,
+                      modeName: _modeName,
+                      onRegenerate: _regenerate,
+                      onCopy: _copy,
+                    ),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    KeyelStrengthMeter(strength: _strength),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    if (_mode == _GeneratorMode.password)
+                      PasswordConfig(
+                        length: _length,
+                        onChanged: (value) {
+                          setState(() => _length = value);
+                          _persist();
+                        },
+                        onChangeEnd: _regenerate,
+                      )
+                    else
+                      PassphraseConfig(
+                        wordCount: _wordCount,
+                        onChanged: (value) {
+                          setState(() => _wordCount = value);
+                          _persist();
+                        },
+                        onChangeEnd: _regenerate,
+                      ),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    if (_mode == _GeneratorMode.password)
+                      CharacterRules(
+                        includeUppercase: _includeUppercase,
+                        includeLowercase: _includeLowercase,
+                        includeNumbers: _includeNumbers,
+                        includeSymbols: _includeSymbols,
+                        excludeAmbiguous: _excludeAmbiguous,
+                        onUppercaseChanged: (value) =>
+                            _setCharacterClass(uppercase: value),
+                        onLowercaseChanged: (value) =>
+                            _setCharacterClass(lowercase: value),
+                        onNumbersChanged: (value) =>
+                            _setCharacterClass(numbers: value),
+                        onSymbolsChanged: (value) =>
+                            _setCharacterClass(symbols: value),
+                        onExcludeAmbiguousChanged: _setExcludeAmbiguous,
+                      )
+                    else
+                      Column(
+                        children: [
+                          PassphraseRules(
+                            capitalizeFirst: _capitalizeFirst,
+                            includeNumber: _includeNumber,
+                            separator: _separator,
+                            onCapitalizeFirstChanged: (v) {
+                              setState(() {
+                                _capitalizeFirst = v;
+                                _passphrase = _generatePassphrase();
+                              });
+                              _persist();
+                            },
+                            onIncludeNumberChanged: (v) {
+                              setState(() {
+                                _includeNumber = v;
+                                _passphrase = _generatePassphrase();
+                              });
+                              _persist();
+                            },
+                            onSeparatorChanged: (v) {
+                              setState(() {
+                                _separator = v;
+                                _passphrase = _generatePassphrase();
+                              });
+                              _persist();
+                            },
+                          ),
+                          const SizedBox(height: KeyelSpacing.lg),
+                          const PassphraseTip(),
+                        ],
+                      ),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    KeyelPillButton(
+                      label: _mode == _GeneratorMode.password
+                          ? 'Use this password'
+                          : 'Use this passphrase',
+                      icon: Icons.check_rounded,
+                      onPressed: _copy,
+                    ),
+                    const SizedBox(height: KeyelSpacing.lg),
+                  ],
+                ),
               ),
             ),
           ],

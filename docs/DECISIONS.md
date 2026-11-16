@@ -76,6 +76,28 @@ design (docs/roadmap.md header).
   half of the upgrade-path check (item 6); the device half still needs an older
   APK installed over a newer one.
 
+## 2026-11-16
+
+- **The responsive reform uses one shared content helper, not per-screen
+  widths.** Screen bodies each picked their own `ConstrainedBox` max width, or
+  had none and stretched edge-to-edge. They now share `KeyelContent` +
+  `KeyelWindowSpacing` (`lib/ui/adaptive/content.dart`), so phone / tablet /
+  desktop behaviour is defined once, named (`form` 560 / `reading` 720 /
+  `page` 1000 dp) and testable, instead of a scattering of magic numbers.
+
+- **"Desktop" means large windows and the Linux target, not new OS targets.**
+  The app ships `android/` and `linux/` only. The responsive work tunes the
+  existing `WindowSizeClass` layouts for wide windows (and therefore the Linux
+  desktop build); it does not add Windows, macOS or web targets. Adding those is
+  a separate, larger decision that has not been made.
+
+- **The vault list-detail split moves from 720 dp to the design-spec 840 dp.**
+  At 720–839 dp the medium nav rail already takes 76 dp, leaving too little room
+  for a 380 dp list plus a usable detail pane. The split now follows
+  `WindowSizeClass.supportsListDetail` (>= 840 dp) in both `VaultLayout` and
+  `VaultListPane`, and the list pane scales between 320 and 420 dp instead of a
+  fixed 380 dp.
+
 ## 2026-11-14
 
 - **Phase 0.11 (Hardening and accessibility) is scoped to security hardening

@@ -37,10 +37,8 @@ class VaultListPane extends StatelessWidget {
   /// Called when the user opens an entry.
   final OnVaultEntryOpen onOpenEntry;
 
-  bool _isWide(BuildContext context) {
-    final windowClass = WindowSizeClass.of(context);
-    return !windowClass.isCompact && MediaQuery.sizeOf(context).width >= 720;
-  }
+  bool _isWide(BuildContext context) =>
+      WindowSizeClass.of(context).supportsListDetail;
 
   void _handleRowLongPress(VaultEntry entry) {
     unawaited(Haptics.medium());
