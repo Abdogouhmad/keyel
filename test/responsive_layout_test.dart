@@ -6,11 +6,15 @@ import 'package:keyel/data/file_transfer_service.dart';
 import 'package:keyel/data/health_provider.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/autofill/autofill_picker_screen.dart';
+import 'package:keyel/features/autofill/autofill_save_screen.dart';
 import 'package:keyel/features/import_export/import_export_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/adaptive/content.dart';
+import 'package:keyel/ui/adaptive/keyel_shell.dart';
 import 'package:keyel/ui/adaptive/window.dart';
+import 'package:keyel/ui/design_system/keyel_top_bar.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 const _cleanReport = HealthReportDto(
@@ -36,6 +40,21 @@ class _FakeRepository extends VaultRepository {
 
   @override
   Stream<String> lockEvents() => const Stream<String>.empty();
+
+  @override
+  Future<List<AutofillMatchDto>> findAutofillMatches({
+    String? package,
+    String? webDomain,
+    String query = '',
+  }) async => const [];
+}
+
+/// A vault session pinned to `locked`: the autofill picker only needs the
+/// status to build its locked state without touching Rust.
+class _LockedSession extends VaultSessionNotifier {
+  @override
+  VaultSessionState build() =>
+      const VaultSessionState(status: VaultStatus.locked);
 }
 
 /// An in-memory file transfer service: no picker, no share sheet, no disk.
@@ -82,6 +101,33 @@ Widget _importExportHost() => ProviderScope(
     theme: KeyelTheme.light(),
     home: const ImportExportScreen(),
   ),
+);
+
+Widget _pickerHost() => ProviderScope(
+  overrides: [
+    vaultRepositoryProvider.overrideWithValue(_FakeRepository()),
+    vaultSessionProvider.overrideWith(_LockedSession.new),
+  ],
+  child: MaterialApp(
+    theme: KeyelTheme.light(),
+    home: const AutofillPickerScreen(),
+  ),
+);
+
+Widget _saveHost() => ProviderScope(
+  overrides: [vaultRepositoryProvider.overrideWithValue(_FakeRepository())],
+  child: MaterialApp(
+    theme: KeyelTheme.light(),
+    home: const AutofillSaveScreen(),
+  ),
+);
+
+/// A sub-page host: [KeyelSubShell] around a bare marker, with no router (the
+/// shell only reaches for one when a nav item is tapped). Size the window with
+/// `_sizeTo` before pumping.
+Widget _subShellHost({int tabIndex = KeyelTab.settings}) => MaterialApp(
+  theme: KeyelTheme.light(),
+  home: KeyelSubShell(tabIndex: tabIndex, child: const Text('sub-page')),
 );
 
 void main() {
@@ -213,6 +259,94 @@ void main() {
         tester.getSize(find.byType(ListView)).width,
         KeyelContentWidth.reading,
       );
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('KeyelSubShell keeps the nav chrome on wide windows', () {
+    testWidgets('compact is a pass-through: no shell chrome', (tester) async {
+      _sizeTo(tester, 400);
+      await tester.pumpWidget(_subShellHost());
+      await tester.pumpAndSettle();
+
+      expect(find.text('sub-page'), findsOneWidget);
+      // The page is returned directly, not wrapped in a rail/drawer scaffold.
+      expect(find.byType(Scaffold), findsNothing);
+      expect(find.text('Vault'), findsNothing);
+    });
+
+    testWidgets('medium shows the icon-only rail', (tester) async {
+      _sizeTo(tester, 700);
+      await tester.pumpWidget(_subShellHost());
+      await tester.pumpAndSettle();
+
+      expect(find.text('sub-page'), findsOneWidget);
+      expect(find.byType(Scaffold), findsOneWidget);
+      // Icon-only: the labels are hidden.
+      expect(find.text('Vault'), findsNothing);
+      expect(find.byIcon(Icons.key_outlined), findsOneWidget);
+    });
+
+    testWidgets('expanded shows the labelled rail and highlights its tab', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1000);
+      await tester.pumpWidget(_subShellHost());
+      await tester.pumpAndSettle();
+
+      expect(find.text('sub-page'), findsOneWidget);
+      expect(find.text('Vault'), findsOneWidget);
+      // The sub-page's own tab (settings) is the selected one.
+      expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.settings_outlined), findsNothing);
+    });
+
+    testWidgets('large shows the drawer navigation', (tester) async {
+      _sizeTo(tester, 1200);
+      await tester.pumpWidget(_subShellHost());
+      await tester.pumpAndSettle();
+
+      expect(find.text('sub-page'), findsOneWidget);
+      expect(find.text('Keyel'), findsOneWidget); // Drawer brand header.
+      expect(find.text('Vault'), findsOneWidget);
+    });
+  });
+
+  group('autofill screens cap their content column', () {
+    testWidgets('picker caps at 720 on a desktop window', (tester) async {
+      _sizeTo(tester, 1600);
+      await tester.pumpWidget(_pickerHost());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSize(find.byType(KeyelTopBar)).width,
+        KeyelContentWidth.reading,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('save screen caps at 560 on a desktop window', (tester) async {
+      _sizeTo(tester, 1600);
+      await tester.pumpWidget(_saveHost());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSize(find.byType(KeyelTopBar)).width,
+        KeyelContentWidth.form,
+      );
+      expect(
+        tester.getSize(find.byType(ListView)).width,
+        KeyelContentWidth.form,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('save screen fills a phone', (tester) async {
+      _sizeTo(tester, 400);
+      await tester.pumpWidget(_saveHost());
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(ListView)).width, 400);
       expect(tester.takeException(), isNull);
     });
   });
