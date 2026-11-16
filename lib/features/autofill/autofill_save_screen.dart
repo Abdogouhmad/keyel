@@ -156,121 +156,124 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
     return Scaffold(
       backgroundColor: scheme.surface,
       body: SafeArea(
-        child: Column(
-          children: [
-            KeyelTopBar(
-              title: 'Save login?',
-              icon: Icons.close_rounded,
-              onIconTap: _decline,
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: KeyelSpacing.lg),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      KeyelSpacing.lg,
-                      KeyelSpacing.xs,
-                      KeyelSpacing.lg,
-                      KeyelSpacing.sm,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.save_rounded,
-                          size: 18,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: KeyelSpacing.xs),
-                        Expanded(
-                          child: Text(
-                            'Store these credentials for $_targetLabel',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: KeyelSpacing.lg,
-                    ),
-                    child: TextField(
-                      controller: _title,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: KeyelSpacing.md),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: KeyelSpacing.lg,
-                    ),
-                    child: TextField(
-                      controller: _username,
-                      textInputAction: TextInputAction.next,
-                      autocorrect: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: KeyelSpacing.md),
-                  KeyelPasswordField(
-                    controller: _password,
-                    label: 'Password',
-                    textInputAction: TextInputAction.done,
-                  ),
-                  if (_error != null)
+        child: KeyelContent(
+          maxWidth: KeyelContentWidth.form,
+          child: Column(
+            children: [
+              KeyelTopBar(
+                title: 'Save login?',
+                icon: Icons.close_rounded,
+                onIconTap: _decline,
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: KeyelSpacing.lg),
+                  children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         KeyelSpacing.lg,
-                        KeyelSpacing.md,
+                        KeyelSpacing.xs,
                         KeyelSpacing.lg,
-                        0,
+                        KeyelSpacing.sm,
                       ),
-                      child: Text(
-                        _error!,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: scheme.error,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.save_rounded,
+                            size: 18,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: KeyelSpacing.xs),
+                          Expanded(
+                            child: Text(
+                              'Store these credentials for $_targetLabel',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: KeyelSpacing.lg,
+                      ),
+                      child: TextField(
+                        controller: _title,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
                         ),
                       ),
                     ),
-                ],
+                    const SizedBox(height: KeyelSpacing.md),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: KeyelSpacing.lg,
+                      ),
+                      child: TextField(
+                        controller: _username,
+                        textInputAction: TextInputAction.next,
+                        autocorrect: false,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: KeyelSpacing.md),
+                    KeyelPasswordField(
+                      controller: _password,
+                      label: 'Password',
+                      textInputAction: TextInputAction.done,
+                    ),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          KeyelSpacing.lg,
+                          KeyelSpacing.md,
+                          KeyelSpacing.lg,
+                          0,
+                        ),
+                        child: Text(
+                          _error!,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: scheme.error,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                KeyelSpacing.lg,
-                KeyelSpacing.xs,
-                KeyelSpacing.lg,
-                KeyelSpacing.md,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  KeyelSpacing.lg,
+                  KeyelSpacing.xs,
+                  KeyelSpacing.lg,
+                  KeyelSpacing.md,
+                ),
+                child: Column(
+                  children: [
+                    KeyelPillButton(
+                      label: 'Save login',
+                      icon: Icons.check_rounded,
+                      height: 48,
+                      onPressed: _saving ? null : () => unawaited(_save()),
+                    ),
+                    const SizedBox(height: KeyelSpacing.xs),
+                    KeyelPillButton(
+                      label: 'Not now',
+                      tone: KeyelButtonTone.neutral,
+                      height: 48,
+                      onPressed: _saving ? null : _decline,
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                children: [
-                  KeyelPillButton(
-                    label: 'Save login',
-                    icon: Icons.check_rounded,
-                    height: 48,
-                    onPressed: _saving ? null : () => unawaited(_save()),
-                  ),
-                  const SizedBox(height: KeyelSpacing.xs),
-                  KeyelPillButton(
-                    label: 'Not now',
-                    tone: KeyelButtonTone.neutral,
-                    height: 48,
-                    onPressed: _saving ? null : _decline,
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

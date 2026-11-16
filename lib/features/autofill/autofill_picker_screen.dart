@@ -181,115 +181,119 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
     return Scaffold(
       backgroundColor: scheme.surface,
       body: SafeArea(
-        child: Column(
-          children: [
-            KeyelTopBar(
-              title: 'Fill from Keyel',
-              icon: Icons.close_rounded,
-              onIconTap: () => _close(null),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                KeyelSpacing.lg,
-                KeyelSpacing.xs,
-                KeyelSpacing.lg,
-                KeyelSpacing.sm,
+        child: KeyelContent(
+          child: Column(
+            children: [
+              KeyelTopBar(
+                title: 'Fill from Keyel',
+                icon: Icons.close_rounded,
+                onIconTap: () => _close(null),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.vpn_key_rounded,
-                    size: 18,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: KeyelSpacing.xs),
-                  Expanded(
-                    child: Text(
-                      'Filling $_targetLabel',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.lg),
-              child: KeyelSearchField(
-                controller: _search,
-                hintText: 'Search vault',
-              ),
-            ),
-            if (_showMismatchWarning)
-              _MismatchBanner(target: _targetLabel)
-            else
-              const SizedBox(height: KeyelSpacing.sm),
-            Expanded(
-              child: !unlocked
-                  ? const _CenteredNote(
-                      icon: Icons.lock_rounded,
-                      title: 'Vault locked',
-                      body: 'Unlock Keyel to fill this form.',
-                    )
-                  : _error != null
-                  ? _CenteredNote(
-                      icon: Icons.error_outline_rounded,
-                      title: 'Could not load matches',
-                      body: _error!,
-                    )
-                  : _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _matches.isEmpty
-                  ? const _CenteredNote(
-                      icon: Icons.search_off_rounded,
-                      title: 'No matching logins',
-                      body: 'Create a new login for this app or site.',
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(
-                        top: KeyelSpacing.xs,
-                        bottom: KeyelSpacing.lg,
-                      ),
-                      itemCount: _matches.length,
-                      itemBuilder: (context, index) {
-                        final match = _matches[index];
-                        return KeyelEntryTile(
-                          id: match.summary.id,
-                          title: match.summary.title,
-                          subtitle: match.summary.subtitle,
-                          icon: Icons.key_rounded,
-                          favorite: match.summary.favorite,
-                          hasTotp: match.summary.hasTotp,
-                          onTap: () => unawaited(_pick(match)),
-                        );
-                      },
-                    ),
-            ),
-            if (unlocked)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   KeyelSpacing.lg,
                   KeyelSpacing.xs,
                   KeyelSpacing.lg,
-                  KeyelSpacing.md,
+                  KeyelSpacing.sm,
                 ),
-                child: KeyelPillButton(
-                  label: 'Create new login',
-                  icon: Icons.add_rounded,
-                  tone: KeyelButtonTone.tonal,
-                  height: 48,
-                  onPressed: () {
-                    final onCreateNew = widget.onCreateNew;
-                    if (onCreateNew != null) {
-                      onCreateNew();
-                    } else {
-                      _close(null);
-                    }
-                  },
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.vpn_key_rounded,
+                      size: 18,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: KeyelSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        'Filling $_targetLabel',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KeyelSpacing.lg,
+                ),
+                child: KeyelSearchField(
+                  controller: _search,
+                  hintText: 'Search vault',
+                ),
+              ),
+              if (_showMismatchWarning)
+                _MismatchBanner(target: _targetLabel)
+              else
+                const SizedBox(height: KeyelSpacing.sm),
+              Expanded(
+                child: !unlocked
+                    ? const _CenteredNote(
+                        icon: Icons.lock_rounded,
+                        title: 'Vault locked',
+                        body: 'Unlock Keyel to fill this form.',
+                      )
+                    : _error != null
+                    ? _CenteredNote(
+                        icon: Icons.error_outline_rounded,
+                        title: 'Could not load matches',
+                        body: _error!,
+                      )
+                    : _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _matches.isEmpty
+                    ? const _CenteredNote(
+                        icon: Icons.search_off_rounded,
+                        title: 'No matching logins',
+                        body: 'Create a new login for this app or site.',
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(
+                          top: KeyelSpacing.xs,
+                          bottom: KeyelSpacing.lg,
+                        ),
+                        itemCount: _matches.length,
+                        itemBuilder: (context, index) {
+                          final match = _matches[index];
+                          return KeyelEntryTile(
+                            id: match.summary.id,
+                            title: match.summary.title,
+                            subtitle: match.summary.subtitle,
+                            icon: Icons.key_rounded,
+                            favorite: match.summary.favorite,
+                            hasTotp: match.summary.hasTotp,
+                            onTap: () => unawaited(_pick(match)),
+                          );
+                        },
+                      ),
+              ),
+              if (unlocked)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    KeyelSpacing.lg,
+                    KeyelSpacing.xs,
+                    KeyelSpacing.lg,
+                    KeyelSpacing.md,
+                  ),
+                  child: KeyelPillButton(
+                    label: 'Create new login',
+                    icon: Icons.add_rounded,
+                    tone: KeyelButtonTone.tonal,
+                    height: 48,
+                    onPressed: () {
+                      final onCreateNew = widget.onCreateNew;
+                      if (onCreateNew != null) {
+                        onCreateNew();
+                      } else {
+                        _close(null);
+                      }
+                    },
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

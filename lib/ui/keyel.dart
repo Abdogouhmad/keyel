@@ -4,10 +4,8 @@
 library;
 
 export 'adaptive/content.dart';
-export 'adaptive/hinge.dart';
 export 'adaptive/keyel_shell.dart';
 export 'adaptive/keyel_shortcuts.dart';
-export 'adaptive/list_detail.dart';
 export 'adaptive/window.dart';
 export 'design_system/keyel_action_button_group.dart';
 export 'design_system/keyel_adaptive_sheet.dart';
