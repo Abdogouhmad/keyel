@@ -5,56 +5,48 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.0] - 2026-11-16
+## [1.0.0] - 2026-11-16
 
-Beta: daily-use polish, self-service diagnostics and a responsive UI reform.
+First stable release: an offline-first, privacy-first password manager for
+Android, with a pure Rust crypto core and a Flutter UI.
 
 ### Added
 
-- **Report a problem** in Settings: writes a redacted `keyel-diagnostics.txt`
-  (app version, platform and non-secret settings only) and opens the share
-  sheet so it can be attached to a bug report. Secrets and recent searches are
-  excluded by construction.
-- `ISSUES.md`, a running friction log for the beta with a severity scale.
-- User documentation in the README: quick start, an FAQ (forgotten master
-  password, where data lives, what the diagnostics file contains) and backup
-  advice.
-
-### Changed
-
-- **Responsive UI reform.** Every screen body now shares one adaptive content
-  helper that centers content in a width-capped column (560 / 720 / 1000 dp)
-  with window-dependent page margins (16 / 24 / 32 dp). The generator, folders,
-  trash, import/export, entry detail and entry editor were previously
-  edge-to-edge on tablet and desktop windows.
-- The vault master/detail two-pane layout now activates at 840 dp (the design
-  spec breakpoint) instead of 720 dp, and the list pane scales between 320 and
-  420 dp instead of a fixed 380 dp.
-- The "Clears in …" clipboard snackbar now reflects the configured clear delay
-  instead of a hardcoded 30 seconds; copying a secret also gives a light haptic.
-- Release builds use the provisioned keystore when `android/key.properties`
-  exists and fall back to the debug key only on a fresh clone; `build.sh`
-  refuses to publish a debug-signed APK.
-- Release builds stamp the APK's `versionCode` from the semantic version
-  (`major*10000 + minor*100 + patch`, so 0.12.0 → 1200) instead of the pubspec
-  build number, so successive releases always increase it and the Play Store
-  accepts the next upload.
-
-### Fixed
-
-- The open-source licenses page no longer shows a stale application version.
+- **Encrypted vault** — a single `vault.keyel` file in the app's private
+  storage, protected by an Argon2id-derived key and authenticated encryption.
+  Cloud and device backups are excluded for the vault file.
+- **Entries** — logins, payment cards and secure notes, organised with folders
+  and favourites, with search and a soft-delete trash that can restore or
+  permanently erase.
+- **Password generator** — passwords and passphrases with configurable rules
+  and a live strength meter.
+- **TOTP (2FA)** — store and display time-based one-time codes.
+- **Security dashboard** — a vault health score with weak, reused, old and
+  insecure-URL findings, plus missing-2FA detection.
+- **Import / export** — Bitwarden and generic CSV import, encrypted backup and
+  restore, and a plain (unencrypted) CSV export.
+- **Unlock options** — master password and optional biometric quick unlock,
+  with a recovery key that can reset a forgotten master password.
+- **Auto-lock** when the app leaves the foreground, and automatic clipboard
+  clearing of copied secrets after a configurable timeout.
+- **Android autofill** — the autofill service integration and its credential
+  picker.
+- **Adaptive UI** for phone, foldable, tablet and desktop windows, with a
+  high-contrast theme, reduced-motion support and TalkBack labels.
+- **Report a problem** — a redacted diagnostics file (app version, platform and
+  non-secret settings) shared manually; it never includes vault contents,
+  entry titles, passwords or key material.
 
 ### Security
 
-- The v1 vault file layout is frozen behind a byte-exact test fixture, so any
+- No `INTERNET` permission in release builds; data leaves the device only on an
+  explicit export or share.
+- All crypto and storage live in the Rust core (`crates/keyel_core`); secrets
+  are zeroized and Dart only ever receives what the user explicitly reveals.
+- The v1 vault file layout is frozen behind a byte-exact test fixture, so a
   format change that would strand existing vaults fails CI before it ships.
 
-## [0.11.0] - 2026-11-15
+### Notes
 
-Accessibility pass: a high-contrast theme, reduced-motion support, larger touch
-targets and TalkBack labels across the app.
-
-## [0.4.0] - 2026-11-08
-
-Initial vault core: encrypted on-disk format, unlock and biometric quick
-unlock, the credential list and the entry editor.
+- English-only. Localization (EN/FR/AR with RTL) is planned for a later
+  release.

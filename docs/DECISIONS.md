@@ -98,6 +98,15 @@ design (docs/roadmap.md header).
   `VaultListPane`, and the list pane scales between 320 and 420 dp instead of a
   fixed 380 dp.
 
+- **The changelog starts at 1.0.0; the 0.x pre-release history is discarded.**
+  Per the user's request, `CHANGELOG.md` carries a single `[1.0.0]` entry
+  describing the first stable release, and `pubspec.yaml` is bumped to
+  `1.0.0+1`. This means the versionCode becomes 10000
+  (`major*10000 + minor*100 + patch`) and `build.sh --release-notes` extracts the
+  `[1.0.0]` section. The 0.4.0 / 0.11.0 / 0.12.0 entries were dropped rather than
+  kept below, so the public changelog reads as a first release. The roadmap's
+  0.12 (Beta) work is folded into this 1.0.0 release.
+
 ## 2026-11-14
 
 - **Phase 0.11 (Hardening and accessibility) is scoped to security hardening

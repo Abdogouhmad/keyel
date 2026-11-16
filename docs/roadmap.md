@@ -539,9 +539,10 @@ FAQ is deferred.
   medium nav rail) and the list pane scales between 320 and 420 dp. Covered by
   `test/responsive_layout_test.dart`. "Desktop" here means large windows and the
   Linux target, not new Windows/macOS/web targets (see `docs/DECISIONS.md`).
-- **Release readiness: started.** `pubspec.yaml` is bumped to `0.12.0+1` and a
-  new `CHANGELOG.md` carries the `[0.12.0]` section that
-  `build.sh --release-notes` requires. The Android release build reads
+- **Release readiness: started.** `pubspec.yaml` is bumped to `1.0.0+1` and
+  `CHANGELOG.md` carries the single `[1.0.0]` section that
+  `build.sh --release-notes` requires (the 0.x pre-release history is discarded;
+  see `docs/DECISIONS.md`, 2026-11-16). The Android release build reads
   `android/key.properties` for a real keystore and falls back to the debug key
   only when it is absent; `build.sh verify_signing` now fails a debug-signed
   artifact in CI (or whenever `key.properties` exists) instead of silently
@@ -550,7 +551,8 @@ FAQ is deferred.
   previously computed and printed but never applied — the APK silently carried
   `versionCode 1`, which the Play Store rejects on the second upload.
 
-**Tag:** `v0.12.0` (and `v1.0.0-rc.1` when ready)
+**Tag:** `v1.0.0` (the Beta work is folded into this release; see the 1.0.0
+section and `docs/DECISIONS.md`, 2026-11-16)
 
 ---
 
