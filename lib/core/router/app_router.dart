@@ -105,17 +105,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: KeyelRoutes.unlock,
         builder: (context, state) => const UnlockVaultView(),
       ),
+      // Sub-pages pushed from the tabs. They are wrapped in KeyelSubShell so
+      // the rail/drawer stays visible on tablet and desktop windows; on phones
+      // KeyelSubShell is a pass-through and they stay full screen.
       GoRoute(
         path: KeyelRoutes.folders,
-        builder: (context, state) => const FoldersScreen(),
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.settings,
+          child: FoldersScreen(),
+        ),
       ),
       GoRoute(
         path: KeyelRoutes.trash,
-        builder: (context, state) => const TrashScreen(),
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.settings,
+          child: TrashScreen(),
+        ),
       ),
       GoRoute(
         path: KeyelRoutes.importExport,
-        builder: (context, state) => const ImportExportScreen(),
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.settings,
+          child: ImportExportScreen(),
+        ),
       ),
       GoRoute(
         path: KeyelRoutes.autofillPicker,
@@ -126,7 +138,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: KeyelRoutes.newEntry,
-        builder: (context, state) => const EntryEditScreen(),
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.vault,
+          child: EntryEditScreen(),
+        ),
       ),
       GoRoute(
         path: KeyelRoutes.debug,
@@ -134,13 +149,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '${KeyelRoutes.entryRoot}/:id/edit',
-        builder: (context, state) =>
-            EntryEditScreen(entryId: state.pathParameters['id']),
+        builder: (context, state) => KeyelSubShell(
+          tabIndex: KeyelTab.vault,
+          child: EntryEditScreen(entryId: state.pathParameters['id']),
+        ),
       ),
       GoRoute(
         path: '${KeyelRoutes.entryRoot}/:id',
-        builder: (context, state) =>
-            EntryDetailScreen(entryId: state.pathParameters['id']!),
+        builder: (context, state) => KeyelSubShell(
+          tabIndex: KeyelTab.vault,
+          child: EntryDetailScreen(entryId: state.pathParameters['id']!),
+        ),
       ),
     ],
   );

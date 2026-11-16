@@ -48,6 +48,22 @@ const _destinations = [
   ),
 ];
 
+/// Tab indices for [KeyelSubShell], matching [_destinations] and the branch
+/// order in the app router.
+abstract final class KeyelTab {
+  /// The vault / home tab.
+  static const int vault = 0;
+
+  /// The generator tab.
+  static const int generator = 1;
+
+  /// The security dashboard tab.
+  static const int security = 2;
+
+  /// The settings tab.
+  static const int settings = 3;
+}
+
 /// Root shell widget that wraps the tab content with the appropriate
 /// navigation chrome: bottom nav on compact, rail on medium+.
 class KeyelShell extends StatelessWidget {
@@ -80,7 +96,7 @@ class KeyelShell extends StatelessWidget {
 
     if (windowClass.isCompact) {
       return _BottomNavScaffold(
-        shell: navigationShell,
+        currentIndex: navigationShell.currentIndex,
         content: _content(context, navigationShell),
         onTap: _onTap,
       );
@@ -88,7 +104,7 @@ class KeyelShell extends StatelessWidget {
     if (windowClass == WindowSizeClass.medium) {
       // Icon-only rail.
       return _RailScaffold(
-        shell: navigationShell,
+        currentIndex: navigationShell.currentIndex,
         content: _content(context, navigationShell),
         onTap: _onTap,
         width: 76,
@@ -98,7 +114,7 @@ class KeyelShell extends StatelessWidget {
     if (windowClass == WindowSizeClass.expanded) {
       // Rail with labels.
       return _RailScaffold(
-        shell: navigationShell,
+        currentIndex: navigationShell.currentIndex,
         content: _content(context, navigationShell),
         onTap: _onTap,
         width: 108,
@@ -108,9 +124,61 @@ class KeyelShell extends StatelessWidget {
 
     // Large: drawer navigation.
     return _DrawerScaffold(
-      shell: navigationShell,
+      currentIndex: navigationShell.currentIndex,
       content: _content(context, navigationShell),
       onTap: _onTap,
+    );
+  }
+}
+
+/// Wraps a pushed sub-page (folders, trash, import/export, the entry editor)
+/// with the same navigation chrome as [KeyelShell] on tablet and desktop
+/// windows, so the rail or drawer stays visible instead of the page covering
+/// it. On compact phones the page is returned as-is (full screen), matching
+/// the previous behaviour.
+class KeyelSubShell extends StatelessWidget {
+  /// Creates the sub-page chrome.
+  const new({required this.tabIndex, required this.child, super.key});
+
+  /// Index of the tab this sub-page logically belongs to, highlighted in the
+  /// rail/drawer. The rail still navigates to every tab.
+  final int tabIndex;
+
+  /// The pushed page.
+  final Widget child;
+
+  void _go(BuildContext context, int index) =>
+      context.go(_destinations[index].path);
+
+  @override
+  Widget build(BuildContext context) {
+    final windowClass = WindowSizeClass.of(context);
+
+    // Phones keep the previous full-screen push.
+    if (windowClass.isCompact) return child;
+
+    if (windowClass == WindowSizeClass.medium) {
+      return _RailScaffold(
+        currentIndex: tabIndex,
+        content: child,
+        onTap: (index) => _go(context, index),
+        width: 76,
+        showLabels: false,
+      );
+    }
+    if (windowClass == WindowSizeClass.expanded) {
+      return _RailScaffold(
+        currentIndex: tabIndex,
+        content: child,
+        onTap: (index) => _go(context, index),
+        width: 108,
+        showLabels: true,
+      );
+    }
+    return _DrawerScaffold(
+      currentIndex: tabIndex,
+      content: child,
+      onTap: (index) => _go(context, index),
     );
   }
 }
@@ -120,9 +188,13 @@ class KeyelShell extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _BottomNavScaffold extends StatelessWidget {
-  const new({required this.shell, required this.content, required this.onTap});
+  const new({
+    required this.currentIndex,
+    required this.content,
+    required this.onTap,
+  });
 
-  final StatefulNavigationShell shell;
+  final int currentIndex;
   final Widget content;
   final ValueChanged<int> onTap;
 
@@ -131,7 +203,7 @@ class _BottomNavScaffold extends StatelessWidget {
     return Scaffold(
       body: content,
       bottomNavigationBar: _KeyelBottomNav(
-        currentIndex: shell.currentIndex,
+        currentIndex: currentIndex,
         onTap: onTap,
       ),
     );
@@ -250,14 +322,14 @@ class _NavItem extends StatelessWidget {
 
 class _RailScaffold extends StatelessWidget {
   const new({
-    required this.shell,
+    required this.currentIndex,
     required this.content,
     required this.onTap,
     required this.width,
     required this.showLabels,
   });
 
-  final StatefulNavigationShell shell;
+  final int currentIndex;
   final Widget content;
   final ValueChanged<int> onTap;
   final double width;
@@ -297,7 +369,7 @@ class _RailScaffold extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: KeyelSpacing.sm),
                       child: _RailItem(
                         destination: _destinations[i],
-                        selected: i == shell.currentIndex,
+                        selected: i == currentIndex,
                         onTap: () => onTap(i),
                         showLabel: showLabels,
                       ),
@@ -318,9 +390,13 @@ class _RailScaffold extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _DrawerScaffold extends StatelessWidget {
-  const new({required this.shell, required this.content, required this.onTap});
+  const new({
+    required this.currentIndex,
+    required this.content,
+    required this.onTap,
+  });
 
-  final StatefulNavigationShell shell;
+  final int currentIndex;
   final Widget content;
   final ValueChanged<int> onTap;
 
@@ -385,7 +461,7 @@ class _DrawerScaffold extends StatelessWidget {
                         for (var i = 0; i < _destinations.length; i++)
                           _DrawerItem(
                             destination: _destinations[i],
-                            selected: i == shell.currentIndex,
+                            selected: i == currentIndex,
                             onTap: () => onTap(i),
                           ),
                       ],
