@@ -107,6 +107,26 @@ design (docs/roadmap.md header).
   kept below, so the public changelog reads as a first release. The roadmap's
   0.12 (Beta) work is folded into this 1.0.0 release.
 
+- **Pushed sub-pages keep the shell chrome via `KeyelSubShell`, not nested
+  shell routes.** Folders, trash, import/export, the entry editor and entry
+  detail are top-level `GoRoute`s, so on a tablet/desktop they used to cover the
+  nav rail. Rather than restructure them into the `StatefulShellRoute` branches
+  (which would change their back-stack semantics and the route table), each is
+  wrapped in a small `KeyelSubShell` that reuses the existing rail/drawer chrome
+  and is a pass-through on compact phones. The rail's selected index comes from
+  a `KeyelTab` constant (vault for the entry routes, settings for
+  folders/trash/import-export); tapping a rail item does `context.go` to that
+  tab. The autofill picker and `/debug` stay top-level — the picker is a
+  separate Flutter entrypoint and `/debug` must be reachable while locked.
+
+- **Dead adaptive code is deleted, not kept "for later".** `KeyelListDetail` /
+  `KeyelEmptyDetail` (`lib/ui/adaptive/list_detail.dart`) and the foldable-hinge
+  helpers (`lib/ui/adaptive/hinge.dart`) were only referenced by each other and
+  the `ui/keyel.dart` barrel; `VaultLayout` had already stopped using them, so
+  there was no dedicated foldable-hinge layout. `UnlockPlaceholderScreen` was
+  likewise unreferenced. All three files and their barrel exports are removed so
+  the adaptive surface reflects what actually ships.
+
 ## 2026-11-14
 
 - **Phase 0.11 (Hardening and accessibility) is scoped to security hardening

@@ -204,6 +204,13 @@ Page margins and card gaps grow with the window size class: `pageMargin` is
 840dp (`WindowSizeClass.supportsListDetail`), with the list pane scaling
 between 320dp and 420dp.
 
+Pushed sub-pages (folders, trash, import/export, the entry editor and entry
+detail) are wrapped in `KeyelSubShell` (`lib/ui/adaptive/keyel_shell.dart`) so
+they reuse the same navigation chrome as the tab shell: on a phone they remain
+full-screen pushes, while on a tablet or desktop window the rail or drawer
+stays visible beside the page instead of being covered. The autofill picker and
+save screens cap at reading (720dp) and form (560dp) width respectively.
+
 ### Touch Ergonomics & Reachability
 - Primary actions live in the thumb-accessible bottom quadrant. 
 - Touch targets must never fall below `48dp x 48dp`, with standard operational triggers optimized to `56dp` height.

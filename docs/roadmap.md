@@ -536,9 +536,15 @@ FAQ is deferred.
   and entry editor were previously edge-to-edge on wide windows and are now
   capped. The vault list-detail two-pane layout activates at the design-spec
   840 dp (it used to split at 720 dp, which squeezed the detail pane beside the
-  medium nav rail) and the list pane scales between 320 and 420 dp. Covered by
-  `test/responsive_layout_test.dart`. "Desktop" here means large windows and the
-  Linux target, not new Windows/macOS/web targets (see `docs/DECISIONS.md`).
+  medium nav rail) and the list pane scales between 320 and 420 dp. Pushed
+  sub-pages (folders, trash, import/export, entry editor, entry detail) now run
+  inside the shell via `KeyelSubShell`, so the rail or drawer survives on wide
+  windows instead of the page covering it; the autofill picker/save screens and
+  the vault detail placeholder are capped too. Dead adaptive code that nothing
+  used (`KeyelListDetail`/`KeyelEmptyDetail` and the foldable-hinge helpers) was
+  removed. Covered by `test/responsive_layout_test.dart`. "Desktop" here means
+  large windows and the Linux target, not new Windows/macOS/web targets (see
+  `docs/DECISIONS.md`).
 - **Release readiness: started.** `pubspec.yaml` is bumped to `1.0.0+1` and
   `CHANGELOG.md` carries the single `[1.0.0]` section that
   `build.sh --release-notes` requires (the 0.x pre-release history is discarded;
