@@ -448,4 +448,20 @@ mod tests {
         assert_eq!(phrase.matches('_').count(), 3, "{}", &**phrase);
         assert!(phrase.rsplit('_').next().unwrap().parse::<u8>().is_ok());
     }
+
+    #[test]
+    fn wordlist_entries_are_plain_ascii_letters() {
+        // A passphrase word must not contain a character the separator tests
+        // rely on. A hyphen inside a word (e.g. the old "so-called") made
+        // `phrase.matches('-')` counts ambiguous, so
+        // `passphrase_default_separator_is_hyphen` and
+        // `passphrase_custom_and_empty_separator` failed intermittently
+        // whenever that word was randomly drawn.
+        for word in WORDLIST {
+            assert!(
+                word.chars().all(|c| c.is_ascii_alphabetic()),
+                "wordlist entry {word:?} is not plain ASCII letters"
+            );
+        }
+    }
 }

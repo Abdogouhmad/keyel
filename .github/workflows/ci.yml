@@ -7,6 +7,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Pinned to the version the project is developed and verified against. CI ran
+  # green on 3.47.9; drifting to stable 3.50.0 broke the Android Gradle Plugin
+  # check (needs AGP 9.1.1) and the cargokit Rust build on Windows.
+  FLUTTER_VERSION: 3.47.9
 
 jobs:
   rust:
@@ -44,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
       - name: Rust toolchain for bridge check
         uses: dtolnay/rust-toolchain@1.97.0
         with:
@@ -52,7 +56,10 @@ jobs:
       - name: Regenerate FRB bindings and fail if out of date
         run: |
           cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
-          flutter_rust_bridge_codegen generate --no-web
+          # Must match build.sh: generate WITHOUT --no-web, because the committed
+          # bindings include the web module (frb_generated.web.dart + `mod web`).
+          # Generating with --no-web strips it and the diff check fails.
+          flutter_rust_bridge_codegen generate
           git diff --exit-code -- lib/src/rust rust/src/frb_generated.rs \
             || (echo "::error::Generated FRB bindings are out of date. Run 'flutter_rust_bridge_codegen generate' and commit the result." && exit 1)
       - name: flutter analyze
@@ -70,7 +77,7 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
       - name: Rust toolchain with android target
         uses: dtolnay/rust-toolchain@1.97.0
         with:
@@ -109,13 +116,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
       - uses: dtolnay/rust-toolchain@1.97.0
       - name: Linux desktop dependencies
         if: matrix.target == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev
       - name: Build ${{ matrix.target }} desktop bundle
         run: flutter build ${{ matrix.target }} --release
       - name: Upload ${{ matrix.target }} bundle

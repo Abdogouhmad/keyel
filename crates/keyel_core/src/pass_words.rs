@@ -1574,7 +1574,7 @@ pub const WORDLIST: &[&str] = &[
     "snap",
     "snow",
     "so",
-    "so-called",
+    "sober",
     "soccer",
     "social",
     "society",
