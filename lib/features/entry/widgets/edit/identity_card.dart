@@ -35,7 +35,16 @@ class IdentityCard extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                KeyelAvatar(icon: icon, tone: KeyelAvatarTone.slate, size: 64),
+                PressableScale(
+                  onTap: onIconTap,
+                  borderRadius: BorderRadius.circular(KeyelRadii.field),
+                  semanticLabel: 'Change icon',
+                  child: KeyelAvatar(
+                    icon: icon,
+                    tone: KeyelAvatarTone.slate,
+                    size: 64,
+                  ),
+                ),
                 Positioned(
                   right: -4,
                   bottom: -4,

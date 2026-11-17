@@ -18,7 +18,11 @@ use crate::error::Error;
 use super::history::{record_password_change, PasswordHistoryEntry};
 
 /// Current vault payload schema version.
-pub const VAULT_SCHEMA_VERSION: u16 = 1;
+///
+/// History:
+/// - v1: initial payload.
+/// - v2: entries gained an optional user-chosen `icon`.
+pub const VAULT_SCHEMA_VERSION: u16 = 2;
 
 /// How long a soft-deleted entry stays in the trash.
 pub const TRASH_RETENTION_SECS: u64 = 30 * 24 * 60 * 60;
@@ -69,6 +73,12 @@ pub struct Entry {
     pub folder_id: Option<Uuid>,
     /// Whether the user marked this entry as a favorite.
     pub favorite: bool,
+    /// Optional user-chosen icon key (a stable slug resolved to a glyph by the
+    /// UI). `None` falls back to the default glyph for the entry kind.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v2 readable.
+    #[serde(default)]
+    pub icon: Option<String>,
     /// Creation time (Unix seconds).
     pub created_at: u64,
     /// Last modification time (Unix seconds).
@@ -90,6 +100,7 @@ impl Entry {
             tags: Vec::new(),
             folder_id: None,
             favorite: false,
+            icon: None,
             created_at: now,
             updated_at: now,
             deleted_at: None,
@@ -131,6 +142,7 @@ impl Entry {
             subtitle: self.body.subtitle(),
             favorite: self.favorite,
             folder_id: self.folder_id,
+            icon: self.icon.clone(),
             has_totp: self.has_totp(),
             deleted_at: self.deleted_at,
         }
@@ -316,6 +328,8 @@ pub struct EntrySummary {
     pub favorite: bool,
     /// Folder, if any.
     pub folder_id: Option<Uuid>,
+    /// Optional user-chosen icon key, if set.
+    pub icon: Option<String>,
     /// Whether the entry has TOTP.
     pub has_totp: bool,
     /// Trash marker, if soft-deleted (Unix seconds).

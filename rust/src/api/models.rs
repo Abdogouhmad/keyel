@@ -95,6 +95,8 @@ pub struct EntrySummaryDto {
     pub favorite: bool,
     /// Folder, if any.
     pub folder_id: Option<String>,
+    /// Optional user-chosen icon key, if set.
+    pub icon: Option<String>,
     /// Whether the entry has TOTP configured.
     pub has_totp: bool,
     /// Trash marker, if soft-deleted (Unix seconds).
@@ -110,6 +112,7 @@ impl From<EntrySummary> for EntrySummaryDto {
             subtitle: summary.subtitle,
             favorite: summary.favorite,
             folder_id: summary.folder_id.map(|id| id.to_string()),
+            icon: summary.icon,
             has_totp: summary.has_totp,
             deleted_at: summary.deleted_at,
         }
@@ -172,6 +175,8 @@ pub struct EntryDetailDto {
     pub folder_id: Option<String>,
     /// Favorite flag.
     pub favorite: bool,
+    /// Optional user-chosen icon key, if set.
+    pub icon: Option<String>,
     /// Creation time (Unix seconds).
     pub created_at: u64,
     /// Last modification time (Unix seconds).
@@ -231,6 +236,7 @@ impl From<&Entry> for EntryDetailDto {
             tags: entry.tags.clone(),
             folder_id: entry.folder_id.map(|id| id.to_string()),
             favorite: entry.favorite,
+            icon: entry.icon.clone(),
             created_at: entry.created_at,
             updated_at: entry.updated_at,
             deleted_at: entry.deleted_at,
@@ -263,6 +269,8 @@ pub struct EntryDraft {
     pub folder_id: Option<String>,
     /// Favorite flag.
     pub favorite: bool,
+    /// Optional user-chosen icon key.
+    pub icon: Option<String>,
     /// Login username.
     pub username: String,
     /// Login password. `None` keeps the existing password on update.

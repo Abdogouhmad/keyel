@@ -109,6 +109,9 @@ class EntryDetailDto {
   /// Favorite flag.
   final bool favorite;
 
+  /// Optional user-chosen icon key, if set.
+  final String? icon;
+
   /// Creation time (Unix seconds).
   final BigInt createdAt;
 
@@ -137,6 +140,7 @@ class EntryDetailDto {
     required this.tags,
     this.folderId,
     required this.favorite,
+    this.icon,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -154,6 +158,7 @@ class EntryDetailDto {
       tags.hashCode ^
       folderId.hashCode ^
       favorite.hashCode ^
+      icon.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode ^
       deletedAt.hashCode ^
@@ -173,6 +178,7 @@ class EntryDetailDto {
           tags == other.tags &&
           folderId == other.folderId &&
           favorite == other.favorite &&
+          icon == other.icon &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt &&
           deletedAt == other.deletedAt &&
@@ -208,6 +214,9 @@ class EntryDraft {
 
   /// Favorite flag.
   final bool favorite;
+
+  /// Optional user-chosen icon key.
+  final String? icon;
 
   /// Login username.
   final String username;
@@ -256,6 +265,7 @@ class EntryDraft {
     required this.tags,
     this.folderId,
     required this.favorite,
+    this.icon,
     required this.username,
     this.password,
     required this.url,
@@ -280,6 +290,7 @@ class EntryDraft {
       tags.hashCode ^
       folderId.hashCode ^
       favorite.hashCode ^
+      icon.hashCode ^
       username.hashCode ^
       password.hashCode ^
       url.hashCode ^
@@ -306,6 +317,7 @@ class EntryDraft {
           tags == other.tags &&
           folderId == other.folderId &&
           favorite == other.favorite &&
+          icon == other.icon &&
           username == other.username &&
           password == other.password &&
           url == other.url &&
@@ -353,6 +365,9 @@ class EntrySummaryDto {
   /// Folder, if any.
   final String? folderId;
 
+  /// Optional user-chosen icon key, if set.
+  final String? icon;
+
   /// Whether the entry has TOTP configured.
   final bool hasTotp;
 
@@ -366,6 +381,7 @@ class EntrySummaryDto {
     required this.subtitle,
     required this.favorite,
     this.folderId,
+    this.icon,
     required this.hasTotp,
     this.deletedAt,
   });
@@ -378,6 +394,7 @@ class EntrySummaryDto {
       subtitle.hashCode ^
       favorite.hashCode ^
       folderId.hashCode ^
+      icon.hashCode ^
       hasTotp.hashCode ^
       deletedAt.hashCode;
 
@@ -392,6 +409,7 @@ class EntrySummaryDto {
           subtitle == other.subtitle &&
           favorite == other.favorite &&
           folderId == other.folderId &&
+          icon == other.icon &&
           hasTotp == other.hasTotp &&
           deletedAt == other.deletedAt;
 }

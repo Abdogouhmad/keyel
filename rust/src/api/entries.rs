@@ -75,6 +75,7 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
         let tags = draft.tags.clone();
         let folder_id = draft.folder_id.as_deref().map(parse_id).transpose()?;
         let favorite = draft.favorite;
+        let icon = draft.icon.clone();
 
         let body = match kind {
             EntryKindDto::Login => {
@@ -108,6 +109,7 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
                 entry.tags = tags;
                 entry.folder_id = folder_id;
                 entry.favorite = favorite;
+                entry.icon = icon;
                 entry.body = body;
                 session.vault_mut().update_entry(entry)?;
                 id
@@ -118,6 +120,7 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
                 entry.tags = tags;
                 entry.folder_id = folder_id;
                 entry.favorite = favorite;
+                entry.icon = icon;
                 session.vault_mut().add_entry(entry)
             }
         };

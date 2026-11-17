@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/features/entry/models/entry_icon.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/design_system/keyel_avatar.dart';
 
@@ -23,6 +24,7 @@ class VaultEntry {
     required this.title,
     required this.kind,
     required this.icon,
+    this.iconKey,
     this.username = '',
     this.password = '',
     this.website,
@@ -55,17 +57,14 @@ class VaultEntry {
       EntryKindDto.card => VaultEntryKind.card,
       EntryKindDto.note => VaultEntryKind.note,
     };
-    final icon = switch (summary.kind) {
-      EntryKindDto.login => Icons.key_rounded,
-      EntryKindDto.card => Icons.credit_card_rounded,
-      EntryKindDto.note => Icons.sticky_note_2_rounded,
-    };
+    final icon = resolveEntryIcon(summary.icon, kind);
 
     return VaultEntry(
       id: summary.id,
       title: summary.title,
       kind: kind,
       icon: icon,
+      iconKey: summary.icon,
       username: summary.subtitle,
       favorite: summary.favorite,
       hasTotp: summary.hasTotp,
@@ -89,17 +88,14 @@ class VaultEntry {
       EntryKindDto.card => VaultEntryKind.card,
       EntryKindDto.note => VaultEntryKind.note,
     };
-    final icon = switch (detail.kind) {
-      EntryKindDto.login => Icons.key_rounded,
-      EntryKindDto.card => Icons.credit_card_rounded,
-      EntryKindDto.note => Icons.sticky_note_2_rounded,
-    };
+    final icon = resolveEntryIcon(detail.icon, kind);
 
     return VaultEntry(
       id: detail.id,
       title: detail.title,
       kind: kind,
       icon: icon,
+      iconKey: detail.icon,
       username: detail.login?.username ?? '',
       website: detail.login?.url,
       folder: _folderLabel(detail.folderId, folderNames),
@@ -127,6 +123,9 @@ class VaultEntry {
 
   /// Service glyph.
   final IconData icon;
+
+  /// Optional icon slug key, if chosen by the user.
+  final String? iconKey;
 
   /// Login account name, empty for cards and notes.
   final String username;

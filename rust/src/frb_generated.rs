@@ -1352,6 +1352,7 @@ impl SseDecode for crate::api::models::EntryDetailDto {
         let mut var_tags = <Vec<String>>::sse_decode(deserializer);
         let mut var_folderId = <Option<String>>::sse_decode(deserializer);
         let mut var_favorite = <bool>::sse_decode(deserializer);
+        let mut var_icon = <Option<String>>::sse_decode(deserializer);
         let mut var_createdAt = <u64>::sse_decode(deserializer);
         let mut var_updatedAt = <u64>::sse_decode(deserializer);
         let mut var_deletedAt = <Option<u64>>::sse_decode(deserializer);
@@ -1366,6 +1367,7 @@ impl SseDecode for crate::api::models::EntryDetailDto {
             tags: var_tags,
             folder_id: var_folderId,
             favorite: var_favorite,
+            icon: var_icon,
             created_at: var_createdAt,
             updated_at: var_updatedAt,
             deleted_at: var_deletedAt,
@@ -1387,6 +1389,7 @@ impl SseDecode for crate::api::models::EntryDraft {
         let mut var_tags = <Vec<String>>::sse_decode(deserializer);
         let mut var_folderId = <Option<String>>::sse_decode(deserializer);
         let mut var_favorite = <bool>::sse_decode(deserializer);
+        let mut var_icon = <Option<String>>::sse_decode(deserializer);
         let mut var_username = <String>::sse_decode(deserializer);
         let mut var_password = <Option<String>>::sse_decode(deserializer);
         let mut var_url = <String>::sse_decode(deserializer);
@@ -1409,6 +1412,7 @@ impl SseDecode for crate::api::models::EntryDraft {
             tags: var_tags,
             folder_id: var_folderId,
             favorite: var_favorite,
+            icon: var_icon,
             username: var_username,
             password: var_password,
             url: var_url,
@@ -1448,6 +1452,7 @@ impl SseDecode for crate::api::models::EntrySummaryDto {
         let mut var_subtitle = <String>::sse_decode(deserializer);
         let mut var_favorite = <bool>::sse_decode(deserializer);
         let mut var_folderId = <Option<String>>::sse_decode(deserializer);
+        let mut var_icon = <Option<String>>::sse_decode(deserializer);
         let mut var_hasTotp = <bool>::sse_decode(deserializer);
         let mut var_deletedAt = <Option<u64>>::sse_decode(deserializer);
         return crate::api::models::EntrySummaryDto {
@@ -1457,6 +1462,7 @@ impl SseDecode for crate::api::models::EntrySummaryDto {
             subtitle: var_subtitle,
             favorite: var_favorite,
             folder_id: var_folderId,
+            icon: var_icon,
             has_totp: var_hasTotp,
             deleted_at: var_deletedAt,
         };
@@ -2153,6 +2159,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::models::EntryDetailDto {
             self.tags.into_into_dart().into_dart(),
             self.folder_id.into_into_dart().into_dart(),
             self.favorite.into_into_dart().into_dart(),
+            self.icon.into_into_dart().into_dart(),
             self.created_at.into_into_dart().into_dart(),
             self.updated_at.into_into_dart().into_dart(),
             self.deleted_at.into_into_dart().into_dart(),
@@ -2186,6 +2193,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::models::EntryDraft {
             self.tags.into_into_dart().into_dart(),
             self.folder_id.into_into_dart().into_dart(),
             self.favorite.into_into_dart().into_dart(),
+            self.icon.into_into_dart().into_dart(),
             self.username.into_into_dart().into_dart(),
             self.password.into_into_dart().into_dart(),
             self.url.into_into_dart().into_dart(),
@@ -2246,6 +2254,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::models::EntrySummaryDto {
             self.subtitle.into_into_dart().into_dart(),
             self.favorite.into_into_dart().into_dart(),
             self.folder_id.into_into_dart().into_dart(),
+            self.icon.into_into_dart().into_dart(),
             self.has_totp.into_into_dart().into_dart(),
             self.deleted_at.into_into_dart().into_dart(),
         ]
@@ -2730,6 +2739,7 @@ impl SseEncode for crate::api::models::EntryDetailDto {
         <Vec<String>>::sse_encode(self.tags, serializer);
         <Option<String>>::sse_encode(self.folder_id, serializer);
         <bool>::sse_encode(self.favorite, serializer);
+        <Option<String>>::sse_encode(self.icon, serializer);
         <u64>::sse_encode(self.created_at, serializer);
         <u64>::sse_encode(self.updated_at, serializer);
         <Option<u64>>::sse_encode(self.deleted_at, serializer);
@@ -2750,6 +2760,7 @@ impl SseEncode for crate::api::models::EntryDraft {
         <Vec<String>>::sse_encode(self.tags, serializer);
         <Option<String>>::sse_encode(self.folder_id, serializer);
         <bool>::sse_encode(self.favorite, serializer);
+        <Option<String>>::sse_encode(self.icon, serializer);
         <String>::sse_encode(self.username, serializer);
         <Option<String>>::sse_encode(self.password, serializer);
         <String>::sse_encode(self.url, serializer);
@@ -2792,6 +2803,7 @@ impl SseEncode for crate::api::models::EntrySummaryDto {
         <String>::sse_encode(self.subtitle, serializer);
         <bool>::sse_encode(self.favorite, serializer);
         <Option<String>>::sse_encode(self.folder_id, serializer);
+        <Option<String>>::sse_encode(self.icon, serializer);
         <bool>::sse_encode(self.has_totp, serializer);
         <Option<u64>>::sse_encode(self.deleted_at, serializer);
     }

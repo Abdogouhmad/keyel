@@ -9,7 +9,12 @@ import 'package:keyel/src/rust/api/models.dart';
 /// Kind and favorite flags restored from an existing entry.
 class LoadedEntry {
   /// Creates the summary.
-  const new({required this.kind, required this.favorite, this.folderId});
+  const new({
+    required this.kind,
+    required this.favorite,
+    this.folderId,
+    this.icon,
+  });
 
   /// Entry kind restored from the vault.
   final VaultEntryKind kind;
@@ -19,6 +24,9 @@ class LoadedEntry {
 
   /// Folder id restored from the vault, if any.
   final String? folderId;
+
+  /// Optional icon key slug restored from the vault.
+  final String? icon;
 }
 
 /// Owns the text controllers and persistence behind the entry editor.
@@ -35,6 +43,15 @@ class EntryEditController {
 
   /// Existing entry id, or `null` for a new entry.
   final String? entryId;
+
+  /// Optional icon slug chosen by the user.
+  String? iconKey;
+
+  /// Updates the icon key and requests a rebuild.
+  void setIconKey(String? key) {
+    iconKey = key;
+    callbacks.rebuild();
+  }
 
   /// Screen callbacks for rebuilds and user feedback.
   final EntryEditCallbacks callbacks;
@@ -145,10 +162,13 @@ class EntryEditController {
         } on Object catch (_) {}
       }
 
+      iconKey = detail.icon;
+
       return LoadedEntry(
         kind: kind,
         favorite: detail.favorite,
         folderId: detail.folderId,
+        icon: detail.icon,
       );
     } on Object catch (error) {
       callbacks.notifyError(error);
@@ -215,6 +235,7 @@ class EntryEditController {
       tags: const [],
       folderId: folderId,
       favorite: favorite,
+      icon: iconKey,
       username: username.text.trim(),
       password: password.text.isNotEmpty ? password.text : null,
       url: website.text.trim(),

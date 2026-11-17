@@ -6,9 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/core/security/password_strength.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/entry_edit_controller.dart';
+import 'package:keyel/features/entry/models/entry_icon.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/entry/widgets/edit/card_section.dart';
-import 'package:keyel/features/entry/widgets/edit/edit_kind.dart';
+import 'package:keyel/features/entry/widgets/edit/icon_picker_sheet.dart';
 import 'package:keyel/features/entry/widgets/edit/identity_card.dart';
 import 'package:keyel/features/entry/widgets/edit/login_fields.dart';
 import 'package:keyel/features/entry/widgets/edit/notes_section.dart';
@@ -154,13 +155,21 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
           ),
           const SizedBox(height: KeyelSpacing.lg),
           IdentityCard(
-            icon: editKindIcon(widget.kind),
+            icon: resolveEntryIcon(widget.controller.iconKey, widget.kind),
             titleController: widget.controller.title,
-            onIconTap: () => showKeyelSnack(
-              context,
-              'Choosing a custom avatar arrives later.',
-              icon: Icons.palette_rounded,
-            ),
+            onIconTap: () async {
+              final selected = await IconPickerSheet.show(
+                context,
+                currentKey: widget.controller.iconKey,
+                kind: widget.kind,
+                title: widget.controller.title.text,
+              );
+              if (selected != null) {
+                widget.controller.setIconKey(
+                  selected.isEmpty ? null : selected,
+                );
+              }
+            },
           ),
           const SizedBox(height: KeyelSpacing.md),
           if (twoColumns) _buildColumns() else ..._stackedSections(),

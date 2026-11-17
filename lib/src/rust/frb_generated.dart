@@ -1426,8 +1426,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EntryDetailDto dco_decode_entry_detail_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 13)
-      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
+    if (arr.length != 14)
+      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
     return EntryDetailDto(
       id: dco_decode_String(arr[0]),
       kind: dco_decode_entry_kind_dto(arr[1]),
@@ -1435,13 +1435,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tags: dco_decode_list_String(arr[3]),
       folderId: dco_decode_opt_String(arr[4]),
       favorite: dco_decode_bool(arr[5]),
-      createdAt: dco_decode_u_64(arr[6]),
-      updatedAt: dco_decode_u_64(arr[7]),
-      deletedAt: dco_decode_opt_box_autoadd_u_64(arr[8]),
-      hasNotes: dco_decode_bool(arr[9]),
-      login: dco_decode_opt_box_autoadd_login_detail_dto(arr[10]),
-      card: dco_decode_opt_box_autoadd_card_detail_dto(arr[11]),
-      note: dco_decode_opt_box_autoadd_note_detail_dto(arr[12]),
+      icon: dco_decode_opt_String(arr[6]),
+      createdAt: dco_decode_u_64(arr[7]),
+      updatedAt: dco_decode_u_64(arr[8]),
+      deletedAt: dco_decode_opt_box_autoadd_u_64(arr[9]),
+      hasNotes: dco_decode_bool(arr[10]),
+      login: dco_decode_opt_box_autoadd_login_detail_dto(arr[11]),
+      card: dco_decode_opt_box_autoadd_card_detail_dto(arr[12]),
+      note: dco_decode_opt_box_autoadd_note_detail_dto(arr[13]),
     );
   }
 
@@ -1449,8 +1450,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EntryDraft dco_decode_entry_draft(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 20)
-      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
+    if (arr.length != 21)
+      throw Exception('unexpected arr length: expect 21 but see ${arr.length}');
     return EntryDraft(
       id: dco_decode_opt_String(arr[0]),
       kind: dco_decode_entry_kind_dto(arr[1]),
@@ -1459,19 +1460,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tags: dco_decode_list_String(arr[4]),
       folderId: dco_decode_opt_String(arr[5]),
       favorite: dco_decode_bool(arr[6]),
-      username: dco_decode_String(arr[7]),
-      password: dco_decode_opt_String(arr[8]),
-      url: dco_decode_String(arr[9]),
-      totpSecret: dco_decode_opt_String(arr[10]),
-      totpAlgorithm: dco_decode_totp_algorithm_dto(arr[11]),
-      totpDigits: dco_decode_u_8(arr[12]),
-      totpPeriod: dco_decode_u_32(arr[13]),
-      cardholder: dco_decode_String(arr[14]),
-      cardNumber: dco_decode_opt_String(arr[15]),
-      cardExpiry: dco_decode_String(arr[16]),
-      cardCvv: dco_decode_opt_String(arr[17]),
-      cardBrand: dco_decode_opt_String(arr[18]),
-      noteContent: dco_decode_opt_String(arr[19]),
+      icon: dco_decode_opt_String(arr[7]),
+      username: dco_decode_String(arr[8]),
+      password: dco_decode_opt_String(arr[9]),
+      url: dco_decode_String(arr[10]),
+      totpSecret: dco_decode_opt_String(arr[11]),
+      totpAlgorithm: dco_decode_totp_algorithm_dto(arr[12]),
+      totpDigits: dco_decode_u_8(arr[13]),
+      totpPeriod: dco_decode_u_32(arr[14]),
+      cardholder: dco_decode_String(arr[15]),
+      cardNumber: dco_decode_opt_String(arr[16]),
+      cardExpiry: dco_decode_String(arr[17]),
+      cardCvv: dco_decode_opt_String(arr[18]),
+      cardBrand: dco_decode_opt_String(arr[19]),
+      noteContent: dco_decode_opt_String(arr[20]),
     );
   }
 
@@ -1485,8 +1487,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EntrySummaryDto dco_decode_entry_summary_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 8)
-      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
     return EntrySummaryDto(
       id: dco_decode_String(arr[0]),
       kind: dco_decode_entry_kind_dto(arr[1]),
@@ -1494,8 +1496,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       subtitle: dco_decode_String(arr[3]),
       favorite: dco_decode_bool(arr[4]),
       folderId: dco_decode_opt_String(arr[5]),
-      hasTotp: dco_decode_bool(arr[6]),
-      deletedAt: dco_decode_opt_box_autoadd_u_64(arr[7]),
+      icon: dco_decode_opt_String(arr[6]),
+      hasTotp: dco_decode_bool(arr[7]),
+      deletedAt: dco_decode_opt_box_autoadd_u_64(arr[8]),
     );
   }
 
@@ -1965,6 +1968,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_tags = sse_decode_list_String(deserializer);
     var var_folderId = sse_decode_opt_String(deserializer);
     var var_favorite = sse_decode_bool(deserializer);
+    var var_icon = sse_decode_opt_String(deserializer);
     var var_createdAt = sse_decode_u_64(deserializer);
     var var_updatedAt = sse_decode_u_64(deserializer);
     var var_deletedAt = sse_decode_opt_box_autoadd_u_64(deserializer);
@@ -1979,6 +1983,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tags: var_tags,
       folderId: var_folderId,
       favorite: var_favorite,
+      icon: var_icon,
       createdAt: var_createdAt,
       updatedAt: var_updatedAt,
       deletedAt: var_deletedAt,
@@ -1999,6 +2004,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_tags = sse_decode_list_String(deserializer);
     var var_folderId = sse_decode_opt_String(deserializer);
     var var_favorite = sse_decode_bool(deserializer);
+    var var_icon = sse_decode_opt_String(deserializer);
     var var_username = sse_decode_String(deserializer);
     var var_password = sse_decode_opt_String(deserializer);
     var var_url = sse_decode_String(deserializer);
@@ -2020,6 +2026,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tags: var_tags,
       folderId: var_folderId,
       favorite: var_favorite,
+      icon: var_icon,
       username: var_username,
       password: var_password,
       url: var_url,
@@ -2052,6 +2059,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_subtitle = sse_decode_String(deserializer);
     var var_favorite = sse_decode_bool(deserializer);
     var var_folderId = sse_decode_opt_String(deserializer);
+    var var_icon = sse_decode_opt_String(deserializer);
     var var_hasTotp = sse_decode_bool(deserializer);
     var var_deletedAt = sse_decode_opt_box_autoadd_u_64(deserializer);
     return EntrySummaryDto(
@@ -2061,6 +2069,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       subtitle: var_subtitle,
       favorite: var_favorite,
       folderId: var_folderId,
+      icon: var_icon,
       hasTotp: var_hasTotp,
       deletedAt: var_deletedAt,
     );
@@ -2674,6 +2683,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_String(self.tags, serializer);
     sse_encode_opt_String(self.folderId, serializer);
     sse_encode_bool(self.favorite, serializer);
+    sse_encode_opt_String(self.icon, serializer);
     sse_encode_u_64(self.createdAt, serializer);
     sse_encode_u_64(self.updatedAt, serializer);
     sse_encode_opt_box_autoadd_u_64(self.deletedAt, serializer);
@@ -2693,6 +2703,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_String(self.tags, serializer);
     sse_encode_opt_String(self.folderId, serializer);
     sse_encode_bool(self.favorite, serializer);
+    sse_encode_opt_String(self.icon, serializer);
     sse_encode_String(self.username, serializer);
     sse_encode_opt_String(self.password, serializer);
     sse_encode_String(self.url, serializer);
@@ -2726,6 +2737,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.subtitle, serializer);
     sse_encode_bool(self.favorite, serializer);
     sse_encode_opt_String(self.folderId, serializer);
+    sse_encode_opt_String(self.icon, serializer);
     sse_encode_bool(self.hasTotp, serializer);
     sse_encode_opt_box_autoadd_u_64(self.deletedAt, serializer);
   }
