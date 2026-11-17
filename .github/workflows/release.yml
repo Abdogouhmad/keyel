@@ -151,18 +151,23 @@ jobs:
         run: ./build.sh --release-notes
 
       # Collision-safe: re-running for the SAME version replaces the release at
-      # the new commit (delete the old release + tag, then recreate).
+      # the new commit (delete the old release + tag, then recreate). The tag may
+      # also exist WITHOUT a release (e.g. a tag pushed by hand), so delete the
+      # remote tag whenever it is present rather than only when a release is.
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           TAG="${{ steps.version.outputs.tag }}"
-          # Drop the LOCAL tag before asking gh to clean up the remote one --
-          # otherwise the push below races the deletion and the run dies.
+          # Drop the LOCAL tag before touching the remote one -- otherwise the
+          # push below races the deletion and the run dies.
           git tag -d "$TAG" >/dev/null 2>&1 || true
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release delete "$TAG" --yes --cleanup-tag
+          fi
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            git push origin ":refs/tags/$TAG"
           fi
 
           shopt -s nullglob
