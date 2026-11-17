@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
 The Keyel Rust core, compiled and bundled for macOS.
                        DESC
   s.homepage         = 'https://github.com/Abdogouhmad/keyel'
-  s.license          = { :file => '../LICENSE' }
+  s.license          = { :file => '../../LICENSE' }
   s.author           = { 'Keyel' => 'noreply@example.com' }
 
   # This will ensure the source files in Classes/ are included in the native

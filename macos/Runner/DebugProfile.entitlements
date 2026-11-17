@@ -8,5 +8,11 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
+	<!-- Outgoing connections for the OTA update check/download. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Required by flutter_secure_storage (biometric credential store). -->
+	<key>keychain-access-groups</key>
+	<array/>
 </dict>
 </plist>

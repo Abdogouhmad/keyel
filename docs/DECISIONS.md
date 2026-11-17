@@ -46,6 +46,23 @@ design (docs/roadmap.md header).
   that every category is populated, so a future SDK or edit cannot silently
   shrink the picker.
 
+- **Desktop builds run on their own OS in CI, not from one host.** Flutter only
+  registers the *host* desktop build target (`flutter build windows` on Linux
+  fails with "only supported on Windows hosts", and `macos` is not even a
+  subcommand there), so a `desktop-build` matrix in
+  `.github/workflows/ci.yml` builds Linux on `ubuntu-latest`, Windows on
+  `windows-latest` and macOS on `macos-latest`. cargokit installs the Rust
+  target it needs, and macOS uses ad-hoc signing (`CODE_SIGN_IDENTITY = "-"`),
+  so no certificate is required.
+
+- **The macOS runner needs two entitlements and a podspec license fix.** A
+  sandboxed macOS app cannot use the keychain without `keychain-access-groups`
+  (required by `flutter_secure_storage`) or reach the network without
+  `com.apple.security.network.client` (the OTA update check); both are now in
+  `DebugProfile.entitlements` and `Release.entitlements`. The Rust podspec's
+  `:file => '../LICENSE'` resolved to a nonexistent `rust_builder/LICENSE`; it
+  now points at the repo `LICENSE` (`../../LICENSE`).
+
 ## 2026-11-15
 
 - **Phase 0.12 (Beta) starts on `phase/0.12-beta`; localization is deferred.**
