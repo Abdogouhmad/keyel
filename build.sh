@@ -23,9 +23,10 @@
 #     (skip locally with --skip-checks; always run in CI).
 #
 # Keyel is a password manager, so the release is also POLICY-CHECKED: every
-# APK must be signed, must NOT request the INTERNET permission, must NOT be
-# debuggable, and must have android:allowBackup="false". The build fails
-# rather than ship a release that breaks any of these.
+# APK must be signed, must NOT be debuggable, and must have
+# android:allowBackup="false". (Since 1.1.0 the OTA updater means INTERNET is
+# expected, so it is no longer forbidden.) The build fails rather than ship a
+# release that breaks any of these.
 #
 # Release-signing: Android refuses to install an unsigned release APK and
 # refuses a "signature update" over a differently-signed app, so every release
