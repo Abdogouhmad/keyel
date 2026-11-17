@@ -49,13 +49,25 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Rust toolchain for bridge check
         uses: dtolnay/rust-toolchain@1.97.0
         with:
           targets: x86_64-unknown-linux-gnu
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: frb-check
+      - name: Cache flutter_rust_bridge_codegen
+        id: frb-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/flutter_rust_bridge_codegen
+          key: frb-2.13.0-${{ runner.os }}-${{ runner.arch }}
+      - name: Install flutter_rust_bridge_codegen
+        if: steps.frb-cache.outputs.cache-hit != 'true'
+        run: cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
       - name: Regenerate FRB bindings and fail if out of date
         run: |
-          cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
           # Must match build.sh: generate WITHOUT --no-web, because the committed
           # bindings include the web module (frb_generated.web.dart + `mod web`).
           # Generating with --no-web strips it and the diff check fails.
@@ -78,10 +90,30 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Rust toolchain with android target
         uses: dtolnay/rust-toolchain@1.97.0
         with:
           targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: android-debug
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/**/*.gradle*') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
       - name: Build debug APK (debug only, device matrix in roadmap 0.11)
         run: flutter build apk --debug --target-platform android-arm64
       - name: upload artifact
@@ -125,7 +157,18 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - uses: dtolnay/rust-toolchain@1.97.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: desktop-${{ matrix.target }}
+      - name: Cache pub
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
       - name: Linux desktop dependencies
         if: matrix.target == 'linux'
         run: |

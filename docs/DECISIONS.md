@@ -128,6 +128,30 @@ design (docs/roadmap.md header).
   rebuild and replace a signed release; Walt releases on every push to `main`,
   which is the one place this deliberately deviates.
 
+- **The release is multi-platform: Android + Linux + Windows + macOS, all from
+  one trigger, with the CHANGELOG section as the release notes.**
+  `.github/workflows/release.yml` has three jobs. `android` (ubuntu) builds the
+  signed split-ABI + universal APKs via `./build.sh`. `desktop` is a matrix that
+  builds each host target on its own runner (Linux `tar.gz`, Windows `zip`,
+  macOS `ditto`-zipped `Keyel.app` arm64) because Flutter registers only the
+  host desktop target. `publish` (needs both) downloads every artifact into one
+  `dist/`, writes a single `checksums.txt` over all of them, creates the tag +
+  GitHub release with `--notes-file dist/notes.md` — the `## [<version>]`
+  section of CHANGELOG.md, used verbatim as the release notes and copied into
+  the manifest's `releaseNotes` — then rewrites/commits `update_manifest.json`.
+  macOS bundles are ad-hoc signed (no certificate), so Gatekeeper warns on first
+  launch; that matches what CI verifies today.
+
+- **Builds are cached aggressively so a release is dominated by the real
+  compiles.** Flutter SDK (`subosito/flutter-action` `cache: true`), the pub
+  cache, Gradle caches, the Rust target dir (`Swatinem/rust-cache`, one
+  `shared-key` per target), and the compiled `flutter_rust_bridge_codegen`
+  binary (`actions/cache` keyed on its version + OS + arch, so the slow
+  `cargo install` runs only on the first release or a version bump) are all
+  restored between runs. `cargo-audit` comes from `taiki-e/install-action`
+  (prebuilt). The same caches were added to the CI `flutter`,
+  `flutter-android-build` and `desktop-build` jobs.
+
 - **The release tag is created server-side, not pushed from the checkout.** The
   first 1.1.0 publish built, signed and staged all three APKs correctly but died
   in `Publish GitHub release`: after the pre-existing `v1.1.0` tag (pushed by
