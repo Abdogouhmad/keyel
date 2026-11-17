@@ -9,7 +9,15 @@ set(PROJECT_NAME "rust_lib_keyel")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 include("../cargokit/cmake/cargokit.cmake")
-apply_cargokit(${PROJECT_NAME} ../../rust rust_lib_keyel "")
+# NOTE: the Windows path depth differs from Linux/macOS on purpose. Flutter
+# builds this plugin through the symlink
+#   windows/flutter/ephemeral/.plugin_symlinks/rust_lib_keyel/windows/
+# and Windows collapses `..` LEXICALLY, before following that symlink (POSIX
+# resolves the symlink first). So `../../rust` would collapse to the bogus
+# `.plugin_symlinks/rust`; we must walk all the way up to the repo root, which
+# is 6 levels from here. This mirrors the flutter_rust_bridge Windows template
+# (../../../../../../). See docs/DECISIONS.md.
+apply_cargokit(${PROJECT_NAME} ../../../../../../rust rust_lib_keyel "")
 
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an

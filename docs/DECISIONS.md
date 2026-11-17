@@ -89,17 +89,32 @@ design (docs/roadmap.md header).
   static libc, so the run aborted in about 20 seconds without fuzzing anything.
   `.github/workflows/fuzz.yml` now passes `--target x86_64-unknown-linux-gnu`.
 
-- **The Windows desktop build is pinned to `windows-2022`, not `windows-latest`.**
-  `windows-latest` and `windows-2025` currently serve the beta
-  `windows-2025-vs2026` image: Visual Studio 18 (`v180`) with CMake 4.x
-  (actions/runner-images#14004). There, cargokit's CMake custom build fails with
-  `MSB8066 ... exited with code -1` and *no* diagnostic output, because
-  `flutter build windows` filters MSBuild's log (flutter/flutter#194906), so the
-  failure is invisible. The `desktop-build` Windows matrix entry now uses
-  `windows-2022`, which keeps Visual Studio 2022 (v170) — the toolchain the
-  desktop build is verified against. A `failure()`-only step re-runs the Windows
+- **The Windows desktop build failed on a relative-path bug in our CMake
+  scaffold, not on the runner image.** `rust_builder/windows/CMakeLists.txt`
+  passed cargokit `../../rust`, copied from the Linux template. Flutter builds
+  the plugin through the symlink
+  `windows/flutter/ephemeral/.plugin_symlinks/rust_lib_keyel/windows/`, and
+  Windows collapses `..` *lexically*, before following that symlink — POSIX
+  resolves the symlink first, which is exactly why Linux and macOS were fine.
+  So `.../rust_lib_keyel/windows/../../rust` collapsed to the nonexistent
+  `.plugin_symlinks/rust`, and cargokit died with
+  `PathNotFoundException ... Cargo.toml`, visible only as an opaque
+  `MSB8066 ... exited with code -1` because `flutter build windows` filters
+  MSBuild's log (flutter/flutter#194906). The manifest path is now the six
+  levels the flutter_rust_bridge Windows template uses
+  (`../../../../../../rust`); the Linux/macOS `../../rust` is unchanged. This
+  supersedes the earlier reading of this failure as a Visual Studio 2026 /
+  CMake 4 problem: the identical error reproduced on `windows-2022` (VS 2022,
+  v170).
+
+- **The Windows desktop job stays pinned to `windows-2022` as a precaution, and
+  the failure-diagnostic step stays.** `windows-latest`/`windows-2025`
+  currently serve the beta `windows-2025-vs2026` image (Visual Studio 18,
+  CMake 4.x; actions/runner-images#14004). That image is *not* what broke this
+  build, but pinning keeps the job on the stable, verified VS 2022 toolchain
+  while the VS 2026 image settles. A `failure()`-only step re-runs the Windows
   build with `-v` and greps the cargokit lines so a future regression is
-  diagnosable from CI alone.
+  diagnosable from CI alone; it is what made this root cause visible.
 
 ## 2026-11-15
 

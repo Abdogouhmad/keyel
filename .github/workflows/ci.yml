@@ -95,13 +95,13 @@ jobs:
   # installs the Rust target it needs; macOS builds are ad-hoc signed
   # (CODE_SIGN_IDENTITY = "-"), so no certificate is required.
   #
-  # Windows is pinned to `windows-2022` on purpose. `windows-latest` (and
-  # `windows-2025`) currently serve the beta `windows-2025-vs2026` image, which
-  # ships Visual Studio 18 and CMake 4.x; that combination makes cargokit's
-  # CMake custom build fail with `MSB8066 ... exited with code -1` and no
-  # visible error (actions/runner-images#14004, flutter/flutter#194906). The
-  # 2022 image keeps Visual Studio 2022 (v170), which the desktop toolchain is
-  # verified against.
+  # Windows is pinned to `windows-2022` as a precaution: `windows-latest` (and
+  # `windows-2025`) currently serve the beta `windows-2025-vs2026` image
+  # (Visual Studio 18, CMake 4.x; actions/runner-images#14004). That image is
+  # not what broke this build — the earlier cargokit failure was a relative-path
+  # bug in rust_builder/windows/CMakeLists.txt (see docs/DECISIONS.md) and
+  # reproduced on the 2022 image too — but the pin keeps the job on the stable,
+  # verified VS 2022 toolchain while the VS 2026 image settles.
   desktop-build:
     strategy:
       fail-fast: false
