@@ -4,10 +4,10 @@
 /// so it always matches `pubspec.yaml` without a plugin. Debug runs fall back
 /// to `dev`.
 abstract final class AppInfo {
-  /// Human-readable app version, for example `1.0.0`.
+  /// Human-readable app version, for example `1.1.0`.
   static const String version = String.fromEnvironment(
     'KEYEL_VERSION',
-    defaultValue: 'dev',
+    defaultValue: '1.1.0',
   );
 
   /// Version reported to bug reports; `dev` builds are flagged as such.
