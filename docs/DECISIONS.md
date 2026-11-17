@@ -80,6 +80,15 @@ design (docs/roadmap.md header).
   "sober", and a guard test now rejects entries that are not plain ASCII
   letters.
 
+- **The nightly parser fuzz pins the host target explicitly.** `taiki-e/install-action`
+  does not support `cargo-fuzz` and falls back to `cargo-binstall`, which
+  installs a musl-linked `cargo-fuzz`. `cargo fuzz` defaults its build target
+  to the triple the `cargo-fuzz` binary was built for, so the job tried to
+  build for `x86_64-unknown-linux-musl`: the nightly toolchain only ships the
+  gnu host target (`E0463: can't find crate for core`) and ASan rejects musl's
+  static libc, so the run aborted in about 20 seconds without fuzzing anything.
+  `.github/workflows/fuzz.yml` now passes `--target x86_64-unknown-linux-gnu`.
+
 ## 2026-11-15
 
 - **Phase 0.12 (Beta) starts on `phase/0.12-beta`; localization is deferred.**

@@ -29,9 +29,16 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-fuzz
+      # taiki-e/install-action does not support cargo-fuzz and falls back to
+      # cargo-binstall, which installs a musl-linked cargo-fuzz binary. cargo
+      # fuzz defaults its build target to the triple the cargo-fuzz binary was
+      # built for, so it would target x86_64-unknown-linux-musl here: the
+      # nightly toolchain only ships the gnu host target (E0463: can't find
+      # crate for core), and ASan rejects musl's static libc. Pin the host
+      # target explicitly so fuzzing actually runs.
       - name: Fuzz the vault parser for one hour
         working-directory: crates/keyel_core/fuzz
-        run: cargo fuzz run parse_vault -- -max_total_time=3600 -print_final_stats=1
+        run: cargo fuzz run --target x86_64-unknown-linux-gnu parse_vault -- -max_total_time=3600 -print_final_stats=1
       - name: Upload crash artifacts
         if: failure()
         uses: actions/upload-artifact@v4
