@@ -116,6 +116,38 @@ design (docs/roadmap.md header).
   build with `-v` and greps the cargokit lines so a future regression is
   diagnosable from CI alone; it is what made this root cause visible.
 
+- **Releases publish like Walt's: build/sign on a version bump, then tag +
+  `gh release` with checksums and a committed OTA manifest.**
+  `.github/workflows/release.yml` triggers on a push to `main` that touches
+  `pubspec.yaml` or `CHANGELOG.md` (plus `workflow_dispatch`), runs the existing
+  `./build.sh` (keystore provisioning, split-ABI + universal APKs,
+  `checksums.txt`, apksigner and password-manager policy verification, and the
+  `## [<version>]` CHANGELOG notes), creates/replaces the `v<version>` tag and
+  GitHub release, then rewrites and commits `update_manifest.json`. The trigger
+  is narrowed to the files a version bump touches so a docs-only commit cannot
+  rebuild and replace a signed release; Walt releases on every push to `main`,
+  which is the one place this deliberately deviates.
+
+- **The in-app updater now reads `update_manifest.json`, not the release body.**
+  The manifest is the only source that carries the universal APK's `sha256`, so
+  the updater can actually verify the download. The old GitHub-API path only
+  scraped a 64-hex hash out of the release notes, which the notes never
+  contained, so verification silently no-op'd and any download was installed
+  unchecked. The stable channel fetches the raw manifest (with a cache-busting
+  `?ts=` because `raw.githubusercontent.com`'s CDN can serve a stale copy for
+  minutes after a release); the beta channel still uses the GitHub Releases API
+  so pre-releases keep working, and a `customManifestUrl` overrides both. The
+  schema follows Walt's (`latestVersionName`, `latestVersionCode`, `apkUrl`,
+  `sha256`, `releaseNotes`, `publishedAt`) plus a `size` key so the UI can show
+  the download size before it starts.
+
+- **The release job cannot publish until the `KEYEL_*` secrets exist.**
+  `build.sh` refuses to ship an unsigned or debug-signed APK, so
+  `.github/workflows/release.yml` fails fast until `KEYEL_KEYSTORE_BASE64`,
+  `KEYEL_KEYSTORE_PASSWORD`, `KEYEL_KEY_ALIAS` and `KEYEL_KEY_PASSWORD` are
+  configured on the repository. The committed `update_manifest.json` is seeded
+  for the current version and rewritten on the first signed release.
+
 ## 2026-11-15
 
 - **Phase 0.12 (Beta) starts on `phase/0.12-beta`; localization is deferred.**

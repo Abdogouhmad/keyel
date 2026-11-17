@@ -20,7 +20,7 @@ typedef OtaDownloadProgressCallback = void Function(
 class OtaService {
   /// Creates the service with default or custom platform / HTTP client.
   new({
-    this.repo = 'abdogouhmad/keyel',
+    this.repo = 'Abdogouhmad/keyel',
     http.Client? client,
     OtaPlatform? platform,
     this.customManifestUrl,
@@ -30,18 +30,31 @@ class OtaService {
   /// GitHub repository in `owner/repo` format.
   final String repo;
 
-  /// Optional custom manifest URL overriding GitHub Releases.
+  /// Optional custom manifest URL overriding the built-in release source.
   final String? customManifestUrl;
 
   final http.Client _client;
   final OtaPlatform _platform;
+
+  /// URI of the committed OTA manifest (`update_manifest.json`).
+  ///
+  /// `raw.githubusercontent.com` is fronted by a CDN that can serve a stale
+  /// copy for minutes after a release is committed; a per-request timestamp
+  /// varies the cache key, so a check reads the manifest that was just
+  /// published. The server ignores the query string when resolving the path.
+  Uri manifestUri({DateTime? now}) {
+    final base = customManifestUrl ??
+        'https://raw.githubusercontent.com/$repo/main/update_manifest.json';
+    final stamp = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    return Uri.parse('$base?ts=$stamp');
+  }
 
   /// Checks for newer releases matching the selected [channel].
   Future<OtaRelease?> checkForUpdate({
     required String currentVersion,
     OtaChannel channel = OtaChannel.stable,
   }) async {
-    final releases = await fetchReleases();
+    final releases = await fetchReleases(channel: channel);
     if (releases.isEmpty) return null;
 
     for (final release in releases) {
@@ -55,17 +68,28 @@ class OtaService {
     return null;
   }
 
-  /// Fetches releases list from GitHub API or custom manifest.
-  Future<List<OtaRelease>> fetchReleases() async {
+  /// Fetches the candidate releases for [channel].
+  ///
+  /// The stable channel reads the committed `update_manifest.json` — the file
+  /// the release workflow rewrites on every publish, and the only source that
+  /// carries the APK's SHA-256. The beta channel reads the GitHub Releases API
+  /// so pre-releases keep working. A `customManifestUrl` overrides both and is
+  /// parsed as either shape.
+  Future<List<OtaRelease>> fetchReleases({
+    OtaChannel channel = OtaChannel.stable,
+  }) async {
     final uri = customManifestUrl != null
-        ? Uri.parse(customManifestUrl!)
-        : Uri.parse('https://api.github.com/repos/$repo/releases');
+        ? manifestUri()
+        : channel == OtaChannel.beta
+        ? Uri.parse('https://api.github.com/repos/$repo/releases')
+        : manifestUri();
 
     final response = await _client
         .get(
           uri,
           headers: {
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
             'User-Agent': 'Keyel-OTA-Updater',
           },
         )
@@ -79,13 +103,14 @@ class OtaService {
     }
 
     final dynamic decoded = jsonDecode(response.body);
-    if (decoded is! List) {
-      if (decoded is Map<String, dynamic>) {
-        final parsed = _parseSingleRelease(decoded);
-        return parsed != null ? [parsed] : [];
-      }
-      return [];
+    if (decoded is Map<String, dynamic>) {
+      // The committed OTA manifest is a single-release object.
+      final manifest = _parseManifest(decoded);
+      if (manifest != null) return [manifest];
+      final single = _parseSingleRelease(decoded);
+      return single != null ? [single] : [];
     }
+    if (decoded is! List) return [];
 
     final releases = <OtaRelease>[];
     for (final item in decoded) {
@@ -97,6 +122,31 @@ class OtaService {
       }
     }
     return releases;
+  }
+
+  /// Parses the committed OTA manifest (`update_manifest.json`).
+  ///
+  /// Returns `null` when [json] is not a manifest (for example a GitHub release
+  /// object), so the caller can fall back to [_parseSingleRelease].
+  OtaRelease? _parseManifest(Map<String, dynamic> json) {
+    final version = (json['latestVersionName'] as String? ?? '').trim();
+    final apkUrl = (json['apkUrl'] as String? ?? '').trim();
+    if (version.isEmpty || apkUrl.isEmpty) return null;
+
+    final publishedAtStr = json['publishedAt'] as String?;
+    return OtaRelease(
+      version: version,
+      tagName: 'v$version',
+      title: 'Keyel $version',
+      releaseNotes: json['releaseNotes'] as String? ?? '',
+      publishedAt: publishedAtStr != null
+          ? DateTime.tryParse(publishedAtStr) ?? DateTime.now()
+          : DateTime.now(),
+      downloadUrl: apkUrl,
+      fileName: apkUrl.split('/').last,
+      fileSize: json['size'] as int? ?? 0,
+      sha256: json['sha256'] as String?,
+    );
   }
 
   OtaRelease? _parseSingleRelease(Map<String, dynamic> json) {

@@ -153,6 +153,53 @@ void main() {
       );
       expect(upToDate, isNull);
     });
+
+    test('reads the committed OTA manifest (sha256, size and notes)', () async {
+      final manifestSha = List.filled(64, 'a').join();
+
+      final mockClient = MockClient((request) async {
+        // Stable channel reads the committed manifest on raw.githubusercontent.
+        expect(request.url.path, endsWith('/update_manifest.json'));
+        return http.Response(
+          jsonEncode({
+            'latestVersionName': '1.2.0',
+            'latestVersionCode': 10200,
+            'minSupportedVersionCode': 10000,
+            'mandatory': false,
+            'apkUrl':
+                'https://github.com/Abdogouhmad/keyel/releases/download/'
+                'v1.2.0/keyel-v1.2.0-universal.apk',
+            'size': 12345678,
+            'sha256': manifestSha,
+            'releaseNotes': '## [1.2.0]\n\nNotes',
+            'publishedAt': '2026-11-18T00:00:00Z',
+          }),
+          200,
+        );
+      });
+
+      final service = OtaService(client: mockClient);
+      final update = await service.checkForUpdate(currentVersion: '1.1.0');
+
+      expect(update, isNotNull);
+      expect(update!.version, equals('1.2.0'));
+      expect(update.tagName, equals('v1.2.0'));
+      expect(
+        update.downloadUrl,
+        endsWith('keyel-v1.2.0-universal.apk'),
+      );
+      expect(update.fileName, equals('keyel-v1.2.0-universal.apk'));
+      expect(update.fileSize, equals(12345678));
+      expect(update.sha256, equals(manifestSha));
+      expect(update.releaseNotes, contains('[1.2.0]'));
+      expect(update.isPrerelease, isFalse);
+
+      // Already on the manifest's version: nothing to do.
+      expect(
+        await service.checkForUpdate(currentVersion: '1.2.0'),
+        isNull,
+      );
+    });
   });
 
   group('OtaNotifier', () {

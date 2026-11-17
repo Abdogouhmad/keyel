@@ -1,0 +1,285 @@
+name: release
+
+# Builds and publishes the Android release whenever the shipped version changes
+# on `main` (a push touching `pubspec.yaml` or `CHANGELOG.md`), plus manual runs
+# via workflow_dispatch. The git tag `v<version>` is derived from `version:` in
+# pubspec.yaml — the same scheme `build.sh --detect-version` uses — so there is
+# no tag-trigger to maintain and CHANGELOG.md stays the single source of truth
+# for release notes.
+#
+#   Signs-policy (Android refuses to install an UNSIGNED release APK and
+#   refuses a "signature update" over a differently-signed app): every APK here
+#   is signed with the SAME stable keystore provisioned from the KEYEL_*
+#   secrets, the build FAILS when the secrets are missing (never ship
+#   unsigned/debug again), and build.sh verifies every APK's signature with
+#   apksigner — plus the password-manager policy (not debuggable,
+#   allowBackup="false") — before anything is published.
+#
+#   Builds 3 APKs from a single trigger:
+#     - split-per-abi arm64-v8a + armeabi-v7a (the supported ABIs)
+#     - a universal APK — the in-app OTA updater ALWAYS downloads this one, and
+#       its asset name + sha256 land in update_manifest.json
+#   Stages dist/keyel-v<ver>-*.apk + dist/checksums.txt (SHA-256 for every
+#   artifact), extracts the matching `## [<version>]` section from CHANGELOG.md
+#   and uses it verbatim as the GitHub release notes AND the manifest's
+#   `releaseNotes`, creates the tag + GitHub release, rewrites AND COMMITS
+#   update_manifest.json to `main` so in-app OTA picks up the release, and
+#   finally proves the published APK is byte-for-byte the file the manifest
+#   describes.
+#
+# The heavy lifting — keystore provisioning, APK builds, staging, checksums,
+# signature/policy verification, release-notes extraction — lives in ./build.sh,
+# so this file stays a thin declarative wrapper.
+#
+# To release a new version:
+#   1. Bump `version:` in pubspec.yaml.
+#   2. Add a `## [<version>]` section to CHANGELOG.md.
+#   3. Merge onto main — the tag, GitHub release and OTA manifest follow.
+#
+# Secrets to configure in the repo (Settings → Secrets and variables → Actions):
+#   KEYEL_KEYSTORE_BASE64   = base64 of the keyel-release.jks keystore
+#   KEYEL_KEYSTORE_PASSWORD = keystore password
+#   KEYEL_KEY_ALIAS         = signing key alias
+#   KEYEL_KEY_PASSWORD      = signing key password
+
+on:
+  push:
+    branches:
+      - main
+    # A docs-only or workflow-only commit cannot change the shipped APKs, so it
+    # must not spin up a full signed release. `pubspec.yaml` and `CHANGELOG.md`
+    # are exactly the files a version bump touches.
+    paths:
+      - 'pubspec.yaml'
+      - 'CHANGELOG.md'
+  workflow_dispatch:
+
+# A newer commit on the same branch makes an in-flight release obsolete.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  # Keep in lockstep with ci.yml: the version the project is developed and
+  # verified against. Flutter and AGP must be upgraded together.
+  FLUTTER_VERSION: 3.47.9
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so the tag operations below never race a shallow clone.
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Rust toolchain with Android targets
+        uses: dtolnay/rust-toolchain@1.97.0
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            .flutter-plugins-dependencies
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/**/*.gradle*') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      # build.sh runs the FULL pipeline in CI (fmt/clippy/test/audit, analyze/
+      # test and FRB regeneration), so its extra tools must be present.
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Install flutter_rust_bridge_codegen
+        run: cargo install flutter_rust_bridge_codegen --version 2.13.0 --locked
+
+      # Provisions the stable keystore from the KEYEL_* secrets (fails the build
+      # when they are missing), builds the split-per-abi + universal APKs, stages
+      # versioned copies under dist/, writes checksums.txt, and verifies every
+      # APK's signature and policy.
+      - name: Build, sign and stage APKs
+        env:
+          KEYEL_KEYSTORE_BASE64: ${{ secrets.KEYEL_KEYSTORE_BASE64 }}
+          KEYEL_KEYSTORE_PASSWORD: ${{ secrets.KEYEL_KEYSTORE_PASSWORD }}
+          KEYEL_KEY_ALIAS: ${{ secrets.KEYEL_KEY_ALIAS }}
+          KEYEL_KEY_PASSWORD: ${{ secrets.KEYEL_KEY_PASSWORD }}
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+
+      - name: Determine version
+        id: version
+        run: ./build.sh --detect-version >> "$GITHUB_OUTPUT"
+
+      # Extract ONLY this release's `## [<version>]` section from CHANGELOG.md
+      # (fails when it is missing so an unreleased change never ships silently).
+      - name: Extract release notes from CHANGELOG
+        run: ./build.sh --release-notes
+
+      # Collision-safe: re-running for the SAME version replaces the release at
+      # the new commit (delete the old release + tag, then recreate).
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          # Drop the LOCAL tag before asking gh to clean up the remote one --
+          # otherwise the push below races the deletion and the run dies.
+          git tag -d "$TAG" >/dev/null 2>&1 || true
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release delete "$TAG" --yes --cleanup-tag
+          fi
+
+          shopt -s nullglob
+          artifacts=(dist/*.apk dist/checksums.txt)
+          if (( ${#artifacts[@]} == 0 )); then
+            echo "::error::No APK artifacts found under dist/"; exit 1
+          fi
+
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            --title "keyel ${{ steps.version.outputs.version }}" \
+            --notes-file dist/notes.md \
+            "${artifacts[@]}"
+
+      # Rewrite the OTA manifest: version, universal-APK URL + its fresh sha256
+      # and size, and this release's notes (from CHANGELOG.md, not duplicated).
+      - name: Update update_manifest.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_CODE: ${{ steps.version.outputs.versionCode }}
+          TAG: ${{ steps.version.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime, hashlib, json, os
+
+          version = os.environ["VERSION"]
+          version_code = int(os.environ["VERSION_CODE"])
+          tag = os.environ["TAG"]
+          repo = os.environ["REPO"]
+
+          with open("dist/notes.md") as fh:
+              release_notes = fh.read().strip()
+
+          # The manifest is committed, so it may already exist (seeded or from a
+          # previous release); start from {} so the very first release works too.
+          try:
+              with open("update_manifest.json") as fh:
+                  manifest = json.load(fh)
+          except FileNotFoundError:
+              manifest = {}
+
+          manifest["latestVersionName"] = version
+          manifest["latestVersionCode"] = version_code
+          manifest["minSupportedVersionCode"] = int(
+              manifest.get("minSupportedVersionCode") or version_code
+          )
+          manifest["mandatory"] = bool(manifest.get("mandatory", False))
+          # Derived from the repository this run is actually in, so a fork or a
+          # rename can never publish a manifest pointing at someone else's APK.
+          manifest["apkUrl"] = (
+              f"https://github.com/{repo}/releases/download/"
+              f"{tag}/keyel-v{version}-universal.apk"
+          )
+
+          # The universal APK is what the in-app updater always downloads.
+          built = f"dist/keyel-v{version}-universal.apk"
+          with open(built, "rb") as fh:
+              data = fh.read()
+          manifest["size"] = len(data)
+          manifest["sha256"] = hashlib.sha256(data).hexdigest()
+          manifest["releaseNotes"] = release_notes
+          manifest["publishedAt"] = (
+              datetime.datetime.now(datetime.timezone.utc).isoformat()
+          )
+
+          with open("update_manifest.json", "w") as fh:
+              json.dump(manifest, fh, indent=2, ensure_ascii=False)
+              fh.write("\n")
+
+          # Emit what we hashed so the verification step can prove the file we
+          # published is byte-for-byte the file the manifest points at.
+          print(manifest["sha256"])
+          PY
+
+      # The manifest's sha256 is only meaningful if it describes the APK that was
+      # actually published. A staging mistake or a mangled upload would otherwise
+      # ship an update that fails verification on every device.
+      - name: Verify published APK matches the manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          local_sha="$(sha256sum "dist/keyel-v${VERSION}-universal.apk" | cut -d' ' -f1)"
+          manifest_sha="$(python3 -c \
+            "import json;print(json.load(open('update_manifest.json'))['sha256'])")"
+          if [[ "$local_sha" != "$manifest_sha" ]]; then
+            echo "::error::Manifest sha256 ($manifest_sha) != built APK ($local_sha)"
+            exit 1
+          fi
+          rm -rf /tmp/published-apk
+          if ! gh release download "${{ steps.version.outputs.tag }}" \
+              --pattern "keyel-v${VERSION}-universal.apk" --dir /tmp/published-apk \
+              --clobber >/dev/null 2>&1; then
+            echo "::error::Published release is missing the universal APK"
+            exit 1
+          fi
+          published_sha="$(sha256sum "/tmp/published-apk/keyel-v${VERSION}-universal.apk" | cut -d' ' -f1)"
+          if [[ "$published_sha" != "$manifest_sha" ]]; then
+            echo "::error::Published APK ($published_sha) != manifest sha256 ($manifest_sha)"
+            exit 1
+          fi
+          echo "Verified: published APK matches update_manifest.json ($published_sha)"
+
+      - name: Commit manifest back to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet update_manifest.json; then
+            echo "No manifest changes."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add update_manifest.json
+            git commit -m "chore(release): update OTA manifest for v${{ steps.version.outputs.version }}"
+            git push origin HEAD:main
+          fi
