@@ -11,6 +11,8 @@ analyzer:
     - "build/**"
     - android/**
     - linux/**
+    - windows/**
+    - macos/**
 
 linter:
   rules:
