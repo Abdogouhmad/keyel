@@ -58,6 +58,14 @@
 #   ./build.sh --no-version-checksum skip the uncommitted-changes warning
 #   ./build.sh -v                    verbose (kept for parity)
 #
+# Troubleshooting:
+#   * Spurious Kotlin errors from a native plugin ("Unresolved reference
+#     'FilePickerDelegate'" etc.) right after a dependency version bump are
+#     STALE Gradle/Kotlin incremental state, not a broken dependency: the
+#     plugin's pub-cache path changed but Kotlin only recompiled one file.
+#     Clear the plugin's build dir (`rm -rf build/<plugin_name>`, or
+#     `flutter clean`) and rebuild. A fresh clone / CI is unaffected.
+#
 # Exit codes: 0 = success, 1 = failure (missing deps / secrets / policy / artifacts).
 
 set -euo pipefail
