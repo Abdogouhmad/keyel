@@ -13,6 +13,7 @@ import 'package:keyel/features/folders/folders_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
 import 'package:keyel/features/import_export/import_export_screen.dart';
 import 'package:keyel/features/onboarding/onboarding_screen.dart';
+import 'package:keyel/features/ota/ota_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
 import 'package:keyel/features/trash/trash_screen.dart';
@@ -128,6 +129,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           tabIndex: KeyelTab.settings,
           child: ImportExportScreen(),
         ),
+      ),
+      GoRoute(
+        path: KeyelRoutes.softwareUpdate,
+        builder: (context, state) => const OtaScreen(),
       ),
       GoRoute(
         path: KeyelRoutes.autofillPicker,

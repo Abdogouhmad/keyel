@@ -1,0 +1,233 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:keyel/core/ota/ota_models.dart';
+import 'package:keyel/core/ota/ota_provider.dart';
+import 'package:keyel/core/ota/ota_service.dart';
+
+void main() {
+  group('OTA Semver Comparison', () {
+    test('compareVersions accurately orders semver strings', () {
+      expect(compareVersions('1.1.0', '1.0.0'), greaterThan(0));
+      expect(compareVersions('1.0.0', '1.1.0'), lessThan(0));
+      expect(compareVersions('1.0.0', '1.0.0'), equals(0));
+      expect(compareVersions('v1.2.0', '1.1.9'), greaterThan(0));
+      expect(compareVersions('1.1.0+2', '1.1.0+1'), equals(0));
+      expect(compareVersions('2.0.0', '1.99.99'), greaterThan(0));
+      expect(compareVersions('1.0.1', '1.0.0'), greaterThan(0));
+    });
+  });
+
+  group('OTA Models', () {
+    test('OtaRelease formats file sizes correctly', () {
+      final r1 = OtaRelease(
+        version: '1.1.0',
+        tagName: 'v1.1.0',
+        title: 'Keyel 1.1.0',
+        releaseNotes: 'OTA release',
+        publishedAt: DateTime(2026, 11, 16),
+        downloadUrl: 'https://example.com/app.apk',
+        fileName: 'keyel.apk',
+        fileSize: 500,
+      );
+      expect(r1.formattedSize, equals('500 B'));
+
+      final r2 = OtaRelease(
+        version: '1.1.0',
+        tagName: 'v1.1.0',
+        title: 'Keyel 1.1.0',
+        releaseNotes: 'OTA release',
+        publishedAt: DateTime(2026, 11, 16),
+        downloadUrl: 'https://example.com/app.apk',
+        fileName: 'keyel.apk',
+        fileSize: 2048 * 1024,
+      );
+      expect(r2.formattedSize, equals('2.0 MB'));
+    });
+
+    test('OtaState getters identify lifecycle steps', () {
+      const stateIdle = OtaState(currentVersion: '1.0.0');
+      expect(stateIdle.isChecking, isFalse);
+      expect(stateIdle.isDownloading, isFalse);
+      expect(stateIdle.hasUpdate, isFalse);
+
+      final stateChecking = stateIdle.copyWith(step: OtaStep.checking);
+      expect(stateChecking.isChecking, isTrue);
+
+      final release = OtaRelease(
+        version: '1.1.0',
+        tagName: 'v1.1.0',
+        title: '1.1.0',
+        releaseNotes: 'notes',
+        publishedAt: DateTime(2026),
+        downloadUrl: 'https://example.com/app.apk',
+        fileName: 'app.apk',
+        fileSize: 1000,
+      );
+
+      final stateAvailable = stateIdle.copyWith(
+        step: OtaStep.available,
+        availableRelease: () => release,
+      );
+      expect(stateAvailable.hasUpdate, isTrue);
+      expect(stateAvailable.isReadyToInstall, isFalse);
+
+      final stateDownloaded = stateAvailable.copyWith(
+        step: OtaStep.downloaded,
+        downloadedFilePath: () => '/tmp/app.apk',
+      );
+      expect(stateDownloaded.isReadyToInstall, isTrue);
+    });
+  });
+
+  group('OtaService', () {
+    final mockGithubResponse = [
+      {
+        'tag_name': 'v1.2.0',
+        'name': 'Keyel 1.2.0 Beta',
+        'body': 'SHA256: 1111111111111111111111111111111111111111111111111111111111111111\nRelease notes',
+        'prerelease': true,
+        'published_at': '2026-11-16T12:00:00Z',
+        'assets': [
+          {
+            'name': 'keyel-v1.2.0-universal.apk',
+            'browser_download_url': 'https://example.com/v1.2.0.apk',
+            'size': 18000000,
+          },
+        ],
+      },
+      {
+        'tag_name': 'v1.1.0',
+        'name': 'Keyel 1.1.0 Stable',
+        'body': 'SHA256: 2222222222222222222222222222222222222222222222222222222222222222\nStable update',
+        'prerelease': false,
+        'published_at': '2026-11-15T12:00:00Z',
+        'assets': [
+          {
+            'name': 'keyel-v1.1.0-universal.apk',
+            'browser_download_url': 'https://example.com/v1.1.0.apk',
+            'size': 17500000,
+          },
+        ],
+      },
+    ];
+
+    test('checkForUpdate filters pre-releases in stable channel', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(jsonEncode(mockGithubResponse), 200);
+      });
+
+      final service = OtaService(client: mockClient);
+
+      // On stable channel: should skip v1.2.0 (prerelease) and select v1.1.0
+      final stableUpdate = await service.checkForUpdate(
+        currentVersion: '1.0.0',
+      );
+      expect(stableUpdate, isNotNull);
+      expect(stableUpdate!.version, equals('1.1.0'));
+      expect(stableUpdate.isPrerelease, isFalse);
+      expect(
+        stableUpdate.sha256,
+        equals(
+          '2222222222222222222222222222222222222222222222222222222222222222',
+        ),
+      );
+
+      // On beta channel: should pick the newest release v1.2.0
+      final betaUpdate = await service.checkForUpdate(
+        currentVersion: '1.0.0',
+        channel: OtaChannel.beta,
+      );
+      expect(betaUpdate, isNotNull);
+      expect(betaUpdate!.version, equals('1.2.0'));
+      expect(betaUpdate.isPrerelease, isTrue);
+
+      // Already on newest version: should return null
+      final upToDate = await service.checkForUpdate(
+        currentVersion: '1.2.0',
+        channel: OtaChannel.beta,
+      );
+      expect(upToDate, isNull);
+    });
+  });
+
+  group('OtaNotifier', () {
+    test('state transitions through check lifecycle', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode([
+            {
+              'tag_name': 'v1.2.0',
+              'name': 'Keyel 1.2.0',
+              'body': 'Notes',
+              'prerelease': false,
+              'published_at': '2026-11-16T00:00:00Z',
+              'assets': [
+                {
+                  'name': 'keyel.apk',
+                  'browser_download_url': 'https://example.com/keyel.apk',
+                  'size': 1000,
+                },
+              ],
+            },
+          ]),
+          200,
+        );
+      });
+
+      final service = OtaService(client: mockClient);
+      final container = ProviderContainer(
+        overrides: [otaServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(otaProvider.notifier);
+      expect(container.read(otaProvider).step, equals(OtaStep.idle));
+
+      await notifier.checkForUpdates();
+
+      expect(container.read(otaProvider).step, equals(OtaStep.available));
+      expect(
+        container.read(otaProvider).availableRelease?.version,
+        equals('1.2.0'),
+      );
+      expect(container.read(otaProvider).lastChecked, isNotNull);
+
+      notifier.setChannel(OtaChannel.beta);
+      expect(container.read(otaProvider).channel, equals(OtaChannel.beta));
+
+      notifier.setAutoCheck(enabled: false);
+      expect(container.read(otaProvider).autoCheck, isFalse);
+    });
+  });
+
+  group('OtaService checksum verification', () {
+    test('accepts a matching SHA-256 and rejects a mismatch', () async {
+      final dir = Directory.systemTemp.createTempSync('keyel_ota_test');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/app.apk');
+      await file.writeAsBytes(const [1, 2, 3, 4, 5]);
+
+      final service = OtaService();
+      const expected =
+          '74f81fe167d99b4cb41d6d0ccda82278caee9f3e2f25d5e5a3936ff3dcec60d0';
+
+      expect(await service.verifyFileChecksum(file, expected), isTrue);
+      expect(
+        await service.verifyFileChecksum(file, expected.toUpperCase()),
+        isTrue,
+      );
+      expect(
+        await service.verifyFileChecksum(
+          file,
+          '0000000000000000000000000000000000000000000000000000000000000000',
+        ),
+        isFalse,
+      );
+    });
+  });
+}

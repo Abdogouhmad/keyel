@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/app_info.dart';
+import 'package:keyel/core/ota/ota_provider.dart';
 import 'package:keyel/core/platform/autofill_platform.dart';
 import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/platform/debug_bundle.dart';
@@ -461,6 +462,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final session = ref.watch(vaultSessionProvider);
     final repo = ref.watch(vaultRepositoryProvider);
+    final otaState = ref.watch(otaProvider);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -772,6 +774,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           subtitle: 'Raw FRB bridge operations and diagnostics',
                           onTap: () =>
                               unawaited(context.push(KeyelRoutes.debug)),
+                        ),
+
+                        _SettingsRow(
+                          icon: Icons.system_update_rounded,
+                          title: 'Software update',
+                          subtitle: otaState.hasUpdate
+                              ? 'Update available (v${otaState.availableRelease!.version})'
+                              : 'Version ${AppInfo.version} • Up to date',
+                          trailing: otaState.hasUpdate
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: scheme.tertiaryContainer,
+                                    borderRadius: BorderRadius.circular(
+                                      KeyelRadii.pill,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'NEW',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: scheme.onTertiaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(Icons.chevron_right_rounded),
+                          onTap: () => unawaited(
+                            context.push(KeyelRoutes.softwareUpdate),
+                          ),
                         ),
 
                         _SettingsRow(

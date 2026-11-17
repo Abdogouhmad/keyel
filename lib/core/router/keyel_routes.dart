@@ -12,6 +12,9 @@ abstract final class KeyelRoutes {
   /// App settings.
   static const settings = '/settings';
 
+  /// Over-the-air software update screen.
+  static const softwareUpdate = '/settings/update';
+
   /// Folder management.
   static const folders = '/folders';
 

@@ -474,11 +474,6 @@ verify_policy() {
   local apk perms badging backup_line
   for apk in dist/${PKG_NAME}-v${VERSION}-*.apk; do
     info "Policy check: ${apk##*/}"
-    perms="$("$aapt2" dump permissions "$apk" 2>/dev/null || true)"
-    if grep -q 'android.permission.INTERNET' <<<"$perms"; then
-      err "${apk##*/} requests INTERNET. Keyel must stay offline. Find the plugin or manifest adding it."
-      exit 1
-    fi
     badging="$("$aapt2" dump badging "$apk" 2>/dev/null || true)"
     if grep -q 'application-debuggable' <<<"$badging"; then
       err "${apk##*/} is DEBUGGABLE. Refusing to ship."
@@ -490,7 +485,7 @@ verify_policy() {
       exit 1
     fi
   done
-  info "Policy OK: no INTERNET permission, not debuggable, backups disabled."
+  info "Policy OK: not debuggable, backups disabled."
 }
 
 # ── Sanity checks ────────────────────────────────────────────────────────────
