@@ -89,6 +89,18 @@ design (docs/roadmap.md header).
   static libc, so the run aborted in about 20 seconds without fuzzing anything.
   `.github/workflows/fuzz.yml` now passes `--target x86_64-unknown-linux-gnu`.
 
+- **The Windows desktop build is pinned to `windows-2022`, not `windows-latest`.**
+  `windows-latest` and `windows-2025` currently serve the beta
+  `windows-2025-vs2026` image: Visual Studio 18 (`v180`) with CMake 4.x
+  (actions/runner-images#14004). There, cargokit's CMake custom build fails with
+  `MSB8066 ... exited with code -1` and *no* diagnostic output, because
+  `flutter build windows` filters MSBuild's log (flutter/flutter#194906), so the
+  failure is invisible. The `desktop-build` Windows matrix entry now uses
+  `windows-2022`, which keeps Visual Studio 2022 (v170) — the toolchain the
+  desktop build is verified against. A `failure()`-only step re-runs the Windows
+  build with `-v` and greps the cargokit lines so a future regression is
+  diagnosable from CI alone.
+
 ## 2026-11-15
 
 - **Phase 0.12 (Beta) starts on `phase/0.12-beta`; localization is deferred.**
