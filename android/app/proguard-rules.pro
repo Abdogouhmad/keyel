@@ -17,8 +17,8 @@
 # components automatically, but the autofill service and picker activity are
 # security-critical: pin them so obfuscation can never rename the class the
 # system binds to or launches.
--keep class dev.agouhmad.keyel.autofill.** { *; }
--keep class dev.agouhmad.keyel.MainActivity { *; }
+-keep class com.freesoftware.keyel.autofill.** { *; }
+-keep class com.freesoftware.keyel.MainActivity { *; }
 
 # flutter_rust_bridge talks to Rust over dart:ffi (no JNI, no reflection), so
 # its generated bindings need no keep rules. Keep the native-method surface

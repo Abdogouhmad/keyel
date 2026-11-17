@@ -1,4 +1,4 @@
-package dev.agouhmad.keyel
+package com.freesoftware.keyel
 
 import android.content.Intent
 import android.provider.Settings

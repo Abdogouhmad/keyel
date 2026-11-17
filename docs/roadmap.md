@@ -60,7 +60,7 @@ started.
 
 ### Todo
 1. Install toolchain: Flutter stable, Rust stable, Android Studio + NDK, `flutter_rust_bridge_codegen`, `cargo-ndk`.
-2. `flutter_rust_bridge_codegen create keyel`, set the package id `dev.agouhmad.keyel`, app name "Keyel".
+2. `flutter_rust_bridge_codegen create keyel`, set the package id `com.freesoftware.keyel`, app name "Keyel".
 3. Create `crates/keyel_core` (pure Rust lib) and make the bridge crate depend on it (Cargo workspace).
 4. Write `generate_password(len)` in `keyel_core` (simple version) and expose it via `rust/src/api/generator.rs`.
 5. Run `flutter_rust_bridge_codegen generate`, call it from a test screen, confirm it works on a physical device.

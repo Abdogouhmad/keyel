@@ -1,80 +1,132 @@
-# Keyel
+<p align="center">
+  <img src="design/icon/keyel-icon-preview.png" alt="Keyel — your passwords, sealed on your device" width="760">
+</p>
 
-**Keyel** = *key* + *-el* (as in pixel, voxel). An **offline-first, privacy-first password manager** for Android, Windows, macOS and Linux, with a Rust crypto core and a Flutter UI.
+<p align="center">
+  <a href="https://github.com/Abdogouhmad/keyel/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Abdogouhmad/keyel?sort=semver&color=2ea043&label=release"></a>
+  <a href="https://github.com/Abdogouhmad/keyel/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/Abdogouhmad/keyel/total?color=4c8eda&label=downloads"></a>
+  <img alt="Platforms" src="https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20macOS%20%7C%20Linux-informational">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
+  <img alt="Core in Rust" src="https://img.shields.io/badge/core-Rust-dea584?logo=rust&logoColor=white">
+  <img alt="UI in Flutter" src="https://img.shields.io/badge/ui-Flutter-02569B?logo=flutter&logoColor=white">
+</p>
 
-- Minimal network use: the app only contacts the configured release source to check for and download updates. No vault data ever leaves your device.
-- All crypto and storage in a pure Rust core (`crates/keyel_core`), bridged to Flutter with [flutter_rust_bridge](https://flutter_rust_bridge.dev).
-- Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet and desktop).
+<h3 align="center">Your passwords, sealed on your device — and nowhere else.</h3>
 
-**Status:** 1.1.1 — desktop release. English-only for now; localization is
-deferred. See
-[`docs/roadmap.md`](docs/roadmap.md),
-[`docs/crypto-design.md`](docs/crypto-design.md) and
-[`docs/vault-model.md`](docs/vault-model.md).
+<p align="center">
+  <strong>Keyel</strong> (<em>key</em> + <em>-el</em>, as in pixel / voxel) is an <strong>offline-first, privacy-first password manager</strong>
+  for Android, Windows, macOS and Linux.<br>
+  No account. No server. No telemetry. Just a Rust-hardened vault that only you can open.
+</p>
 
-## Using Keyel
+---
 
-### Quick start
+## Why Keyel
 
-1. Install the app from
-   [Releases](https://github.com/Abdogouhmad/keyel/releases/latest): the signed
-   APK on Android, the `.exe` installer on Windows, the `.dmg` on macOS, and the
-   `.tar.gz` bundle on Linux (portable `.zip` bundles are published too). For a
-   dev build use `flutter run` — see below. Desktop builds run from
-   `flutter run -d windows`, `-d macos` or `-d linux`.
-2. On first launch, **create a vault** and choose a strong master password.
-   Write it down: it is never stored on the device and never sent anywhere.
-3. **Save the recovery key** when it is shown. It is displayed once and is the
-   only way back into the vault if you forget the master password.
-4. Optionally enable **biometric unlock**.
-5. Add entries — logins, payment cards and secure notes — and use the built-in
-   **password generator** and **TOTP** (2FA codes) as needed.
-6. Lock the vault with the lock button, or let **auto-lock** close it when the
-   app goes to the background. Copied secrets are wiped from the clipboard
-   after the timeout you set.
+- **Offline by design.** Your vault is a single encrypted file in the app's private
+  storage. There is no cloud sync and no account to breach — nothing to leak because
+  nothing is ever sent. The *only* network access is the update check you opt into.
+- **Rust all the way down.** Every secret is encrypted and stored by a pure-Rust core
+  (`crates/keyel_core`) — Argon2id key derivation and authenticated encryption — with
+  secrets zeroized in memory. Dart only ever sees what you explicitly reveal.
+- **Yours to audit.** The crypto core, the vault format and the release pipeline are
+  all open source. The vault format is frozen behind a byte-exact test fixture, so a
+  change that could strand an existing vault fails CI before it ships.
+- **Everywhere you are.** One adaptive Material 3 UI for phone, foldable, tablet and
+  desktop, shipped as native installers for all four platforms.
 
-### FAQ
+## Features
+
+**Vault & security**
+
+- Encrypted `vault.keyel` — Argon2id-derived key + authenticated encryption.
+- Unlock with a master password, plus optional **biometric** quick unlock.
+- A **recovery key** that can reset a forgotten master password (and no backdoor
+  without it).
+- **Security dashboard** — vault health score with weak, reused, old and
+  insecure-URL findings, plus missing-2FA detection.
+- **Auto-lock** when the app leaves the foreground, and automatic **clipboard
+  clearing** of copied secrets.
+
+**Everyday use**
+
+- **Entries** — logins, payment cards and secure notes, with folders, favourites,
+  fast search and a soft-delete **trash**.
+- **Password generator** — passwords and passphrases with configurable rules and a
+  live strength meter.
+- **TOTP (2FA)** — store and display time-based one-time codes.
+- **Custom entry icons** — a searchable catalog that suggests icons from the title
+  or URL.
+- **Android autofill** — fill credentials straight into apps and browsers.
+
+**Import, export & updates**
+
+- Import from **Bitwarden** and generic **CSV**; encrypted **backup & restore**;
+  plain CSV export (unencrypted — for migration only).
+- **Over-the-air updates** on Android, verified by SHA-256 before install.
+
+## Install
+
+Grab the latest build from **[Releases](https://github.com/Abdogouhmad/keyel/releases/latest)**:
+
+| Platform | Download | Notes |
+|---|---|---|
+| **Android** | `keyel-v<version>-universal.apk` | One APK for every device. `arm64-v8a` / `armeabi-v7a` splits are also published. |
+| **Windows** | `keyel-v<version>-windows-x64-setup.exe` | Double-click installer (per-user, no admin prompt). A portable `.zip` is also published. |
+| **macOS** | `keyel-v<version>-macos-universal.dmg` | Universal (Apple Silicon + Intel). Open the `.dmg` and drag **Keyel** to *Applications*. |
+| **Linux** | `keyel-v<version>-linux-x64.tar.gz` | Unpack and run `bundle/keyel`. |
+
+Every release also ships `checksums.txt`. Verify before you run:
+
+```bash
+sha256sum -c checksums.txt          # Linux
+shasum -a 256 -c checksums.txt      # macOS
+```
+
+> **macOS first launch:** the app is ad-hoc signed (no paid Developer ID), so Gatekeeper
+> warns once — right-click **Keyel → Open**, or allow it in *System Settings → Privacy &
+> Security*.
+
+## Security at a glance
+
+- The release APK requests `INTERNET` **only** for the update checker and downloader;
+  downloaded APKs are SHA-256-verified before the system installer runs.
+- `allowBackup=false`; cloud and device backups exclude the vault file.
+- Secrets live in Rust (`zeroize` / `secrecy`); Dart receives only user-revealed values.
+- *Settings → Report a problem* shares a redacted diagnostics file (version, device, OS,
+  non-secret settings) — never vault contents, titles, passwords or key material.
+
+Read the full model in [`docs/crypto-design.md`](docs/crypto-design.md),
+[`docs/threat-model.md`](docs/threat-model.md) and [`docs/vault-model.md`](docs/vault-model.md).
+
+## FAQ
 
 **What if I forget my master password?**
-On the unlock screen, choose *Use recovery key* and enter the key you saved at
-setup. You can then set a new master password. If you have lost **both** the
-master password and the recovery key, the vault **cannot** be recovered — there
-is no server, no backdoor and no reset. Restore from an encrypted backup if you
-have one.
+Choose *Use recovery key* on the unlock screen and enter the key you saved at setup, then
+set a new password. If you have lost **both**, the vault cannot be recovered — there is no
+server, no backdoor and no reset. Restore from an encrypted backup instead.
 
 **Does Keyel send my data anywhere?**
-Not your vault. The only network access is the optional update check: the app
-asks the configured release source whether a newer version exists and, if you
-accept, downloads it. No vault contents, entry titles, passwords or key material
-are ever transmitted. Data otherwise leaves the device only when you explicitly
-export it or share the diagnostics file from *Report a problem* (which contains
-no secrets — see below).
+Not your vault. The only network access is the optional update check and download. No
+vault contents, titles, passwords or key material are ever transmitted.
 
 **Where is my data stored?**
-In a single encrypted `vault.keyel` file in the app's private storage. The key
-that decrypts it exists only in memory, and only while the vault is unlocked.
-Cloud/device backups are excluded for the vault file.
-
-**What is "Report a problem"?**
-*Settings → Report a problem* shares a redacted diagnostics file: app version,
-device model and OS, and non-secret settings. It never includes vault contents,
-entry titles, passwords, the recovery key or key material.
+In one encrypted `vault.keyel` file in the app's private storage. The decryption key
+exists only in memory, and only while the vault is unlocked.
 
 **Is the CSV export encrypted?**
-No. The plain CSV export is unencrypted and readable by anyone who gets the
-file. Use the **encrypted backup** for anything you intend to keep.
+No — it is plain text. Use *Encrypted backup* for anything you intend to keep.
 
-### Backups
+## Backups
 
-- Use *Settings → Backup & import → Encrypted backup*. The backup password is
-  independent of your master password.
-- Keep at least one copy **offline and separate** from the device (an encrypted
-  USB drive, or the printed recovery key in a safe).
-- **Test a restore** before you rely on the backup.
-- The recovery key is a second, independent way in — store it offline too.
+- Use *Settings → Backup & import → Encrypted backup*; its password is independent of
+  your master password.
+- Keep at least one copy **offline and separate** from the device, and **test a restore**
+  before you rely on it.
+- Store the recovery key offline too — it is a second, independent way in.
 - Never keep the plain CSV export on a shared or cloud drive.
 
-## Build & run
+## Build from source
 
 ### Prerequisites
 
@@ -83,42 +135,28 @@ file. Use the **encrypted backup** for anything you intend to keep.
   ```bash
   rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
   ```
-- Android SDK (API 36) + NDK, and an Android device or emulator.
-- `flutter_rust_bridge_codegen` (v2), `cargo-ndk`:
+- Android SDK (API 36) + NDK, and a device or emulator.
+- `flutter_rust_bridge_codegen` (v2) and `cargo-ndk`:
   ```bash
   cargo install flutter_rust_bridge_codegen cargo-ndk
   ```
 
-For a desktop build you also need the host toolchain: Visual Studio (Desktop
-development with C++) on Windows, Xcode on macOS, or the usual GTK/CMake stack
-on Linux. The Rust core is compiled by cargokit for each host, so no extra Rust
-targets are required.
+For a desktop build you also need the host toolchain: Visual Studio (Desktop development
+with C++) on Windows, Xcode on macOS, or the usual GTK/CMake stack on Linux. The Rust core
+is compiled by cargokit for each host, so no extra Rust targets are needed.
 
-### Run on a device
-
-```bash
-flutter devices          # pick your device/emulator
-flutter run              # debug build: builds Rust via cargokit automatically
-```
-
-The first Rust build takes a few minutes (FRB codegen + NDK toolchain).
-
-### Run on desktop
+### Run
 
 ```bash
-flutter run -d linux     # or -d windows / -d macos
+flutter devices              # pick your device/emulator
+flutter run                  # debug build; builds Rust via cargokit automatically
+flutter run -d linux         # or -d windows / -d macos
 ```
 
-The window opens at 1200×800 and will not shrink below a phone-sized minimum so
-the responsive layout stays usable.
+The first Rust build takes a few minutes (FRB codegen + NDK toolchain). The desktop window
+opens at 1200×800 and will not shrink below a phone-sized minimum.
 
-### Regenerate the bridge after editing `rust/src/api/**`
-
-```bash
-flutter_rust_bridge_codegen generate
-```
-
-### Tests
+### Test
 
 ```bash
 cargo test                          # Rust core (crypto, generator, ...)
@@ -135,11 +173,13 @@ cd crates/keyel_core
 cargo +nightly fuzz run parse_vault -- -max_total_time=600
 ```
 
-The fuzz target exercises the file parser and AEAD opener with a fixed vault
-key, so it does not spend every iteration in Argon2. See
-[`docs/crypto-design.md`](docs/crypto-design.md).
+### Regenerate the bridge after editing `rust/src/api/**`
 
-## Repository layout
+```bash
+flutter_rust_bridge_codegen generate
+```
+
+## Project layout
 
 See [`docs/plan.md §5`](docs/plan.md) for the full structure. Quick tour:
 
@@ -148,18 +188,10 @@ See [`docs/plan.md §5`](docs/plan.md) for the full structure. Quick tour:
 | `crates/keyel_core/` | Pure Rust core: crypto, vault format, generator (fully tested, no UI deps) |
 | `rust/` | FRB bridge crate — the *only* surface exposed to Dart |
 | `lib/` | Flutter app (features, ui, data, core) |
-| `docs/` | plan, design spec, crypto spec, roadmap, decision log |
-| `design/` | App icon, Stitch screens |
-
-## Security posture
-
-- `INTERNET` is requested only for the update checker and downloader; the app
-  contacts the release source and nothing else. Downloaded APKs are verified by
-  SHA-256 before the system installer runs.
-- `allowBackup=false`; cloud/device backups excluded via `dataExtractionRules`.
-- Secrets live in Rust (`zeroize`/`secrecy`); Dart only ever receives what a user explicitly reveals.
-- See [`docs/crypto-design.md`](docs/crypto-design.md) (published in phase 0.2.0).
+| `packaging/` | Native installers (Inno Setup for Windows) |
+| `docs/` | plan, design spec, crypto spec, threat model, roadmap, decision log |
+| `design/` | App icon and Stitch UI screens |
 
 ## License
 
-GPL-3.0-or-later — see [`LICENSE`](LICENSE).
+[GPL-3.0-or-later](LICENSE) — see [`LICENSE`](LICENSE).

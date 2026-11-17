@@ -8,7 +8,7 @@
 PRODUCT_NAME = Keyel
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = dev.agouhmad.keyel
+PRODUCT_BUNDLE_IDENTIFIER = com.freesoftware.keyel
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 dev.agouhmad. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Keyel. All rights reserved.

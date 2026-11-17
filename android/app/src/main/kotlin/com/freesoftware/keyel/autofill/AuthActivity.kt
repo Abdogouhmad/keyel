@@ -1,4 +1,4 @@
-package dev.agouhmad.keyel.autofill
+package com.freesoftware.keyel.autofill
 
 import android.app.Activity
 import android.content.Intent
@@ -114,13 +114,13 @@ class AuthActivity : FlutterActivity() {
 
     companion object {
         /** Action for the "save new login" flow; default action is fill. */
-        const val ACTION_SAVE = "dev.agouhmad.keyel.action.SAVE"
+        const val ACTION_SAVE = "com.freesoftware.keyel.action.SAVE"
 
-        const val EXTRA_PACKAGE = "dev.agouhmad.keyel.PACKAGE"
-        const val EXTRA_WEB_DOMAIN = "dev.agouhmad.keyel.WEB_DOMAIN"
-        const val EXTRA_USERNAME = "dev.agouhmad.keyel.USERNAME"
-        const val EXTRA_PASSWORD = "dev.agouhmad.keyel.PASSWORD"
-        const val EXTRA_USERNAME_IDS = "dev.agouhmad.keyel.USERNAME_IDS"
-        const val EXTRA_PASSWORD_IDS = "dev.agouhmad.keyel.PASSWORD_IDS"
+        const val EXTRA_PACKAGE = "com.freesoftware.keyel.PACKAGE"
+        const val EXTRA_WEB_DOMAIN = "com.freesoftware.keyel.WEB_DOMAIN"
+        const val EXTRA_USERNAME = "com.freesoftware.keyel.USERNAME"
+        const val EXTRA_PASSWORD = "com.freesoftware.keyel.PASSWORD"
+        const val EXTRA_USERNAME_IDS = "com.freesoftware.keyel.USERNAME_IDS"
+        const val EXTRA_PASSWORD_IDS = "com.freesoftware.keyel.PASSWORD_IDS"
     }
 }

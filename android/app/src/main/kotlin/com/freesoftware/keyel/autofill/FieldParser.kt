@@ -1,4 +1,4 @@
-package dev.agouhmad.keyel.autofill
+package com.freesoftware.keyel.autofill
 
 import android.app.assist.AssistStructure
 import android.text.InputType

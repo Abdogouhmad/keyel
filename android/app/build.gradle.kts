@@ -18,7 +18,7 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "dev.agouhmad.keyel"
+    namespace = "com.freesoftware.keyel"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "dev.agouhmad.keyel"
+        applicationId = "com.freesoftware.keyel"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
         // versionCode/versionName come from Flutter's `flutter.versionCode` /

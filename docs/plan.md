@@ -2,7 +2,7 @@
 
 > **Keyel** = *key* + *-el* (as in pixel, voxel). An offline-first, privacy-first password manager for Android.
 > Rust core for all crypto and storage. Flutter UI, adaptive across phones, foldables and tablets.
-> Package id (change if you like): `dev.agouhmad.keyel`
+> Package id (change if you like): `com.freesoftware.keyel`
 
 ---
 
@@ -188,7 +188,7 @@ keyel/
 ├── android/
 │   └── app/src/main/
 │       ├── AndroidManifest.xml
-│       ├── kotlin/dev/agouhmad/keyel/
+│       ├── kotlin/com/freesoftware/keyel/
 │       │   ├── MainActivity.kt
 │       │   ├── PlatformChannels.kt     # clipboard sensitive flag, FLAG_SECURE
 │       │   └── autofill/

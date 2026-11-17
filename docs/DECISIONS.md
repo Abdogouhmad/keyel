@@ -620,7 +620,7 @@ design (docs/roadmap.md header).
   tradeoff. Debug builds keep it for hot reload; the release APK (the
   artifact users install) never gets `INTERNET`.
 
-- **App name set to "Keyel"** (label) and applicationId `dev.agouhmad.keyel`
+- **App name set to "Keyel"** (label) and applicationId `com.freesoftware.keyel`
   per the plan §Package id.
 
 - **Flutter template cleaned to Android-only:** `ios/`, `web/`, `macos/`,
@@ -769,5 +769,17 @@ design (docs/roadmap.md header).
   whenever an entry is replaced, purged or expired; create/save wrap the CBOR
   payload in `Zeroizing`. Caller-made `String` clones cannot be tracked, so
   the bridge must not hand secrets to Dart.
+
+- **The application id is `com.freesoftware.keyel` (was `dev.agouhmad.keyel`).**
+  The original id embedded a personal handle; the shipped id is now
+  project-owned and identical in spirit on every platform: the Android
+  `namespace`/`applicationId` (with the Kotlin sources moved to
+  `android/app/src/main/kotlin/com/freesoftware/keyel/`), the Linux
+  `APPLICATION_ID`, the macOS `PRODUCT_BUNDLE_IDENTIFIER` (and its
+  `RunnerTests`), and the Windows `CompanyName`/`LegalCopyright`. Android keys
+  an app by its `applicationId`, so a build with the new id installs *next to*
+  (rather than upgrading) an existing `dev.agouhmad.keyel` install; at 1.1.x
+  that is an acceptable one-time break, and every later release upgrades
+  cleanly from here.
 
 

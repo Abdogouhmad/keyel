@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Declares Keyel as an autofill service with the required settings activity. -->
 <autofill-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:settingsActivity="dev.agouhmad.keyel.MainActivity">
+    android:settingsActivity="com.freesoftware.keyel.MainActivity">
     <!-- No <compatibility-package> entries: matching is done at fill time
          in Rust (`find_autofill_matches`) — the Android package for apps,
          the web host for sites. Do NOT add wildcard packages here — a
