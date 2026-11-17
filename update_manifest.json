@@ -1,11 +1,11 @@
 {
-  "latestVersionName": "1.1.1",
-  "latestVersionCode": 10101,
+  "latestVersionName": "1.1.2",
+  "latestVersionCode": 10102,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.1.1/keyel-v1.1.1-universal.apk",
-  "size": 41890327,
-  "sha256": "3b70b08c84194ba4b7652b08da25f4c30cfb0c4b2ff04b16cfd2d385bff5eade",
-  "releaseNotes": "## [1.1.1] - 2026-11-17\n\nInstaller release: Windows now ships a real `.exe` installer and macOS ships a\n`.dmg`, so every desktop platform has a native way to install Keyel instead of\nonly a zipped bundle.\n\n### Added\n\n- **Windows installer (`.exe`)** — `keyel-v<version>-windows-x64-setup.exe` is a\n  standard double-click installer built with Inno Setup. It installs per user\n  (no administrator prompt), adds Start-menu entries and an optional desktop\n  shortcut, registers an uninstaller in *Apps & features*, and can launch Keyel\n  when it finishes. The portable `.zip` is still published for people who prefer\n  not to install.\n- **macOS disk image (`.dmg`)** — `keyel-v<version>-macos-universal.dmg` opens as\n  a normal drag-to-*Applications* volume. The `.app` `.zip` remains available as\n  well.\n\n### Changed\n\n- **Desktop artifact names are explicit about their contents.** The macOS build\n  is a universal `x86_64` + `arm64` binary, so its assets are named\n  `…-macos-universal` rather than `…-macos-arm64`.\n\n### Notes\n\n- The macOS app is ad-hoc signed (no Developer ID certificate), so Gatekeeper\n  warns the first time it is opened; use *Open* from the right-click menu (or\n  *System Settings → Privacy & Security → Open Anyway*) once.\n- The installers are built and verified in CI; they have not been run on a\n  physical Windows or macOS machine from this environment.",
-  "publishedAt": "2026-11-17T19:26:23.944161+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.1.2/keyel-v1.1.2-universal.apk",
+  "size": 41890343,
+  "sha256": "b91ecc7ed395a682b34775aa5125fa0f7161368d4bc5918448739dbbae89f398",
+  "releaseNotes": "## [1.1.2] - 2026-11-17\n\nIdentity update: the application id is now project-owned\n(`com.freesoftware.keyel`) instead of carrying a personal handle, and the README\nis a proper product page.\n\n### Changed\n\n- **New application id `com.freesoftware.keyel`** (was `dev.agouhmad.keyel`) on\n  every platform — the Android `namespace`/`applicationId` (with the Kotlin\n  sources moved to `com/freesoftware/keyel/`), the Linux `APPLICATION_ID`, the\n  macOS bundle identifier, and the Windows/macOS publisher metadata.\n- **README** rewritten as a product page: hero icon, platform install table,\n  grouped feature list, security summary and FAQ.\n\n### Notes\n\n- **Android installs do not upgrade in place across this change.** Android keys\n  an app by its application id, so `com.freesoftware.keyel` installs as a\n  separate app next to an existing `dev.agouhmad.keyel` build; the old app and\n  its vault are left untouched. Uninstall the old one once the new one is set up.\n- The macOS app is ad-hoc signed, so Gatekeeper warns on first launch.",
+  "publishedAt": "2026-11-17T20:20:27.306212+00:00"
 }
