@@ -11,7 +11,10 @@ name: release
 #     - Android: split-per-abi arm64-v8a + armeabi-v7a and a universal APK
 #       (the universal one is what the in-app OTA updater always downloads, and
 #       its asset name + sha256 land in update_manifest.json).
-#     - Linux (x64), Windows (x64) and macOS (arm64) desktop bundles.
+#     - Linux (x64): a portable .tar.gz bundle.
+#     - Windows (x64): a portable .zip AND a real .exe installer (Inno Setup),
+#       so a user can double-click to install rather than unpack an archive.
+#     - macOS (universal x86_64+arm64): a .app .zip AND a drag-to-install .dmg.
 #   All artifacts plus a SHA-256 `checksums.txt` are attached to the GitHub
 #   release, whose notes are the matching `## [<version>]` section of
 #   CHANGELOG.md, used verbatim (also copied into the manifest's `releaseNotes`).
@@ -264,6 +267,28 @@ jobs:
           Compress-Archive -Path "${{ matrix.bundle }}\*" `
             -DestinationPath "dist/keyel-v${{ steps.version.outputs.version }}-windows-x64.zip"
 
+      # A `.zip` is not something a Windows user can just double-click and
+      # install, so build a real installer too: Inno Setup (preinstalled on the
+      # windows-2022 runner image) wraps the whole bundle into a single
+      # `keyel-v<ver>-windows-x64-setup.exe` with an uninstaller, Start-menu
+      # entries and an optional desktop shortcut.
+      - name: Build Windows installer (.exe)
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "C:\Program Files*\Inno Setup*\ISCC.exe" `
+            -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $iscc) { throw "ISCC.exe (Inno Setup) not found on the runner" }
+          $bundle = (Resolve-Path "${{ matrix.bundle }}").Path
+          $out = (Resolve-Path dist).Path
+          & $iscc.FullName `
+            "/DKeyelVersion=${{ steps.version.outputs.version }}" `
+            "/DKeyelBundle=$bundle" `
+            "/DKeyelOut=$out" `
+            "packaging\windows\keyel.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC.exe failed with exit code $LASTEXITCODE" }
+          Get-ChildItem dist
+
       - name: Package macOS bundle
         if: matrix.target == 'macos'
         run: |
@@ -275,6 +300,19 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent \
             "${{ matrix.bundle }}/Keyel.app" \
             "dist/keyel-v${{ steps.version.outputs.version }}-macos-universal.zip"
+
+      # A `.dmg` is the native macOS way to hand someone the app: open it and
+      # drag Keyel onto the Applications symlink. `hdiutil` ships with macOS.
+      - name: Build macOS disk image (.dmg)
+        if: matrix.target == 'macos'
+        run: |
+          mkdir -p dist
+          rm -rf build/dmg
+          mkdir -p build/dmg
+          ditto "${{ matrix.bundle }}/Keyel.app" build/dmg/Keyel.app
+          ln -s /Applications build/dmg/Applications
+          hdiutil create -volname "Keyel" -srcfolder build/dmg -ov -format UDZO \
+            "dist/keyel-v${{ steps.version.outputs.version }}-macos-universal.dmg"
 
       - name: Upload ${{ matrix.target }} bundle
         uses: actions/upload-artifact@v4
@@ -341,20 +379,24 @@ jobs:
           gh api -X DELETE "repos/${REPO}/git/refs/tags/${TAG}" \
             >/dev/null 2>&1 || true
 
-          # One checksums.txt covering EVERY published artifact (APKs + desktop
-          # bundles). `keyel-*` deliberately excludes dist/notes.md.
+          # One checksums.txt covering EVERY published artifact (APKs, desktop
+          # bundles and the installers). `keyel-*` deliberately excludes
+          # dist/notes.md.
           (cd dist && sha256sum keyel-* > checksums.txt)
           cat dist/checksums.txt
 
           shopt -s nullglob
-          apks=(dist/*.apk)
-          zips=(dist/*.zip)   # Windows + macOS
-          tars=(dist/*.tar.gz) # Linux
-          if (( ${#apks[@]} < 3 || ${#zips[@]} < 2 || ${#tars[@]} < 1 )); then
-            echo "::error::Expected 3 APKs, 2 zips and 1 tarball; found: $(ls dist)"
+          apks=(dist/*.apk)          # arm64-v8a, armeabi-v7a, universal
+          zips=(dist/*.zip)          # Windows portable + macOS .app
+          tars=(dist/*.tar.gz)       # Linux
+          exes=(dist/*setup.exe)     # Windows installer
+          dmgs=(dist/*.dmg)          # macOS disk image
+          if (( ${#apks[@]} < 3 || ${#zips[@]} < 2 || ${#tars[@]} < 1 \
+                || ${#exes[@]} < 1 || ${#dmgs[@]} < 1 )); then
+            echo "::error::Expected 3 APKs, 2 zips, 1 tarball, 1 .exe installer and 1 .dmg; found: $(ls dist)"
             exit 1
           fi
-          artifacts=(dist/*.apk dist/*.zip dist/*.tar.gz dist/checksums.txt)
+          artifacts=(dist/*.apk dist/*.zip dist/*.tar.gz dist/*setup.exe dist/*.dmg dist/checksums.txt)
 
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \

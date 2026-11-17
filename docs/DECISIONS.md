@@ -145,6 +145,22 @@ design (docs/roadmap.md header).
   framework is built for both archs too), so the artifact is named
   `…-macos-universal.zip` and runs natively on Intel and Apple Silicon alike.
 
+- **Windows ships a real `.exe` installer and macOS a `.dmg`, alongside the
+  portable archives.** A zipped bundle is not something a Windows user can
+  double-click to install (the first 1.1.0 report was literally "I don't see
+  .exe for windows"), so the `desktop` job builds
+  `keyel-v<version>-windows-x64-setup.exe` with **Inno Setup**, which is
+  preinstalled on the `windows-2022` runner image (6.7.1). The script lives at
+  `packaging/windows/keyel.iss` and takes `/DKeyelVersion`, `/DKeyelBundle`
+  (absolute path to the built `Release\` dir) and `/DKeyelOut`; the AppId GUID is
+  fixed so upgrades and the uninstaller keep working, and `PrivilegesRequired=lowest`
+  installs per user with no UAC prompt. The macOS job also produces
+  `…-macos-universal.dmg` via the native `hdiutil` (the `.app` plus an
+  `/Applications` symlink, so it is a drag-to-install volume). The portable
+  `.zip`s stay published for people who would rather not install. `publish`
+  requires at least one `*setup.exe` and one `*.dmg` and attaches them to the
+  release.
+
 - **Desktop builds run on pull requests only in CI; the release owns them on
   `main`.** GitHub's macOS arm64 hosted runners are capacity-constrained, and a
   version-bump push to `main` fires `ci.yml` *and* `release.yml` at the same

@@ -5,6 +5,38 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-11-17
+
+Installer release: Windows now ships a real `.exe` installer and macOS ships a
+`.dmg`, so every desktop platform has a native way to install Keyel instead of
+only a zipped bundle.
+
+### Added
+
+- **Windows installer (`.exe`)** — `keyel-v<version>-windows-x64-setup.exe` is a
+  standard double-click installer built with Inno Setup. It installs per user
+  (no administrator prompt), adds Start-menu entries and an optional desktop
+  shortcut, registers an uninstaller in *Apps & features*, and can launch Keyel
+  when it finishes. The portable `.zip` is still published for people who prefer
+  not to install.
+- **macOS disk image (`.dmg`)** — `keyel-v<version>-macos-universal.dmg` opens as
+  a normal drag-to-*Applications* volume. The `.app` `.zip` remains available as
+  well.
+
+### Changed
+
+- **Desktop artifact names are explicit about their contents.** The macOS build
+  is a universal `x86_64` + `arm64` binary, so its assets are named
+  `…-macos-universal` rather than `…-macos-arm64`.
+
+### Notes
+
+- The macOS app is ad-hoc signed (no Developer ID certificate), so Gatekeeper
+  warns the first time it is opened; use *Open* from the right-click menu (or
+  *System Settings → Privacy & Security → Open Anyway*) once.
+- The installers are built and verified in CI; they have not been run on a
+  physical Windows or macOS machine from this environment.
+
 ## [1.1.0] - 2026-11-17
 
 Desktop release: Keyel now runs on Windows, macOS and Linux alongside Android,

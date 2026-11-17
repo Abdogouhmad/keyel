@@ -6,7 +6,7 @@
 - All crypto and storage in a pure Rust core (`crates/keyel_core`), bridged to Flutter with [flutter_rust_bridge](https://flutter_rust_bridge.dev).
 - Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet and desktop).
 
-**Status:** 1.1.0 — desktop release. English-only for now; localization is
+**Status:** 1.1.1 — desktop release. English-only for now; localization is
 deferred. See
 [`docs/roadmap.md`](docs/roadmap.md),
 [`docs/crypto-design.md`](docs/crypto-design.md) and
@@ -16,9 +16,12 @@ deferred. See
 
 ### Quick start
 
-1. Install the app (a signed APK from Releases, or `flutter run` for a dev
-   build — see below). Desktop builds run from `flutter run -d windows`,
-   `-d macos` or `-d linux`.
+1. Install the app from
+   [Releases](https://github.com/Abdogouhmad/keyel/releases/latest): the signed
+   APK on Android, the `.exe` installer on Windows, the `.dmg` on macOS, and the
+   `.tar.gz` bundle on Linux (portable `.zip` bundles are published too). For a
+   dev build use `flutter run` — see below. Desktop builds run from
+   `flutter run -d windows`, `-d macos` or `-d linux`.
 2. On first launch, **create a vault** and choose a strong master password.
    Write it down: it is never stored on the device and never sent anywhere.
 3. **Save the recovery key** when it is shown. It is displayed once and is the
