@@ -5,6 +5,29 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-11-17
+
+Identity update: the application id is now project-owned
+(`com.freesoftware.keyel`) instead of carrying a personal handle, and the README
+is a proper product page.
+
+### Changed
+
+- **New application id `com.freesoftware.keyel`** (was `dev.agouhmad.keyel`) on
+  every platform — the Android `namespace`/`applicationId` (with the Kotlin
+  sources moved to `com/freesoftware/keyel/`), the Linux `APPLICATION_ID`, the
+  macOS bundle identifier, and the Windows/macOS publisher metadata.
+- **README** rewritten as a product page: hero icon, platform install table,
+  grouped feature list, security summary and FAQ.
+
+### Notes
+
+- **Android installs do not upgrade in place across this change.** Android keys
+  an app by its application id, so `com.freesoftware.keyel` installs as a
+  separate app next to an existing `dev.agouhmad.keyel` build; the old app and
+  its vault are left untouched. Uninstall the old one once the new one is set up.
+- The macOS app is ad-hoc signed, so Gatekeeper warns on first launch.
+
 ## [1.1.1] - 2026-11-17
 
 Installer release: Windows now ships a real `.exe` installer and macOS ships a
