@@ -5,6 +5,46 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-17
+
+Desktop release: Keyel now runs on Windows, macOS and Linux alongside Android,
+with a built-in over-the-air updater and a custom entry-icon picker.
+
+### Added
+
+- **Over-the-air updates (Android)** — *Settings → Software update* checks a
+  release channel (stable or beta) for a newer build, downloads the APK with a
+  progress indicator, verifies its SHA-256 checksum against the published
+  manifest, and hands it to the system package installer. An update can also be
+  installed from a local APK file.
+- **Custom entry icons** — a searchable icon picker with nine categories
+  (brands, tech, finance, work, security, media, social, crypto, life) and 188
+  icons. A chosen icon is stored with the entry and shown in lists and detail
+  views; the picker also suggests icons from the entry title or URL.
+- **Windows and macOS desktop targets** — real `windows/` and `macos/` builds
+  next to the existing `linux/` target, all sharing the adaptive UI. Desktop
+  windows open at a sensible size, enforce a phone-sized minimum, and carry the
+  "Keyel" app name and title.
+
+### Changed
+
+- **The vault payload format is now schema v2.** Entries gained an optional
+  `icon` field. Existing v1 vaults are migrated in place on unlock (a no-op for
+  vaults without icons); the on-disk file format is unchanged, so the frozen v1
+  fixture still pins the bytes.
+- **Release builds now request the `INTERNET` permission.** This is required for
+  the update checker and downloader and reverses the previous "offline only"
+  posture. The app still sends nothing except update checks to the configured
+  release source; no vault data ever leaves the device. `build.sh` no longer
+  fails a release that has `INTERNET`.
+
+### Notes
+
+- The desktop targets and the update installer are code-complete and covered by
+  tests, but have not been verified on a Windows or macOS machine or on a
+  physical Android device from this environment.
+- English-only. Localization (EN/FR/AR with RTL) is still deferred.
+
 ## [1.0.0] - 2026-11-16
 
 First stable release: an offline-first, privacy-first password manager for

@@ -4,6 +4,48 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-17
+
+- **OTA updates are in, and with them the `INTERNET` permission.** The user
+  chose the full self-updater, which needs to reach a release source and install
+  a downloaded APK. This reverses the earlier "Keyel must never request network
+  access" rule: the main manifest now declares `INTERNET` and
+  `REQUEST_INSTALL_PACKAGES`, and `build.sh`'s `verify_policy` no longer fails a
+  release that carries `INTERNET`. The offline-only promise is replaced by a
+  narrower one: the app contacts the release source only to check for and fetch
+  an update, and no vault data is ever transmitted. The APK is verified by
+  SHA-256 before it is handed to the system installer.
+
+- **Entry icons live in the vault payload at schema v2, not in a side file.**
+  `Entry.icon` is an optional string slug (`#[serde(default)]`), so the vault
+  file format is untouched and the frozen v1 byte fixture still pins it. Bumping
+  `VAULT_SCHEMA_VERSION` to 2 with a no-op v1→v2 migration keeps the version
+  honest while old vaults open unchanged. A sidecar icon map would have needed
+  its own atomic write path and could drift from the vault; keeping icons inside
+  the entry means one source of truth and no new on-disk artifact.
+
+- **Windows and macOS become real targets, superseding the 2026-11-16
+  decision.** That entry said "desktop" meant large windows on the Linux target
+  only, and that new OS targets were a separate, unmade decision. The user has
+  now made it: `windows/` and `macos/` are generated and wired, so the phrase
+  "desktop" in the design docs means the adaptive layout on Windows, macOS and
+  Linux alike. Windows and macOS cannot be built or run on this Linux host, so
+  their runners are code-complete but unverified here.
+
+- **The Rust FFI plugin gains Windows and macOS glue.** `rust_builder` already
+  carried `android/` and `linux/`; it now also has `windows/CMakeLists.txt` and
+  a macOS podspec so cargokit builds `rust_lib_keyel` on those hosts. Because
+  this Flutter version defaults macOS to Swift Package Manager and cargokit
+  needs CocoaPods, a `macos/Podfile` is added to enable the pod path alongside
+  SPM.
+
+- **The icon catalog is a curated list, not every Material glyph.** It grew from
+  ~68 to 188 icons across nine categories (adding a Crypto category), chosen for
+  services people actually store logins for and verified to exist in the pinned
+  Flutter SDK. `test/entry_icon_test.dart` now asserts a floor of 150 icons and
+  that every category is populated, so a future SDK or edit cannot silently
+  shrink the picker.
+
 ## 2026-11-15
 
 - **Phase 0.12 (Beta) starts on `phase/0.12-beta`; localization is deferred.**

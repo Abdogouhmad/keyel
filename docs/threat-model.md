@@ -1,7 +1,8 @@
 # Keyel threat model
 
-Status: initial model for phase 0.11.0 (hardening). Scope: the Android app and
-the Rust core it embeds. Companion documents: `docs/crypto-design.md` (normative
+Status: initial model for phase 0.11.0 (hardening), extended for the 1.1.0
+update channel. Scope: the Android and desktop apps and the Rust core they
+embed. Companion documents: `docs/crypto-design.md` (normative
 vault format), `docs/vault-model.md` (payload schema) and
 `docs/hardening-checklist.md` (item-by-item status).
 
@@ -28,7 +29,8 @@ substitute for the independent review planned before 1.0 (roadmap item 0.11.13).
  (trusted)      (semi-trusted)        (boundary B)             (trusted for secrets)
                      │
                      ├──▶ Android platform (Keystore, BiometricPrompt, Autofill)  (trusted)
-                     └──▶ Other apps / Chrome via the Autofill framework          (untrusted)
+                     ├──▶ Other apps / Chrome via the Autofill framework          (untrusted)
+                     └──▶ Release source (update check + APK download)             (untrusted)
 ```
 
 - **B — Dart↔Rust bridge.** Dart never holds the vault key. The only function
@@ -50,9 +52,9 @@ Assumed true (else the model changes):
 - Physical access to an **unlocked, rooted** device is largely out of scope;
   we still minimise what such an attacker gets (see T9, T10).
 
-Out of scope for v1: multi-user vaults, server-side sync (there is no server and
-no `INTERNET` permission), hardware security keys, coercion resistance, and
-protecting data the user deliberately exports to CSV.
+Out of scope for v1: multi-user vaults, server-side sync (there is no server;
+since 1.1.0 `INTERNET` is used only for update checks), hardware security keys,
+coercion resistance, and protecting data the user deliberately exports to CSV.
 
 ## 4. Adversaries
 
@@ -60,7 +62,7 @@ protecting data the user deliberately exports to CSV.
 |---|---|---|
 | A1 | Opportunistic thief | Has the locked device; no root |
 | A2 | Malicious app on the device | Runs in its own sandbox; can drive Autofill |
-| A3 | Network attacker | Irrelevant in v1: the app has no network permission |
+| A3 | Network attacker | Can intercept the update check and download (since 1.1.0) |
 | A4 | Offline attacker | Has a copy of `vault.keyel` (e.g. from a backup) |
 | A5 | Shoulder surfer / screen recorder | Can see the screen and the task switcher |
 | A6 | Forensic examiner | Full disk image of a rooted or unlocked device |
@@ -85,8 +87,8 @@ the mitigation; strength depends on the user's password.
 - `android:allowBackup="false"` and explicit `dataExtractionRules` /
   `backup_rules` keep the vault out of cloud backups
   (`android/app/src/main/AndroidManifest.xml`).
-- `build.sh` fails a release that requests `INTERNET`, is debuggable, or does
-  not set `allowBackup="false"`.
+- `build.sh` fails a release that is debuggable or does not set
+  `allowBackup="false"`. (It no longer forbids `INTERNET`; see T13.)
 - The vault lives in `getApplicationSupportDirectory()` (app-private).
 - Secrets are never written to `settings.json` (non-secret UI preferences only,
   `lib/data/app_preferences.dart`).
@@ -218,18 +220,42 @@ biometric unlock off; the setting is explicit.
 
 *Open:* dependency update cadence is manual; no `dependabot`/`renovate` yet.
 
+### T13 — Malicious or tampered update (A3)
+
+Since 1.1.0 the app requests `INTERNET` to check for and download updates, so a
+network attacker (or a compromised release host) is now in scope.
+
+- The update is fetched over HTTPS from the configured release source
+  (`lib/core/ota/ota_service.dart`).
+- The downloaded APK is hashed and its SHA-256 compared against the value in the
+  release manifest *before* it is handed to the system installer; a mismatch
+  aborts the install.
+- Android's own signature check refuses an APK signed by a different key, so an
+  attacker who swaps the file cannot produce an installable package unless the
+  signing key is also compromised.
+- No vault data is included in the request or the response; the check leaks only
+  the app version and platform.
+
+*Residual:* integrity depends on the release manifest being served untampered
+over TLS and on the signing key staying private. A manifest pinned to a
+hard-coded checksum would remove the server-trust step; not done yet.
+
+*Open:* the installer flow has not been exercised on a physical device
+(`REQUEST_INSTALL_PACKAGES` grant, `FileProvider` URI, package install).
+
 ## 6. Verification map
 
 | Threat | How it is checked |
 |---|---|
 | T1, T6 | `crates/keyel_core` unit/property tests; `cargo fuzz` (nightly) |
-| T2 | `build.sh` policy checks (no INTERNET, not debuggable, `allowBackup=false`); on-device dump pending |
+| T2 | `build.sh` policy checks (not debuggable, `allowBackup=false`); on-device dump pending |
 | T3 | Source grep (documented in `docs/hardening-checklist.md`); `adb logcat` pending |
 | T4 | `zeroize_secrets` unit test; `Zeroizing` wrappers; review |
 | T5 | Manual on-device pass pending |
 | T7, T8 | `keyel_core::autofill` unit tests |
 | T9 | `test/unlock_throttle_test.dart` (schedule, lock, reset, restore); `test/vault_session_provider_test.dart` (count, refuse, clear) |
 | T12 | `cargo audit` + `cargo deny` CI job |
+| T13 | `test/ota_test.dart` (SHA-256 verify, mismatch aborts, channel filter); on-device install pending |
 
 ## 7. Open items
 

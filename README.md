@@ -1,12 +1,13 @@
 # Keyel
 
-**Keyel** = *key* + *-el* (as in pixel, voxel). An **offline-first, privacy-first password manager for Android**, with a Rust crypto core and a Flutter UI.
+**Keyel** = *key* + *-el* (as in pixel, voxel). An **offline-first, privacy-first password manager** for Android, Windows, macOS and Linux, with a Rust crypto core and a Flutter UI.
 
-- No network permission: data leaves your device only when you export it.
+- Minimal network use: the app only contacts the configured release source to check for and download updates. No vault data ever leaves your device.
 - All crypto and storage in a pure Rust core (`crates/keyel_core`), bridged to Flutter with [flutter_rust_bridge](https://flutter_rust_bridge.dev).
-- Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet).
+- Material 3 / Pixel-styled adaptive UI (phone, foldable, tablet and desktop).
 
-**Status:** 1.0.0 — stable. English-only for now; localization is deferred. See
+**Status:** 1.1.0 — desktop release. English-only for now; localization is
+deferred. See
 [`docs/roadmap.md`](docs/roadmap.md),
 [`docs/crypto-design.md`](docs/crypto-design.md) and
 [`docs/vault-model.md`](docs/vault-model.md).
@@ -16,7 +17,8 @@
 ### Quick start
 
 1. Install the app (a signed APK from Releases, or `flutter run` for a dev
-   build — see below).
+   build — see below). Desktop builds run from `flutter run -d windows`,
+   `-d macos` or `-d linux`.
 2. On first launch, **create a vault** and choose a strong master password.
    Write it down: it is never stored on the device and never sent anywhere.
 3. **Save the recovery key** when it is shown. It is displayed once and is the
@@ -38,9 +40,12 @@ is no server, no backdoor and no reset. Restore from an encrypted backup if you
 have one.
 
 **Does Keyel send my data anywhere?**
-No. Release builds have no `INTERNET` permission. Data leaves the device only
-when you explicitly export it or share the diagnostics file from *Report a
-problem* (which contains no secrets — see below).
+Not your vault. The only network access is the optional update check: the app
+asks the configured release source whether a newer version exists and, if you
+accept, downloads it. No vault contents, entry titles, passwords or key material
+are ever transmitted. Data otherwise leaves the device only when you explicitly
+export it or share the diagnostics file from *Report a problem* (which contains
+no secrets — see below).
 
 **Where is my data stored?**
 In a single encrypted `vault.keyel` file in the app's private storage. The key
@@ -81,6 +86,11 @@ file. Use the **encrypted backup** for anything you intend to keep.
   cargo install flutter_rust_bridge_codegen cargo-ndk
   ```
 
+For a desktop build you also need the host toolchain: Visual Studio (Desktop
+development with C++) on Windows, Xcode on macOS, or the usual GTK/CMake stack
+on Linux. The Rust core is compiled by cargokit for each host, so no extra Rust
+targets are required.
+
 ### Run on a device
 
 ```bash
@@ -89,6 +99,15 @@ flutter run              # debug build: builds Rust via cargokit automatically
 ```
 
 The first Rust build takes a few minutes (FRB codegen + NDK toolchain).
+
+### Run on desktop
+
+```bash
+flutter run -d linux     # or -d windows / -d macos
+```
+
+The window opens at 1200×800 and will not shrink below a phone-sized minimum so
+the responsive layout stays usable.
 
 ### Regenerate the bridge after editing `rust/src/api/**`
 
@@ -131,7 +150,9 @@ See [`docs/plan.md §5`](docs/plan.md) for the full structure. Quick tour:
 
 ## Security posture
 
-- No `INTERNET` permission in release builds.
+- `INTERNET` is requested only for the update checker and downloader; the app
+  contacts the release source and nothing else. Downloaded APKs are verified by
+  SHA-256 before the system installer runs.
 - `allowBackup=false`; cloud/device backups excluded via `dataExtractionRules`.
 - Secrets live in Rust (`zeroize`/`secrecy`); Dart only ever receives what a user explicitly reveals.
 - See [`docs/crypto-design.md`](docs/crypto-design.md) (published in phase 0.2.0).

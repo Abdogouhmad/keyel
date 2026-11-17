@@ -33,7 +33,8 @@ git tag v0.X.0 && git push --tags
 | 0.10.0 | Autofill | 1.5 weeks | ◐ |
 | 0.11.0 | Hardening and accessibility | 1 week | ◐ |
 | 0.12.0 | Beta (dogfood and polish) | 2 weeks | ◐ |
-| 1.0.0 | Release | 3-4 days | ☐ |
+| 1.0.0 | Release | 3-4 days | ☑ |
+| 1.1.0 | Desktop, updates and icons | 1.5 weeks | ◐ |
 
 Estimates assume part-time work. Adjust to your pace.
 
@@ -589,16 +590,67 @@ section and `docs/DECISIONS.md`, 2026-11-16)
 
 ---
 
+## 1.1.0: Desktop, updates and icons
+
+**Goal:** make Keyel installable and updatable beyond a single sideloaded
+Android APK: a built-in updater, a richer entry-icon picker, and real Windows
+and macOS desktop builds beside the Linux one.
+
+### Knowledge
+- Android in-app APK installation: `REQUEST_INSTALL_PACKAGES`, `FileProvider`,
+  `PackageInstaller` / `Intent.ACTION_VIEW`, and the "install unknown apps"
+  settings flow.
+- Integrity of a downloaded artifact: SHA-256 over the bytes, checksum published
+  with the release, verify before install.
+- Flutter desktop targets: the `windows/`, `macos/` and `linux/` runners, and
+  how a Rust FFI plugin is built for each host (cargokit, CMake, CocoaPods).
+- Backward-compatible vault schema evolution: optional fields with
+  `#[serde(default)]` and a no-op migration.
+
+### Todo
+1. Add the OTA service (check, chunked download, SHA-256 verify) and platform
+   installer channel; wire permissions and `FileProvider`.
+2. Build the update screen, channels and the settings entry point.
+3. Bump the vault payload to schema v2 with an optional `Entry.icon` and a
+   v1→v2 migration; thread the field through the bridge and the editor.
+4. Add the icon catalog and the searchable picker sheet, wired into the entry
+   editor, list and detail views.
+5. Generate the `windows/` and `macos/` targets and add the Rust plugin glue for
+   each; size the desktop windows and set the app name.
+6. Expand and lock the icon catalog and OTA behaviour with tests.
+
+### Definition of done
+- A newer release can be checked, downloaded, verified and installed from inside
+  the app on Android.
+- A new login can be given a custom icon that persists in the vault.
+- The Linux desktop build compiles and links the Rust core; the Windows and
+  macOS targets are generated and wired (built/run on their own hosts).
+
+### Status (2026-11-17)
+- **Done at the code level and tested.** OTA (`lib/core/ota/`,
+  `lib/features/ota/`), the icon picker (`entry_icon.dart` at 188 icons,
+  `icon_picker_sheet.dart`), vault schema v2, and the `windows/` + `macos/`
+  targets with `rust_builder` glue. `dart format`, `flutter analyze`,
+  `cargo fmt`/`clippy -D warnings`, `flutter test` (119) and
+  `cargo test --workspace` all pass; the Linux desktop build is verified here.
+- **Open, needs hardware/other hosts.** On-device APK install and multi-device
+  testing of the updater; building and running the Windows and macOS targets
+  (this environment is Linux-only, and macOS needs Xcode); a real release APK
+  needs the `KEYEL_*` signing secrets, otherwise it is debug-signed.
+
+**Tag:** `v1.1.0`
+
+---
+
 ## After 1.0 (ideas, in rough order)
 
 | Version | Idea |
 |---|---|
-| 1.1 | Quick Settings tile (lock), app shortcut (generator), widgets |
-| 1.2 | Passkeys via Credential Manager (Android 14+) |
-| 1.3 | Optional breach check (HIBP k-anonymity) behind explicit opt-in |
+| 1.2 | Quick Settings tile (lock), app shortcut (generator), widgets |
+| 1.3 | Passkeys via Credential Manager (Android 14+) |
+| 1.4 | Optional breach check (HIBP k-anonymity) behind explicit opt-in |
 | 2.0 | End-to-end encrypted sync with a Rust server (reuse the vault format; server only stores ciphertext) |
 | 2.1 | Wear OS companion for TOTP |
-| 2.2 | Desktop client (the Rust core is reusable) |
 
 ---
 
