@@ -192,7 +192,7 @@ jobs:
             bundle: build/windows/x64/runner/Release
           - os: macos-latest
             target: macos
-            artifact: keyel-macos-arm64
+            artifact: keyel-macos-universal
             bundle: build/macos/Build/Products/Release
     runs-on: ${{ matrix.os }}
     steps:
@@ -230,7 +230,9 @@ jobs:
       - name: Determine version
         id: version
         shell: bash
-        run: ./build.sh --detect-version >> "$GITHUB_OUTPUT"
+        # `bash ./build.sh` (not `./build.sh`) so the Windows runner does not
+        # depend on the executable bit surviving checkout.
+        run: bash ./build.sh --detect-version >> "$GITHUB_OUTPUT"
 
       - name: Build ${{ matrix.target }} desktop bundle
         run: flutter build ${{ matrix.target }} --release
@@ -266,11 +268,13 @@ jobs:
         if: matrix.target == 'macos'
         run: |
           mkdir -p dist
-          # `ditto` preserves the symlinks and metadata a .app bundle needs;
-          # `--keepParent` keeps `Keyel.app` as the top-level entry.
+          # Flutter builds macOS with ARCHS_STANDARD, so the app (and cargokit's
+          # Rust framework) is a UNIVERSAL x86_64+arm64 binary; `ditto` preserves
+          # the symlinks and metadata a .app bundle needs and `--keepParent`
+          # keeps `Keyel.app` as the top-level entry.
           ditto -c -k --sequesterRsrc --keepParent \
             "${{ matrix.bundle }}/Keyel.app" \
-            "dist/keyel-v${{ steps.version.outputs.version }}-macos-arm64.zip"
+            "dist/keyel-v${{ steps.version.outputs.version }}-macos-universal.zip"
 
       - name: Upload ${{ matrix.target }} bundle
         uses: actions/upload-artifact@v4

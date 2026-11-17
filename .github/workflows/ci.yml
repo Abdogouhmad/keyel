@@ -135,6 +135,11 @@ jobs:
   # reproduced on the 2022 image too — but the pin keeps the job on the stable,
   # verified VS 2022 toolchain while the VS 2026 image settles.
   desktop-build:
+    # Desktop bundles are built for real by release.yml on every version bump,
+    # and macOS runners are capacity-constrained, so building them here on a
+    # `main` push would only compete with the release for the same runner pool.
+    # Validate the desktop targets on pull requests instead.
+    if: github.event_name == 'pull_request'
     strategy:
       fail-fast: false
       matrix:

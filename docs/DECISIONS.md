@@ -133,14 +133,28 @@ design (docs/roadmap.md header).
   `.github/workflows/release.yml` has three jobs. `android` (ubuntu) builds the
   signed split-ABI + universal APKs via `./build.sh`. `desktop` is a matrix that
   builds each host target on its own runner (Linux `tar.gz`, Windows `zip`,
-  macOS `ditto`-zipped `Keyel.app` arm64) because Flutter registers only the
-  host desktop target. `publish` (needs both) downloads every artifact into one
+  macOS `ditto`-zipped `Keyel.app`) because Flutter registers only the host
+  desktop target. `publish` (needs both) downloads every artifact into one
   `dist/`, writes a single `checksums.txt` over all of them, creates the tag +
   GitHub release with `--notes-file dist/notes.md` — the `## [<version>]`
   section of CHANGELOG.md, used verbatim as the release notes and copied into
   the manifest's `releaseNotes` — then rewrites/commits `update_manifest.json`.
   macOS bundles are ad-hoc signed (no certificate), so Gatekeeper warns on first
-  launch; that matches what CI verifies today.
+  launch; that matches what CI verifies today. The macOS app is a **universal**
+  x86_64 + arm64 binary (Flutter builds `ARCHS_STANDARD`, and cargokit's Rust
+  framework is built for both archs too), so the artifact is named
+  `…-macos-universal.zip` and runs natively on Intel and Apple Silicon alike.
+
+- **Desktop builds run on pull requests only in CI; the release owns them on
+  `main`.** GitHub's macOS arm64 hosted runners are capacity-constrained, and a
+  version-bump push to `main` fires `ci.yml` *and* `release.yml` at the same
+  time, so both would queue a macOS job and the second was repeatedly cancelled
+  in the queue before it ever started. `ci.yml`'s `desktop-build` matrix is now
+  gated to `pull_request`; the release workflow builds and validates the desktop
+  bundles on `main`, so nothing is lost and the release no longer competes for
+  the same runner pool. If a macOS job is still cancelled by capacity, re-run
+  the failed jobs (`gh run rerun <id> --failed`) — the successful Android /
+  Linux / Windows artifacts are reused.
 
 - **Builds are cached aggressively so a release is dominated by the real
   compiles.** Flutter SDK (`subosito/flutter-action` `cache: true`), the pub
