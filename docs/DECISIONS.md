@@ -128,6 +128,19 @@ design (docs/roadmap.md header).
   rebuild and replace a signed release; Walt releases on every push to `main`,
   which is the one place this deliberately deviates.
 
+- **The release tag is created server-side, not pushed from the checkout.** The
+  first 1.1.0 publish built, signed and staged all three APKs correctly but died
+  in `Publish GitHub release`: after the pre-existing `v1.1.0` tag (pushed by
+  hand, no release) was deleted, `git push origin v1.1.0` from the runner's full
+  clone was rejected with `! [remote rejected] v1.1.0 -> v1.1.0 (missing
+  necessary objects)`. The workflow now lets GitHub create the ref itself with
+  `gh release create --target "$GITHUB_SHA"`, which points at a commit the
+  server already has, so no objects cross the wire and the tag is created
+  atomically with the release. A stray tag is removed first with
+  `gh api -X DELETE repos/<repo>/git/refs/tags/<tag>`, and a previous release is
+  replaced via `gh release delete --cleanup-tag`; both tolerate "not found", so
+  re-running the same version is safe.
+
 - **The in-app updater now reads `update_manifest.json`, not the release body.**
   The manifest is the only source that carries the universal APK's `sha256`, so
   the updater can actually verify the download. The old GitHub-API path only

@@ -151,24 +151,28 @@ jobs:
         run: ./build.sh --release-notes
 
       # Collision-safe: re-running for the SAME version replaces the release at
-      # the new commit (delete the old release + tag, then recreate). The tag may
-      # also exist WITHOUT a release (e.g. a tag pushed by hand), so delete the
-      # remote tag whenever it is present rather than only when a release is.
+      # the new commit. Delete the release (and, with it, the tag) when present,
+      # and drop any stray tag that has no release (e.g. one pushed by hand).
+      #
+      # The tag is created SERVER-SIDE by `gh release create --target`. Pushing a
+      # local tag from the checkout is what failed before:
+      #   ! [remote rejected] v1.1.0 -> v1.1.0 (missing necessary objects)
+      # --target points GitHub at a commit it already has, so no objects are
+      # transferred and the ref is created atomically with the release.
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           TAG="${{ steps.version.outputs.tag }}"
-          # Drop the LOCAL tag before touching the remote one -- otherwise the
-          # push below races the deletion and the run dies.
-          git tag -d "$TAG" >/dev/null 2>&1 || true
+          REPO="${{ github.repository }}"
+
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release delete "$TAG" --yes --cleanup-tag
           fi
-          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
-            git push origin ":refs/tags/$TAG"
-          fi
+          # A tag can exist without a release; 404 (already gone) is fine.
+          gh api -X DELETE "repos/${REPO}/git/refs/tags/${TAG}" \
+            >/dev/null 2>&1 || true
 
           shopt -s nullglob
           artifacts=(dist/*.apk dist/checksums.txt)
@@ -176,9 +180,8 @@ jobs:
             echo "::error::No APK artifacts found under dist/"; exit 1
           fi
 
-          git tag "$TAG"
-          git push origin "$TAG"
           gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
             --title "keyel ${{ steps.version.outputs.version }}" \
             --notes-file dist/notes.md \
             "${artifacts[@]}"
