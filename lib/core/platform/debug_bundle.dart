@@ -50,6 +50,11 @@ String collectDebugBundle({AppPreferences? preferences}) {
       'autofillAskToSave': prefs.autofillAskToSave,
       'autofillMatchMode': prefs.autofillMatchMode,
       'unlockFailures': prefs.unlockFailures,
+      'themeMode': prefs.themeMode,
+      'paletteId': prefs.paletteId,
+      'amoledBlack': prefs.amoledBlack,
+      'animationsEnabled': prefs.animationsEnabled,
+      'hapticsEnabled': prefs.hapticsEnabled,
     },
   );
 }

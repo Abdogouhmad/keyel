@@ -22,10 +22,9 @@ export 'design_system/keyel_surfaces.dart';
 export 'design_system/keyel_top_bar.dart';
 export 'design_system/keyel_totp.dart';
 export 'design_system/pressable_scale.dart';
-// Theme & Tokens related
+export 'theme/appearance_provider.dart';
 export 'theme/keyel_colors.dart';
 export 'theme/keyel_context.dart';
 export 'theme/keyel_haptics.dart';
-export 'theme/keyel_radius.dart';
-export 'theme/keyel_spacing.dart';
+export 'theme/keyel_palettes.dart';
 export 'theme/keyel_theme.dart';

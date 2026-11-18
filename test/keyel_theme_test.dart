@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:keyel/ui/theme/keyel_colors.dart';
+import 'package:keyel/ui/theme/keyel_palettes.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 void main() {
@@ -65,6 +66,38 @@ void main() {
         isTrue,
         reason: 'CTA buttons must be full pills (design.md §Buttons)',
       );
+    });
+
+    test('non-indigo palettes generate distinct schemes', () {
+      final oceanLight = KeyelTheme.light(
+        palette: KeyelPalette.ocean,
+      ).colorScheme;
+      final oceanDark = KeyelTheme.dark(palette: KeyelPalette.ocean).colorScheme;
+      expect(oceanLight.primary, isNot(KeyelColors.lightScheme.primary));
+      expect(oceanDark.brightness, Brightness.dark);
+      expect(oceanLight.brightness, Brightness.light);
+    });
+
+    test('AMOLED black uses pure black dark surfaces', () {
+      final scheme = KeyelTheme.dark(
+        palette: KeyelPalette.ocean,
+        amoledBlack: true,
+      ).colorScheme;
+      expect(scheme.surface, Colors.black);
+      expect(scheme.surfaceDim, Colors.black);
+      expect(scheme.surfaceContainerLowest, Colors.black);
+      expect(scheme.scrim, Colors.black);
+    });
+
+    test('palette and theme mode ids round-trip helpers', () {
+      expect(KeyelPaletteX.fromId('ocean'), KeyelPalette.ocean);
+      expect(KeyelPaletteX.fromId('unknown'), KeyelPalette.indigo);
+      expect(KeyelPaletteX.themeModeFromId('dark'), ThemeMode.dark);
+      expect(KeyelPaletteX.themeModeFromId('light'), ThemeMode.light);
+      expect(KeyelPaletteX.themeModeFromId('anything'), ThemeMode.system);
+      expect(KeyelPaletteX.themeModeToId(ThemeMode.dark), 'dark');
+      expect(KeyelPaletteX.themeModeToId(ThemeMode.light), 'light');
+      expect(KeyelPaletteX.themeModeToId(ThemeMode.system), 'system');
     });
   });
 }

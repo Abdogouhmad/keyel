@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/ui/theme/keyel_colors.dart';
+import 'package:keyel/ui/theme/keyel_palettes.dart';
 
 /// Corner radii from the Keyel shape language.
 abstract final class KeyelRadii {
@@ -62,14 +64,15 @@ abstract final class KeyelMotion {
   /// Pressed scale for cards and buttons.
   static const double pressedScale = 0.97;
 
-  /// Returns [duration] unchanged, or [Duration.zero] when the platform asks
-  /// for reduced motion (`MediaQuery.disableAnimationsOf`).
+  /// Returns [duration] unchanged, or [Duration.zero] when motion is disabled.
   ///
-  /// Motion is decoration, never information: honouring the system "remove
-  /// animations" switch keeps every state change instant for people who are
-  /// sensitive to movement (roadmap 0.11, accessibility).
-  static Duration resolve(BuildContext context, Duration duration) =>
-      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
+  /// Respects both the platform "remove animations" setting and the user's
+  /// in-app animation preference. Motion is decoration, never information.
+  static Duration resolve(BuildContext context, Duration duration) {
+    if (!AppPreferences.instance.animationsEnabled) return Duration.zero;
+    if (MediaQuery.disableAnimationsOf(context)) return Duration.zero;
+    return duration;
+  }
 }
 
 /// Soft, colour-tinted ambient elevation from design.md §Elevation.
@@ -87,10 +90,11 @@ abstract final class KeyelShadows {
   ];
 }
 
-/// Keyel brand themes built from the fixed palette.
+/// Keyel themes built from the selected accent palette.
 ///
-/// There is no dynamic-color path: [light] and [dark] always resolve from
-/// [KeyelColors.lightScheme] / [KeyelColors.darkScheme].
+/// The default light/dark themes use the classic indigo brand palette for
+/// backward compatibility. Appearance settings can select other palettes and
+/// enable AMOLED black for dark mode.
 abstract final class KeyelTheme {
   /// Family for UI text.
   static const fontFamily = 'RobotoFlex';
@@ -110,11 +114,30 @@ abstract final class KeyelTheme {
   /// Full-pill radius for CTAs, chips and search bars.
   static const pillRadius = BorderRadius.all(Radius.circular(KeyelRadii.pill));
 
-  /// Static light theme.
-  static ThemeData light() => _build(KeyelColors.lightScheme);
+  /// Static light theme (classic indigo palette).
+  static ThemeData light({KeyelPalette palette = KeyelPalette.indigo}) =>
+      _build(palette.lightScheme());
 
-  /// Static dark theme.
-  static ThemeData dark() => _build(KeyelColors.darkScheme);
+  /// Static dark theme (classic indigo palette unless overridden).
+  static ThemeData dark({
+    KeyelPalette palette = KeyelPalette.indigo,
+    bool amoledBlack = false,
+  }) => _build(palette.darkScheme(), amoledBlack: amoledBlack);
+
+  /// Convenience that mirrors `AppPreferences` for the initial build.
+  static ThemeData lightFromPrefs([AppPreferences? prefs]) {
+    final p = prefs ?? AppPreferences.instance;
+    return light(palette: KeyelPaletteX.fromId(p.paletteId));
+  }
+
+  /// Convenience that mirrors `AppPreferences` for the initial build.
+  static ThemeData darkFromPrefs([AppPreferences? prefs]) {
+    final p = prefs ?? AppPreferences.instance;
+    return dark(
+      palette: KeyelPaletteX.fromId(p.paletteId),
+      amoledBlack: p.amoledBlack,
+    );
+  }
 
   /// A higher-contrast variant of [base] for the platform's high-contrast
   /// setting (`MediaQuery.highContrastOf`).
@@ -191,20 +214,36 @@ abstract final class KeyelTheme {
     );
   }
 
-  static ThemeData _build(ColorScheme scheme) {
+  static ThemeData _build(ColorScheme scheme, {bool amoledBlack = false}) {
+    // AMOLED mode: push dark backgrounds/surfaces to pure black for OLED.
+    var resolvedScheme = scheme;
+    if (amoledBlack && scheme.brightness == Brightness.dark) {
+      resolvedScheme = scheme.copyWith(
+        surface: Colors.black,
+        surfaceDim: Colors.black,
+        surfaceBright: const Color(0xFF141414),
+        surfaceContainerLowest: Colors.black,
+        surfaceContainerLow: const Color(0xFF0A0A0A),
+        surfaceContainer: const Color(0xFF121212),
+        surfaceContainerHigh: const Color(0xFF1A1A1A),
+        surfaceContainerHighest: const Color(0xFF242424),
+        scrim: Colors.black,
+      );
+    }
+
     // Colour every text style with the scheme's on-surface roles so text
     // entered in fields (and any unstyled text) stays readable on the
     // container surfaces in both light and dark themes.
     final textTheme = _textTheme().apply(
-      bodyColor: scheme.onSurface,
-      displayColor: scheme.onSurface,
+      bodyColor: resolvedScheme.onSurface,
+      displayColor: resolvedScheme.onSurface,
     );
-    final isLight = scheme.brightness == Brightness.light;
+    final isLight = resolvedScheme.brightness == Brightness.light;
 
     final base = ThemeData(
       useMaterial3: true,
-      brightness: scheme.brightness,
-      colorScheme: scheme,
+      brightness: resolvedScheme.brightness,
+      colorScheme: resolvedScheme,
       fontFamily: fontFamily,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       splashFactory: InkSparkle.splashFactory,

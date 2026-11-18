@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/data/folders_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/folders/folder_picker_sheet.dart';
+import 'package:keyel/features/folders/widgets/folders_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -121,7 +122,7 @@ class FoldersScreen extends ConsumerWidget {
                   ),
                   data: (items) {
                     if (items.isEmpty) {
-                      return const _FoldersEmptyState();
+                      return const FoldersEmptyState();
                     }
                     return ListView.separated(
                       padding: EdgeInsets.fromLTRB(
@@ -135,7 +136,7 @@ class FoldersScreen extends ConsumerWidget {
                           const SizedBox(height: KeyelSpacing.sm),
                       itemBuilder: (context, index) {
                         final folder = items[index];
-                        return _FolderTile(
+                        return FolderTile(
                           folder: folder,
                           onRename: () =>
                               unawaited(_renameFolder(context, ref, folder)),
@@ -155,109 +156,6 @@ class FoldersScreen extends ConsumerWidget {
         onPressed: () => unawaited(_addFolder(context, ref)),
         icon: const Icon(Icons.create_new_folder_rounded),
         label: const Text('New folder'),
-      ),
-    );
-  }
-}
-
-class _FolderTile extends StatelessWidget {
-  const new({
-    required this.folder,
-    required this.onRename,
-    required this.onDelete,
-  });
-
-  final FolderDto folder;
-  final VoidCallback onRename;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return KeyelSectionCard(
-      showBorder: true,
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: scheme.primaryFixed,
-              borderRadius: BorderRadius.circular(KeyelRadii.field),
-            ),
-            child: Icon(Icons.folder_rounded, color: scheme.onPrimaryFixed),
-          ),
-          const SizedBox(width: KeyelSpacing.md),
-          Expanded(
-            child: Text(
-              folder.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          KeyelIconHull(
-            icon: Icons.edit_rounded,
-            tooltip: 'Rename folder',
-            onPressed: onRename,
-            size: 40,
-            iconSize: 20,
-          ),
-          KeyelIconHull(
-            icon: Icons.delete_outline_rounded,
-            tooltip: 'Delete folder',
-            onPressed: onDelete,
-            foreground: scheme.error,
-            size: 40,
-            iconSize: 20,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FoldersEmptyState extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(KeyelSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.folder_open_rounded,
-              size: 56,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: KeyelSpacing.md),
-            Text(
-              'No folders yet',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.xs),
-            Text(
-              'Folders keep logins, cards and notes in tidy groups. Use the '
-              'button below to create the first one.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

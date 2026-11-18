@@ -21,6 +21,7 @@ import 'package:keyel/features/autofill/autofill_save_screen.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
+import 'package:keyel/ui/theme/keyel_palettes.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 const _autofillChannel = MethodChannel('keyel/autofill');
@@ -118,12 +119,19 @@ class _AutofillApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(vaultSessionProvider);
     final isUnlocked = session.status == VaultStatus.unlocked;
+    final prefs = AppPreferences.instance;
+    final palette = KeyelPaletteX.fromId(prefs.paletteId);
+    final themeMode = KeyelPaletteX.themeModeFromId(prefs.themeMode);
 
     return MaterialApp(
       title: 'Keyel Autofill',
       debugShowCheckedModeBanner: false,
-      theme: KeyelTheme.light(),
-      darkTheme: KeyelTheme.dark(),
+      themeMode: themeMode,
+      theme: KeyelTheme.light(palette: palette),
+      darkTheme: KeyelTheme.dark(
+        palette: palette,
+        amoledBlack: prefs.amoledBlack,
+      ),
       // Honour the platform high-contrast setting on the autofill screens too.
       builder: (context, child) => KeyelTheme.highContrastBuilder(
         child: child ?? const SizedBox.shrink(),

@@ -9,6 +9,7 @@ import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
+import 'package:keyel/ui/theme/appearance_provider.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 Future<void> main() async {
@@ -46,21 +47,23 @@ Future<void> main() async {
 
 /// The Keyel root widget.
 ///
-/// Keyel uses a deliberately fixed brand palette. Dynamic color / Material
-/// You is intentionally **not** used: the vault's security states, strength
-/// colours and contrast ratios must stay identical on every device
-/// (docs/design.md; docs/DECISIONS.md 2026-11-05).
+/// The user can choose a fixed accent palette, theme mode and AMOLED-black
+/// dark surfaces from Settings → Appearance. Security/status colors remain
+/// consistent across palettes.
 class KeyelApp extends ConsumerWidget {
   /// Creates the root application widget.
   const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final appearance = ref.watch(appearanceProvider);
+
     return MaterialApp.router(
       title: 'Keyel',
       debugShowCheckedModeBanner: false,
-      theme: KeyelTheme.light(),
-      darkTheme: KeyelTheme.dark(),
+      themeMode: appearance.themeMode,
+      theme: appearance.lightTheme,
+      darkTheme: appearance.darkTheme,
       routerConfig: ref.watch(appRouterProvider),
       // Honour the platform high-contrast setting on every route and sheet.
       builder: (context, child) => KeyelTheme.highContrastBuilder(

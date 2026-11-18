@@ -26,7 +26,7 @@ class AppButtonQuiet {
         padding: spec.metrics.padding(spec.context),
         textStyle: spec.labelStyle(),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.field),
+          borderRadius: BorderRadius.circular(KeyelRadii.field),
         ),
       ),
       child: spec.isLoading ? spec.spinner(spec.accent) : Text(spec.label!),
@@ -51,7 +51,7 @@ class AppButtonQuiet {
         padding: spec.metrics.padding(spec.context),
         textStyle: spec.labelStyle(),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.field),
+          borderRadius: BorderRadius.circular(KeyelRadii.field),
         ),
       ),
     );
@@ -73,7 +73,7 @@ class AppButtonQuiet {
       color: spec.accent,
       style: IconButton.styleFrom(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.field),
+          borderRadius: BorderRadius.circular(KeyelRadii.field),
         ),
       ),
     );

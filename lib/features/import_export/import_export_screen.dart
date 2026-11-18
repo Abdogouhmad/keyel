@@ -9,6 +9,7 @@ import 'package:keyel/data/folders_provider.dart';
 import 'package:keyel/data/health_provider.dart';
 import 'package:keyel/data/vault_revision_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/import_export/widgets/import_export_hub_widgets.dart';
 import 'package:keyel/features/import_export/widgets/import_export_sheets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -221,7 +222,6 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -241,159 +241,16 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
               ),
             Expanded(
               child: KeyelContent(
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    context.pageMargin,
-                    KeyelSpacing.sm,
-                    context.pageMargin,
-                    KeyelSpacing.xxl,
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: KeyelSpacing.md),
-                      child: Text(
-                        'Move your vault in and out safely. Encrypted backups use '
-                        'their own password; CSV exports are plain text.',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    const KeyelSectionLabel(
-                      label: 'Encrypted backup',
-                      icon: Icons.shield_rounded,
-                    ),
-                    const SizedBox(height: KeyelSpacing.sm),
-                    KeyelSectionCard(
-                      child: Column(
-                        children: [
-                          _ActionRow(
-                            icon: Icons.file_download_outlined,
-                            title: 'Export encrypted backup',
-                            subtitle: 'Save an encrypted copy of your vault',
-                            enabled: !_busy,
-                            onTap: () => unawaited(_exportBackup()),
-                          ),
-                          _ActionRow(
-                            icon: Icons.restore_rounded,
-                            title: 'Restore from backup',
-                            subtitle:
-                                'Merge or replace your vault from a backup',
-                            enabled: !_busy,
-                            onTap: () => unawaited(_restoreBackup()),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
-                      label: 'Import & export',
-                      icon: Icons.swap_vert_rounded,
-                    ),
-                    const SizedBox(height: KeyelSpacing.sm),
-                    KeyelSectionCard(
-                      child: Column(
-                        children: [
-                          _ActionRow(
-                            icon: Icons.upload_file_rounded,
-                            title: 'Import from CSV',
-                            subtitle: 'Bitwarden or Chrome password exports',
-                            enabled: !_busy,
-                            onTap: () => unawaited(_importCsv()),
-                          ),
-                          _ActionRow(
-                            icon: Icons.file_upload_outlined,
-                            title: 'Export as plain CSV',
-                            subtitle: 'Unencrypted — for moving to another app',
-                            danger: true,
-                            enabled: !_busy,
-                            onTap: () => unawaited(_exportCsv()),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                child: ImportExportHubBody(
+                  busy: _busy,
+                  onExportBackup: () => unawaited(_exportBackup()),
+                  onRestoreBackup: () => unawaited(_restoreBackup()),
+                  onImportCsv: () => unawaited(_importCsv()),
+                  onExportCsv: () => unawaited(_exportCsv()),
                 ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// One tappable row inside a settings-style card.
-class _ActionRow extends StatelessWidget {
-  const new({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.enabled = true,
-    this.danger = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final bool enabled;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final accent = danger ? scheme.error : scheme.primary;
-    final opacity = enabled ? 1.0 : 0.4;
-
-    return Opacity(
-      opacity: opacity,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: KeyelSpacing.md,
-            vertical: 14,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(KeyelRadii.field),
-                ),
-                child: Icon(icon, size: 20, color: accent),
-              ),
-              const SizedBox(width: KeyelSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: KeyelSpacing.sm),
-              Icon(Icons.chevron_right_rounded, color: accent),
-            ],
-          ),
         ),
       ),
     );

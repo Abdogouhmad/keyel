@@ -18,7 +18,12 @@ void _reset(AppPreferences prefs) {
     ..generatorSeparator = '-'
     ..clipboardClearSeconds = 30
     ..unlockFailures = 0
-    ..unlockLockedUntilMs = null;
+    ..unlockLockedUntilMs = null
+    ..themeMode = 'system'
+    ..paletteId = 'indigo'
+    ..amoledBlack = false
+    ..animationsEnabled = true
+    ..hapticsEnabled = true;
 }
 
 void main() {
@@ -133,4 +138,46 @@ void main() {
     expect(prefs.clipboardClearSeconds, 0);
     expect(prefs.clipboardClearDelay, isNull);
   });
+
+  test('appearance preferences round-trip through settings.json', () async {
+    final dir = await Directory.systemTemp.createTemp(
+      'keyel_prefs_appearance',
+    );
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    prefs
+      ..themeMode = 'dark'
+      ..paletteId = 'ocean'
+      ..amoledBlack = true
+      ..animationsEnabled = false
+      ..hapticsEnabled = false;
+
+    await prefs.load(vaultPath);
+    await prefs.save();
+
+    _reset(prefs);
+    await prefs.load(vaultPath);
+
+    expect(prefs.themeMode, 'dark');
+    expect(prefs.paletteId, 'ocean');
+    expect(prefs.amoledBlack, isTrue);
+    expect(prefs.animationsEnabled, isFalse);
+    expect(prefs.hapticsEnabled, isFalse);
+  });
+
+  test('missing appearance settings keep defaults', () async {
+    final dir = await Directory.systemTemp.createTemp(
+      'keyel_prefs_appearance_missing',
+    );
+    addTearDown(() => dir.delete(recursive: true));
+    await prefs.load('${dir.path}/vault.keyel');
+
+    expect(prefs.themeMode, 'system');
+    expect(prefs.paletteId, 'indigo');
+    expect(prefs.amoledBlack, isFalse);
+    expect(prefs.animationsEnabled, isTrue);
+    expect(prefs.hapticsEnabled, isTrue);
+  });
+
 }

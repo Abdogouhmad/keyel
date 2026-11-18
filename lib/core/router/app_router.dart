@@ -15,6 +15,7 @@ import 'package:keyel/features/import_export/import_export_screen.dart';
 import 'package:keyel/features/onboarding/onboarding_screen.dart';
 import 'package:keyel/features/ota/ota_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
+import 'package:keyel/features/settings/appearance_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
 import 'package:keyel/features/trash/trash_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
@@ -109,6 +110,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Sub-pages pushed from the tabs. They are wrapped in KeyelSubShell so
       // the rail/drawer stays visible on tablet and desktop windows; on phones
       // KeyelSubShell is a pass-through and they stay full screen.
+      GoRoute(
+        path: KeyelRoutes.appearance,
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.settings,
+          child: AppearanceScreen(),
+        ),
+      ),
       GoRoute(
         path: KeyelRoutes.folders,
         builder: (context, state) => const KeyelSubShell(

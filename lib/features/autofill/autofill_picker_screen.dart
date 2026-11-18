@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/autofill/widgets/autofill_picker_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -225,50 +226,10 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
                 ),
               ),
               if (_showMismatchWarning)
-                _MismatchBanner(target: _targetLabel)
+                AutofillMismatchBanner(target: _targetLabel)
               else
                 const SizedBox(height: KeyelSpacing.sm),
-              Expanded(
-                child: !unlocked
-                    ? const _CenteredNote(
-                        icon: Icons.lock_rounded,
-                        title: 'Vault locked',
-                        body: 'Unlock Keyel to fill this form.',
-                      )
-                    : _error != null
-                    ? _CenteredNote(
-                        icon: Icons.error_outline_rounded,
-                        title: 'Could not load matches',
-                        body: _error!,
-                      )
-                    : _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _matches.isEmpty
-                    ? const _CenteredNote(
-                        icon: Icons.search_off_rounded,
-                        title: 'No matching logins',
-                        body: 'Create a new login for this app or site.',
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(
-                          top: KeyelSpacing.xs,
-                          bottom: KeyelSpacing.lg,
-                        ),
-                        itemCount: _matches.length,
-                        itemBuilder: (context, index) {
-                          final match = _matches[index];
-                          return KeyelEntryTile(
-                            id: match.summary.id,
-                            title: match.summary.title,
-                            subtitle: match.summary.subtitle,
-                            icon: Icons.key_rounded,
-                            favorite: match.summary.favorite,
-                            hasTotp: match.summary.hasTotp,
-                            onTap: () => unawaited(_pick(match)),
-                          );
-                        },
-                      ),
-              ),
+              Expanded(child: _buildBody(unlocked)),
               if (unlocked)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -299,92 +260,53 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
     );
   }
 
+  Widget _buildBody(bool unlocked) {
+    if (!unlocked) {
+      return const AutofillCenteredNote(
+        icon: Icons.lock_rounded,
+        title: 'Vault locked',
+        body: 'Unlock Keyel to fill this form.',
+      );
+    }
+    if (_error != null) {
+      return AutofillCenteredNote(
+        icon: Icons.error_outline_rounded,
+        title: 'Could not load matches',
+        body: _error!,
+      );
+    }
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_matches.isEmpty) {
+      return const AutofillCenteredNote(
+        icon: Icons.search_off_rounded,
+        title: 'No matching logins',
+        body: 'Create a new login for this app or site.',
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: KeyelSpacing.xs, bottom: KeyelSpacing.lg),
+      itemCount: _matches.length,
+      itemBuilder: (context, index) {
+        final match = _matches[index];
+        return KeyelEntryTile(
+          id: match.summary.id,
+          title: match.summary.title,
+          subtitle: match.summary.subtitle,
+          icon: Icons.key_rounded,
+          favorite: match.summary.favorite,
+          hasTotp: match.summary.hasTotp,
+          onTap: () => unawaited(_pick(match)),
+        );
+      },
+    );
+  }
+
   void _close(AutofillSelection? selection) {
     if (widget.onPicked != null) return;
     if (context.canPop()) {
       context.pop(selection);
     }
-  }
-}
-
-class _MismatchBanner extends StatelessWidget {
-  const new({required this.target});
-
-  final String target;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        KeyelSpacing.lg,
-        KeyelSpacing.sm,
-        KeyelSpacing.lg,
-        0,
-      ),
-      padding: const EdgeInsets.all(KeyelSpacing.md),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(KeyelRadii.field),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: scheme.onErrorContainer),
-          const SizedBox(width: KeyelSpacing.sm),
-          Expanded(
-            child: Text(
-              'Some results are text matches only. Check that the login '
-              'really belongs to $target before filling.',
-              style: textTheme.bodySmall?.copyWith(
-                color: scheme.onErrorContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CenteredNote extends StatelessWidget {
-  const new({required this.icon, required this.title, required this.body});
-
-  final IconData icon;
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(KeyelSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 40, color: scheme.onSurfaceVariant),
-            const SizedBox(height: KeyelSpacing.md),
-            Text(
-              title,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.xs),
-            Text(
-              body,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

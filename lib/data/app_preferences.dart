@@ -82,6 +82,21 @@ class AppPreferences {
   /// Persisted alongside [unlockFailures]; not a secret.
   int? unlockLockedUntilMs;
 
+  /// Preferred app theme mode: `system`, `light`, or `dark`.
+  String themeMode = 'system';
+
+  /// Selected accent palette identifier.
+  String paletteId = 'indigo';
+
+  /// Whether dark surfaces should use pure black for OLED displays.
+  bool amoledBlack = false;
+
+  /// Whether in-app animations and motion effects are enabled.
+  bool animationsEnabled = true;
+
+  /// Whether haptic feedback is enabled.
+  bool hapticsEnabled = true;
+
   /// Remember a search term, keeping at most eight unique values.
   void rememberSearch(String query) {
     final trimmed = query.trim();
@@ -145,6 +160,18 @@ class AppPreferences {
             .toList();
       }
 
+      final mode = decoded['themeMode'];
+      if (mode == 'light' || mode == 'dark' || mode == 'system') {
+        themeMode = mode as String;
+      }
+      final palette = decoded['paletteId'];
+      if (palette is String && palette.trim().isNotEmpty) {
+        paletteId = palette;
+      }
+      amoledBlack = decoded['amoledBlack'] == true;
+      animationsEnabled = decoded['animationsEnabled'] != false;
+      hapticsEnabled = decoded['hapticsEnabled'] != false;
+
       final generator = decoded['generator'];
       if (generator is Map) {
         generatorMode = generator['mode'] == 'passphrase'
@@ -186,6 +213,11 @@ class AppPreferences {
           'clipboardClearSeconds': clipboardClearSeconds,
           'unlockFailures': unlockFailures,
           'unlockLockedUntilMs': unlockLockedUntilMs,
+          'themeMode': themeMode,
+          'paletteId': paletteId,
+          'amoledBlack': amoledBlack,
+          'animationsEnabled': animationsEnabled,
+          'hapticsEnabled': hapticsEnabled,
           'recentSearches': recentSearches,
           'generator': {
             'mode': generatorMode,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// Wraps a surface in the Keyel "rubber" pressed state.
@@ -52,11 +53,12 @@ class _PressableScaleState extends State<PressableScale> {
 
   @override
   Widget build(BuildContext context) {
-    // When the platform asks for reduced motion the press snaps instead of
+    // When the platform or the user disables motion the press snaps instead of
     // scaling: the duration collapses to zero and the scale is skipped
-    // entirely, so nothing moves (roadmap 0.11, accessibility).
+    // entirely, so nothing moves.
     final duration = KeyelMotion.resolve(context, KeyelMotion.fast);
-    final animate = duration > Duration.zero;
+    final animate =
+        duration > Duration.zero && AppPreferences.instance.animationsEnabled;
 
     return Semantics(
       button: _enabled,

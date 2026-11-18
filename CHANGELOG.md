@@ -5,6 +5,32 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-18
+
+### Added
+
+- **Appearance settings** — a dedicated Appearance screen in Settings with
+  selectable color palettes, a pure-black AMOLED option for dark mode, and
+  toggles for in-app animations and haptic feedback.
+- **Theme controls** — choose system, light, or dark appearance and pick from
+  multiple accent palettes while keeping security/status colors consistent.
+
+### Changed
+
+- **Project structure** — reorganized and cleaned the Flutter codebase into a
+  leaner, more consistent layout with slimmer feature screens and extracted
+  widgets.
+- **Settings organization** — settings are split into focused sub-screens and
+  reusable components for easier maintenance and a clearer UI.
+- **Performance and polish** — reduced unnecessary UI work, respected
+  animation/haptic preferences across interactions, and tightened diagnostics to
+  include only non-secret preference data.
+
+### Security
+
+- **Preference hardening** — appearance and interaction preferences are stored
+  locally as non-secret settings and kept out of sensitive diagnostic flows.
+
 ## [1.1.2] - 2026-11-17
 
 Identity update: the application id is now project-owned

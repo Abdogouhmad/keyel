@@ -21,17 +21,37 @@ void main() {
   });
 
   group('collectDebugBundle', () {
-    setUp(() => AppPreferences.instance.recentSearches = <String>[]);
+    setUp(() {
+      AppPreferences.instance
+        ..recentSearches = <String>[]
+        ..themeMode = 'system'
+        ..paletteId = 'indigo'
+        ..amoledBlack = false
+        ..animationsEnabled = true
+        ..hapticsEnabled = true;
+    });
 
     test('reports the version and never leaks recent searches', () {
       // A recent search is user data (site names) and must stay out of the
       // bundle even though AppPreferences holds it.
       AppPreferences.instance.recentSearches = <String>['secret-bank.example'];
+      // Non-default appearance values are non-secret and must be reported.
+      AppPreferences.instance
+        ..themeMode = 'dark'
+        ..paletteId = 'ocean'
+        ..amoledBlack = true
+        ..animationsEnabled = false
+        ..hapticsEnabled = false;
 
       final text = collectDebugBundle();
 
       expect(text, contains('App version:'));
       expect(text, contains('autoLockSeconds:'));
+      expect(text, contains('themeMode: dark'));
+      expect(text, contains('paletteId: ocean'));
+      expect(text, contains('amoledBlack: true'));
+      expect(text, contains('animationsEnabled: false'));
+      expect(text, contains('hapticsEnabled: false'));
       expect(text, isNot(contains('secret-bank.example')));
       expect(text, contains('No vault data'));
     });

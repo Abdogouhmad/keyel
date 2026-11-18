@@ -35,7 +35,7 @@ class AppButtonFilled {
         elevation: 0,
         padding: spec.metrics.padding(spec.context),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.field),
+          borderRadius: BorderRadius.circular(KeyelRadii.field),
         ),
         textStyle: spec.labelStyle(),
         minimumSize: _resolveMinSize(spec),
@@ -58,7 +58,7 @@ class AppButtonFilled {
       style: OutlinedButton.styleFrom(
         foregroundColor: spec.accent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.field),
+          borderRadius: BorderRadius.circular(KeyelRadii.field),
         ),
         side: BorderSide(color: spec.accent),
         padding: spec.metrics.padding(spec.context),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/autofill/widgets/autofill_save_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -151,7 +152,6 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -166,111 +166,18 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
                 onIconTap: _decline,
               ),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.only(bottom: KeyelSpacing.lg),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        KeyelSpacing.lg,
-                        KeyelSpacing.xs,
-                        KeyelSpacing.lg,
-                        KeyelSpacing.sm,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.save_rounded,
-                            size: 18,
-                            color: scheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: KeyelSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              'Store these credentials for $_targetLabel',
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: KeyelSpacing.lg,
-                      ),
-                      child: TextField(
-                        controller: _title,
-                        textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Name',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: KeyelSpacing.md),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: KeyelSpacing.lg,
-                      ),
-                      child: TextField(
-                        controller: _username,
-                        textInputAction: TextInputAction.next,
-                        autocorrect: false,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: KeyelSpacing.md),
-                    KeyelPasswordField(
-                      controller: _password,
-                      label: 'Password',
-                      textInputAction: TextInputAction.done,
-                    ),
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          KeyelSpacing.lg,
-                          KeyelSpacing.md,
-                          KeyelSpacing.lg,
-                          0,
-                        ),
-                        child: Text(
-                          _error!,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: scheme.error,
-                          ),
-                        ),
-                      ),
-                  ],
+                child: AutofillSaveForm(
+                  titleController: _title,
+                  usernameController: _username,
+                  passwordController: _password,
+                  targetLabel: _targetLabel,
+                  error: _error,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  KeyelSpacing.lg,
-                  KeyelSpacing.xs,
-                  KeyelSpacing.lg,
-                  KeyelSpacing.md,
-                ),
-                child: Column(
-                  children: [
-                    KeyelPillButton(
-                      label: 'Save login',
-                      icon: Icons.check_rounded,
-                      height: 48,
-                      onPressed: _saving ? null : () => unawaited(_save()),
-                    ),
-                    const SizedBox(height: KeyelSpacing.xs),
-                    KeyelPillButton(
-                      label: 'Not now',
-                      tone: KeyelButtonTone.neutral,
-                      height: 48,
-                      onPressed: _saving ? null : _decline,
-                    ),
-                  ],
-                ),
+              AutofillSaveActions(
+                saving: _saving,
+                onSave: () => unawaited(_save()),
+                onDecline: _decline,
               ),
             ],
           ),
