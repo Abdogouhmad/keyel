@@ -1,11 +1,11 @@
 {
-  "latestVersionName": "1.1.2",
-  "latestVersionCode": 10102,
+  "latestVersionName": "1.2.0",
+  "latestVersionCode": 10200,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.1.2/keyel-v1.1.2-universal.apk",
-  "size": 41890343,
-  "sha256": "b91ecc7ed395a682b34775aa5125fa0f7161368d4bc5918448739dbbae89f398",
-  "releaseNotes": "## [1.1.2] - 2026-11-17\n\nIdentity update: the application id is now project-owned\n(`com.freesoftware.keyel`) instead of carrying a personal handle, and the README\nis a proper product page.\n\n### Changed\n\n- **New application id `com.freesoftware.keyel`** (was `dev.agouhmad.keyel`) on\n  every platform — the Android `namespace`/`applicationId` (with the Kotlin\n  sources moved to `com/freesoftware/keyel/`), the Linux `APPLICATION_ID`, the\n  macOS bundle identifier, and the Windows/macOS publisher metadata.\n- **README** rewritten as a product page: hero icon, platform install table,\n  grouped feature list, security summary and FAQ.\n\n### Notes\n\n- **Android installs do not upgrade in place across this change.** Android keys\n  an app by its application id, so `com.freesoftware.keyel` installs as a\n  separate app next to an existing `dev.agouhmad.keyel` build; the old app and\n  its vault are left untouched. Uninstall the old one once the new one is set up.\n- The macOS app is ad-hoc signed, so Gatekeeper warns on first launch.",
-  "publishedAt": "2026-11-17T20:20:27.306212+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.2.0/keyel-v1.2.0-universal.apk",
+  "size": 42055339,
+  "sha256": "b95a48fd013edadc219789e5c26e3a5e919e71b5d6e53ffe15e16291f7e0a208",
+  "releaseNotes": "## [1.2.0] - 2026-11-18\n\n### Added\n\n- **Appearance settings** — a dedicated Appearance screen in Settings with\n  selectable color palettes, a pure-black AMOLED option for dark mode, and\n  toggles for in-app animations and haptic feedback.\n- **Theme controls** — choose system, light, or dark appearance and pick from\n  multiple accent palettes while keeping security/status colors consistent.\n\n### Changed\n\n- **Project structure** — reorganized and cleaned the Flutter codebase into a\n  leaner, more consistent layout with slimmer feature screens and extracted\n  widgets.\n- **Settings organization** — settings are split into focused sub-screens and\n  reusable components for easier maintenance and a clearer UI.\n- **Performance and polish** — reduced unnecessary UI work, respected\n  animation/haptic preferences across interactions, and tightened diagnostics to\n  include only non-secret preference data.\n\n### Security\n\n- **Preference hardening** — appearance and interaction preferences are stored\n  locally as non-secret settings and kept out of sensitive diagnostic flows.",
+  "publishedAt": "2026-11-18T15:38:07.417227+00:00"
 }
