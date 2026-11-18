@@ -13,6 +13,10 @@ analyzer:
     - linux/**
     - windows/**
     - macos/**
+  errors:
+    # Flutter 3.50 on this environment deprecates package:flutter/material.dart
+    # in favor of package:material_ui/material_ui.dart; keep using material for now.
+    deprecated_member_use: ignore
 
 linter:
   rules:

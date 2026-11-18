@@ -19,7 +19,7 @@ class AppearanceState {
   });
 
   /// Builds state from persisted [AppPreferences].
-  factory AppearanceState.fromPrefs(AppPreferences prefs) {
+  factory fromPrefs(AppPreferences prefs) {
     return AppearanceState(
       themeMode: KeyelPaletteX.themeModeFromId(prefs.themeMode),
       palette: KeyelPaletteX.fromId(prefs.paletteId),

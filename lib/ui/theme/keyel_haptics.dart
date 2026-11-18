@@ -7,7 +7,7 @@ import 'package:keyel/data/app_preferences.dart';
 /// Haptics are best-effort and can be disabled by the user in Appearance.
 class Haptics {
   /// Prevent instantiation.
-  const Haptics._();
+  const new _();
 
   /// A short, light tap. Used for most button presses.
   static Future<void> light() async {
