@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/features/settings/widgets/appearance_widgets.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -118,7 +119,7 @@ class AppearanceScreen extends ConsumerWidget {
                             i < KeyelPalette.values.length;
                             i++
                           ) ...[
-                            _PaletteTile(
+                            AppearancePaletteTile(
                               palette: KeyelPalette.values[i],
                               selected:
                                   appearance.palette == KeyelPalette.values[i],
@@ -210,83 +211,4 @@ class AppearanceScreen extends ConsumerWidget {
     ThemeMode.light => Icons.light_mode_rounded,
     ThemeMode.dark => Icons.dark_mode_rounded,
   };
-}
-
-class _PaletteTile extends StatelessWidget {
-  const new({
-    required this.palette,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final KeyelPalette palette;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final swatchScheme = Theme.of(context).brightness == Brightness.dark
-        ? palette.darkScheme()
-        : palette.lightScheme();
-
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: KeyelSpacing.sm,
-          vertical: 10,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(KeyelRadii.field),
-                gradient: LinearGradient(
-                  colors: [swatchScheme.primary, swatchScheme.tertiary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: selected ? scheme.primary : Colors.transparent,
-                  width: 2,
-                ),
-              ),
-            ),
-            const SizedBox(width: KeyelSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    palette.label,
-                    style: textTheme.titleSmall?.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    palette.description,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
-              color: selected ? scheme.primary : scheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

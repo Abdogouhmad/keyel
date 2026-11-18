@@ -229,7 +229,15 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
                 AutofillMismatchBanner(target: _targetLabel)
               else
                 const SizedBox(height: KeyelSpacing.sm),
-              Expanded(child: _buildBody(unlocked)),
+              Expanded(
+                child: AutofillPickerBody(
+                  unlocked: unlocked,
+                  loading: _loading,
+                  error: _error,
+                  matches: _matches,
+                  onPick: _pick,
+                ),
+              ),
               if (unlocked)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -257,49 +265,6 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBody(bool unlocked) {
-    if (!unlocked) {
-      return const AutofillCenteredNote(
-        icon: Icons.lock_rounded,
-        title: 'Vault locked',
-        body: 'Unlock Keyel to fill this form.',
-      );
-    }
-    if (_error != null) {
-      return AutofillCenteredNote(
-        icon: Icons.error_outline_rounded,
-        title: 'Could not load matches',
-        body: _error!,
-      );
-    }
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_matches.isEmpty) {
-      return const AutofillCenteredNote(
-        icon: Icons.search_off_rounded,
-        title: 'No matching logins',
-        body: 'Create a new login for this app or site.',
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.only(top: KeyelSpacing.xs, bottom: KeyelSpacing.lg),
-      itemCount: _matches.length,
-      itemBuilder: (context, index) {
-        final match = _matches[index];
-        return KeyelEntryTile(
-          id: match.summary.id,
-          title: match.summary.title,
-          subtitle: match.summary.subtitle,
-          icon: Icons.key_rounded,
-          favorite: match.summary.favorite,
-          hasTotp: match.summary.hasTotp,
-          onTap: () => unawaited(_pick(match)),
-        );
-      },
     );
   }
 

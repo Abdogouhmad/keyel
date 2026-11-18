@@ -2,19 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/app_info.dart';
 import 'package:keyel/core/ota/ota_provider.dart';
 import 'package:keyel/core/platform/autofill_platform.dart';
 import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/platform/debug_bundle.dart';
-import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/file_transfer_service.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart';
+import 'package:keyel/features/settings/widgets/settings_sections.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -218,287 +217,68 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 sliver: SliverList.list(
                   children: [
-                    const KeyelSectionLabel(
-                      label: 'Appearance',
-                      icon: Icons.palette_outlined,
-                    ),
-                    const SizedBox(height: KeyelSpacing.sm),
-                    SettingsCard(
-                      children: [
-                        SettingsRow(
-                          icon: Icons.color_lens_outlined,
-                          title: 'Appearance & colors',
-                          subtitle:
-                              '${KeyelPaletteX.themeModeLabel(appearance.themeMode)} • ${appearance.palette.label}'
-                              '${appearance.amoledBlack ? " • AMOLED" : ""}',
-                          onTap: () =>
-                              unawaited(context.push(KeyelRoutes.appearance)),
-                        ),
-                      ],
+                    SettingsAppearanceSection(appearance: appearance),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    SettingsSecuritySection(
+                      session: session,
+                      biometricBusy: _biometricBusy,
+                      biometricEnabled: _biometricEnabled,
+                      autoLockDelay: ref
+                          .read(vaultSessionProvider.notifier)
+                          .autoLockDelay,
+                      clipboardSeconds:
+                          AppPreferences.instance.clipboardClearSeconds,
+                      onLockNow: () {
+                        ref.read(vaultSessionProvider.notifier).lock();
+                        showKeyelSnack(
+                          context,
+                          'Vault locked',
+                          icon: Icons.lock_rounded,
+                        );
+                      },
+                      onChangeMaster: () =>
+                          unawaited(showChangeMasterDialog(context, ref)),
+                      onAutoLock: () async {
+                        await showAutoLockDialog(context, ref);
+                        if (mounted) setState(() {});
+                      },
+                      onToggleBiometric: (value) =>
+                          unawaited(_toggleBiometric(enable: value)),
+                      onClipboard: () async {
+                        await showClipboardDialog(context);
+                        if (mounted) setState(() {});
+                      },
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
-                      label: 'Security & Access',
-                      icon: Icons.shield_rounded,
-                    ),
-                    const SizedBox(height: KeyelSpacing.sm),
-                    SettingsCard(
-                      children: [
-                        if (session.status == VaultStatus.unlocked)
-                          SettingsRow(
-                            icon: Icons.lock_outline_rounded,
-                            title: 'Lock vault now',
-                            subtitle:
-                                'Wipe decryption key from memory immediately',
-                            onTap: () {
-                              ref.read(vaultSessionProvider.notifier).lock();
-                              showKeyelSnack(
-                                context,
-                                'Vault locked',
-                                icon: Icons.lock_rounded,
-                              );
-                            },
-                          ),
-                        if (session.status == VaultStatus.unlocked)
-                          SettingsRow(
-                            icon: Icons.password_rounded,
-                            title: 'Change master password',
-                            subtitle: 'Re-encrypt the vault keyslot with a new master',
-                            onTap: () =>
-                                unawaited(showChangeMasterDialog(context, ref)),
-                          ),
-                        SettingsRow(
-                          icon: Icons.timer_outlined,
-                          title: 'Auto-lock',
-                          subtitle:
-                              'Lock the vault after time in the background',
-                          trailing: Text(
-                            autoLockLabel(
-                              ref
-                                  .read(vaultSessionProvider.notifier)
-                                  .autoLockDelay,
-                            ),
-                            style: TextStyle(
-                              color: scheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          onTap: () async {
-                            await showAutoLockDialog(context, ref);
-                            if (mounted) setState(() {});
-                          },
-                        ),
-                        SettingsRow(
-                          icon: Icons.fingerprint_rounded,
-                          title: 'Biometric unlock',
-                          subtitle: 'Fingerprint or face to open the vault',
-                          trailing: _biometricBusy
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Switch.adaptive(
-                                  value: _biometricEnabled,
-                                  onChanged: (value) => unawaited(
-                                    _toggleBiometric(enable: value),
-                                  ),
-                                ),
-                        ),
-                        SettingsRow(
-                          icon: Icons.content_paste_off_rounded,
-                          title: 'Clear clipboard',
-                          subtitle: 'Wipe copied secrets from the clipboard',
-                          trailing: Text(
-                            clipboardLabel(
-                              AppPreferences.instance.clipboardClearSeconds,
-                            ),
-                            style: TextStyle(
-                              color: scheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          onTap: () async {
-                            await showClipboardDialog(context);
-                            if (mounted) setState(() {});
-                          },
-                        ),
-                      ],
+                    SettingsAutofillSection(
+                      autofillEnabled: _autofillEnabled,
+                      askToSave: AppPreferences.instance.autofillAskToSave,
+                      matchMode: AppPreferences.instance.autofillMatchMode,
+                      onOpenSettings: () => unawaited(_openAutofillSettings()),
+                      onAskToSaveChanged: (value) {
+                        setState(() {
+                          AppPreferences.instance.autofillAskToSave = value;
+                        });
+                        unawaited(AppPreferences.instance.save());
+                      },
+                      onToggleMatchMode: () {
+                        final current =
+                            AppPreferences.instance.autofillMatchMode;
+                        setState(() {
+                          AppPreferences.instance.autofillMatchMode =
+                              current == 'exact' ? 'domain' : 'exact';
+                        });
+                        unawaited(AppPreferences.instance.save());
+                      },
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
-                      label: 'Autofill',
-                      icon: Icons.auto_awesome_rounded,
-                    ),
-                    const SizedBox(height: KeyelSpacing.sm),
-                    SettingsCard(
-                      children: [
-                        SettingsRow(
-                          icon: _autofillEnabled == true
-                              ? Icons.check_circle_outline_rounded
-                              : Icons.app_registration_rounded,
-                          title: 'Autofill service',
-                          subtitle: _autofillEnabled == null
-                              ? 'Checking…'
-                              : _autofillEnabled!
-                              ? 'Keyel is your autofill provider'
-                              : 'Tap to enable Keyel as your autofill provider',
-                          trailing: _autofillEnabled == true
-                              ? Icon(
-                                  Icons.check_circle_rounded,
-                                  color: scheme.primary,
-                                )
-                              : null,
-                          onTap: () => unawaited(_openAutofillSettings()),
-                        ),
-                        SettingsRow(
-                          icon: Icons.save_rounded,
-                          title: 'Ask to save',
-                          subtitle:
-                              'Offer to save new credentials after a login',
-                          trailing: Switch.adaptive(
-                            value: AppPreferences.instance.autofillAskToSave,
-                            onChanged: (value) {
-                              setState(() {
-                                AppPreferences.instance.autofillAskToSave =
-                                    value;
-                              });
-                              unawaited(AppPreferences.instance.save());
-                            },
-                          ),
-                        ),
-                        SettingsRow(
-                          icon: Icons.language_rounded,
-                          title: 'Match mode',
-                          subtitle:
-                              AppPreferences.instance.autofillMatchMode ==
-                                  'exact'
-                              ? 'Exact host only'
-                              : 'Domain (includes subdomains)',
-                          onTap: () {
-                            final current =
-                                AppPreferences.instance.autofillMatchMode;
-                            setState(() {
-                              AppPreferences.instance.autofillMatchMode =
-                                  current == 'exact' ? 'domain' : 'exact';
-                            });
-                            unawaited(AppPreferences.instance.save());
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
-                      label: 'Storage & Diagnostics',
-                      icon: Icons.storage_rounded,
-                    ),
-                    const SizedBox(height: KeyelSpacing.sm),
-                    SettingsCard(
-                      children: [
-                        SettingsRow(
-                          icon: Icons.cloud_off_rounded,
-                          title: 'Offline vault mode',
-                          subtitle:
-                              'Zero telemetry, zero cloud synchronisation',
-                          trailing: Switch.adaptive(
-                            value: _offlineOnly,
-                            onChanged: (value) =>
-                                setState(() => _offlineOnly = value),
-                          ),
-                        ),
-                        SettingsRow(
-                          icon: Icons.folder_rounded,
-                          title: 'Folders',
-                          subtitle: 'Create, rename and delete vault folders',
-                          onTap: () =>
-                              unawaited(context.push(KeyelRoutes.folders)),
-                        ),
-                        SettingsRow(
-                          icon: Icons.swap_vert_rounded,
-                          title: 'Backup & import',
-                          subtitle:
-                              'Encrypted backups and CSV import or export',
-                          onTap: () =>
-                              unawaited(context.push(KeyelRoutes.importExport)),
-                        ),
-                        SettingsRow(
-                          icon: Icons.delete_outline_rounded,
-                          title: 'Trash',
-                          subtitle:
-                              'Restore deleted entries or remove them forever',
-                          onTap: () =>
-                              unawaited(context.push(KeyelRoutes.trash)),
-                        ),
-                        SettingsRow(
-                          icon: Icons.delete_forever_rounded,
-                          title: 'Factory reset vault',
-                          subtitle: 'Permanently delete vault file and reset app state',
-                          trailing: const Icon(
-                            Icons.chevron_right_rounded,
-                            color: Colors.red,
-                          ),
-                          onTap: () => unawaited(_factoryReset()),
-                        ),
-                        SettingsRow(
-                          icon: Icons.bug_report_outlined,
-                          title: 'Report a problem',
-                          subtitle:
-                              'Share a redacted diagnostics file (no secrets)',
-                          onTap: () => unawaited(_reportProblem()),
-                        ),
-                        SettingsRow(
-                          icon: Icons.construction_rounded,
-                          title: 'Bridge diagnostics & test suite',
-                          subtitle: 'Raw FRB bridge operations and diagnostics',
-                          onTap: () =>
-                              unawaited(context.push(KeyelRoutes.debug)),
-                        ),
-                        SettingsRow(
-                          icon: Icons.system_update_rounded,
-                          title: 'Software update',
-                          subtitle: otaState.hasUpdate
-                              ? 'Update available (v${otaState.availableRelease!.version})'
-                              : 'Version ${AppInfo.version} • Up to date',
-                          trailing: otaState.hasUpdate
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: scheme.tertiaryContainer,
-                                    borderRadius: BorderRadius.circular(
-                                      KeyelRadii.pill,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'NEW',
-                                    style: textTheme.labelSmall?.copyWith(
-                                      color: scheme.onTertiaryContainer,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(Icons.chevron_right_rounded),
-                          onTap: () => unawaited(
-                            context.push(KeyelRoutes.softwareUpdate),
-                          ),
-                        ),
-                        SettingsRow(
-                          icon: Icons.gavel_rounded,
-                          title: 'Open source licenses',
-                          subtitle: 'Libraries bundled with this build',
-                          onTap: () {
-                            showLicensePage(
-                              context: context,
-                              applicationName: 'Keyel',
-                              applicationVersion: AppInfo.version,
-                            );
-                          },
-                        ),
-                      ],
+                    SettingsStorageSection(
+                      offlineOnly: _offlineOnly,
+                      otaState: otaState,
+                      onOfflineOnlyChanged: (value) =>
+                          setState(() => _offlineOnly = value),
+                      onFactoryReset: () => unawaited(_factoryReset()),
+                      onReportProblem: () => unawaited(_reportProblem()),
                     ),
                     const SizedBox(height: KeyelSpacing.xxl),
                   ],
