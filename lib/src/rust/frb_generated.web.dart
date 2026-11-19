@@ -15,6 +15,7 @@ import 'api/import_export.dart';
 import 'api/models.dart';
 import 'api/passkeys.dart';
 import 'api/session.dart';
+import 'api/sync.dart';
 import 'api/totp.dart';
 
 import 'dart:async';
@@ -225,6 +226,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SecretFieldDto dco_decode_secret_field_dto(dynamic raw);
+
+  @protected
+  SyncReportDto dco_decode_sync_report_dto(dynamic raw);
+
+  @protected
+  SyncStatusDto dco_decode_sync_status_dto(dynamic raw);
 
   @protected
   TotpAlgorithmDto dco_decode_totp_algorithm_dto(dynamic raw);
@@ -493,6 +500,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SecretFieldDto sse_decode_secret_field_dto(SseDeserializer deserializer);
+
+  @protected
+  SyncReportDto sse_decode_sync_report_dto(SseDeserializer deserializer);
+
+  @protected
+  SyncStatusDto sse_decode_sync_status_dto(SseDeserializer deserializer);
 
   @protected
   TotpAlgorithmDto sse_decode_totp_algorithm_dto(SseDeserializer deserializer);
@@ -841,6 +854,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     SecretFieldDto self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_sync_report_dto(SyncReportDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_sync_status_dto(SyncStatusDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_totp_algorithm_dto(

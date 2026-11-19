@@ -12,6 +12,7 @@ import 'api/import_export.dart';
 import 'api/models.dart';
 import 'api/passkeys.dart';
 import 'api/session.dart';
+import 'api/sync.dart';
 import 'api/totp.dart';
 
 import 'dart:async';
@@ -78,7 +79,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 235933711;
+  int get rustContentHash => 763517508;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -228,6 +229,21 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateApiPasskeysStorePasskey({
     required PasskeyCreateDto passkey,
   });
+
+  Future<void> crateApiSyncSyncDisable();
+
+  Future<String> crateApiSyncSyncEnable({required String folderHint});
+
+  Future<SyncStatusDto> crateApiSyncSyncJoin({
+    required String code,
+    required String folderHint,
+  });
+
+  Future<SyncReportDto> crateApiSyncSyncNow({required String folderPath});
+
+  Future<String> crateApiSyncSyncPairingCode();
+
+  Future<SyncStatusDto> crateApiSyncSyncStatus();
 
   Future<void> crateApiSessionUnlockWithMaster({required String master});
 
@@ -1407,6 +1423,177 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "store_passkey", argNames: ["passkey"]);
 
   @override
+  Future<void> crateApiSyncSyncDisable() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 38,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSyncSyncDisableConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncDisableConstMeta =>
+      const TaskConstMeta(debugName: "sync_disable", argNames: []);
+
+  @override
+  Future<String> crateApiSyncSyncEnable({required String folderHint}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(folderHint, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 39,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSyncSyncEnableConstMeta,
+        argValues: [folderHint],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncEnableConstMeta =>
+      const TaskConstMeta(debugName: "sync_enable", argNames: ["folderHint"]);
+
+  @override
+  Future<SyncStatusDto> crateApiSyncSyncJoin({
+    required String code,
+    required String folderHint,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(code, serializer);
+          sse_encode_String(folderHint, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 40,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_sync_status_dto,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSyncSyncJoinConstMeta,
+        argValues: [code, folderHint],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncJoinConstMeta => const TaskConstMeta(
+    debugName: "sync_join",
+    argNames: ["code", "folderHint"],
+  );
+
+  @override
+  Future<SyncReportDto> crateApiSyncSyncNow({required String folderPath}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(folderPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 41,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_sync_report_dto,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSyncSyncNowConstMeta,
+        argValues: [folderPath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncNowConstMeta =>
+      const TaskConstMeta(debugName: "sync_now", argNames: ["folderPath"]);
+
+  @override
+  Future<String> crateApiSyncSyncPairingCode() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 42,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSyncSyncPairingCodeConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncPairingCodeConstMeta =>
+      const TaskConstMeta(debugName: "sync_pairing_code", argNames: []);
+
+  @override
+  Future<SyncStatusDto> crateApiSyncSyncStatus() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 43,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_sync_status_dto,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiSyncSyncStatusConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncSyncStatusConstMeta =>
+      const TaskConstMeta(debugName: "sync_status", argNames: []);
+
+  @override
   Future<void> crateApiSessionUnlockWithMaster({required String master}) {
     return handler.executeNormal(
       NormalTask(
@@ -1416,7 +1603,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 44,
             port: port_,
           );
         },
@@ -1449,7 +1636,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 45,
             port: port_,
           );
         },
@@ -1480,7 +1667,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 46,
             port: port_,
           );
         },
@@ -1504,7 +1691,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -1526,7 +1713,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_String,
@@ -1552,7 +1739,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 43,
+            funcId: 49,
             port: port_,
           );
         },
@@ -2155,6 +2342,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   SecretFieldDto dco_decode_secret_field_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return SecretFieldDto.values[raw as int];
+  }
+
+  @protected
+  SyncReportDto dco_decode_sync_report_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 9)
+      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    return SyncReportDto(
+      pulledFiles: dco_decode_u_32(arr[0]),
+      pushedFile: dco_decode_bool(arr[1]),
+      entriesAdded: dco_decode_u_32(arr[2]),
+      entriesUpdated: dco_decode_u_32(arr[3]),
+      foldersAdded: dco_decode_u_32(arr[4]),
+      foldersUpdated: dco_decode_u_32(arr[5]),
+      conflictsCreated: dco_decode_u_32(arr[6]),
+      tombstonesApplied: dco_decode_u_32(arr[7]),
+      errors: dco_decode_list_String(arr[8]),
+    );
+  }
+
+  @protected
+  SyncStatusDto dco_decode_sync_status_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return SyncStatusDto(
+      enabled: dco_decode_bool(arr[0]),
+      syncId: dco_decode_opt_String(arr[1]),
+      deviceId: dco_decode_opt_String(arr[2]),
+      folderHint: dco_decode_String(arr[3]),
+      lastSyncAt: dco_decode_u_64(arr[4]),
+      sequence: dco_decode_u_64(arr[5]),
+    );
   }
 
   @protected
@@ -3037,6 +3259,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SyncReportDto sse_decode_sync_report_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_pulledFiles = sse_decode_u_32(deserializer);
+    var var_pushedFile = sse_decode_bool(deserializer);
+    var var_entriesAdded = sse_decode_u_32(deserializer);
+    var var_entriesUpdated = sse_decode_u_32(deserializer);
+    var var_foldersAdded = sse_decode_u_32(deserializer);
+    var var_foldersUpdated = sse_decode_u_32(deserializer);
+    var var_conflictsCreated = sse_decode_u_32(deserializer);
+    var var_tombstonesApplied = sse_decode_u_32(deserializer);
+    var var_errors = sse_decode_list_String(deserializer);
+    return SyncReportDto(
+      pulledFiles: var_pulledFiles,
+      pushedFile: var_pushedFile,
+      entriesAdded: var_entriesAdded,
+      entriesUpdated: var_entriesUpdated,
+      foldersAdded: var_foldersAdded,
+      foldersUpdated: var_foldersUpdated,
+      conflictsCreated: var_conflictsCreated,
+      tombstonesApplied: var_tombstonesApplied,
+      errors: var_errors,
+    );
+  }
+
+  @protected
+  SyncStatusDto sse_decode_sync_status_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_enabled = sse_decode_bool(deserializer);
+    var var_syncId = sse_decode_opt_String(deserializer);
+    var var_deviceId = sse_decode_opt_String(deserializer);
+    var var_folderHint = sse_decode_String(deserializer);
+    var var_lastSyncAt = sse_decode_u_64(deserializer);
+    var var_sequence = sse_decode_u_64(deserializer);
+    return SyncStatusDto(
+      enabled: var_enabled,
+      syncId: var_syncId,
+      deviceId: var_deviceId,
+      folderHint: var_folderHint,
+      lastSyncAt: var_lastSyncAt,
+      sequence: var_sequence,
+    );
+  }
+
+  @protected
   TotpAlgorithmDto sse_decode_totp_algorithm_dto(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
@@ -3818,6 +4084,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_sync_report_dto(
+    SyncReportDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.pulledFiles, serializer);
+    sse_encode_bool(self.pushedFile, serializer);
+    sse_encode_u_32(self.entriesAdded, serializer);
+    sse_encode_u_32(self.entriesUpdated, serializer);
+    sse_encode_u_32(self.foldersAdded, serializer);
+    sse_encode_u_32(self.foldersUpdated, serializer);
+    sse_encode_u_32(self.conflictsCreated, serializer);
+    sse_encode_u_32(self.tombstonesApplied, serializer);
+    sse_encode_list_String(self.errors, serializer);
+  }
+
+  @protected
+  void sse_encode_sync_status_dto(
+    SyncStatusDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.enabled, serializer);
+    sse_encode_opt_String(self.syncId, serializer);
+    sse_encode_opt_String(self.deviceId, serializer);
+    sse_encode_String(self.folderHint, serializer);
+    sse_encode_u_64(self.lastSyncAt, serializer);
+    sse_encode_u_64(self.sequence, serializer);
   }
 
   @protected

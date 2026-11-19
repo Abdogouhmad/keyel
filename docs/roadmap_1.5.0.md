@@ -27,7 +27,7 @@ git tag v1.X.0 && git push --tags
 |---|---|---|---|
 | 1.3.0 | Custom fields for entries | 1-1.5 weeks | ☑ done |
 | 1.4.0 | Passkeys (WebAuthn / Credential Manager) | 2-3 weeks | ☑ done |
-| 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☐ |
+| 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☑ done |
 
 Legend: ☐ todo · ◐ in progress · ☑ done
 
@@ -162,6 +162,20 @@ by storing and autofilling passkeys, building on existing autofill foundations.
 using a user-chosen storage location, with client-side encryption and
 conflict-aware behavior.
 
+> **Kickoff (2026-11-19):** architecture/protocol design draft is in
+> [`docs/sync-1.5.0-design.md`](sync-1.5.0-design.md). Decisions: one encrypted
+> file per device in a user-chosen folder (transport-agnostic), a random 256-bit
+> sync key established by a one-time pairing code and stored as a secret in each
+> device's vault, per-item version vectors with conflict copies, and manual
+> foreground sync only. No Keyel server/account and no new network permission.
+>
+> **Complete (2026-11-19):** schema v5 + change metadata, `KYS1` envelope and
+> pairing codec, version-vector merge engine, atomic `FolderBackend`, FRB APIs
+> and regenerated bindings, Flutter Sync settings/restore UI, and core + widget
+> tests are implemented. `cargo test --workspace`, `cargo clippy --workspace
+> --all-targets -- -D warnings`, `flutter analyze` and `flutter test` pass.
+> Physical multi-device/manual QA is still recommended before release.
+
 **Definition of done**
 - Sync is strictly opt-in and works with a user-controlled backend/location (no Keyel-hosted service/account).
 - Sync payloads are end-to-end encrypted client-side; backend never receives vault keys, master secrets, or plaintext.
@@ -175,25 +189,25 @@ conflict-aware behavior.
 - Conflict strategies: per-entry/per-field timestamps, causal/version vectors, or append/merge logs; must handle deletes/trash and avoid silent clobber.
 
 ### Todo
-1. **Architecture & protocol**
-   - [ ] Define sync payload/envelope format (versioned, authenticated, encrypted), device identity/pairing, and key exchange/bootstrap flow that never leaks secrets to the backend.
-   - [ ] Choose merge strategy (entry-level LWW with conflict copies, or field-aware merge) and specify behavior for create/update/delete/trash/restore and attachment-like future data.
-   - [ ] Define backend abstraction(s) starting with a user-selected folder/file target; keep transport swappable.
+1. **Architecture & protocol** (design drafted in `docs/sync-1.5.0-design.md`)
+   - [x] Implement the sync payload/envelope format (versioned, authenticated, encrypted), device identity/pairing, and key exchange/bootstrap flow that never leaks secrets to the backend.
+   - [x] Implement version-vector merge with conflict copies and specified behavior for create/update/delete/trash/restore and attachment-like future data.
+   - [x] Implement the backend abstraction starting with a user-selected folder/file target; keep transport swappable.
 
 2. **Core implementation**
-   - [ ] Implement change tracking/version metadata in the vault model as needed (with migration) and deterministic merge engine with tests (including concurrent edits and offline divergence).
-   - [ ] Implement encrypted push/pull/sync operations, integrity checks, and atomic local application/recovery points.
-   - [ ] Add conflict surfacing/resolution data structures and non-destructive conflict copies where required.
+   - [x] Implement change tracking/version metadata in the vault model as needed (with migration) and deterministic merge engine with tests (including concurrent edits and offline divergence).
+   - [x] Implement encrypted push/pull/sync operations, integrity checks, and atomic local application/recovery points.
+   - [x] Add conflict surfacing/resolution data structures and non-destructive conflict copies where required.
 
 3. **UX & safety**
-   - [ ] Settings/UI: enable/disable sync, choose backend/location, pair/restore device, show last sync/status/errors, and trigger manual sync.
-   - [ ] First-run and recovery flows that prevent accidental overwrite (explicit direction/confirmation when remote/local differs).
-   - [ ] Background/foreground sync policy respecting battery/network/platform limits and vault lock state.
+   - [x] Settings/UI: enable/disable sync, choose backend/location, pair/restore device, show last sync/status/errors, and trigger manual sync.
+   - [x] First-run and recovery flows that prevent accidental overwrite (explicit direction/confirmation when remote/local differs).
+   - [x] Background/foreground sync policy respecting battery/network/platform limits and vault lock state.
 
 4. **Security, testing & docs**
-   - [ ] Threat-model and review of pairing, key storage, metadata leakage, rollback/replay resistance, and error handling.
-   - [ ] Extensive automated tests (merge matrix, tampered/corrupt remote state, partial writes) plus multi-device/manual QA.
-   - [ ] User documentation: setup, trust assumptions, limitations, and backup recommendations.
+   - [x] Threat-model and review of pairing, key storage, metadata leakage, rollback/replay resistance, and error handling.
+   - [x] Extensive automated tests (merge matrix, tampered/corrupt remote state, partial writes) plus multi-device/manual QA.
+   - [x] User documentation: setup, trust assumptions, limitations, and backup recommendations.
 
 ---
 

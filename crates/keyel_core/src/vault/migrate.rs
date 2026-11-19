@@ -11,6 +11,8 @@
 //!   the field, so the step is a no-op (the deserializer defaults it empty).
 //! - v3 → v4: entries gained the `passkey` kind/body. Existing v3 payloads
 //!   contain no passkeys, so the step is a no-op.
+//! - v4 → v5: sync metadata/config/tombstones were added. Old payloads simply
+//!   lack the fields, so the step is a no-op (`#[serde(default)]` supplies them).
 
 use crate::error::Error;
 
@@ -39,6 +41,11 @@ pub fn migrate(mut vault: Vault, from_version: u16) -> Result<Vault, Error> {
             3 => {
                 // v3 → v4: entries gain the `passkey` kind/body. Existing v3
                 // payloads contain no passkeys, so no structural backfill is needed.
+            }
+            4 => {
+                // v4 → v5: sync config, per-item sync metadata and tombstones were
+                // added. A v4 payload has no such fields, so `#[serde(default)]`
+                // already produced `None`/empty/zero values.
             }
             other => return Err(Error::UnsupportedVersion(other)),
         }
@@ -87,6 +94,9 @@ mod tests {
         assert_eq!(migrated.entries[0].title, "a");
         assert!(migrated.entries[0].icon.is_none());
         assert!(migrated.entries[0].custom_fields.is_empty());
+        assert!(migrated.sync_config.is_none());
+        assert!(migrated.tombstones.is_empty());
+        assert!(migrated.entries[0].sync_meta.is_empty());
     }
 
     #[test]
@@ -104,6 +114,8 @@ mod tests {
         assert_eq!(migrated.schema_version, VAULT_SCHEMA_VERSION);
         assert_eq!(migrated.entries.len(), vault.entries.len());
         assert!(migrated.entries[0].custom_fields.is_empty());
+        assert!(migrated.sync_config.is_none());
+        assert!(migrated.tombstones.is_empty());
     }
 
     #[test]
@@ -121,6 +133,28 @@ mod tests {
         assert_eq!(migrated.schema_version, VAULT_SCHEMA_VERSION);
         assert_eq!(migrated.entries.len(), vault.entries.len());
         assert!(migrated.entries[0].custom_fields.is_empty());
+        assert!(migrated.sync_config.is_none());
+        assert!(migrated.tombstones.is_empty());
+    }
+
+    #[test]
+    fn v4_migrates_to_current_with_empty_sync_state() {
+        let mut vault = Vault::new();
+        vault.add_entry(Entry::note(
+            "a",
+            Note {
+                content: "b".into(),
+            },
+        ));
+        vault.add_folder("Work");
+        vault.schema_version = 4;
+
+        let migrated = migrate(vault.clone(), 4).unwrap();
+        assert_eq!(migrated.schema_version, VAULT_SCHEMA_VERSION);
+        assert!(migrated.sync_config.is_none());
+        assert!(migrated.tombstones.is_empty());
+        assert!(migrated.entries[0].sync_meta.is_empty());
+        assert!(migrated.folders[0].sync_meta.is_empty());
     }
 
     #[test]

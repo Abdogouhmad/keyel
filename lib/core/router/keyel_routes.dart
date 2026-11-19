@@ -15,6 +15,9 @@ abstract final class KeyelRoutes {
   /// Appearance and personalization settings.
   static const appearance = '/settings/appearance';
 
+  /// Opt-in cross-device sync settings.
+  static const sync = '/settings/sync';
+
   /// Over-the-air software update screen.
   static const softwareUpdate = '/settings/update';
 

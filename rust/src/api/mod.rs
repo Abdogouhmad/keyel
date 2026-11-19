@@ -7,4 +7,5 @@ pub mod import_export;
 pub mod models;
 pub mod passkeys;
 pub mod session;
+pub mod sync;
 pub mod totp;

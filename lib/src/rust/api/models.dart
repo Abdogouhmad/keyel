@@ -8,7 +8,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `into_card`, `into_login`, `into_note`, `map_custom_fields`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// A login suggested for autofill, with no secrets attached.
 class AutofillMatchDto {
@@ -992,6 +992,110 @@ enum SecretFieldDto {
 
   /// The free-form notes stored on the entry itself.
   entryNotes,
+}
+
+/// Non-secret outcome of one manual sync.
+class SyncReportDto {
+  final int pulledFiles;
+  final bool pushedFile;
+  final int entriesAdded;
+  final int entriesUpdated;
+  final int foldersAdded;
+  final int foldersUpdated;
+  final int conflictsCreated;
+  final int tombstonesApplied;
+
+  /// Non-secret problems encountered during the sync.
+  final List<String> errors;
+
+  const SyncReportDto({
+    required this.pulledFiles,
+    required this.pushedFile,
+    required this.entriesAdded,
+    required this.entriesUpdated,
+    required this.foldersAdded,
+    required this.foldersUpdated,
+    required this.conflictsCreated,
+    required this.tombstonesApplied,
+    required this.errors,
+  });
+
+  @override
+  int get hashCode =>
+      pulledFiles.hashCode ^
+      pushedFile.hashCode ^
+      entriesAdded.hashCode ^
+      entriesUpdated.hashCode ^
+      foldersAdded.hashCode ^
+      foldersUpdated.hashCode ^
+      conflictsCreated.hashCode ^
+      tombstonesApplied.hashCode ^
+      errors.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SyncReportDto &&
+          runtimeType == other.runtimeType &&
+          pulledFiles == other.pulledFiles &&
+          pushedFile == other.pushedFile &&
+          entriesAdded == other.entriesAdded &&
+          entriesUpdated == other.entriesUpdated &&
+          foldersAdded == other.foldersAdded &&
+          foldersUpdated == other.foldersUpdated &&
+          conflictsCreated == other.conflictsCreated &&
+          tombstonesApplied == other.tombstonesApplied &&
+          errors == other.errors;
+}
+
+/// Non-secret sync state for the settings UI. The sync key is never included.
+class SyncStatusDto {
+  final bool enabled;
+
+  /// Hex sync group id, if enabled.
+  final String? syncId;
+
+  /// Hex device id, if enabled.
+  final String? deviceId;
+
+  /// Informational folder hint supplied by the user.
+  final String folderHint;
+
+  /// Unix seconds of the last successful sync.
+  final BigInt lastSyncAt;
+
+  /// Monotonic blob sequence of the local device.
+  final BigInt sequence;
+
+  const SyncStatusDto({
+    required this.enabled,
+    this.syncId,
+    this.deviceId,
+    required this.folderHint,
+    required this.lastSyncAt,
+    required this.sequence,
+  });
+
+  @override
+  int get hashCode =>
+      enabled.hashCode ^
+      syncId.hashCode ^
+      deviceId.hashCode ^
+      folderHint.hashCode ^
+      lastSyncAt.hashCode ^
+      sequence.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SyncStatusDto &&
+          runtimeType == other.runtimeType &&
+          enabled == other.enabled &&
+          syncId == other.syncId &&
+          deviceId == other.deviceId &&
+          folderHint == other.folderHint &&
+          lastSyncAt == other.lastSyncAt &&
+          sequence == other.sequence;
 }
 
 /// TOTP hash algorithm.

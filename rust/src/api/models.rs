@@ -7,6 +7,7 @@
 use keyel_core::autofill::{AutofillMatch, MatchQuality};
 use keyel_core::health::{HealthIssue, HealthReport};
 use keyel_core::import::{ImportFailure, ImportFormat, ImportMode, ImportReport, ParsedImport};
+use keyel_core::sync::{SyncReport as CoreSyncReport, SyncStatus as CoreSyncStatus};
 use keyel_core::vault::{
     Card, CustomField, CustomFieldKind, Entry, EntryBody, EntryKind, EntrySummary, Login, Note,
     TotpAlgorithm, TotpConfig,
@@ -816,6 +817,66 @@ impl From<AutofillMatch> for AutofillMatchDto {
         Self {
             summary: item.summary.into(),
             quality: item.quality.into(),
+        }
+    }
+}
+
+/// Non-secret sync state for the settings UI. The sync key is never included.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SyncStatusDto {
+    pub enabled: bool,
+    /// Hex sync group id, if enabled.
+    pub sync_id: Option<String>,
+    /// Hex device id, if enabled.
+    pub device_id: Option<String>,
+    /// Informational folder hint supplied by the user.
+    pub folder_hint: String,
+    /// Unix seconds of the last successful sync.
+    pub last_sync_at: u64,
+    /// Monotonic blob sequence of the local device.
+    pub sequence: u64,
+}
+
+impl From<CoreSyncStatus> for SyncStatusDto {
+    fn from(status: CoreSyncStatus) -> Self {
+        Self {
+            enabled: status.enabled,
+            sync_id: status.sync_id,
+            device_id: status.device_id,
+            folder_hint: status.folder_hint,
+            last_sync_at: status.last_sync_at,
+            sequence: status.sequence,
+        }
+    }
+}
+
+/// Non-secret outcome of one manual sync.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SyncReportDto {
+    pub pulled_files: u32,
+    pub pushed_file: bool,
+    pub entries_added: u32,
+    pub entries_updated: u32,
+    pub folders_added: u32,
+    pub folders_updated: u32,
+    pub conflicts_created: u32,
+    pub tombstones_applied: u32,
+    /// Non-secret problems encountered during the sync.
+    pub errors: Vec<String>,
+}
+
+impl From<CoreSyncReport> for SyncReportDto {
+    fn from(report: CoreSyncReport) -> Self {
+        Self {
+            pulled_files: report.pulled_files as u32,
+            pushed_file: report.pushed_file,
+            entries_added: report.entries_added as u32,
+            entries_updated: report.entries_updated as u32,
+            folders_added: report.folders_added as u32,
+            folders_updated: report.folders_updated as u32,
+            conflicts_created: report.conflicts_created as u32,
+            tombstones_applied: report.tombstones_applied as u32,
+            errors: report.errors,
         }
     }
 }

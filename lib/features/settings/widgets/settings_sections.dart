@@ -334,6 +334,12 @@ class SettingsStorageSection extends StatelessWidget {
               ),
             ),
             SettingsRow(
+              icon: Icons.cloud_sync_outlined,
+              title: 'Cross-device sync',
+              subtitle: 'Optional E2EE sync through a folder you choose',
+              onTap: () => unawaited(context.push(KeyelRoutes.sync)),
+            ),
+            SettingsRow(
               icon: Icons.folder_rounded,
               title: 'Folders',
               subtitle: 'Create, rename and delete vault folders',

@@ -14,6 +14,7 @@ use uuid::Uuid;
 use zeroize::Zeroize;
 
 use crate::error::Error;
+use crate::sync::version::VersionVector;
 
 use super::history::{record_password_change, PasswordHistoryEntry};
 
@@ -24,10 +25,14 @@ use super::history::{record_password_change, PasswordHistoryEntry};
 /// - v2: entries gained an optional user-chosen `icon`.
 /// - v3: entries gained ordered `custom_fields`.
 /// - v4: entries gained the `passkey` kind/body for WebAuthn credentials.
-pub const VAULT_SCHEMA_VERSION: u16 = 4;
+/// - v5: opt-in sync metadata (`sync_config`, per-item `sync_meta`, tombstones).
+pub const VAULT_SCHEMA_VERSION: u16 = 5;
 
 /// How long a soft-deleted entry stays in the trash.
 pub const TRASH_RETENTION_SECS: u64 = 30 * 24 * 60 * 60;
+
+/// How long a permanent-removal tombstone is retained for sync convergence.
+pub const TOMBSTONE_RETENTION_SECS: u64 = 90 * 24 * 60 * 60;
 
 /// Current Unix timestamp in seconds.
 pub fn now_unix() -> u64 {
@@ -79,6 +84,86 @@ pub struct CustomField {
     pub kind: CustomFieldKind,
 }
 
+/// Which kind of vault item a tombstone refers to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TombstoneKind {
+    /// A folder was permanently removed.
+    Folder,
+    /// An entry was permanently removed.
+    Entry,
+}
+
+/// A permanent-removal marker propagated by sync.
+///
+/// Tombstones prevent a purged item from reappearing when another device still
+/// holds a copy. They are retained longer than the 30-day trash window so all
+/// devices have time to converge.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Tombstone {
+    /// Identifier of the removed item.
+    pub id: Uuid,
+    /// When the item was soft-deleted, if it was ever trashed.
+    #[serde(default)]
+    pub deleted_at: Option<u64>,
+    /// When the item was permanently removed. A tombstone with a purged time
+    /// dominates any live item with a causally earlier version.
+    #[serde(default)]
+    pub purged_at: Option<u64>,
+    /// Change version of the removal.
+    #[serde(default)]
+    pub version: VersionVector,
+    /// Item kind.
+    pub kind: TombstoneKind,
+}
+
+/// Secret sync configuration stored inside the encrypted vault payload.
+///
+/// Only present when sync has been enabled. `sync_key` is a shared secret and
+/// must never appear in summaries, DTOs, logs, diagnostics or the UI.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SyncConfig {
+    /// Whether sync is currently enabled on this device.
+    pub enabled: bool,
+    /// Non-secret identifier of the sync group.
+    pub sync_id: [u8; 16],
+    /// Non-secret identifier of this device in the sync group.
+    pub device_id: [u8; 16],
+    /// Shared secret sync key. Zeroized on drop; never leaves Rust.
+    pub sync_key: [u8; 32],
+    /// Informational, user-chosen folder/location hint (non-secret).
+    #[serde(default)]
+    pub folder_hint: String,
+    /// Unix seconds of the last successful sync, if any.
+    #[serde(default)]
+    pub last_sync_at: u64,
+    /// Monotonic per-device blob sequence, authenticated in every push.
+    #[serde(default)]
+    pub sequence: u64,
+}
+
+impl std::fmt::Debug for SyncConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SyncConfig")
+            .field("enabled", &self.enabled)
+            .field("sync_id", &self.sync_id)
+            .field("device_id", &self.device_id)
+            .field("sync_key", &"[REDACTED]")
+            .field("folder_hint", &self.folder_hint)
+            .field("last_sync_at", &self.last_sync_at)
+            .field("sequence", &self.sequence)
+            .finish()
+    }
+}
+
+impl Drop for SyncConfig {
+    fn drop(&mut self) {
+        self.sync_key.zeroize();
+        self.sync_id.zeroize();
+        self.device_id.zeroize();
+    }
+}
+
 impl CustomField {
     /// Build a new custom field with a fresh id.
     pub fn new(label: impl Into<String>, value: impl Into<String>, kind: CustomFieldKind) -> Self {
@@ -105,6 +190,32 @@ pub struct Folder {
     pub name: String,
     /// Zero-based position in the sidebar.
     pub order: u32,
+    /// Sync change metadata. Empty/zero for pre-v5 payloads and while sync is off.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v5 readable.
+    #[serde(default)]
+    pub sync_meta: SyncMeta,
+}
+
+/// Per-item sync change metadata.
+///
+/// Used with a per-device version vector to detect causality and concurrent
+/// edits. Absent/empty for items created before schema v5.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SyncMeta {
+    /// Logical edit version per sync device.
+    #[serde(default)]
+    pub version: VersionVector,
+    /// Device that produced the last recorded change, or all-zero for legacy items.
+    #[serde(default)]
+    pub updated_by: [u8; 16],
+}
+
+impl SyncMeta {
+    /// Whether no sync edit has been recorded for this item.
+    pub fn is_empty(&self) -> bool {
+        self.version.is_empty() && self.updated_by == [0u8; 16]
+    }
 }
 
 /// One vault entry, including its secret body.
@@ -139,6 +250,11 @@ pub struct Entry {
     pub updated_at: u64,
     /// Set when the entry is moved to the trash.
     pub deleted_at: Option<u64>,
+    /// Sync change metadata. Empty/zero for pre-v5 payloads and while sync is off.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v5 readable.
+    #[serde(default)]
+    pub sync_meta: SyncMeta,
     /// Secret payload.
     pub body: EntryBody,
 }
@@ -159,6 +275,7 @@ impl Entry {
             created_at: now,
             updated_at: now,
             deleted_at: None,
+            sync_meta: SyncMeta::default(),
             body,
         }
     }
@@ -493,6 +610,16 @@ pub struct Vault {
     pub folders: Vec<Folder>,
     /// All entries, including soft-deleted ones.
     pub entries: Vec<Entry>,
+    /// Secret sync configuration, if sync is enabled on this device.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v5 readable.
+    #[serde(default)]
+    pub sync_config: Option<SyncConfig>,
+    /// Permanent-removal tombstones propagated by sync.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v5 readable.
+    #[serde(default)]
+    pub tombstones: Vec<Tombstone>,
 }
 
 impl Default for Vault {
@@ -508,6 +635,8 @@ impl Vault {
             schema_version: VAULT_SCHEMA_VERSION,
             folders: Vec::new(),
             entries: Vec::new(),
+            sync_config: None,
+            tombstones: Vec::new(),
         }
     }
 
@@ -534,7 +663,11 @@ impl Vault {
     }
 
     /// Add an entry and return its id.
-    pub fn add_entry(&mut self, entry: Entry) -> Uuid {
+    pub fn add_entry(&mut self, mut entry: Entry) -> Uuid {
+        if let Some(device_id) = self.sync_device_id() {
+            entry.sync_meta.version.bump(&device_id);
+            entry.sync_meta.updated_by = device_id;
+        }
         let id = entry.id;
         self.entries.push(entry);
         id
@@ -551,7 +684,9 @@ impl Vault {
             .position(|existing| existing.id == entry.id)
             .ok_or(Error::NotFound)?;
 
+        let device_id = self.sync_device_id();
         let created_at = self.entries[index].created_at;
+        let mut sync_meta = self.entries[index].sync_meta.clone();
         entry.created_at = created_at;
         entry.updated_at = now_unix();
         let old_password = match &self.entries[index].body {
@@ -569,6 +704,12 @@ impl Vault {
             }
         }
 
+        if let Some(device_id) = device_id {
+            sync_meta.version.bump(&device_id);
+            sync_meta.updated_by = device_id;
+        }
+        entry.sync_meta = sync_meta;
+
         let mut replaced = std::mem::replace(&mut self.entries[index], entry);
         replaced.zeroize_secrets();
         Ok(())
@@ -577,31 +718,53 @@ impl Vault {
     /// Move an entry to the trash. Already-deleted entries keep their original
     /// deletion time.
     pub fn delete_entry(&mut self, id: Uuid) -> Result<(), Error> {
+        let device_id = self.sync_device_id();
         let entry = self.entry_mut(id).ok_or(Error::NotFound)?;
         if entry.deleted_at.is_none() {
             let now = now_unix();
             entry.deleted_at = Some(now);
             entry.updated_at = now;
+            if let Some(device_id) = device_id {
+                entry.sync_meta.version.bump(&device_id);
+                entry.sync_meta.updated_by = device_id;
+            }
         }
         Ok(())
     }
 
     /// Restore an entry from the trash.
     pub fn restore_entry(&mut self, id: Uuid) -> Result<(), Error> {
+        let device_id = self.sync_device_id();
         let entry = self.entry_mut(id).ok_or(Error::NotFound)?;
         entry.deleted_at = None;
         entry.updated_at = now_unix();
+        if let Some(device_id) = device_id {
+            entry.sync_meta.version.bump(&device_id);
+            entry.sync_meta.updated_by = device_id;
+        }
         Ok(())
     }
 
     /// Permanently remove an entry.
     pub fn purge_entry(&mut self, id: Uuid) -> Result<(), Error> {
+        let device_id = self.sync_device_id();
         let index = self
             .entries
             .iter()
             .position(|entry| entry.id == id)
             .ok_or(Error::NotFound)?;
         let mut removed = self.entries.remove(index);
+        if let Some(device_id) = device_id {
+            let mut version = removed.sync_meta.version.clone();
+            version.bump(&device_id);
+            self.tombstones.push(Tombstone {
+                id: removed.id,
+                deleted_at: removed.deleted_at,
+                purged_at: Some(now_unix()),
+                version,
+                kind: TombstoneKind::Entry,
+            });
+        }
         removed.zeroize_secrets();
         Ok(())
     }
@@ -609,53 +772,112 @@ impl Vault {
     /// Permanently remove entries that have been in the trash for at least
     /// [`TRASH_RETENTION_SECS`]. Returns how many were purged.
     pub fn purge_expired(&mut self, now: u64) -> usize {
-        let before = self.entries.len();
-        self.entries.retain_mut(|entry| {
+        let device_id = self.sync_device_id();
+        let mut purged = 0usize;
+        let mut retained = Vec::with_capacity(self.entries.len());
+        for mut entry in std::mem::take(&mut self.entries) {
             let expired = match entry.deleted_at {
                 None => false,
                 Some(deleted_at) => now.saturating_sub(deleted_at) >= TRASH_RETENTION_SECS,
             };
             if expired {
+                purged += 1;
+                if let Some(device_id) = device_id {
+                    let mut version = entry.sync_meta.version.clone();
+                    version.bump(&device_id);
+                    self.tombstones.push(Tombstone {
+                        id: entry.id,
+                        deleted_at: entry.deleted_at,
+                        purged_at: Some(now),
+                        version,
+                        kind: TombstoneKind::Entry,
+                    });
+                }
                 entry.zeroize_secrets();
+            } else {
+                retained.push(entry);
             }
-            !expired
-        });
-        before - self.entries.len()
+        }
+        self.entries = retained;
+        self.tombstones
+            .retain(|tombstone| match tombstone.purged_at {
+                Some(purged_at) => now.saturating_sub(purged_at) < TOMBSTONE_RETENTION_SECS,
+                None => true,
+            });
+        purged
+    }
+
+    /// Device id used for recording sync versions, if sync is enabled.
+    pub(crate) fn sync_device_id(&self) -> Option<[u8; 16]> {
+        self.sync_config
+            .as_ref()
+            .filter(|config| config.enabled)
+            .map(|config| config.device_id)
     }
 
     /// Create a folder at the end of the list.
     pub fn add_folder(&mut self, name: impl Into<String>) -> Uuid {
         let id = Uuid::now_v7();
         let order = self.folders.len() as u32;
-        self.folders.push(Folder {
+        let mut folder = Folder {
             id,
             name: name.into(),
             order,
-        });
+            sync_meta: SyncMeta::default(),
+        };
+        if let Some(device_id) = self.sync_device_id() {
+            folder.sync_meta.version.bump(&device_id);
+            folder.sync_meta.updated_by = device_id;
+        }
+        self.folders.push(folder);
         id
     }
 
     /// Rename a folder.
     pub fn rename_folder(&mut self, id: Uuid, name: impl Into<String>) -> Result<(), Error> {
+        let device_id = self.sync_device_id();
         let folder = self
             .folders
             .iter_mut()
             .find(|folder| folder.id == id)
             .ok_or(Error::NotFound)?;
         folder.name = name.into();
+        if let Some(device_id) = device_id {
+            folder.sync_meta.version.bump(&device_id);
+            folder.sync_meta.updated_by = device_id;
+        }
         Ok(())
     }
 
     /// Delete a folder. Entries in it move to "No folder".
     pub fn delete_folder(&mut self, id: Uuid) -> Result<(), Error> {
-        let before = self.folders.len();
-        self.folders.retain(|folder| folder.id != id);
-        if self.folders.len() == before {
-            return Err(Error::NotFound);
+        let device_id = self.sync_device_id();
+        let index = self
+            .folders
+            .iter()
+            .position(|folder| folder.id == id)
+            .ok_or(Error::NotFound)?;
+        let removed = self.folders.remove(index);
+        let now = now_unix();
+        if let Some(device_id) = device_id {
+            let mut version = removed.sync_meta.version.clone();
+            version.bump(&device_id);
+            self.tombstones.push(Tombstone {
+                id: removed.id,
+                deleted_at: None,
+                purged_at: Some(now),
+                version,
+                kind: TombstoneKind::Folder,
+            });
         }
         for entry in &mut self.entries {
             if entry.folder_id == Some(id) {
                 entry.folder_id = None;
+                if let Some(device_id) = device_id {
+                    entry.updated_at = now;
+                    entry.sync_meta.version.bump(&device_id);
+                    entry.sync_meta.updated_by = device_id;
+                }
             }
         }
         Ok(())
@@ -674,12 +896,19 @@ impl Vault {
         {
             return Err(Error::NotFound);
         }
+        let device_id = self.sync_device_id();
         for (position, id) in order.iter().enumerate() {
             if let Some(folder) = self.folders.iter_mut().find(|folder| folder.id == *id) {
                 folder.order = position as u32;
             }
         }
         self.folders.sort_by_key(|folder| folder.order);
+        if let Some(device_id) = device_id {
+            for folder in &mut self.folders {
+                folder.sync_meta.version.bump(&device_id);
+                folder.sync_meta.updated_by = device_id;
+            }
+        }
         Ok(())
     }
 }
@@ -688,6 +917,11 @@ impl Drop for Vault {
     fn drop(&mut self) {
         for entry in &mut self.entries {
             entry.zeroize_secrets();
+        }
+        if let Some(sync_config) = &mut self.sync_config {
+            sync_config.sync_key.zeroize();
+            sync_config.sync_id.zeroize();
+            sync_config.device_id.zeroize();
         }
     }
 }
@@ -733,6 +967,72 @@ mod tests {
         let bytes = vault.to_bytes().unwrap();
         let decoded = Vault::from_bytes(&bytes).unwrap();
         assert_eq!(vault, decoded);
+    }
+
+    #[test]
+    fn v4_payload_defaults_sync_fields() {
+        // Simulate a schema v4 payload: CBOR written without v5-only fields.
+        // Deserialization must supply defaults and migration must lift to v5.
+        let value = ciborium::Value::Map(vec![
+            (
+                ciborium::Value::Text("schema_version".into()),
+                ciborium::Value::Integer(4u64.into()),
+            ),
+            (
+                ciborium::Value::Text("folders".into()),
+                ciborium::Value::Array(vec![ciborium::Value::Map(vec![
+                    (
+                        ciborium::Value::Text("id".into()),
+                        ciborium::Value::Bytes(Uuid::now_v7().as_bytes().to_vec()),
+                    ),
+                    (
+                        ciborium::Value::Text("name".into()),
+                        ciborium::Value::Text("Work".into()),
+                    ),
+                    (
+                        ciborium::Value::Text("order".into()),
+                        ciborium::Value::Integer(0u64.into()),
+                    ),
+                ])]),
+            ),
+            (
+                ciborium::Value::Text("entries".into()),
+                ciborium::Value::Array(vec![]),
+            ),
+        ]);
+        let mut bytes = Vec::new();
+        ciborium::into_writer(&value, &mut bytes).unwrap();
+        let decoded = Vault::from_bytes(&bytes).unwrap();
+        assert_eq!(decoded.schema_version, 4);
+        assert!(decoded.sync_config.is_none());
+        assert!(decoded.tombstones.is_empty());
+        assert!(decoded.folders[0].sync_meta.is_empty());
+
+        let migrated = crate::vault::migrate::migrate(decoded, 4).unwrap();
+        assert_eq!(migrated.schema_version, VAULT_SCHEMA_VERSION);
+        assert!(migrated.sync_config.is_none());
+        assert!(migrated.tombstones.is_empty());
+    }
+
+    #[test]
+    fn sync_config_round_trips_and_debug_is_redacted() {
+        let mut vault = Vault::new();
+        vault.sync_config = Some(SyncConfig {
+            enabled: true,
+            sync_id: [1u8; 16],
+            device_id: [2u8; 16],
+            sync_key: [3u8; 32],
+            folder_hint: "/tmp/sync".into(),
+            last_sync_at: 123,
+            sequence: 7,
+        });
+        let bytes = vault.to_bytes().unwrap();
+        let decoded = Vault::from_bytes(&bytes).unwrap();
+        assert_eq!(decoded.sync_config, vault.sync_config);
+
+        let debug = format!("{:?}", decoded.sync_config.as_ref().unwrap());
+        assert!(debug.contains("[REDACTED]"));
+        assert!(!debug.contains("33333333"));
     }
 
     #[test]
@@ -992,5 +1292,97 @@ mod tests {
             panic!("passkey");
         };
         assert_eq!(pk.sign_count, 5);
+    }
+
+    fn sync_enabled_vault() -> (Vault, [u8; 16]) {
+        let mut vault = Vault::new();
+        let device = [7u8; 16];
+        vault.sync_config = Some(SyncConfig {
+            enabled: true,
+            sync_id: [1u8; 16],
+            device_id: device,
+            sync_key: [3u8; 32],
+            folder_hint: "hint".into(),
+            last_sync_at: 0,
+            sequence: 0,
+        });
+        (vault, device)
+    }
+
+    #[test]
+    fn sync_bumps_version_on_local_mutations() {
+        let (mut vault, device) = sync_enabled_vault();
+        let entry = Entry::note(
+            "n",
+            Note {
+                content: "x".into(),
+            },
+        );
+        let id = vault.add_entry(entry.clone());
+        assert_eq!(vault.entry(id).unwrap().sync_meta.version.get(&device), 1);
+        assert_eq!(vault.entry(id).unwrap().sync_meta.updated_by, device);
+
+        let mut updated = vault.entry(id).unwrap().clone();
+        updated.title = "n2".into();
+        vault.update_entry(updated).unwrap();
+        assert_eq!(vault.entry(id).unwrap().sync_meta.version.get(&device), 2);
+
+        vault.delete_entry(id).unwrap();
+        assert_eq!(vault.entry(id).unwrap().sync_meta.version.get(&device), 3);
+        vault.restore_entry(id).unwrap();
+        assert_eq!(vault.entry(id).unwrap().sync_meta.version.get(&device), 4);
+
+        let folder = vault.add_folder("Work");
+        assert_eq!(vault.folders[0].sync_meta.version.get(&device), 1);
+        vault.rename_folder(folder, "Office").unwrap();
+        assert_eq!(vault.folders[0].sync_meta.version.get(&device), 2);
+    }
+
+    #[test]
+    fn sync_purge_and_folder_delete_emit_tombstones() {
+        let (mut vault, device) = sync_enabled_vault();
+        let id = vault.add_entry(Entry::note("n", Note::default()));
+        vault.purge_entry(id).unwrap();
+        assert!(vault.entry(id).is_none());
+        assert_eq!(vault.tombstones.len(), 1);
+        assert_eq!(vault.tombstones[0].id, id);
+        assert_eq!(vault.tombstones[0].kind, TombstoneKind::Entry);
+        assert!(vault.tombstones[0].purged_at.is_some());
+        assert_eq!(vault.tombstones[0].version.get(&device), 2); // add + purge
+
+        let folder = vault.add_folder("F");
+        let mut e = Entry::note("in", Note::default());
+        e.folder_id = Some(folder);
+        let eid = vault.add_entry(e);
+        let folder_ver = vault.folders[0].sync_meta.version.clone();
+        vault.delete_folder(folder).unwrap();
+        assert!(vault.folders.is_empty());
+        assert_eq!(vault.entry(eid).unwrap().folder_id, None);
+        assert!(vault.entry(eid).unwrap().sync_meta.version.get(&device) >= 2);
+        let folder_tombstone = vault
+            .tombstones
+            .iter()
+            .find(|t| t.id == folder)
+            .expect("folder tombstone");
+        assert_eq!(folder_tombstone.kind, TombstoneKind::Folder);
+        assert!(folder_tombstone.version.dominates(&folder_ver));
+    }
+
+    #[test]
+    fn sync_purge_expired_prunes_old_tombstones() {
+        let (mut vault, device) = sync_enabled_vault();
+        let id = vault.add_entry(Entry::note("n", Note::default()));
+        vault.delete_entry(id).unwrap();
+        let now = now_unix();
+        vault.entry_mut(id).unwrap().deleted_at = Some(now - TRASH_RETENTION_SECS - 1);
+        assert_eq!(vault.purge_expired(now), 1);
+        assert_eq!(vault.tombstones.len(), 1);
+        assert_eq!(vault.tombstones[0].kind, TombstoneKind::Entry);
+
+        // Old tombstones are dropped after retention.
+        vault.tombstones[0].purged_at = Some(now - TOMBSTONE_RETENTION_SECS - 1);
+        assert_eq!(vault.purge_expired(now), 0);
+        assert!(vault.tombstones.is_empty());
+        let _ = device;
     }
 }

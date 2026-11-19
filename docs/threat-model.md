@@ -21,6 +21,8 @@ substitute for the independent review planned before 1.0 (roadmap item 0.11.13).
 | Encrypted backup password | User's head | Protects exported backups |
 | Revealed secrets (one field at a time) | Dart widget memory, clipboard | Exposed by explicit user action |
 | Keystore-wrapped master password (biometric unlock) | Android Keystore-backed store | Lets biometric unlock re-open the vault |
+| Sync key (32 random bytes, since 1.5.0) | Rust memory and the encrypted vault's `sync_config` only | Decrypts synced vault payloads; never crosses the bridge or reaches the backend |
+| Sync pairing code (since 1.5.0) | Shown once in the UI, then stored as the sync key | Bearer secret: anyone holding it can read the sync group |
 
 ## 2. Trust boundaries
 
@@ -41,6 +43,12 @@ substitute for the independent review planned before 1.0 (roadmap item 0.11.13).
   in Rust (`keyel_core::autofill::find_matches`), never in Kotlin.
 - **Filesystem.** `vault.keyel`, `vault.keyel.bak`, `settings.json` and any
   CSV/backup the user exports all live under app-private storage.
+- **Sync backend (since 1.5.0).** The user-chosen folder (or their Syncthing /
+  Nextcloud client) only ever sees ciphertext plus non-secret routing metadata
+  (`sync_id`, `writer_device_id`, `sequence`, file size/mtime). Neither vault
+  key, master password, recovery key, sync key nor plaintext is written there.
+  Every blob's AEAD authenticates its routing metadata, and all remote blobs are
+  verified before any local state is changed.
 
 ## 3. Assumptions and non-goals
 
@@ -66,6 +74,7 @@ coercion resistance, and protecting data the user deliberately exports to CSV.
 | A4 | Offline attacker | Has a copy of `vault.keyel` (e.g. from a backup) |
 | A5 | Shoulder surfer / screen recorder | Can see the screen and the task switcher |
 | A6 | Forensic examiner | Full disk image of a rooted or unlocked device |
+| A7 | Malicious sync backend / pairing-code holder (since 1.5.0) | Can read, copy, delete or roll back encrypted sync files in the user's folder; may have seen the one-time pairing code |
 
 ## 5. Threats and mitigations
 
@@ -243,6 +252,35 @@ hard-coded checksum would remove the server-trust step; not done yet.
 *Open:* the installer flow has not been exercised on a physical device
 (`REQUEST_INSTALL_PACKAGES` grant, `FileProvider` URI, package install).
 
+### T14 — Malicious or rolled-back sync data, pairing-code leak (A7, since 1.5.0)
+
+Sync is strictly opt-in, manual, foreground and vault-unlocked only; there is no
+Keyel server or account and no new `INTERNET` usage (the folder is moved by the
+user's own tool).
+
+- **Backend sees only ciphertext.** Blobs are XChaCha20-Poly1305 encrypted under
+  a random 256-bit sync key that is stored in the vault's `sync_config` and
+  wrapped in `Zeroizing`/`zeroize_secrets` in Rust. It is never in a DTO, a log,
+  or the folder. One file per device means no write conflicts at the transport.
+- **Authenticated routing.** The AEAD AAD binds magic, format version, `sync_id`,
+  writer `device_id` and `sequence`. A blob from another group cannot be
+  re-labelled; tampering or truncation fails authentication and aborts the whole
+  sync with local state untouched (`crates/keyel_core/src/sync/envelope.rs`,
+  `service.rs`).
+- **Replay/rollback.** Sequence numbers are inside the authenticated data and
+  surfaced in status; per-item version vectors ensure an older valid blob is
+  dominated by newer state rather than silently regressing. Merge changes are
+  conflict copies, never silent overwrites.
+- **Pairing code is a root secret.** Shown once, requires an "I saved it"
+  acknowledgement, copied through `SensitiveClipboard` (auto-wipe) under the
+  global `FLAG_SECURE` policy, and never logged. Losing it means starting a new
+  sync group (no in-place rotation in 1.5.0); revoking a device means re-pairing.
+
+*Residual:* an attacker with both a device blob and the pairing code can read
+that device's synced vault (equivalent to vault-file theft plus recovery key),
+but cannot forge updates without the sync key. A user who loses the pairing code
+and all vaults cannot recover the sync group; keep an encrypted backup.
+
 ## 6. Verification map
 
 | Threat | How it is checked |
@@ -256,6 +294,7 @@ hard-coded checksum would remove the server-trust step; not done yet.
 | T9 | `test/unlock_throttle_test.dart` (schedule, lock, reset, restore); `test/vault_session_provider_test.dart` (count, refuse, clear) |
 | T12 | `cargo audit` + `cargo deny` CI job |
 | T13 | `test/ota_test.dart` (SHA-256 verify, mismatch aborts, channel filter); on-device install pending |
+| T14 | `crates/keyel_core/tests/sync.rs` + `sync` unit tests (envelope tamper/wrong-key/truncation, pairing typo rejection, merge idempotency/convergence, corrupt blob leaves vault untouched, folder atomic I/O); `test/sync_screen_test.dart` (pairing-code acknowledgement, status, manual sync) |
 
 ## 7. Open items
 
@@ -265,4 +304,4 @@ hard-coded checksum would remove the server-trust step; not done yet.
 3. Independent review of this document and `docs/crypto-design.md` before 1.0.
 4. Optional: a public suffix list for web matching (T7).
 
-_Last updated: 2026-11-14._
+_Last updated: 2026-11-19 (1.5.0 E2EE sync)._

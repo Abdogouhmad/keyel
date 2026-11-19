@@ -1,4 +1,4 @@
-# Keyel vault model and storage (payload schema v4)
+# Keyel vault model and storage (payload schema v5)
 
 Status: implemented in `crates/keyel_core`. This document describes the
 decrypted payload and the storage rules. The encrypted file layout and key
@@ -10,15 +10,18 @@ The encrypted body of `vault.keyel` contains CBOR:
 
 ```text
 Vault {
-  schema_version: u16,        // 4
+  schema_version: u16,        // 5
   folders: [Folder],
   entries: [Entry],
+  sync_config: SyncConfig | null,   // v5: null = sync disabled (key is a secret)
+  tombstones: [Tombstone],          // v5: purged-item markers for sync
 }
 
 Folder {
   id: UUID,                   // v7, time ordered
   name: string,
   order: u32,
+  sync_meta: SyncMeta,        // v5: version vector for sync (default empty)
 }
 
 Entry {
@@ -33,7 +36,31 @@ Entry {
   created_at: u64,            // Unix seconds
   updated_at: u64,
   deleted_at: u64 | null,     // trash marker
+  sync_meta: SyncMeta,        // v5: version vector for sync (default empty)
   body: EntryBody,
+}
+
+SyncConfig {                  // v5, present only when sync is enabled
+  enabled: bool,
+  sync_id: [u8; 16],          // sync group id, non-secret
+  device_id: [u8; 16],        // this device, non-secret
+  sync_key: [u8; 32],         // SECRET: random, zeroized, never in DTOs/logs/backend
+  folder_hint: string,        // non-secret, informational only
+  last_sync_at: u64,          // Unix seconds of last successful sync
+  sequence: u64,              // monotonic blob counter for replay detection
+}
+
+SyncMeta {
+  version: [(device_id: [u8; 16], counter: u64)], // version vector, sorted
+  updated_by: [u8; 16],       // zero for legacy items
+}
+
+Tombstone {
+  id: UUID,
+  deleted_at: u64,
+  purged_at: u64 | null,
+  version: VersionVector,
+  kind: "folder" | "entry",
 }
 
 CustomField {
@@ -100,10 +127,17 @@ Passkey {
 ```
 
 The payload is encrypted with the vault key. It is only ever decoded in Rust;
-the vault key and the decoded payload are never sent to Dart. `icon` and
-`custom_fields` use `#[serde(default)]`, so payloads written before schema v2/v3
-remain readable. Passkeys are a schema-v4 addition; existing v3 payloads contain
-no passkey entries and migrate losslessly.
+the vault key and the decoded payload are never sent to Dart. `icon`,
+`custom_fields`, `sync_config`, `tombstones` and `sync_meta` use
+`#[serde(default)]`, so payloads written before schema v2/v3/v5 remain readable.
+Passkeys are a schema-v4 addition; the sync fields are a schema-v5 addition;
+older payloads migrate losslessly.
+
+`sync_config.sync_key` is a **secret** in the same class as the vault key: it is
+stored encrypted under the vault key, wrapped in `zeroize::Zeroizing` in Rust,
+wiped by `zeroize_secrets`/`Drop`, and excluded from `EntrySummary`, every DTO,
+search/index, diagnostics and logs. It is never written to the sync backend or
+sent across the bridge. See [`sync-1.5.0-design.md`](sync-1.5.0-design.md).
 
 ## 2. Identification and time
 
@@ -180,22 +214,25 @@ entries.
 - The file header carries a `format_version` (envelope). The payload carries
   `schema_version` (this document). They evolve independently.
 - Migrations are stepwise in `vault::migrate`: v1→v2 adds the optional `icon`,
-  v2→v3 adds ordered `custom_fields`, v3→v4 adds the `passkey` kind/body. For
-  these changes the serde defaults already yield the correct value, so migration
-  is a documented, lossless no-op per step.
-- Unknown/future schema versions fail closed with `UnsupportedVersion`. v1, v2,
-  and v3 payloads are accepted and migrated forward on open; the next save writes
-  the current schema version.
+  v2→v3 adds ordered `custom_fields`, v3→v4 adds the `passkey` kind/body, v4→v5
+  adds `sync_config`, `tombstones` and per-item `sync_meta`. For these changes
+  the serde defaults already yield the correct value, so migration is a
+  documented, lossless no-op per step.
+- Unknown/future schema versions fail closed with `UnsupportedVersion`. v1–v4
+  payloads are accepted and migrated forward on open; the next save writes the
+  current schema version.
 
 ## 8. Import/export and interoperability notes
 
-- **Encrypted backup:** payload-based and round-trips schema-v4 entries (including
-  passkeys) subject to the encrypted backup format.
+- **Encrypted backup:** payload-based and round-trips schema-v5 entries (including
+  passkeys and sync config) subject to the encrypted backup format.
 - **CSV export (plaintext):** passkeys are not representable in the supported
   Bitwarden/Chrome CSV formats and contain private key material that must not be
-  exported in plaintext; they are therefore excluded from CSV export. Preserve
-  passkeys via encrypted backups.
-- **CSV import:** passkeys are not produced by the supported CSV formats.
+  exported in plaintext; they are therefore excluded from CSV export. Sync config
+  (including the sync key) is likewise excluded from CSV. Preserve passkeys and
+  sync setup via encrypted backups.
+- **CSV import:** passkeys are not produced by the supported CSV formats; CSV
+  import ignores sync config.
 
 ## 9. First-run and locks
 

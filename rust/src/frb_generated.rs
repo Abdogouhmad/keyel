@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 235933711;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 763517508;
 
 // Section: executor
 
@@ -1321,6 +1321,202 @@ fn wire__crate__api__passkeys__store_passkey_impl(
         },
     )
 }
+fn wire__crate__api__sync__sync_disable_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sync_disable",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::sync::sync_disable()?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__sync__sync_enable_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sync_enable",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_folder_hint = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::sync::sync_enable(api_folder_hint)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__sync__sync_join_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sync_join",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_code = <String>::sse_decode(&mut deserializer);
+            let api_folder_hint = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::sync::sync_join(api_code, api_folder_hint)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__sync__sync_now_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sync_now",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_folder_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::sync::sync_now(api_folder_path)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__sync__sync_pairing_code_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sync_pairing_code",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::sync::sync_pairing_code()?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__sync__sync_status_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "sync_status",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::sync::sync_status()?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__session__unlock_with_master_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2325,6 +2521,52 @@ impl SseDecode for crate::api::models::SecretFieldDto {
     }
 }
 
+impl SseDecode for crate::api::models::SyncReportDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_pulledFiles = <u32>::sse_decode(deserializer);
+        let mut var_pushedFile = <bool>::sse_decode(deserializer);
+        let mut var_entriesAdded = <u32>::sse_decode(deserializer);
+        let mut var_entriesUpdated = <u32>::sse_decode(deserializer);
+        let mut var_foldersAdded = <u32>::sse_decode(deserializer);
+        let mut var_foldersUpdated = <u32>::sse_decode(deserializer);
+        let mut var_conflictsCreated = <u32>::sse_decode(deserializer);
+        let mut var_tombstonesApplied = <u32>::sse_decode(deserializer);
+        let mut var_errors = <Vec<String>>::sse_decode(deserializer);
+        return crate::api::models::SyncReportDto {
+            pulled_files: var_pulledFiles,
+            pushed_file: var_pushedFile,
+            entries_added: var_entriesAdded,
+            entries_updated: var_entriesUpdated,
+            folders_added: var_foldersAdded,
+            folders_updated: var_foldersUpdated,
+            conflicts_created: var_conflictsCreated,
+            tombstones_applied: var_tombstonesApplied,
+            errors: var_errors,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::SyncStatusDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_enabled = <bool>::sse_decode(deserializer);
+        let mut var_syncId = <Option<String>>::sse_decode(deserializer);
+        let mut var_deviceId = <Option<String>>::sse_decode(deserializer);
+        let mut var_folderHint = <String>::sse_decode(deserializer);
+        let mut var_lastSyncAt = <u64>::sse_decode(deserializer);
+        let mut var_sequence = <u64>::sse_decode(deserializer);
+        return crate::api::models::SyncStatusDto {
+            enabled: var_enabled,
+            sync_id: var_syncId,
+            device_id: var_deviceId,
+            folder_hint: var_folderHint,
+            last_sync_at: var_lastSyncAt,
+            sequence: var_sequence,
+        };
+    }
+}
+
 impl SseDecode for crate::api::models::TotpAlgorithmDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2498,12 +2740,18 @@ fn pde_ffi_dispatcher_primary_impl(
         }
         36 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
         37 => wire__crate__api__passkeys__store_passkey_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
-        39 => {
+        38 => wire__crate__api__sync__sync_disable_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__sync__sync_enable_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__sync__sync_join_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__sync__sync_now_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__sync__sync_pairing_code_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__sync__sync_status_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
+        45 => {
             wire__crate__api__session__unlock_with_recovery_impl(port, ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
+        49 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2521,8 +2769,8 @@ fn pde_ffi_dispatcher_sync_impl(
         19 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
         21 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
         25 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -3161,6 +3409,59 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::SecretFieldDto>
     for crate::api::models::SecretFieldDto
 {
     fn into_into_dart(self) -> crate::api::models::SecretFieldDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::SyncReportDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.pulled_files.into_into_dart().into_dart(),
+            self.pushed_file.into_into_dart().into_dart(),
+            self.entries_added.into_into_dart().into_dart(),
+            self.entries_updated.into_into_dart().into_dart(),
+            self.folders_added.into_into_dart().into_dart(),
+            self.folders_updated.into_into_dart().into_dart(),
+            self.conflicts_created.into_into_dart().into_dart(),
+            self.tombstones_applied.into_into_dart().into_dart(),
+            self.errors.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::SyncReportDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::SyncReportDto>
+    for crate::api::models::SyncReportDto
+{
+    fn into_into_dart(self) -> crate::api::models::SyncReportDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::SyncStatusDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.enabled.into_into_dart().into_dart(),
+            self.sync_id.into_into_dart().into_dart(),
+            self.device_id.into_into_dart().into_dart(),
+            self.folder_hint.into_into_dart().into_dart(),
+            self.last_sync_at.into_into_dart().into_dart(),
+            self.sequence.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::SyncStatusDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::SyncStatusDto>
+    for crate::api::models::SyncStatusDto
+{
+    fn into_into_dart(self) -> crate::api::models::SyncStatusDto {
         self
     }
 }
@@ -3873,6 +4174,33 @@ impl SseEncode for crate::api::models::SecretFieldDto {
             },
             serializer,
         );
+    }
+}
+
+impl SseEncode for crate::api::models::SyncReportDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.pulled_files, serializer);
+        <bool>::sse_encode(self.pushed_file, serializer);
+        <u32>::sse_encode(self.entries_added, serializer);
+        <u32>::sse_encode(self.entries_updated, serializer);
+        <u32>::sse_encode(self.folders_added, serializer);
+        <u32>::sse_encode(self.folders_updated, serializer);
+        <u32>::sse_encode(self.conflicts_created, serializer);
+        <u32>::sse_encode(self.tombstones_applied, serializer);
+        <Vec<String>>::sse_encode(self.errors, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::SyncStatusDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.enabled, serializer);
+        <Option<String>>::sse_encode(self.sync_id, serializer);
+        <Option<String>>::sse_encode(self.device_id, serializer);
+        <String>::sse_encode(self.folder_hint, serializer);
+        <u64>::sse_encode(self.last_sync_at, serializer);
+        <u64>::sse_encode(self.sequence, serializer);
     }
 }
 

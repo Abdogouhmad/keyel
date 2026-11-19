@@ -17,6 +17,7 @@ import 'package:keyel/features/ota/ota_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/features/settings/appearance_screen.dart';
 import 'package:keyel/features/settings/settings_screen.dart';
+import 'package:keyel/features/sync/sync_screen.dart';
 import 'package:keyel/features/trash/trash_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
@@ -115,6 +116,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const KeyelSubShell(
           tabIndex: KeyelTab.settings,
           child: AppearanceScreen(),
+        ),
+      ),
+      GoRoute(
+        path: KeyelRoutes.sync,
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.settings,
+          child: SyncScreen(),
         ),
       ),
       GoRoute(

@@ -254,6 +254,11 @@ pub fn find_passkeys_for_rp(vault: &Vault, rp_id: &str) -> Vec<EntrySummary> {
 /// `sign_count` should be the new counter value reported/maintained by the caller.
 /// Returns `true` if the entry was found and updated.
 pub fn record_passkey_use(vault: &mut Vault, id: uuid::Uuid, sign_count: u32, at: u64) -> bool {
+    let device_id = vault
+        .sync_config
+        .as_ref()
+        .filter(|config| config.enabled)
+        .map(|config| config.device_id);
     let Some(entry) = vault.entry_mut(id) else {
         return false;
     };
@@ -263,6 +268,10 @@ pub fn record_passkey_use(vault: &mut Vault, id: uuid::Uuid, sign_count: u32, at
     passkey.sign_count = sign_count;
     passkey.last_used_at = Some(at);
     entry.updated_at = at;
+    if let Some(device_id) = device_id {
+        entry.sync_meta.version.bump(&device_id);
+        entry.sync_meta.updated_by = device_id;
+    }
     true
 }
 

@@ -23,7 +23,7 @@ use crate::crypto::kdf::Argon2Params;
 use crate::error::Error;
 use crate::format;
 use crate::import::{ImportMode, ImportReport};
-use crate::vault::Vault;
+use crate::vault::{migrate, Vault};
 
 /// Encrypt `vault` under `password` and write it to `path`.
 ///
@@ -51,7 +51,10 @@ pub fn read_encrypted(path: impl AsRef<Path>, password: &str) -> Result<Vault, E
         Error::Storage(format!("cannot read backup {}: {error}", path.display()))
     })?;
     let unlocked = format::unlock_with_master(&bytes, password)?;
-    Vault::from_bytes(&unlocked.plaintext[..])
+    let vault = Vault::from_bytes(&unlocked.plaintext[..])?;
+    // Backups may pre-date the current schema; migrate before merging or use.
+    let from_version = vault.schema_version;
+    migrate(vault, from_version)
 }
 
 /// Combine a decrypted backup with the live vault.

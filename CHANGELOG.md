@@ -5,6 +5,39 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-11-19
+
+### Added
+
+- **Opt-in cross-device sync (E2EE).** A new Sync settings page lets you enable
+  or disable sync, choose a folder, pair a second device with a one-time code,
+  see status/last-sync/device id, and run a manual foreground sync. No Keyel
+  server or account: your own sync tool (Syncthing, Nextcloud, cloud drive, USB)
+  moves the encrypted files. No new network permission is used.
+- **Sync wire format and pairing.** Versioned `KYS1` blobs use XChaCha20-Poly1305
+  under a random 256-bit sync key; the authenticated header binds sync id, writer
+  device id and a monotonic sequence. Pairing uses a typo-detecting one-time code
+  whose key is stored only inside each device's vault — never in Dart, logs or
+  the backend.
+- **Conflict-aware merge.** Per-item version vectors and tombstones produce
+  deterministic merges with non-destructive, dated conflict copies (no silent
+  overwrites), with idempotency and tamper/corruption fail-closed guarantees.
+- **Schema v5.** Additive `sync_config`, per-item `sync_meta` and tombstones;
+  v1–v4 vaults migrate forward losslessly. Sync setup survives encrypted backup.
+
+### Security
+
+- Sync key and pairing code follow the existing secret hygiene: `Zeroizing` in
+  Rust, excluded from DTOs/summaries/search/diagnostics/logs, pairing code shown
+  once with explicit acknowledgement and auto-clearing clipboard under
+  `FLAG_SECURE`. Threat model extended with the untrusted-backend analysis.
+
+### Tests
+
+- New core/FRB/integration and Flutter widget tests for the envelope, pairing,
+  version-vector merge (convergence and idempotency), corrupt/tampered remote
+  abort, atomic folder I/O, and the sync settings flows.
+
 ## [1.4.3] - 2026-11-19
 
 ### Fixed

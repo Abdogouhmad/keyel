@@ -233,12 +233,24 @@ pub fn move_entries(ids: Vec<String>, folder_id: Option<String>) -> Result<(), V
             .iter()
             .map(|id| parse_id(id))
             .collect::<Result<_, _>>()?;
+        let sync_device = session
+            .vault()
+            .sync_config
+            .as_ref()
+            .filter(|config| config.enabled)
+            .map(|config| config.device_id);
+        let now = keyel_core::vault::model::now_unix();
         for id in parsed {
             let entry = session
                 .vault_mut()
                 .entry_mut(id)
                 .ok_or(VaultApiError::NotFound)?;
             entry.folder_id = folder;
+            entry.updated_at = now;
+            if let Some(device_id) = sync_device {
+                entry.sync_meta.version.bump(&device_id);
+                entry.sync_meta.updated_by = device_id;
+            }
         }
         session.save()?;
         Ok(())

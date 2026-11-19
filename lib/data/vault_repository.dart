@@ -7,6 +7,7 @@ import 'package:keyel/src/rust/api/import_export.dart' as import_export_api;
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/src/rust/api/passkeys.dart' as passkeys_api;
 import 'package:keyel/src/rust/api/session.dart' as session_api;
+import 'package:keyel/src/rust/api/sync.dart' as sync_api;
 
 /// Thin Dart wrapper around the generated FRB vault API.
 class VaultRepository {
@@ -284,6 +285,27 @@ class VaultRepository {
     origin: origin,
     credentialIdB64: credentialIdB64,
   );
+
+  /// Non-secret state of opt-in sync.
+  Future<SyncStatusDto> syncStatus() => sync_api.syncStatus();
+
+  /// Enable sync and return the one-time pairing code (a bearer secret).
+  Future<String> syncEnable(String folderHint) =>
+      sync_api.syncEnable(folderHint: folderHint);
+
+  /// Re-display the pairing code from the vault's stored sync secret.
+  Future<String> syncPairingCode() => sync_api.syncPairingCode();
+
+  /// Join a sync group with a pairing code from another device.
+  Future<SyncStatusDto> syncJoin(String code, String folderHint) =>
+      sync_api.syncJoin(code: code, folderHint: folderHint);
+
+  /// Disable sync locally, leaving remote files untouched.
+  Future<void> syncDisable() => sync_api.syncDisable();
+
+  /// Pull, merge, push and save in one manual foreground operation.
+  Future<SyncReportDto> syncNow(String folderPath) =>
+      sync_api.syncNow(folderPath: folderPath);
 
   /// Force delete the vault file from disk.
   /// Useful for debugging or implementing a "Factory Reset" feature in settings.
