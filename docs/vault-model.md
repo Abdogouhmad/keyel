@@ -1,9 +1,8 @@
-# Keyel vault model and storage (payload schema v1)
+# Keyel vault model and storage (payload schema v4)
 
-Status: implemented in `crates/keyel_core` for phase 0.3.0. This document
-describes the decrypted payload and the storage rules. The encrypted file
-layout and key hierarchy are specified separately in
-[`crypto-design.md`](crypto-design.md).
+Status: implemented in `crates/keyel_core`. This document describes the
+decrypted payload and the storage rules. The encrypted file layout and key
+hierarchy are specified separately in [`crypto-design.md`](crypto-design.md).
 
 ## 1. Payload
 
@@ -11,7 +10,7 @@ The encrypted body of `vault.keyel` contains CBOR:
 
 ```text
 Vault {
-  schema_version: u16,        // 1
+  schema_version: u16,        // 4
   folders: [Folder],
   entries: [Entry],
 }
@@ -29,16 +28,26 @@ Entry {
   tags: [string],
   folder_id: UUID | null,
   favorite: bool,
+  icon: string | null,        // v2: optional user-chosen icon slug
+  custom_fields: [CustomField], // v3: ordered user-defined extra fields
   created_at: u64,            // Unix seconds
   updated_at: u64,
   deleted_at: u64 | null,     // trash marker
   body: EntryBody,
 }
 
+CustomField {
+  id: UUID,                   // v7, stable for UI addressing/reveal
+  label: string,
+  value: string,              // secret when kind == "hidden"
+  kind: "text" | "hidden" | "url",
+}
+
 EntryBody =
   | { login: Login }
   | { card: Card }
   | { note: Note }
+  | { passkey: Passkey }
 
 Login {
   username: string,
@@ -71,10 +80,30 @@ Card {
 Note {
   content: string,            // secret
 }
+
+Passkey {
+  rp_id: string,              // relying party identifier (e.g. example.com)
+  rp_name: string,
+  credential_id: bytes,       // credential identifier
+  user_handle: bytes,         // secret-adjacent RP user handle (zeroized)
+  user_name: string,
+  user_display_name: string,
+  public_key: bytes,          // COSE public key
+  private_key: bytes,         // secret: signing key material (zeroized, never exposed)
+  algorithm: i32,             // COSE algorithm id (e.g. -7 ES256, -257 RS256, -8 EdDSA)
+  sign_count: u32,
+  created_at: u64,            // Unix seconds
+  last_used_at: u64 | null,   // Unix seconds
+  transports: [string],       // hints (internal/usb/nfc/ble/hybrid)
+  discoverable: bool,
+}
 ```
 
 The payload is encrypted with the vault key. It is only ever decoded in Rust;
-the vault key and the decoded payload are never sent to Dart.
+the vault key and the decoded payload are never sent to Dart. `icon` and
+`custom_fields` use `#[serde(default)]`, so payloads written before schema v2/v3
+remain readable. Passkeys are a schema-v4 addition; existing v3 payloads contain
+no passkey entries and migrate losslessly.
 
 ## 2. Identification and time
 
@@ -105,93 +134,71 @@ includes them (needed for the trash screen).
 - Matching is linear over entry metadata. Vaults are small enough that an
   extra index would only add a second source of truth.
 - Text is normalized with NFD, combining marks are removed, and the result is
-  lowercased. `"Café"`, `"cafe"` and `"CAFÉ"` match.
-- Searched fields: title, tags, login username, login URL, cardholder and
-  card brand.
-- Never searched: passwords, notes, card numbers, CVVs, TOTP secrets and
-  history. This prevents a search from turning into a secret oracle.
-- Filters: kind, folder, favorite, has-TOTP, include-deleted.
-- Results are sorted by normalized title, then id.
+  lowercased, so matching is case- and accent-insensitive (`Café` = `cafe`).
+- The query matches the title, tags, and kind-specific metadata: username and
+  URL for logins, cardholder and brand for cards, relying-party and user name
+  fields for passkeys, and non-secret custom field labels/values (`text`/`url`).
+  Secret content (passwords, TOTP secrets, card number/CVV, note content,
+  login/card notes, `hidden` custom field values, and passkey private key
+  material) is never searched. `EntryFilter` narrows by kind, folder, favorite,
+  and `has_totp`.
 
-## 5. Secret-free summaries
+## 5. Summaries and secrets
 
-List screens only use `EntrySummary`:
+Listing and search return `EntrySummary { id, kind, title, subtitle, icon,
+folder_id, favorite, has_totp, deleted_at, updated_at, custom_fields }` only. The
+subtitle is the username or URL for a login, the brand or cardholder for a
+card, the user name/display name/RP for a passkey, and `"Note"` for a note.
 
-```text
-EntrySummary {
-  id, kind, title, subtitle, favorite, folder_id, has_totp
-}
-```
+Secrets live only inside `EntryBody` (and in `Entry.notes` / `hidden` custom
+fields). Nothing above the Rust core receives the vault key or the body; the UI
+obtains a secret only through an explicit reveal/copy/ceremony path. For
+logins/cards/notes and custom fields this is via explicit reveal APIs; for
+passkeys, **private key material is never exposed to Dart/UI/DTOs/diagnostics**
+and may only be used inside Rust/session boundaries for WebAuthn ceremonies
+(planned for 1.4.0).
 
-`subtitle` is metadata only: login username or URL, card brand or cardholder,
-or the literal `"Note"`. It never contains a password, note body or card
-number.
+`Entry::zeroize_secrets` overwrites passwords, TOTP secrets, password history,
+card number/CVV, note content, `notes`, hidden custom field values, and passkey
+`private_key`/`user_handle`. `password_history` is capped at the 10 most recent
+entries.
 
-## 6. Password history
+## 6. Storage location and atomic writes
 
-When `Vault::update_entry` sees a login whose password changed, the previous
-password is pushed onto `password_history` (newest first) and the list is
-capped at 10 entries. The cap is `history::PASSWORD_HISTORY_CAP`.
+- The vault file is a single `vault.keyel` under the app's documents directory,
+  resolved by path_provider in Dart and passed to Rust.
+- Rust never hard-codes a path; every operation takes an explicit path.
+- Every save is atomic (temp file, fsync, rename) and leaves a `.bak` of the
+  previous file. A leftover `.tmp` is removed on the next open. The writer holds
+  an advisory lock for the duration of the write so concurrent save attempts do
+  not race.
+- `allow_backup="false"` and `dataExtractionRules` exclude the vault from
+  Android Auto Backup and device-to-device transfer.
 
-## 7. Migration
+## 7. Migration and compatibility
 
-`vault::migrate(vault, from_version)` upgrades the payload schema. Version 1 is
-the current schema, so the only supported migration today is 1 → 1. Unknown
-or future versions return `Error::UnsupportedVersion` and fail closed. A new
-incompatible payload change adds one arm/step per version.
+- The file header carries a `format_version` (envelope). The payload carries
+  `schema_version` (this document). They evolve independently.
+- Migrations are stepwise in `vault::migrate`: v1→v2 adds the optional `icon`,
+  v2→v3 adds ordered `custom_fields`, v3→v4 adds the `passkey` kind/body. For
+  these changes the serde defaults already yield the correct value, so migration
+  is a documented, lossless no-op per step.
+- Unknown/future schema versions fail closed with `UnsupportedVersion`. v1, v2,
+  and v3 payloads are accepted and migrated forward on open; the next save writes
+  the current schema version.
 
-## 8. Storage and atomic saves
+## 8. Import/export and interoperability notes
 
-A `Session` owns the vault key, the authenticated file header and the decoded
-`Vault`.
+- **Encrypted backup:** payload-based and round-trips schema-v4 entries (including
+  passkeys) subject to the encrypted backup format.
+- **CSV export (plaintext):** passkeys are not representable in the supported
+  Bitwarden/Chrome CSV formats and contain private key material that must not be
+  exported in plaintext; they are therefore excluded from CSV export. Preserve
+  passkeys via encrypted backups.
+- **CSV import:** passkeys are not produced by the supported CSV formats.
 
-`Session::save` writes:
+## 9. First-run and locks
 
-```text
-vault.keyel.tmp   new ciphertext, fsync'ed
-vault.keyel.bak   copy of the previous main file (if one exists)
-vault.keyel       rename(tmp) over the old file, parent dir fsync'ed best-effort
-```
-
-Properties:
-
-- A crash before the rename leaves the previous `vault.keyel` intact; a stale
-  `.tmp` is ignored and overwritten by the next save.
-- `rename` is atomic on the same filesystem, so a reader never sees a partly
-  written main file.
-- One previous version is kept in `.bak`.
-
-### Recovery from `.bak`
-
-`Session::open` falls back to `.bak` only when the main file fails
-structurally: bad magic, truncation, invalid/canonical header, unsupported
-version, or an undecodable payload. An AEAD failure (reported as
-`WrongPassword`) is **not** retried against the backup.
-
-The reason is that a backup can be older than a master-password change and may
-therefore still be protected by the old password. Automatically opening it
-would silently make the old password valid again. Structural failures cannot
-be caused by a wrong password, so the fallback is safe there.
-
-## 9. Memory hygiene
-
-- The vault key and KEKs are `Zeroizing` and wipe on drop.
-- The plaintext CBOR buffers used by create/save are wrapped in `Zeroizing`.
-- `Vault` wipes secret fields (passwords, history, TOTP secrets, card numbers,
-  CVVs, notes) when it is dropped, and when an entry is replaced, purged or
-  expired. This is best-effort: `String` clones made by callers are outside
-  the core's control, which is why the bridge will expose summaries only.
-
-## 10. Tests
-
-`crates/keyel_core` covers:
-
-- 1,000 entries: create, save, lock, reopen, search, byte-identical data.
-- Recovery-key open on a saved vault.
-- Atomic save, `.bak` contents and structural-corruption fallback.
-- Stale `.tmp` after a simulated crash.
-- Trash delete/restore and 30-day purge on unlock.
-- Folders, reordering, folder deletion moving entries to "No folder".
-- Password history and its 10-entry cap.
-- Serialization round-trip (unit and proptest).
-- Migration 1 → 1 and rejection of unknown versions.
+A first-run is "no `vault.keyel` exists at the path". There is no separate
+manifest file. The session holds the decrypted vault in memory while unlocked
+and drops it on lock.

@@ -127,6 +127,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       revealedCardNumber: _controller.revealedCardNumber,
       revealedCvv: _controller.revealedCvv,
       revealedNote: _controller.revealedNote,
+      revealedCustomFields: _controller.revealedCustomFields,
       onBack: () => context.pop(),
       onFavorite: _controller.toggleFavorite,
       onEdit: _controller.openEdit,
@@ -134,8 +135,10 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       onToggleRevealPassword: _controller.toggleRevealPassword,
       onToggleRevealCard: _controller.toggleRevealCard,
       onToggleRevealNote: _controller.toggleRevealNote,
+      onToggleRevealCustomField: _controller.toggleRevealCustomField,
       onCopy: _copy,
       onCopyPassword: _controller.copyPassword,
+      onCopyCustomField: _controller.copyCustomField,
       onOpenUrl: _controller.openUrl,
     );
   }

@@ -20,6 +20,7 @@ class DetailScaffold extends StatelessWidget {
     required this.revealedCardNumber,
     required this.revealedCvv,
     required this.revealedNote,
+    required this.revealedCustomFields,
     required this.onBack,
     required this.onFavorite,
     required this.onEdit,
@@ -27,8 +28,10 @@ class DetailScaffold extends StatelessWidget {
     required this.onToggleRevealPassword,
     required this.onToggleRevealCard,
     required this.onToggleRevealNote,
+    required this.onToggleRevealCustomField,
     required this.onCopy,
     required this.onCopyPassword,
+    required this.onCopyCustomField,
     required this.onOpenUrl,
     super.key,
   });
@@ -54,6 +57,9 @@ class DetailScaffold extends StatelessWidget {
   /// Revealed note content, or `null` when hidden.
   final String? revealedNote;
 
+  /// Revealed hidden custom-field values keyed by custom-field id.
+  final Map<String, String> revealedCustomFields;
+
   /// Called when the back button is tapped.
   final VoidCallback onBack;
 
@@ -75,11 +81,17 @@ class DetailScaffold extends StatelessWidget {
   /// Reveals or hides the note content.
   final VoidCallback onToggleRevealNote;
 
+  /// Reveals or hides a hidden custom field.
+  final void Function(String fieldId) onToggleRevealCustomField;
+
   /// Copies a value to the clipboard with feedback.
   final void Function(String value, String message) onCopy;
 
   /// Copies the password, revealing it first if needed.
   final VoidCallback onCopyPassword;
+
+  /// Copies a custom-field value, revealing hidden values first if needed.
+  final void Function(CustomFieldDetailDto field) onCopyCustomField;
 
   /// Opens a URL shown on the detail screen.
   final void Function(String url) onOpenUrl;
@@ -108,11 +120,14 @@ class DetailScaffold extends StatelessWidget {
                 revealedCardNumber: revealedCardNumber,
                 revealedCvv: revealedCvv,
                 revealedNote: revealedNote,
+                revealedCustomFields: revealedCustomFields,
                 onToggleRevealPassword: onToggleRevealPassword,
                 onToggleRevealCard: onToggleRevealCard,
                 onToggleRevealNote: onToggleRevealNote,
+                onToggleRevealCustomField: onToggleRevealCustomField,
                 onCopy: onCopy,
                 onCopyPassword: onCopyPassword,
+                onCopyCustomField: onCopyCustomField,
                 onOpenUrl: onOpenUrl,
               ),
             ),
@@ -154,6 +169,7 @@ class _DetailEditBar extends StatelessWidget {
             VaultEntryKind.card => 'Edit card',
             VaultEntryKind.note => 'Edit note',
             VaultEntryKind.login => 'Edit login',
+            VaultEntryKind.passkey => 'Edit passkey',
           },
           icon: Icons.edit_rounded,
           tone: KeyelButtonTone.tonal,

@@ -322,6 +322,7 @@ class VaultListController extends ChangeNotifier {
             }
           }
         case VaultEntryKind.note:
+        case VaultEntryKind.passkey:
           break;
       }
       callbacks.notify('Nothing to copy', icon: Icons.info_outline_rounded);

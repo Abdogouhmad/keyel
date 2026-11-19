@@ -9,6 +9,7 @@ import 'package:keyel/features/entry/entry_edit_controller.dart';
 import 'package:keyel/features/entry/models/entry_icon.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/entry/widgets/edit/card_section.dart';
+import 'package:keyel/features/entry/widgets/edit/custom_fields_section.dart';
 import 'package:keyel/features/entry/widgets/edit/icon_picker_sheet.dart';
 import 'package:keyel/features/entry/widgets/edit/identity_card.dart';
 import 'package:keyel/features/entry/widgets/edit/login_fields.dart';
@@ -134,24 +135,34 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
         children: [
           KeyelSegmentedControl<VaultEntryKind>(
             selected: widget.kind,
-            onChanged: widget.onKindChanged,
-            options: const [
-              KeyelSegmentOption(
-                value: VaultEntryKind.login,
-                label: 'Login',
-                icon: Icons.key_rounded,
-              ),
-              KeyelSegmentOption(
-                value: VaultEntryKind.card,
-                label: 'Card',
-                icon: Icons.credit_card_rounded,
-              ),
-              KeyelSegmentOption(
-                value: VaultEntryKind.note,
-                label: 'Note',
-                icon: Icons.description_rounded,
-              ),
-            ],
+            onChanged: widget.kind == VaultEntryKind.passkey
+                ? (_) {}
+                : widget.onKindChanged,
+            options: widget.kind == VaultEntryKind.passkey
+                ? const [
+                    KeyelSegmentOption(
+                      value: VaultEntryKind.passkey,
+                      label: 'Passkey',
+                      icon: Icons.vpn_key_rounded,
+                    ),
+                  ]
+                : const [
+                    KeyelSegmentOption(
+                      value: VaultEntryKind.login,
+                      label: 'Login',
+                      icon: Icons.key_rounded,
+                    ),
+                    KeyelSegmentOption(
+                      value: VaultEntryKind.card,
+                      label: 'Card',
+                      icon: Icons.credit_card_rounded,
+                    ),
+                    KeyelSegmentOption(
+                      value: VaultEntryKind.note,
+                      label: 'Note',
+                      icon: Icons.description_rounded,
+                    ),
+                  ],
           ),
           const SizedBox(height: KeyelSpacing.lg),
           IdentityCard(
@@ -206,6 +217,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     ],
     VaultEntryKind.card => [_cardSection()],
     VaultEntryKind.note => [_noteContentSection()],
+    VaultEntryKind.passkey => [_passkeyInfoSection()],
   };
 
   /// Sections organizing and annotating the entry; the right column.
@@ -215,14 +227,29 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
     VaultEntryKind.card => [
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
-    VaultEntryKind.note => [_organizationSection()],
+    VaultEntryKind.note => [
+      _organizationSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+    ],
+    VaultEntryKind.passkey => [
+      _organizationSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _notesSection(),
+    ],
   };
 
   /// All sections stacked in a single column on narrow windows.
@@ -245,6 +272,8 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
     VaultEntryKind.card => [
@@ -252,12 +281,25 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
     VaultEntryKind.note => [
       _noteContentSection(),
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+    ],
+    VaultEntryKind.passkey => [
+      _passkeyInfoSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _organizationSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _notesSection(),
     ],
   };
 
@@ -303,6 +345,9 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     onFolderTap: () => unawaited(_chooseFolder()),
   );
 
+  Widget _customFieldsSection() =>
+      CustomFieldsSection(controller: widget.controller);
+
   void _suggestUsername() {
     setState(() => widget.controller.username.text = 'alex.dev@hey.com');
   }
@@ -333,4 +378,33 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       icon: Icons.verified_user_rounded,
     );
   }
+
+  Widget _passkeyInfoSection() {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(KeyelSpacing.md),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(KeyelRadii.card),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.vpn_key_rounded, color: scheme.primary),
+          const SizedBox(width: KeyelSpacing.sm),
+          Expanded(
+            child: Text(
+              'Passkeys are created and used through secure sign-in prompts. '
+              "Credential details are managed automatically and can't be edited here yet.",
+              style: textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

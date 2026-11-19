@@ -170,14 +170,16 @@ class SettingsSecuritySection extends StatelessWidget {
   }
 }
 
-/// Autofill preferences section on the settings screen.
+/// Autofill and passkey provider preferences on the settings screen.
 class SettingsAutofillSection extends StatelessWidget {
-  /// Creates the autofill section.
+  /// Creates the autofill/passkey section.
   const new({
     required this.autofillEnabled,
+    required this.passkeyProviderSupported,
     required this.askToSave,
     required this.matchMode,
     required this.onOpenSettings,
+    required this.onOpenCredentialProviderSettings,
     required this.onAskToSaveChanged,
     required this.onToggleMatchMode,
     super.key,
@@ -185,6 +187,9 @@ class SettingsAutofillSection extends StatelessWidget {
 
   /// Whether Keyel is the system autofill provider, or null if unknown.
   final bool? autofillEnabled;
+
+  /// Whether the platform supports hosting a passkey/credential provider.
+  final bool? passkeyProviderSupported;
 
   /// Whether to prompt to save new credentials.
   final bool askToSave;
@@ -194,6 +199,9 @@ class SettingsAutofillSection extends StatelessWidget {
 
   /// Opens system autofill settings.
   final VoidCallback onOpenSettings;
+
+  /// Opens system credential-provider settings (or best-effort fallback).
+  final VoidCallback onOpenCredentialProviderSettings;
 
   /// Updates ask-to-save preference.
   final ValueChanged<bool> onAskToSaveChanged;
@@ -205,12 +213,13 @@ class SettingsAutofillSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final enabled = autofillEnabled;
+    final passkeysSupported = passkeyProviderSupported;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const KeyelSectionLabel(
-          label: 'Autofill',
+          label: 'Autofill & Passkeys',
           icon: Icons.auto_awesome_rounded,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -230,6 +239,24 @@ class SettingsAutofillSection extends StatelessWidget {
                   ? Icon(Icons.check_circle_rounded, color: scheme.primary)
                   : null,
               onTap: onOpenSettings,
+            ),
+            SettingsRow(
+              icon: Icons.key_rounded,
+              title: 'Passkey provider',
+              subtitle: passkeysSupported == null
+                  ? 'Checking device support…'
+                  : passkeysSupported
+                  ? 'Manage Keyel as a passkey provider in system settings'
+                  : 'Not supported on this device or Android version',
+              trailing: passkeysSupported == false
+                  ? Icon(
+                      Icons.info_outline_rounded,
+                      color: scheme.onSurfaceVariant,
+                    )
+                  : null,
+              onTap: passkeysSupported == true
+                  ? onOpenCredentialProviderSettings
+                  : null,
             ),
             SettingsRow(
               icon: Icons.save_rounded,

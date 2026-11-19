@@ -22,7 +22,9 @@ use super::history::{record_password_change, PasswordHistoryEntry};
 /// History:
 /// - v1: initial payload.
 /// - v2: entries gained an optional user-chosen `icon`.
-pub const VAULT_SCHEMA_VERSION: u16 = 2;
+/// - v3: entries gained ordered `custom_fields`.
+/// - v4: entries gained the `passkey` kind/body for WebAuthn credentials.
+pub const VAULT_SCHEMA_VERSION: u16 = 4;
 
 /// How long a soft-deleted entry stays in the trash.
 pub const TRASH_RETENTION_SECS: u64 = 30 * 24 * 60 * 60;
@@ -45,6 +47,53 @@ pub enum EntryKind {
     Card,
     /// Free-form secure note.
     Note,
+    /// A WebAuthn/FIDO2 passkey credential.
+    Passkey,
+}
+
+/// The value kind of a user-defined custom field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CustomFieldKind {
+    /// Plain text. Safe to show and searchable as metadata.
+    Text,
+    /// Secret text (PIN, recovery code, answer). Masked and never indexed.
+    Hidden,
+    /// A URL. Treated as non-secret metadata.
+    Url,
+}
+
+/// A user-defined extra field stored on an entry.
+///
+/// `Hidden` values are secrets: they are masked by default, revealed only on
+/// demand, and excluded from metadata search and diagnostics.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CustomField {
+    /// Stable identifier, used by the UI to address a specific field.
+    pub id: Uuid,
+    /// User-visible label.
+    pub label: String,
+    /// Field value. Secret when `kind` is [`CustomFieldKind::Hidden`].
+    pub value: String,
+    /// How the value should be interpreted and displayed.
+    pub kind: CustomFieldKind,
+}
+
+impl CustomField {
+    /// Build a new custom field with a fresh id.
+    pub fn new(label: impl Into<String>, value: impl Into<String>, kind: CustomFieldKind) -> Self {
+        Self {
+            id: Uuid::now_v7(),
+            label: label.into(),
+            value: value.into(),
+            kind,
+        }
+    }
+
+    /// Whether this field's value is secret.
+    pub fn is_secret(&self) -> bool {
+        matches!(self.kind, CustomFieldKind::Hidden)
+    }
 }
 
 /// A folder groups entries. Folders never contain secrets.
@@ -79,6 +128,11 @@ pub struct Entry {
     /// `#[serde(default)]` keeps payloads written before schema v2 readable.
     #[serde(default)]
     pub icon: Option<String>,
+    /// User-defined extra fields, in display order.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v3 readable.
+    #[serde(default)]
+    pub custom_fields: Vec<CustomField>,
     /// Creation time (Unix seconds).
     pub created_at: u64,
     /// Last modification time (Unix seconds).
@@ -101,6 +155,7 @@ impl Entry {
             folder_id: None,
             favorite: false,
             icon: None,
+            custom_fields: Vec::new(),
             created_at: now,
             updated_at: now,
             deleted_at: None,
@@ -121,6 +176,11 @@ impl Entry {
     /// Convenience constructor for a secure note.
     pub fn note(title: impl Into<String>, note: Note) -> Self {
         Self::new(title, EntryBody::Note(note))
+    }
+
+    /// Convenience constructor for a passkey entry.
+    pub fn passkey(title: impl Into<String>, passkey: Passkey) -> Self {
+        Self::new(title, EntryBody::Passkey(passkey))
     }
 
     /// The kind of this entry.
@@ -151,18 +211,29 @@ impl Entry {
     /// Match a query that has already been normalized by `index::normalize`.
     ///
     /// Only metadata is searched: title, tags, username, URL, cardholder and
-    /// brand. Passwords, notes and card numbers are never matched.
+    /// brand, plus non-secret custom-field labels and values (`text`/`url`).
+    /// Passwords, notes, card numbers and hidden custom-field values are never
+    /// matched.
     pub(crate) fn matches_normalized(&self, query: &str) -> bool {
         let contains = |value: &str| super::index::normalize(value).contains(query);
 
         contains(&self.title)
             || self.tags.iter().any(|tag| contains(tag))
+            || self.custom_fields.iter().any(|field| {
+                contains(&field.label) || (!field.is_secret() && contains(&field.value))
+            })
             || match &self.body {
                 EntryBody::Login(login) => contains(&login.username) || contains(&login.url),
                 EntryBody::Card(card) => {
                     contains(&card.cardholder) || card.brand.as_deref().is_some_and(contains)
                 }
                 EntryBody::Note(_) => false,
+                EntryBody::Passkey(passkey) => {
+                    contains(&passkey.rp_id)
+                        || contains(&passkey.rp_name)
+                        || contains(&passkey.user_name)
+                        || contains(&passkey.user_display_name)
+                }
             }
     }
 
@@ -172,6 +243,11 @@ impl Entry {
     /// callers before that point.
     pub(crate) fn zeroize_secrets(&mut self) {
         self.notes.zeroize();
+        for field in &mut self.custom_fields {
+            if field.is_secret() {
+                field.value.zeroize();
+            }
+        }
         match &mut self.body {
             EntryBody::Login(login) => {
                 login.password.zeroize();
@@ -187,6 +263,7 @@ impl Entry {
                 card.cvv.zeroize();
             }
             EntryBody::Note(note) => note.content.zeroize(),
+            EntryBody::Passkey(passkey) => passkey.zeroize_secrets(),
         }
     }
 }
@@ -201,6 +278,8 @@ pub enum EntryBody {
     Card(Card),
     /// Secure note.
     Note(Note),
+    /// WebAuthn/FIDO2 passkey credential.
+    Passkey(Passkey),
 }
 
 impl EntryBody {
@@ -210,6 +289,7 @@ impl EntryBody {
             Self::Login(_) => EntryKind::Login,
             Self::Card(_) => EntryKind::Card,
             Self::Note(_) => EntryKind::Note,
+            Self::Passkey(_) => EntryKind::Passkey,
         }
     }
 
@@ -234,6 +314,17 @@ impl EntryBody {
                 .filter(|brand| !brand.is_empty())
                 .unwrap_or_else(|| card.cardholder.clone()),
             Self::Note(_) => "Note".to_string(),
+            Self::Passkey(passkey) => {
+                if !passkey.user_name.is_empty() {
+                    passkey.user_name.clone()
+                } else if !passkey.user_display_name.is_empty() {
+                    passkey.user_display_name.clone()
+                } else if !passkey.rp_name.is_empty() {
+                    passkey.rp_name.clone()
+                } else {
+                    passkey.rp_id.clone()
+                }
+            }
         }
     }
 }
@@ -273,6 +364,63 @@ pub struct Card {
 pub struct Note {
     /// Note content. Secret.
     pub content: String,
+}
+
+/// A WebAuthn/FIDO2 passkey credential.
+///
+/// Private key material is secret: it is zeroized in memory and never exposed in
+/// summaries, search, diagnostics, or normal detail/reveal DTOs. Ceremonies that
+/// use the key must operate inside Rust/session boundaries.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Passkey {
+    /// Relying Party identifier (e.g. `example.com`).
+    pub rp_id: String,
+    /// Human-readable relying party name.
+    pub rp_name: String,
+    /// Credential identifier bytes.
+    #[serde(default)]
+    pub credential_id: Vec<u8>,
+    /// User handle bytes provided by the relying party.
+    #[serde(default)]
+    pub user_handle: Vec<u8>,
+    /// Account/user name.
+    pub user_name: String,
+    /// Display name for the account/user.
+    pub user_display_name: String,
+    /// COSE public key bytes.
+    #[serde(default)]
+    pub public_key: Vec<u8>,
+    /// Private key material. Secret.
+    #[serde(default)]
+    pub private_key: Vec<u8>,
+    /// COSE algorithm identifier (e.g. -7 ES256, -257 RS256, -8 EdDSA).
+    #[serde(default)]
+    pub algorithm: i32,
+    /// Signature counter.
+    #[serde(default)]
+    pub sign_count: u32,
+    /// When this credential was created (Unix seconds).
+    #[serde(default)]
+    pub created_at: u64,
+    /// When this credential was last used (Unix seconds), if known.
+    #[serde(default)]
+    pub last_used_at: Option<u64>,
+    /// Transport hints (e.g. `internal`, `usb`, `nfc`, `ble`, `hybrid`).
+    #[serde(default)]
+    pub transports: Vec<String>,
+    /// Whether the credential is discoverable/resident.
+    #[serde(default)]
+    pub discoverable: bool,
+}
+
+impl Passkey {
+    /// Overwrite secret material in place.
+    pub(crate) fn zeroize_secrets(&mut self) {
+        self.private_key.zeroize();
+        self.user_handle.zeroize();
+        // Credential id is not a cryptographic secret but is sensitive metadata;
+        // keep it intact for identity. Public key is public.
+    }
 }
 
 /// TOTP hash algorithm.
@@ -408,7 +556,7 @@ impl Vault {
         entry.updated_at = now_unix();
         let old_password = match &self.entries[index].body {
             EntryBody::Login(login) => Some(login.password.clone()),
-            EntryBody::Card(_) | EntryBody::Note(_) => None,
+            EntryBody::Card(_) | EntryBody::Note(_) | EntryBody::Passkey(_) => None,
         };
 
         if let (Some(mut old_password), EntryBody::Login(new_login)) =
@@ -569,6 +717,11 @@ mod tests {
             totp: Some(TotpConfig::new("JBSWY3DPEHPK3PXP")),
             ..login("hunter2")
         });
+        entry.custom_fields = vec![
+            CustomField::new("PIN", "1234", CustomFieldKind::Hidden),
+            CustomField::new("Profile", "https://example.com/u/ada", CustomFieldKind::Url),
+            CustomField::new("Note", "vip", CustomFieldKind::Text),
+        ];
         vault.add_entry(entry);
         vault.add_entry(Entry::note(
             "Recovery",
@@ -684,6 +837,11 @@ mod tests {
             },
         );
         entry.notes = "recovery codes".into();
+        entry.custom_fields = vec![
+            CustomField::new("PIN", "1234", CustomFieldKind::Hidden),
+            CustomField::new("Public", "visible", CustomFieldKind::Text),
+            CustomField::new("Site", "https://x.example", CustomFieldKind::Url),
+        ];
         entry.zeroize_secrets();
         assert!(entry.notes.is_empty());
         let EntryBody::Login(login) = &entry.body else {
@@ -692,6 +850,12 @@ mod tests {
         assert!(login.password.is_empty());
         assert!(login.password_history.iter().all(|h| h.password.is_empty()));
         assert!(login.totp.as_ref().unwrap().secret.is_empty());
+        assert!(
+            entry.custom_fields[0].value.is_empty(),
+            "hidden custom field must be wiped"
+        );
+        assert_eq!(entry.custom_fields[1].value, "visible");
+        assert_eq!(entry.custom_fields[2].value, "https://x.example");
 
         let mut card = Entry::card(
             "Visa",
@@ -719,5 +883,114 @@ mod tests {
             panic!("expected note");
         };
         assert!(note.content.is_empty());
+    }
+
+    #[test]
+    fn passkey_entry_round_trips_and_zeroizes_secrets() {
+        let mut vault = Vault::new();
+        let passkey = Passkey {
+            rp_id: "example.com".into(),
+            rp_name: "Example".into(),
+            credential_id: vec![1, 2, 3, 4],
+            user_handle: vec![9, 8, 7],
+            user_name: "ada".into(),
+            user_display_name: "Ada Lovelace".into(),
+            public_key: vec![5, 6, 7],
+            private_key: vec![0xAA, 0xBB, 0xCC],
+            algorithm: -7,
+            sign_count: 3,
+            created_at: 1_700_000_000,
+            last_used_at: Some(1_700_000_100),
+            transports: vec!["internal".into(), "hybrid".into()],
+            discoverable: true,
+        };
+        let entry = Entry::passkey("Example login", passkey.clone());
+        assert_eq!(entry.kind(), EntryKind::Passkey);
+        assert!(!entry.has_totp());
+        let summary = entry.summary();
+        assert_eq!(summary.subtitle, "ada");
+
+        let id = vault.add_entry(entry);
+        let bytes = vault.to_bytes().unwrap();
+        let decoded = Vault::from_bytes(&bytes).unwrap();
+        assert_eq!(decoded.schema_version, VAULT_SCHEMA_VERSION);
+        let stored = decoded.entry(id).unwrap();
+        let EntryBody::Passkey(stored_pk) = &stored.body else {
+            panic!("expected passkey body");
+        };
+        assert_eq!(stored_pk, &passkey);
+
+        // Search matches non-secret RP/user metadata.
+        assert!(stored.matches_normalized(&crate::vault::index::normalize("example.com")));
+        assert!(stored.matches_normalized(&crate::vault::index::normalize("Example login")));
+        assert!(stored.matches_normalized(&crate::vault::index::normalize("ada")));
+        assert!(stored.matches_normalized(&crate::vault::index::normalize("lovelace")));
+        // Must not match secret key material.
+        assert!(!stored.matches_normalized(&crate::vault::index::normalize("aabbcc")));
+
+        let mut wiped = stored.clone();
+        wiped.zeroize_secrets();
+        let EntryBody::Passkey(wiped_pk) = &wiped.body else {
+            panic!("expected passkey body");
+        };
+        assert!(
+            wiped_pk.private_key.is_empty(),
+            "private key must be zeroized"
+        );
+        assert!(
+            wiped_pk.user_handle.is_empty(),
+            "user handle must be zeroized"
+        );
+        assert_eq!(wiped_pk.credential_id, vec![1, 2, 3, 4]);
+        assert_eq!(wiped_pk.public_key, vec![5, 6, 7]);
+        assert_eq!(wiped_pk.rp_id, "example.com");
+    }
+
+    #[test]
+    fn passkey_subtitle_falls_back_safely() {
+        let mk = |user_name: &str, display: &str, rp_name: &str, rp_id: &str| {
+            Entry::passkey(
+                "t",
+                Passkey {
+                    rp_id: rp_id.into(),
+                    rp_name: rp_name.into(),
+                    user_name: user_name.into(),
+                    user_display_name: display.into(),
+                    ..Passkey::default()
+                },
+            )
+            .summary()
+            .subtitle
+        };
+        assert_eq!(mk("ada", "Ada", "Example", "example.com"), "ada");
+        assert_eq!(mk("", "Ada", "Example", "example.com"), "Ada");
+        assert_eq!(mk("", "", "Example", "example.com"), "Example");
+        assert_eq!(mk("", "", "", "example.com"), "example.com");
+    }
+
+    #[test]
+    fn updating_passkey_does_not_record_password_history() {
+        let mut vault = Vault::new();
+        let entry = Entry::passkey(
+            "Example",
+            Passkey {
+                rp_id: "example.com".into(),
+                user_name: "ada".into(),
+                ..Passkey::default()
+            },
+        );
+        let id = vault.add_entry(entry.clone());
+        let mut updated = entry;
+        updated.title = "Renamed".into();
+        if let EntryBody::Passkey(pk) = &mut updated.body {
+            pk.sign_count = 5;
+        }
+        vault.update_entry(updated).unwrap();
+        let stored = vault.entry(id).unwrap();
+        assert_eq!(stored.title, "Renamed");
+        let EntryBody::Passkey(pk) = &stored.body else {
+            panic!("passkey");
+        };
+        assert_eq!(pk.sign_count, 5);
     }
 }

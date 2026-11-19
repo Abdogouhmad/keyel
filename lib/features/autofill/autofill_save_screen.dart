@@ -128,6 +128,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
               totpPeriod: 30,
               cardholder: '',
               cardExpiry: '',
+              customFields: const [],
             ),
           );
       if (!mounted) return;

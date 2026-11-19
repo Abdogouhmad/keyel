@@ -77,6 +77,31 @@
                 android:resource="@style/NormalTheme" />
         </activity>
 
+        <!-- Credential Manager provider (passkeys). Supported on Android 14+/API 34+;
+             capability is gated at runtime and requests fail closed. -->
+        <service
+            android:name=".passkeys.KeyelCredentialProviderService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Keyel"
+            android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.credentials.CredentialProviderService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.credentials.provider"
+                android:resource="@xml/provider" />
+        </service>
+
+        <!-- Handles Credential Manager create/get selection intents. -->
+        <activity
+            android:name=".passkeys.PasskeyHandlerActivity"
+            android:exported="false"
+            android:theme="@style/LaunchTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="singleTask" />
+
         <!-- FileProvider for OTA package installation -->
         <provider
             android:name="androidx.core.content.FileProvider"

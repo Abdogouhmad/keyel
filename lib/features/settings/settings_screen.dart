@@ -31,12 +31,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _biometricEnabled = false;
   bool _offlineOnly = true;
   bool? _autofillEnabled;
+  bool? _passkeyProviderSupported;
 
   @override
   void initState() {
     super.initState();
     _biometricEnabled = AppPreferences.instance.biometricEnabled;
     unawaited(_checkAutofillStatus());
+    unawaited(_checkPasskeySupport());
   }
 
   void _notImplemented(String feature) {
@@ -56,6 +58,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await openAutofillSettings();
     await Future<void>.delayed(const Duration(milliseconds: 500));
     await _checkAutofillStatus();
+  }
+
+  Future<void> _checkPasskeySupport() async {
+    final supported = await isPasskeyProviderSupported();
+    if (mounted) setState(() => _passkeyProviderSupported = supported);
+  }
+
+  Future<void> _openCredentialProviderSettings() async {
+    await openCredentialProviderSettings();
   }
 
   Future<void> _toggleBiometric({required bool enable}) async {
@@ -252,9 +263,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const SizedBox(height: KeyelSpacing.lg),
                     SettingsAutofillSection(
                       autofillEnabled: _autofillEnabled,
+                      passkeyProviderSupported: _passkeyProviderSupported,
                       askToSave: AppPreferences.instance.autofillAskToSave,
                       matchMode: AppPreferences.instance.autofillMatchMode,
                       onOpenSettings: () => unawaited(_openAutofillSettings()),
+                      onOpenCredentialProviderSettings: () =>
+                          unawaited(_openCredentialProviderSettings()),
                       onAskToSaveChanged: (value) {
                         setState(() {
                           AppPreferences.instance.autofillAskToSave = value;

@@ -8,8 +8,10 @@ use keyel_core::autofill::{AutofillMatch, MatchQuality};
 use keyel_core::health::{HealthIssue, HealthReport};
 use keyel_core::import::{ImportFailure, ImportFormat, ImportMode, ImportReport, ParsedImport};
 use keyel_core::vault::{
-    Card, Entry, EntryBody, EntryKind, EntrySummary, Login, Note, TotpAlgorithm, TotpConfig,
+    Card, CustomField, CustomFieldKind, Entry, EntryBody, EntryKind, EntrySummary, Login, Note,
+    TotpAlgorithm, TotpConfig,
 };
+use uuid::Uuid;
 
 /// What kind of secret an entry holds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,6 +22,8 @@ pub enum EntryKindDto {
     Card,
     /// Free-form secure note.
     Note,
+    /// WebAuthn/FIDO2 passkey credential.
+    Passkey,
 }
 
 impl From<EntryKind> for EntryKindDto {
@@ -28,6 +32,7 @@ impl From<EntryKind> for EntryKindDto {
             EntryKind::Login => Self::Login,
             EntryKind::Card => Self::Card,
             EntryKind::Note => Self::Note,
+            EntryKind::Passkey => Self::Passkey,
         }
     }
 }
@@ -38,6 +43,7 @@ impl From<EntryKindDto> for EntryKind {
             EntryKindDto::Login => Self::Login,
             EntryKindDto::Card => Self::Card,
             EntryKindDto::Note => Self::Note,
+            EntryKindDto::Passkey => Self::Passkey,
         }
     }
 }
@@ -160,6 +166,113 @@ pub struct NoteDetailDto {
     pub has_content: bool,
 }
 
+/// The value kind of a user-defined custom field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CustomFieldKindDto {
+    /// Plain text. Safe to show and searchable as metadata.
+    Text,
+    /// Secret text. Masked and never indexed.
+    Hidden,
+    /// A URL. Treated as non-secret metadata.
+    Url,
+}
+
+impl From<CustomFieldKind> for CustomFieldKindDto {
+    fn from(kind: CustomFieldKind) -> Self {
+        match kind {
+            CustomFieldKind::Text => Self::Text,
+            CustomFieldKind::Hidden => Self::Hidden,
+            CustomFieldKind::Url => Self::Url,
+        }
+    }
+}
+
+impl From<CustomFieldKindDto> for CustomFieldKind {
+    fn from(kind: CustomFieldKindDto) -> Self {
+        match kind {
+            CustomFieldKindDto::Text => Self::Text,
+            CustomFieldKindDto::Hidden => Self::Hidden,
+            CustomFieldKindDto::Url => Self::Url,
+        }
+    }
+}
+
+/// A user-defined custom field with secrets masked.
+///
+/// Hidden field values are never included; request them via
+/// `reveal_custom_field`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomFieldDetailDto {
+    /// Stable identifier.
+    pub id: String,
+    /// User-visible label.
+    pub label: String,
+    /// How the value should be interpreted and displayed.
+    pub kind: CustomFieldKindDto,
+    /// Non-secret value. Always empty for hidden fields.
+    pub value: String,
+    /// Whether a hidden value is stored (always `false` for non-hidden).
+    pub has_hidden_value: bool,
+}
+
+impl From<&CustomField> for CustomFieldDetailDto {
+    fn from(field: &CustomField) -> Self {
+        let secret = field.is_secret();
+        Self {
+            id: field.id.to_string(),
+            label: field.label.clone(),
+            kind: field.kind.into(),
+            value: if secret {
+                String::new()
+            } else {
+                field.value.clone()
+            },
+            has_hidden_value: secret && !field.value.is_empty(),
+        }
+    }
+}
+
+/// A user-defined custom field to create or update.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomFieldDraft {
+    /// Existing field id to update; `None` creates a new field.
+    pub id: Option<String>,
+    /// User-visible label.
+    pub label: String,
+    /// How the value should be interpreted and displayed.
+    pub kind: CustomFieldKindDto,
+    /// Field value. For hidden fields, `None` keeps the existing secret when
+    /// updating a field with the same id.
+    pub value: Option<String>,
+}
+
+/// Non-secret passkey metadata. Private key material is never exposed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PasskeyDetailDto {
+    /// Relying Party identifier (e.g. `example.com`).
+    pub rp_id: String,
+    /// Human-readable relying party name.
+    pub rp_name: String,
+    /// Account/user name.
+    pub user_name: String,
+    /// Display name for the account/user.
+    pub user_display_name: String,
+    /// Credential identifier, base64url-encoded for display/copy.
+    pub credential_id: String,
+    /// COSE algorithm identifier (e.g. -7 ES256, -257 RS256, -8 EdDSA).
+    pub algorithm: i32,
+    /// Signature counter.
+    pub sign_count: u32,
+    /// When this credential was created (Unix seconds).
+    pub created_at: u64,
+    /// When this credential was last used (Unix seconds), if known.
+    pub last_used_at: Option<u64>,
+    /// Transport hints.
+    pub transports: Vec<String>,
+    /// Whether the credential is discoverable/resident.
+    pub discoverable: bool,
+}
+
 /// A single entry with masked secrets.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EntryDetailDto {
@@ -191,11 +304,15 @@ pub struct EntryDetailDto {
     pub card: Option<CardDetailDto>,
     /// Note metadata, when this is a note.
     pub note: Option<NoteDetailDto>,
+    /// Passkey fields, when this is a passkey.
+    pub passkey: Option<PasskeyDetailDto>,
+    /// User-defined extra fields, in display order.
+    pub custom_fields: Vec<CustomFieldDetailDto>,
 }
 
 impl From<&Entry> for EntryDetailDto {
     fn from(entry: &Entry) -> Self {
-        let (login, card, note) = match &entry.body {
+        let (login, card, note, passkey) = match &entry.body {
             EntryBody::Login(login) => (
                 Some(LoginDetailDto {
                     username: login.username.clone(),
@@ -206,6 +323,7 @@ impl From<&Entry> for EntryDetailDto {
                     totp_digits: login.totp.as_ref().map(|totp| totp.digits),
                     totp_period: login.totp.as_ref().map(|totp| totp.period),
                 }),
+                None,
                 None,
                 None,
             ),
@@ -219,12 +337,32 @@ impl From<&Entry> for EntryDetailDto {
                     has_cvv: !card.cvv.is_empty(),
                 }),
                 None,
+                None,
             ),
             EntryBody::Note(note) => (
                 None,
                 None,
                 Some(NoteDetailDto {
                     has_content: !note.content.is_empty(),
+                }),
+                None,
+            ),
+            EntryBody::Passkey(passkey) => (
+                None,
+                None,
+                None,
+                Some(PasskeyDetailDto {
+                    rp_id: passkey.rp_id.clone(),
+                    rp_name: passkey.rp_name.clone(),
+                    user_name: passkey.user_name.clone(),
+                    user_display_name: passkey.user_display_name.clone(),
+                    credential_id: data_encoding::BASE64URL_NOPAD.encode(&passkey.credential_id),
+                    algorithm: passkey.algorithm,
+                    sign_count: passkey.sign_count,
+                    created_at: passkey.created_at,
+                    last_used_at: passkey.last_used_at,
+                    transports: passkey.transports.clone(),
+                    discoverable: passkey.discoverable,
                 }),
             ),
         };
@@ -244,6 +382,12 @@ impl From<&Entry> for EntryDetailDto {
             login,
             card,
             note,
+            passkey,
+            custom_fields: entry
+                .custom_fields
+                .iter()
+                .map(CustomFieldDetailDto::from)
+                .collect(),
         }
     }
 }
@@ -297,6 +441,41 @@ pub struct EntryDraft {
     pub card_brand: Option<String>,
     /// Secure-note body. `None` keeps the existing content on update.
     pub note_content: Option<String>,
+    /// User-defined custom fields, in display order.
+    pub custom_fields: Vec<CustomFieldDraft>,
+}
+
+/// Resolve custom-field drafts against existing fields, preserving hidden
+/// secrets when a draft value is omitted for the same field id.
+pub(crate) fn map_custom_fields(
+    drafts: Vec<CustomFieldDraft>,
+    existing: &[CustomField],
+) -> Vec<CustomField> {
+    drafts
+        .into_iter()
+        .map(|draft| {
+            let id = draft.id.as_deref().and_then(|id| Uuid::parse_str(id).ok());
+            let previous = id.and_then(|id| existing.iter().find(|field| field.id == id));
+            let kind: CustomFieldKind = draft.kind.into();
+            let value = match draft.value {
+                Some(value) => value,
+                None if matches!(kind, CustomFieldKind::Hidden) => previous
+                    .filter(|field| field.is_secret())
+                    .map(|field| field.value.clone())
+                    .unwrap_or_default(),
+                None => previous
+                    .filter(|field| !field.is_secret())
+                    .map(|field| field.value.clone())
+                    .unwrap_or_default(),
+            };
+            CustomField {
+                id: id.unwrap_or_else(Uuid::now_v7),
+                label: draft.label,
+                value,
+                kind,
+            }
+        })
+        .collect()
 }
 
 impl EntryDraft {
@@ -558,6 +737,8 @@ impl From<ParsedImport> for ImportPreviewDto {
                 EntryKind::Login => preview.logins += 1,
                 EntryKind::Card => preview.cards += 1,
                 EntryKind::Note => preview.notes += 1,
+                // Passkeys are not produced by CSV imports; keep counts stable.
+                EntryKind::Passkey => {}
             }
         }
         preview

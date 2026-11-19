@@ -82,9 +82,12 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
 
     return KeyelIconHull(
       icon: Icons.content_copy_rounded,
-      tooltip: entry.kind == VaultEntryKind.card
-          ? 'Copy card'
-          : 'Copy credential',
+      tooltip: switch (entry.kind) {
+        VaultEntryKind.card => 'Copy card',
+        VaultEntryKind.login => 'Copy credential',
+        VaultEntryKind.note => 'View note',
+        VaultEntryKind.passkey => 'View passkey',
+      },
       onPressed: () => unawaited(_copy()),
     );
   }

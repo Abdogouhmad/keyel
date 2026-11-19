@@ -5,6 +5,7 @@ import 'package:keyel/src/rust/api/entries.dart' as entries_api;
 import 'package:keyel/src/rust/api/health.dart' as health_api;
 import 'package:keyel/src/rust/api/import_export.dart' as import_export_api;
 import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/src/rust/api/passkeys.dart' as passkeys_api;
 import 'package:keyel/src/rust/api/session.dart' as session_api;
 
 /// Thin Dart wrapper around the generated FRB vault API.
@@ -95,6 +96,15 @@ class VaultRepository {
         cardholder: detail.card?.cardholder ?? '',
         cardExpiry: detail.card?.expiry ?? '',
         cardBrand: detail.card?.brand,
+        customFields: [
+          for (final f in detail.customFields)
+            CustomFieldDraft(
+              id: f.id,
+              label: f.label,
+              kind: f.kind,
+              value: f.kind == CustomFieldKindDto.hidden ? null : f.value,
+            ),
+        ],
       ),
     );
   }
@@ -207,6 +217,7 @@ class VaultRepository {
         totpPeriod: 30,
         cardholder: '',
         cardExpiry: '',
+        customFields: const [],
       ),
     );
   }
@@ -223,6 +234,56 @@ class VaultRepository {
   /// Reveal one secret field. The only path that returns plaintext secrets.
   Future<String> revealField(String id, SecretFieldDto field) =>
       entries_api.revealField(id: id, field: field);
+
+  /// Reveal a hidden custom field's plaintext value for an entry.
+  ///
+  /// Only hidden custom fields can be revealed through this path.
+  Future<String> revealCustomField(String id, String fieldId) =>
+      entries_api.revealCustomField(id: id, fieldId: fieldId);
+
+  /// List passkey entries matching a relying party ID (secret-free summaries).
+  Future<List<EntrySummaryDto>> listPasskeysForRp(String rpId) =>
+      passkeys_api.listPasskeysForRp(rpId: rpId);
+
+  /// Store a new passkey credential in the encrypted vault.
+  ///
+  /// Private key material is persisted only inside the vault and never exposed
+  /// back through read APIs.
+  Future<String> storePasskey(passkeys_api.PasskeyCreateDto passkey) =>
+      passkeys_api.storePasskey(passkey: passkey);
+
+  /// Record a successful passkey assertion (updates sign count/last used).
+  Future<void> recordPasskeySignCount(String id, int signCount) =>
+      passkeys_api.recordPasskeySignCount(id: id, signCount: signCount);
+
+  /// Move a passkey entry to trash.
+  Future<void> deletePasskey(String id) => passkeys_api.deletePasskey(id: id);
+
+  /// Create and store a passkey from a WebAuthn creation request.
+  ///
+  /// Returns the created entry id and the platform response JSON. Private key
+  /// material and signing never leave the Rust/session boundary.
+  Future<passkeys_api.PasskeyCreateResultDto> createPasskeyForRequest({
+    required String requestJson,
+    required String origin,
+  }) => passkeys_api.createPasskeyForRequest(
+    requestJson: requestJson,
+    origin: origin,
+  );
+
+  /// Build a WebAuthn assertion response for a stored passkey.
+  ///
+  /// If [credentialIdB64] is omitted, the request succeeds only when there is
+  /// exactly one matching passkey for the RP.
+  Future<String> getPasskeyAssertionResponse({
+    required String requestJson,
+    required String origin,
+    String? credentialIdB64,
+  }) => passkeys_api.getPasskeyAssertionResponse(
+    requestJson: requestJson,
+    origin: origin,
+    credentialIdB64: credentialIdB64,
+  );
 
   /// Force delete the vault file from disk.
   /// Useful for debugging or implementing a "Factory Reset" feature in settings.

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Credential Manager provider capabilities for Keyel. -->
+<credential-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsSubtitle="Keyel passkeys and passwords"
+    android:settingsActivity="com.freesoftware.keyel.MainActivity">
+    <capabilities>
+        <capability name="androidx.credentials.TYPE_PUBLIC_KEY_CREDENTIAL" />
+    </capabilities>
+</credential-provider>

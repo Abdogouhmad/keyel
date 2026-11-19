@@ -222,7 +222,7 @@ fn entry_matches_query(entry: &crate::vault::Entry, query: &str) -> bool {
         || entry.tags.iter().any(|tag| contains(tag))
         || match &entry.body {
             EntryBody::Login(login) => contains(&login.username) || contains(&login.url),
-            EntryBody::Card(_) | EntryBody::Note(_) => false,
+            EntryBody::Card(_) | EntryBody::Note(_) | EntryBody::Passkey(_) => false,
         }
 }
 
@@ -403,4 +403,110 @@ mod tests {
         let vault = vault_with(vec![login("Mail", "ada", "https://example.com")]);
         assert!(find_matches(&vault, &MatchTarget::default(), "").is_empty());
     }
+
+    #[test]
+    fn finds_passkeys_by_rp_id() {
+        use crate::vault::Passkey;
+        let mut vault = Vault::new();
+        let a = vault.add_entry(Entry::passkey(
+            "Example A",
+            Passkey {
+                rp_id: "example.com".into(),
+                user_name: "ada".into(),
+                ..Passkey::default()
+            },
+        ));
+        let _b = vault.add_entry(Entry::passkey(
+            "Other",
+            Passkey {
+                rp_id: "other.test".into(),
+                user_name: "bob".into(),
+                ..Passkey::default()
+            },
+        ));
+        let mut trashed = Entry::passkey(
+            "Trashed",
+            Passkey {
+                rp_id: "example.com".into(),
+                user_name: "old".into(),
+                ..Passkey::default()
+            },
+        );
+        trashed.deleted_at = Some(1);
+        vault.add_entry(trashed);
+
+        let matches = find_passkeys_for_rp(&vault, "EXAMPLE.com");
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].id, a);
+        assert_eq!(matches[0].kind, crate::vault::EntryKind::Passkey);
+        assert!(find_passkeys_for_rp(&vault, "").is_empty());
+        assert!(find_passkeys_for_rp(&vault, "missing.test").is_empty());
+    }
+
+    #[test]
+    fn records_passkey_use_updates_counter_and_time() {
+        use crate::vault::Passkey;
+        let mut vault = Vault::new();
+        let id = vault.add_entry(Entry::passkey(
+            "Example",
+            Passkey {
+                rp_id: "example.com".into(),
+                user_name: "ada".into(),
+                sign_count: 1,
+                ..Passkey::default()
+            },
+        ));
+        assert!(record_passkey_use(&mut vault, id, 2, 1_700_000_200));
+        let entry = vault.entry(id).unwrap();
+        assert_eq!(entry.updated_at, 1_700_000_200);
+        let EntryBody::Passkey(pk) = &entry.body else {
+            panic!("passkey");
+        };
+        assert_eq!(pk.sign_count, 2);
+        assert_eq!(pk.last_used_at, Some(1_700_000_200));
+
+        assert!(!record_passkey_use(&mut vault, uuid::Uuid::now_v7(), 3, 4));
+        let login_id = vault.add_entry(login("Mail", "ada", "https://example.com"));
+        assert!(!record_passkey_use(&mut vault, login_id, 3, 4));
+    }
+}
+
+/// Return non-secret summaries of passkey entries matching a relying party ID.
+///
+/// Matching is exact on the RP ID (case-insensitive host normalization) so the
+/// caller can present candidates for a WebAuthn get/create ceremony. No secret
+/// key material is included in the returned summaries.
+pub fn find_passkeys_for_rp(vault: &Vault, rp_id: &str) -> Vec<EntrySummary> {
+    let rp_id = rp_id.trim().to_ascii_lowercase();
+    if rp_id.is_empty() {
+        return Vec::new();
+    }
+    vault
+        .entries
+        .iter()
+        .filter(|entry| entry.deleted_at.is_none())
+        .filter_map(|entry| match &entry.body {
+            EntryBody::Passkey(passkey) if passkey.rp_id.trim().to_ascii_lowercase() == rp_id => {
+                Some(entry.summary())
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+/// Record that a passkey was used for an assertion: update sign count and last-used time.
+///
+/// `sign_count` should be the new counter value reported/maintained by the caller.
+/// Returns `true` if the entry was found and updated.
+pub fn record_passkey_use(vault: &mut Vault, id: uuid::Uuid, sign_count: u32, at: u64) -> bool {
+    let Some(entry) = vault.entry_mut(id) else {
+        return false;
+    };
+    let EntryBody::Passkey(passkey) = &mut entry.body else {
+        return false;
+    };
+    passkey.sign_count = sign_count;
+    passkey.last_used_at = Some(at);
+    entry.updated_at = at;
+    true
 }

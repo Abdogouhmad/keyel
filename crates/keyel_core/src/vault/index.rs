@@ -88,7 +88,7 @@ pub fn search(vault: &Vault, query: &str, filter: &EntryFilter) -> Vec<EntrySumm
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::vault::model::{Entry, Login, Note, TotpConfig};
+    use crate::vault::model::{CustomField, CustomFieldKind, Entry, Login, Note, TotpConfig};
 
     fn vault() -> Vault {
         let mut vault = Vault::new();
@@ -151,6 +151,50 @@ mod tests {
     fn search_never_matches_notes_or_passwords() {
         let vault = vault();
         assert!(search(&vault, "secret", &EntryFilter::default()).is_empty());
+    }
+
+    #[test]
+    fn search_matches_non_secret_custom_fields_but_not_hidden_values() {
+        let mut vault = Vault::new();
+        let mut entry = Entry::login(
+            "Service",
+            Login {
+                username: "ada".into(),
+                url: "https://svc.example".into(),
+                ..Login::default()
+            },
+        );
+        entry.custom_fields = vec![
+            CustomField::new("Department", "Engineering", CustomFieldKind::Text),
+            CustomField::new(
+                "Portal",
+                "https://portal.example/path",
+                CustomFieldKind::Url,
+            ),
+            CustomField::new("Recovery code", "TOPSECRET123", CustomFieldKind::Hidden),
+        ];
+        vault.add_entry(entry);
+
+        assert_eq!(
+            search(&vault, "department", &EntryFilter::default()).len(),
+            1
+        );
+        assert_eq!(
+            search(&vault, "engineering", &EntryFilter::default()).len(),
+            1
+        );
+        assert_eq!(
+            search(&vault, "portal.example", &EntryFilter::default()).len(),
+            1
+        );
+        assert_eq!(
+            search(&vault, "recovery code", &EntryFilter::default()).len(),
+            1
+        );
+        assert!(
+            search(&vault, "topsecret123", &EntryFilter::default()).is_empty(),
+            "hidden custom field values must never be searchable"
+        );
     }
 
     #[test]

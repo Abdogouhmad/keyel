@@ -90,6 +90,11 @@ flutter {
     source = "../.."
 }
 
+dependencies {
+    // Credential Manager provider APIs (passkeys). Gated at runtime to API 34+.
+    implementation("androidx.credentials:credentials:1.6.0")
+}
+
 // ---------------------------------------------------------------------------
 // Workaround for https://github.com/flutter/flutter/issues/169336
 //

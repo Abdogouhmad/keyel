@@ -14,6 +14,7 @@ class LoadedEntry {
     required this.favorite,
     this.folderId,
     this.icon,
+    this.customFields = const [],
   });
 
   /// Entry kind restored from the vault.
@@ -27,6 +28,9 @@ class LoadedEntry {
 
   /// Optional icon key slug restored from the vault.
   final String? icon;
+
+  /// Custom fields restored from the vault, as drafts.
+  final List<CustomFieldDraft> customFields;
 }
 
 /// Owns the text controllers and persistence behind the entry editor.
@@ -47,10 +51,58 @@ class EntryEditController {
   /// Optional icon slug chosen by the user.
   String? iconKey;
 
+  /// Custom fields preserved/edited for this entry.
+  List<CustomFieldDraft> customFields = const [];
+
   /// Updates the icon key and requests a rebuild.
   void setIconKey(String? key) {
     iconKey = key;
     callbacks.rebuild();
+  }
+
+  /// Replaces the custom-fields list and requests a rebuild.
+  void setCustomFields(List<CustomFieldDraft> next) {
+    customFields = List<CustomFieldDraft>.unmodifiable(next);
+    callbacks.rebuild();
+  }
+
+  /// Adds an empty custom field of the given kind.
+  void addCustomField([CustomFieldKindDto kind = CustomFieldKindDto.text]) {
+    setCustomFields([
+      ...customFields,
+      CustomFieldDraft(
+        label: '',
+        kind: kind,
+        value: kind == CustomFieldKindDto.hidden ? null : '',
+      ),
+    ]);
+  }
+
+  /// Removes a custom field at [index].
+  void removeCustomField(int index) {
+    if (index < 0 || index >= customFields.length) return;
+    final next = [...customFields]..removeAt(index);
+    setCustomFields(next);
+  }
+
+  /// Updates a custom field at [index].
+  void updateCustomField(int index, CustomFieldDraft updated) {
+    if (index < 0 || index >= customFields.length) return;
+    final next = [...customFields];
+    next[index] = updated;
+    setCustomFields(next);
+  }
+
+  /// Moves a custom field from [oldIndex] to [newIndex].
+  void reorderCustomField(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= customFields.length) return;
+    var target = newIndex;
+    if (target > oldIndex) target -= 1;
+    if (target < 0 || target >= customFields.length) return;
+    final next = [...customFields];
+    final item = next.removeAt(oldIndex);
+    next.insert(target, item);
+    setCustomFields(next);
   }
 
   /// Screen callbacks for rebuilds and user feedback.
@@ -111,6 +163,7 @@ class EntryEditController {
         EntryKindDto.login => VaultEntryKind.login,
         EntryKindDto.card => VaultEntryKind.card,
         EntryKindDto.note => VaultEntryKind.note,
+        EntryKindDto.passkey => VaultEntryKind.passkey,
       };
 
       if (detail.login != null) {
@@ -163,12 +216,22 @@ class EntryEditController {
       }
 
       iconKey = detail.icon;
+      customFields = [
+        for (final f in detail.customFields)
+          CustomFieldDraft(
+            id: f.id,
+            label: f.label,
+            kind: f.kind,
+            value: f.kind == CustomFieldKindDto.hidden ? null : f.value,
+          ),
+      ];
 
       return LoadedEntry(
         kind: kind,
         favorite: detail.favorite,
         folderId: detail.folderId,
         icon: detail.icon,
+        customFields: customFields,
       );
     } on Object catch (error) {
       callbacks.notifyError(error);
@@ -223,6 +286,7 @@ class EntryEditController {
       VaultEntryKind.login => EntryKindDto.login,
       VaultEntryKind.card => EntryKindDto.card,
       VaultEntryKind.note => EntryKindDto.note,
+      VaultEntryKind.passkey => EntryKindDto.passkey,
     };
 
     final draft = EntryDraft(
@@ -249,6 +313,7 @@ class EntryEditController {
       noteContent: kind == VaultEntryKind.note && notes.text.isNotEmpty
           ? notes.text
           : null,
+      customFields: customFields,
     );
 
     try {

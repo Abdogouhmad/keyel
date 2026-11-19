@@ -64,6 +64,33 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(null)
                     }
 
+                    "isPasskeyProviderSupported" -> {
+                        // Credential Manager provider services are supported on
+                        // Android 14+ (API 34). Actual availability also depends
+                        // on device/Play services; this is the coarse platform gate.
+                        result.success(
+                            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                        )
+                    }
+
+                    "openCredentialProviderSettings" -> {
+                        try {
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                val intent = Intent(Settings.ACTION_CREDENTIAL_PROVIDER)
+                                startActivity(intent)
+                            } else {
+                                startActivity(Intent(Settings.ACTION_SETTINGS))
+                            }
+                        } catch (_: Exception) {
+                            try {
+                                startActivity(Intent(Settings.ACTION_SETTINGS))
+                            } catch (_: Exception) {
+                                // Nothing we can do.
+                            }
+                        }
+                        result.success(null)
+                    }
+
                     "canInstallPackages" -> {
                         val canInstall = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                             packageManager.canRequestPackageInstalls()

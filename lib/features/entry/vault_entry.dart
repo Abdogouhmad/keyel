@@ -14,6 +14,9 @@ enum VaultEntryKind {
 
   /// A free-form secure note.
   note,
+
+  /// A WebAuthn/FIDO2 passkey credential.
+  passkey,
 }
 
 /// Presentation model for a vault row.
@@ -56,6 +59,7 @@ class VaultEntry {
       EntryKindDto.login => VaultEntryKind.login,
       EntryKindDto.card => VaultEntryKind.card,
       EntryKindDto.note => VaultEntryKind.note,
+      EntryKindDto.passkey => VaultEntryKind.passkey,
     };
     final icon = resolveEntryIcon(summary.icon, kind);
 
@@ -87,6 +91,7 @@ class VaultEntry {
       EntryKindDto.login => VaultEntryKind.login,
       EntryKindDto.card => VaultEntryKind.card,
       EntryKindDto.note => VaultEntryKind.note,
+      EntryKindDto.passkey => VaultEntryKind.passkey,
     };
     final icon = resolveEntryIcon(detail.icon, kind);
 
@@ -96,8 +101,12 @@ class VaultEntry {
       kind: kind,
       icon: icon,
       iconKey: detail.icon,
-      username: detail.login?.username ?? '',
-      website: detail.login?.url,
+      username:
+          detail.login?.username ??
+          detail.passkey?.userName ??
+          detail.passkey?.userDisplayName ??
+          '',
+      website: detail.login?.url ?? detail.passkey?.rpId,
       folder: _folderLabel(detail.folderId, folderNames),
       notes: detail.hasNotes ? '•' : null,
       favorite: detail.favorite,
@@ -174,6 +183,7 @@ class VaultEntry {
     VaultEntryKind.login => username,
     VaultEntryKind.card => '•••• ${_lastFour()}',
     VaultEntryKind.note => 'Secure note',
+    VaultEntryKind.passkey => username.isEmpty ? 'Passkey' : username,
   };
 
   /// Lower-cased haystack used by the vault search field.
