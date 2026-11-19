@@ -1,11 +1,11 @@
 {
-  "latestVersionName": "1.2.0",
-  "latestVersionCode": 10200,
+  "latestVersionName": "1.4.3",
+  "latestVersionCode": 10403,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.2.0/keyel-v1.2.0-universal.apk",
-  "size": 42055339,
-  "sha256": "b95a48fd013edadc219789e5c26e3a5e919e71b5d6e53ffe15e16291f7e0a208",
-  "releaseNotes": "## [1.2.0] - 2026-11-18\n\n### Added\n\n- **Appearance settings** — a dedicated Appearance screen in Settings with\n  selectable color palettes, a pure-black AMOLED option for dark mode, and\n  toggles for in-app animations and haptic feedback.\n- **Theme controls** — choose system, light, or dark appearance and pick from\n  multiple accent palettes while keeping security/status colors consistent.\n\n### Changed\n\n- **Project structure** — reorganized and cleaned the Flutter codebase into a\n  leaner, more consistent layout with slimmer feature screens and extracted\n  widgets.\n- **Settings organization** — settings are split into focused sub-screens and\n  reusable components for easier maintenance and a clearer UI.\n- **Performance and polish** — reduced unnecessary UI work, respected\n  animation/haptic preferences across interactions, and tightened diagnostics to\n  include only non-secret preference data.\n\n### Security\n\n- **Preference hardening** — appearance and interaction preferences are stored\n  locally as non-secret settings and kept out of sensitive diagnostic flows.",
-  "publishedAt": "2026-11-18T15:38:07.417227+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.4.3/keyel-v1.4.3-universal.apk",
+  "size": 42749558,
+  "sha256": "406c78ebf1e4206d4b9a9e821b50d9e41ded6b74d0d04d5739ad8e66bffed0ab",
+  "releaseNotes": "## [1.4.3] - 2026-11-19\n\n### Fixed\n\n- **CI/release build** — resolved the analyzer and clippy failures that blocked\n  the 1.4.x passkeys release: required named parameters now precede optional\n  ones in the custom-fields editor, the PASSKEY RP lookup helpers no longer sit\n  after the test module, and the base64url padding check uses the idiomatic\n  integer API.\n- **Dependency security** — upgraded the P-256/RustCrypto stack (`p256` 0.14,\n  `crypto-bigint` 0.7.11) to clear RUSTSEC-2026-0387 without suppressing the\n  advisory; private-key generation/signing semantics are unchanged.",
+  "publishedAt": "2026-11-19T14:43:52.466373+00:00"
 }
