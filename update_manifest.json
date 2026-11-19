@@ -1,11 +1,11 @@
 {
-  "latestVersionName": "1.4.3",
-  "latestVersionCode": 10403,
+  "latestVersionName": "1.5.0",
+  "latestVersionCode": 10500,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.4.3/keyel-v1.4.3-universal.apk",
-  "size": 42749558,
-  "sha256": "406c78ebf1e4206d4b9a9e821b50d9e41ded6b74d0d04d5739ad8e66bffed0ab",
-  "releaseNotes": "## [1.4.3] - 2026-11-19\n\n### Fixed\n\n- **CI/release build** — resolved the analyzer and clippy failures that blocked\n  the 1.4.x passkeys release: required named parameters now precede optional\n  ones in the custom-fields editor, the PASSKEY RP lookup helpers no longer sit\n  after the test module, and the base64url padding check uses the idiomatic\n  integer API.\n- **Dependency security** — upgraded the P-256/RustCrypto stack (`p256` 0.14,\n  `crypto-bigint` 0.7.11) to clear RUSTSEC-2026-0387 without suppressing the\n  advisory; private-key generation/signing semantics are unchanged.",
-  "publishedAt": "2026-11-19T14:43:52.466373+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.5.0/keyel-v1.5.0-universal.apk",
+  "size": 43176454,
+  "sha256": "65aa34b0a36f0c80a9769ddb6f39a8468b9c73039058b4a22d86da8e1ef0328f",
+  "releaseNotes": "## [1.5.0] - 2026-11-19\n\n### Added\n\n- **Opt-in cross-device sync (E2EE).** A new Sync settings page lets you enable\n  or disable sync, choose a folder, pair a second device with a one-time code,\n  see status/last-sync/device id, and run a manual foreground sync. No Keyel\n  server or account: your own sync tool (Syncthing, Nextcloud, cloud drive, USB)\n  moves the encrypted files. No new network permission is used.\n- **Sync wire format and pairing.** Versioned `KYS1` blobs use XChaCha20-Poly1305\n  under a random 256-bit sync key; the authenticated header binds sync id, writer\n  device id and a monotonic sequence. Pairing uses a typo-detecting one-time code\n  whose key is stored only inside each device's vault — never in Dart, logs or\n  the backend.\n- **Conflict-aware merge.** Per-item version vectors and tombstones produce\n  deterministic merges with non-destructive, dated conflict copies (no silent\n  overwrites), with idempotency and tamper/corruption fail-closed guarantees.\n- **Schema v5.** Additive `sync_config`, per-item `sync_meta` and tombstones;\n  v1–v4 vaults migrate forward losslessly. Sync setup survives encrypted backup.\n\n### Security\n\n- Sync key and pairing code follow the existing secret hygiene: `Zeroizing` in\n  Rust, excluded from DTOs/summaries/search/diagnostics/logs, pairing code shown\n  once with explicit acknowledgement and auto-clearing clipboard under\n  `FLAG_SECURE`. Threat model extended with the untrusted-backend analysis.\n\n### Tests\n\n- New core/FRB/integration and Flutter widget tests for the envelope, pairing,\n  version-vector merge (convergence and idempotency), corrupt/tampered remote\n  abort, atomic folder I/O, and the sync settings flows.",
+  "publishedAt": "2026-11-19T18:12:43.256221+00:00"
 }
