@@ -169,6 +169,7 @@ class _DetailEditBar extends StatelessWidget {
             VaultEntryKind.card => 'Edit card',
             VaultEntryKind.note => 'Edit note',
             VaultEntryKind.login => 'Edit login',
+            VaultEntryKind.passkey => 'Edit passkey',
           },
           icon: Icons.edit_rounded,
           tone: KeyelButtonTone.tonal,

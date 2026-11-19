@@ -166,15 +166,31 @@ mod tests {
         );
         entry.custom_fields = vec![
             CustomField::new("Department", "Engineering", CustomFieldKind::Text),
-            CustomField::new("Portal", "https://portal.example/path", CustomFieldKind::Url),
+            CustomField::new(
+                "Portal",
+                "https://portal.example/path",
+                CustomFieldKind::Url,
+            ),
             CustomField::new("Recovery code", "TOPSECRET123", CustomFieldKind::Hidden),
         ];
         vault.add_entry(entry);
 
-        assert_eq!(search(&vault, "department", &EntryFilter::default()).len(), 1);
-        assert_eq!(search(&vault, "engineering", &EntryFilter::default()).len(), 1);
-        assert_eq!(search(&vault, "portal.example", &EntryFilter::default()).len(), 1);
-        assert_eq!(search(&vault, "recovery code", &EntryFilter::default()).len(), 1);
+        assert_eq!(
+            search(&vault, "department", &EntryFilter::default()).len(),
+            1
+        );
+        assert_eq!(
+            search(&vault, "engineering", &EntryFilter::default()).len(),
+            1
+        );
+        assert_eq!(
+            search(&vault, "portal.example", &EntryFilter::default()).len(),
+            1
+        );
+        assert_eq!(
+            search(&vault, "recovery code", &EntryFilter::default()).len(),
+            1
+        );
         assert!(
             search(&vault, "topsecret123", &EntryFilter::default()).is_empty(),
             "hidden custom field values must never be searchable"

@@ -13,6 +13,7 @@ pub mod generator;
 pub mod health;
 pub mod import;
 pub mod pass_words;
+pub mod passkey;
 pub mod totp;
 pub mod vault;
 

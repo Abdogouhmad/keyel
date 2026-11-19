@@ -41,6 +41,7 @@ class TrashEntryTile extends StatelessWidget {
     EntryKindDto.login => Icons.key_rounded,
     EntryKindDto.card => Icons.credit_card_rounded,
     EntryKindDto.note => Icons.sticky_note_2_rounded,
+    EntryKindDto.passkey => Icons.vpn_key_rounded,
   };
 
   @override

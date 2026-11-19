@@ -7,8 +7,8 @@ import '../frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `into_card`, `into_custom_fields`, `into_login`, `into_note`, `map_custom_fields`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These functions are ignored because they are not marked as `pub`: `into_card`, `into_login`, `into_note`, `map_custom_fields`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// A login suggested for autofill, with no secrets attached.
 class AutofillMatchDto {
@@ -230,6 +230,9 @@ class EntryDetailDto {
   /// Note metadata, when this is a note.
   final NoteDetailDto? note;
 
+  /// Passkey fields, when this is a passkey.
+  final PasskeyDetailDto? passkey;
+
   /// User-defined extra fields, in display order.
   final List<CustomFieldDetailDto> customFields;
 
@@ -248,6 +251,7 @@ class EntryDetailDto {
     this.login,
     this.card,
     this.note,
+    this.passkey,
     required this.customFields,
   });
 
@@ -267,6 +271,7 @@ class EntryDetailDto {
       login.hashCode ^
       card.hashCode ^
       note.hashCode ^
+      passkey.hashCode ^
       customFields.hashCode;
 
   @override
@@ -288,6 +293,7 @@ class EntryDetailDto {
           login == other.login &&
           card == other.card &&
           note == other.note &&
+          passkey == other.passkey &&
           customFields == other.customFields;
 }
 
@@ -452,6 +458,9 @@ enum EntryKindDto {
 
   /// Free-form secure note.
   note,
+
+  /// WebAuthn/FIDO2 passkey credential.
+  passkey,
 }
 
 /// A secret-free row for lists.
@@ -863,6 +872,87 @@ class NoteDetailDto {
       other is NoteDetailDto &&
           runtimeType == other.runtimeType &&
           hasContent == other.hasContent;
+}
+
+/// Non-secret passkey metadata. Private key material is never exposed.
+class PasskeyDetailDto {
+  /// Relying Party identifier (e.g. `example.com`).
+  final String rpId;
+
+  /// Human-readable relying party name.
+  final String rpName;
+
+  /// Account/user name.
+  final String userName;
+
+  /// Display name for the account/user.
+  final String userDisplayName;
+
+  /// Credential identifier, base64url-encoded for display/copy.
+  final String credentialId;
+
+  /// COSE algorithm identifier (e.g. -7 ES256, -257 RS256, -8 EdDSA).
+  final int algorithm;
+
+  /// Signature counter.
+  final int signCount;
+
+  /// When this credential was created (Unix seconds).
+  final BigInt createdAt;
+
+  /// When this credential was last used (Unix seconds), if known.
+  final BigInt? lastUsedAt;
+
+  /// Transport hints.
+  final List<String> transports;
+
+  /// Whether the credential is discoverable/resident.
+  final bool discoverable;
+
+  const PasskeyDetailDto({
+    required this.rpId,
+    required this.rpName,
+    required this.userName,
+    required this.userDisplayName,
+    required this.credentialId,
+    required this.algorithm,
+    required this.signCount,
+    required this.createdAt,
+    this.lastUsedAt,
+    required this.transports,
+    required this.discoverable,
+  });
+
+  @override
+  int get hashCode =>
+      rpId.hashCode ^
+      rpName.hashCode ^
+      userName.hashCode ^
+      userDisplayName.hashCode ^
+      credentialId.hashCode ^
+      algorithm.hashCode ^
+      signCount.hashCode ^
+      createdAt.hashCode ^
+      lastUsedAt.hashCode ^
+      transports.hashCode ^
+      discoverable.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PasskeyDetailDto &&
+          runtimeType == other.runtimeType &&
+          rpId == other.rpId &&
+          rpName == other.rpName &&
+          userName == other.userName &&
+          userDisplayName == other.userDisplayName &&
+          credentialId == other.credentialId &&
+          algorithm == other.algorithm &&
+          signCount == other.signCount &&
+          createdAt == other.createdAt &&
+          lastUsedAt == other.lastUsedAt &&
+          transports == other.transports &&
+          discoverable == other.discoverable;
 }
 
 /// Entries that share one password.

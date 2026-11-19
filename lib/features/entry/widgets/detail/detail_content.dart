@@ -110,14 +110,16 @@ class DetailContent extends StatelessWidget {
               onCopyPassword: onCopyPassword,
               onOpenUrl: onOpenUrl,
             )
-          else
+          else if (entry.kind == VaultEntryKind.note)
             NoteDetails(
               entry: entry,
               detail: detail,
               revealedContent: revealedNote,
               onToggleReveal: onToggleRevealNote,
               onCopy: onCopy,
-            ),
+            )
+          else
+            _PasskeyDetails(detail: detail, onCopy: onCopy),
           if (entry.kind == VaultEntryKind.login &&
               detail.login?.totpAlgorithm != null) ...[
             const SizedBox(height: KeyelSpacing.md),
@@ -144,6 +146,84 @@ class DetailContent extends StatelessWidget {
             NotesCard(entryId: detail.id, onCopy: onCopy),
           ],
           const SizedBox(height: KeyelSpacing.lg),
+        ],
+      ),
+    );
+  }
+}
+
+class _PasskeyDetails extends StatelessWidget {
+  // ignore: unnecessary_type_name_in_constructor, constructor uses explicit type for readability.
+  const _PasskeyDetails({required this.detail, required this.onCopy});
+
+  final EntryDetailDto detail;
+  final void Function(String value, String message) onCopy;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final passkey = detail.passkey;
+    if (passkey == null) return const SizedBox.shrink();
+    String algLabel(int alg) => switch (alg) {
+      -7 => 'ES256',
+      -257 => 'RS256',
+      -8 => 'EdDSA',
+      _ => 'COSE $alg',
+    };
+    Widget row(String label, String value, {bool copy = false}) {
+      if (value.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(bottom: KeyelSpacing.sm),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 120,
+              child: Text(
+                label,
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Expanded(child: Text(value, style: textTheme.bodyMedium)),
+            if (copy)
+              IconButton(
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                tooltip: 'Copy',
+                onPressed: () => onCopy(value, '$label copied'),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return KeyelSectionCard(
+      title: 'Passkey',
+      icon: Icons.vpn_key_rounded,
+      showBorder: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          row(
+            'Relying party',
+            passkey.rpName.isNotEmpty ? passkey.rpName : passkey.rpId,
+          ),
+          row('RP ID', passkey.rpId, copy: true),
+          row(
+            'User',
+            passkey.userDisplayName.isNotEmpty
+                ? passkey.userDisplayName
+                : passkey.userName,
+          ),
+          row('Username', passkey.userName, copy: true),
+          row('Credential ID', passkey.credentialId, copy: true),
+          row('Algorithm', algLabel(passkey.algorithm)),
+          row('Sign count', passkey.signCount.toString()),
+          row('Discoverable', passkey.discoverable ? 'Yes' : 'No'),
+          if (passkey.transports.isNotEmpty)
+            row('Transports', passkey.transports.join(', ')),
         ],
       ),
     );

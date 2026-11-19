@@ -5,6 +5,61 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-11-19
+
+### Added
+
+- **Passkeys (WebAuthn / Credential Manager, Android)** — initial passkey
+  support on supported devices (Android 14+/API 34 where the system provider
+  capability is available). Keyel can be surfaced as a credential provider to
+  create and use passkeys for relying parties.
+- **Vault-stored passkey credentials** — new passkey entry type storing
+  relying-party, user, credential, public-key, and (secret) private-key
+  material encrypted at rest in the local vault. Passkey entries appear in the
+  vault with secret-safe details and management actions.
+- **In-Rust WebAuthn ceremonies** — ES256 (P-256) key generation, attestation
+  (`fmt = "none"`), and assertion signing/response construction run inside the
+  Rust/session boundary; private key material and signing never leave Rust or
+  the encrypted vault and are never exposed to Dart/UI, diagnostics, or logs.
+- **Passkey create & sign-in flows** — unlock-gated, explicit-confirmation UI to
+  save a passkey or select/assert a matching passkey for a request, with
+  relying-party/account context shown to the user.
+- **Provider integration hooks** — Android Credential Manager provider
+  service/handler wiring, capability detection, and settings access for the
+  system credential provider configuration.
+
+### Changed
+
+- **Vault payload schema v4** — entries may now store passkey data (including
+  signature counter and usage metadata). Existing v1–v3 vaults migrate in place
+  on open (defaulting prior entries to no passkey body) and persist as v4;
+  unknown/future schema versions remain rejected.
+- **Search and matching** — passkey entries are matched by relying-party/user
+  metadata for management and ceremony selection; private key material and other
+  secrets remain excluded from search/indexing and summaries.
+- **Import/export behavior** — encrypted backups round-trip passkey entries with
+  the vault payload. Passkeys are not representable in Bitwarden/Chrome CSV and
+  are therefore not included in CSV export to avoid leaking credential material.
+
+### Security
+
+- Passkey private keys and ceremony signing operations are confined to
+  Rust/session boundaries and stored only inside the encrypted vault; only
+  secret-free metadata is surfaced to UI/DTOs.
+- Create/get ceremonies are request-driven with relying-party context and
+  explicit user intent (unlock/confirmation/selection) before credential use;
+  provider paths fail closed on malformed or unsupported requests.
+- Signature counters and last-used timestamps are updated on successful
+  assertions and persisted with the vault.
+
+### Notes
+
+- Passkey provider support depends on device/OS capabilities and configuration;
+  on unsupported devices Keyel reports the limitation gracefully.
+- This release provides a functional initial ceremony flow; provider candidate
+  surfacing and broader app/browser/device compatibility may be refined in
+  follow-up updates.
+
 ## [1.3.0] - 2026-11-19
 
 ### Added

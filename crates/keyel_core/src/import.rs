@@ -95,6 +95,8 @@ impl ImportReport {
             EntryKind::Login => self.logins += 1,
             EntryKind::Card => self.cards += 1,
             EntryKind::Note => self.notes += 1,
+            // Passkeys are not representable in the supported CSV formats.
+            EntryKind::Passkey => {}
         }
     }
 }
@@ -300,6 +302,10 @@ pub fn export_csv(vault: &Vault) -> String {
                     blocks.join("\n"),
                 )
             }
+            // Passkeys are not representable in Bitwarden/Chrome CSV exports and
+            // must not leak private key material. They are preserved in encrypted
+            // backups; skip them in plaintext CSV export.
+            EntryBody::Passkey(_) => continue,
         };
 
         let fields = export_bitwarden_fields(&entry.custom_fields);
@@ -337,6 +343,11 @@ fn dedup_key(entry: &Entry) -> String {
             )
         }
         EntryBody::Note(_) => format!("note|{title}"),
+        EntryBody::Passkey(passkey) => format!(
+            "passkey|{title}|{}|{}",
+            passkey.rp_id.trim().to_ascii_lowercase(),
+            data_encoding::BASE64URL_NOPAD.encode(&passkey.credential_id)
+        ),
     }
 }
 
@@ -809,7 +820,6 @@ fn json_string(s: &str) -> String {
     out.push('"');
     out
 }
-
 
 #[cfg(test)]
 mod tests {

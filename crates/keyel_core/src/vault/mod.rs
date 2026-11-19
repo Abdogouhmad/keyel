@@ -14,7 +14,7 @@ pub use index::{search, EntryFilter};
 pub use migrate::migrate;
 pub use model::{
     now_unix, Card, CustomField, CustomFieldKind, Entry, EntryBody, EntryKind, EntrySummary,
-    Folder, Login, Note, TotpAlgorithm, TotpConfig, Vault, TRASH_RETENTION_SECS,
+    Folder, Login, Note, Passkey, TotpAlgorithm, TotpConfig, Vault, TRASH_RETENTION_SECS,
     VAULT_SCHEMA_VERSION,
 };
 pub use store::Session;

@@ -105,6 +105,15 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
                 };
                 EntryBody::Note(draft.into_note(previous))
             }
+            EntryKindDto::Passkey => {
+                // Passkeys are created/updated through dedicated ceremony flows,
+                // not the generic entry editor draft. Preserve existing passkey
+                // bodies on metadata updates; reject creating passkeys here.
+                match existing.as_ref().map(|entry| entry.body.clone()) {
+                    Some(body @ EntryBody::Passkey(_)) => body,
+                    _ => return Err(VaultApiError::InvalidField),
+                }
+            }
         };
 
         let entry = match existing {

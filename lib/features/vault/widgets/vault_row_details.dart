@@ -52,6 +52,7 @@ class VaultRowDetails extends StatelessWidget {
                   VaultEntryKind.login => 'Login',
                   VaultEntryKind.card => 'Payment card',
                   VaultEntryKind.note => 'Secure note',
+                  VaultEntryKind.passkey => 'Passkey',
                 },
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

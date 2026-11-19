@@ -25,3 +25,29 @@ Future<void> openAutofillSettings() async {
     // Nothing to open (tests, desktop, web).
   }
 }
+
+
+/// Whether the platform can host a passkey/credential provider.
+///
+/// This is a coarse capability gate (e.g. Android 14+/API 34 for provider
+/// services). Returns `false` on unsupported platforms and in tests.
+Future<bool> isPasskeyProviderSupported() async {
+  try {
+    final supported =
+        await _channel.invokeMethod<bool>('isPasskeyProviderSupported');
+    return supported ?? false;
+  } on Object catch (_) {
+    return false;
+  }
+}
+
+/// Open system settings for managing credential providers where supported.
+///
+/// Falls back to general settings or no-ops on unsupported platforms.
+Future<void> openCredentialProviderSettings() async {
+  try {
+    await _channel.invokeMethod<void>('openCredentialProviderSettings');
+  } on Object catch (_) {
+    // Nothing to open (tests, desktop, web, unsupported Android).
+  }
+}

@@ -26,7 +26,7 @@ git tag v1.X.0 && git push --tags
 | Version | Phase | Est. | Status |
 |---|---|---|---|
 | 1.3.0 | Custom fields for entries | 1-1.5 weeks | ☑ done |
-| 1.4.0 | Passkeys (WebAuthn / Credential Manager) | 2-3 weeks | ◐ in progress |
+| 1.4.0 | Passkeys (WebAuthn / Credential Manager) | 2-3 weeks | ☑ done |
 | 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☐ |
 
 Legend: ☐ todo · ◐ in progress · ☑ done
@@ -120,34 +120,39 @@ by storing and autofilling passkeys, building on existing autofill foundations.
 - Tests cover core passkey data handling/crypto boundaries and critical UI flows; `flutter analyze` and `flutter test` pass.
 
 ### Knowledge
-- Passkeys/WebAuthn concepts: relying party ID, credential ID, user handle, public-key credential source, origin/rp binding, user verification.
+- Existing autofill/password foundations: `crates/keyel_core/src/autofill.rs`, `rust/src/api/autofill.rs`, `lib/src/rust/api/autofill.dart`, `lib/features/autofill/**`, `android/app/src/main/**` (Autofill service integration), `lib/main_autofill.dart`, `lib/core/platform/autofill_platform.dart`.
 - Android Credential Manager / platform passkey provider APIs and Flutter/Rust bridging constraints (platform channels/FFI boundaries).
-- Existing autofill architecture: `crates/keyel_core/src/autofill.rs`,
-  `rust/src/api/autofill.rs`, `lib/features/autofill/**`, `android/**` integration.
-- Threat model implications: phishing resistance relies on correct RP/origin binding; local verification and device security matter.
+- Vault/crypto boundaries: core in `crates/keyel_core/**`, bridge in `rust/src/api/**`, secret reveal/session handling in `rust/src/api/session.rs` and entry APIs.
+- Entry model/UI patterns from 1.3.0 (kind-specific data, secret-safe DTOs, editor/detail flows, search behavior).
 
 ### Todo
-1. **Vault & core support**
-   - [ ] **Spike/design:** passkey data model (credential id, rp id/name, user name/display name, user handle, algorithm, public key, encrypted private key/secret material, counters/metadata, timestamps) and schema migration plan (likely v4).
-   - [ ] Implement secure storage/zeroization and minimal operations needed for registration/authentication ceremonies (core logic in Rust where feasible, with tests).
-   - [ ] Extend search/list/detail DTOs and UI-safe summaries (never expose private key material).
+1. **Research & design**
+   - [x] **Spike/design:** passkey data model (credential id, rp id/name, user name/display name, user handle, algorithm, public key, encrypted private key/secret material, counters/metadata, timestamps) and schema migration plan (likely v4).
+   - [x] **Spike/design:** platform API surface and capability matrix (Android Credential Manager/provider integration, minimum supported OS versions, unsupported/fallback behavior).
+   - [x] Define Rust/Dart/platform boundaries for key operations and ceremonies (what stays in Rust/core, what crosses to platform/UI).
 
-2. **Platform integration**
-   - [ ] **Spike (Android):** Credential Manager provider flows (create/get), manifest/service/activity plumbing, and device/OS capability matrix.
-   - [ ] Define behavior for unsupported platforms/versions and desktop story (graceful unsupported states or platform-specific implementations as feasible).
-   - [ ] Ensure user verification / unlock gating aligns with vault/session and auto-lock behavior.
+2. **Core & storage**
+   - [x] Add passkey entry/kind and fields to vault model with schema migration and zeroization of private/secret material.
+   - [x] Implement/extend search/matching for passkeys (by relying party, domain/app association as applicable) without leaking secrets.
+   - [x] Add core tests for serialization/migration and passkey data handling (invalid/missing fields, counter updates, etc.).
 
-3. **UX & management**
-   - [ ] Entry/detail UI for passkeys: create/import (if supported), display RP/user info, copy safe identifiers if useful, delete/rename/manage.
-   - [ ] Autofill/picker integration to select and assert the correct passkey for a request with clear RP context.
-   - [ ] Error handling for mismatched RP, canceled verification, or missing credentials.
+3. **Bridge & platform integration**
+   - [x] Expose secret-safe passkey APIs/DTOs and ceremony/session operations; regenerate FRB bindings.
+   - [x] Implement Android Credential Manager integration (create/get passkey flows), request/response mapping, and user verification/unlock gating.
+   - [x] Handle capability detection and graceful unsupported-state UX.
 
-4. **Security, tests & docs**
-   - [ ] Threat-model notes and security review for ceremony handling and key isolation.
-   - [ ] Unit/integration tests for model serialization, migration, and selection logic; platform/manual verification on supported devices.
-   - [ ] Update docs/changelog and in-app help/capability messaging.
+4. **Flutter UI & flows**
+   - [x] Entry/detail UI for passkeys: create (ceremony), display RP/user info, delete/manage (read-only credential details; no manual private-key editing).
+   - [x] Autofill/picker integration to select and assert the correct passkey for a request with clear RP context.
+   - [x] Ensure session lock/biometric flows and error states are clear and safe.
+
+5. **Verification & release prep**
+   - [x] Add/extend tests for passkey storage/list/counter APIs and ceremony behavior as feasible in CI; run `cargo test`, `flutter analyze`, and `flutter test`.
+   - [ ] Manual smoke on supported devices/emulators: create passkey, sign in with passkey, relock/unlock, multiple accounts/RPs, unsupported-platform behavior.
+   - [x] Update threat-model/changelog/help docs for passkey behavior and limitations.
 
 > **Kickoff (2026-11-19):** 1.3.0 completed; 1.4.0 moved to in-progress planning/spike. Spike draft: [`docs/passkeys-1.4.0-spike.md`](passkeys-1.4.0-spike.md). See `docs/audit-1.5.0.md` for status and next steps.
+> **Update (2026-11-19):** Initial passkey implementation landed (schema v4, Rust ES256 ceremonies, Android Credential Manager provider/handler flow, Flutter create/get UI, regenerated bindings). Device/emulator smoke on supported Android 14+/API 34+ targets remains recommended.
 
 ---
 

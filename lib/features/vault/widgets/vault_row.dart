@@ -104,7 +104,8 @@ class VaultRow extends StatelessWidget {
             const SizedBox(width: KeyelSpacing.sm),
             if (!selectionActive) ...[
               VaultFavoriteButton(entry: entry, onRefresh: onRefresh),
-              if (entry.kind != VaultEntryKind.note) ...[
+              if (entry.kind == VaultEntryKind.login ||
+                  entry.kind == VaultEntryKind.card) ...[
                 const SizedBox(width: KeyelSpacing.xs),
                 VaultCopyButton(entry: entry),
               ],

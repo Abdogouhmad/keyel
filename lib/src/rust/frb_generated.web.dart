@@ -13,6 +13,7 @@ import 'api/generator.dart';
 import 'api/health.dart';
 import 'api/import_export.dart';
 import 'api/models.dart';
+import 'api/passkeys.dart';
 import 'api/session.dart';
 import 'api/totp.dart';
 
@@ -66,6 +67,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NoteDetailDto dco_decode_box_autoadd_note_detail_dto(dynamic raw);
+
+  @protected
+  PasskeyCreateDto dco_decode_box_autoadd_passkey_create_dto(dynamic raw);
+
+  @protected
+  PasskeyDetailDto dco_decode_box_autoadd_passkey_detail_dto(dynamic raw);
 
   @protected
   TotpAlgorithmDto dco_decode_box_autoadd_totp_algorithm_dto(dynamic raw);
@@ -190,6 +197,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   NoteDetailDto? dco_decode_opt_box_autoadd_note_detail_dto(dynamic raw);
 
   @protected
+  PasskeyDetailDto? dco_decode_opt_box_autoadd_passkey_detail_dto(dynamic raw);
+
+  @protected
   TotpAlgorithmDto? dco_decode_opt_box_autoadd_totp_algorithm_dto(dynamic raw);
 
   @protected
@@ -200,6 +210,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  PasskeyCreateDto dco_decode_passkey_create_dto(dynamic raw);
+
+  @protected
+  PasskeyCreateResultDto dco_decode_passkey_create_result_dto(dynamic raw);
+
+  @protected
+  PasskeyDetailDto dco_decode_passkey_detail_dto(dynamic raw);
 
   @protected
   ReuseGroupDto dco_decode_reuse_group_dto(dynamic raw);
@@ -276,6 +295,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NoteDetailDto sse_decode_box_autoadd_note_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PasskeyCreateDto sse_decode_box_autoadd_passkey_create_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PasskeyDetailDto sse_decode_box_autoadd_passkey_detail_dto(
     SseDeserializer deserializer,
   );
 
@@ -430,6 +459,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PasskeyDetailDto? sse_decode_opt_box_autoadd_passkey_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   TotpAlgorithmDto? sse_decode_opt_box_autoadd_totp_algorithm_dto(
     SseDeserializer deserializer,
   );
@@ -442,6 +476,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  PasskeyCreateDto sse_decode_passkey_create_dto(SseDeserializer deserializer);
+
+  @protected
+  PasskeyCreateResultDto sse_decode_passkey_create_result_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PasskeyDetailDto sse_decode_passkey_detail_dto(SseDeserializer deserializer);
 
   @protected
   ReuseGroupDto sse_decode_reuse_group_dto(SseDeserializer deserializer);
@@ -533,6 +578,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_note_detail_dto(
     NoteDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_passkey_create_dto(
+    PasskeyCreateDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_passkey_detail_dto(
+    PasskeyDetailDto self,
     SseSerializer serializer,
   );
 
@@ -738,6 +795,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_passkey_detail_dto(
+    PasskeyDetailDto? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_totp_algorithm_dto(
     TotpAlgorithmDto? self,
     SseSerializer serializer,
@@ -751,6 +814,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_passkey_create_dto(
+    PasskeyCreateDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_passkey_create_result_dto(
+    PasskeyCreateResultDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_passkey_detail_dto(
+    PasskeyDetailDto self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_reuse_group_dto(ReuseGroupDto self, SseSerializer serializer);

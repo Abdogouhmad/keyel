@@ -13,6 +13,7 @@ flutter_rust_bridge = "=2.13.0"
 keyel_core = { path = "../crates/keyel_core" }
 uuid = "1.29.1"
 zeroize = "1.8"
+data-encoding = "2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

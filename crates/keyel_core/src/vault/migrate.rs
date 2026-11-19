@@ -9,6 +9,8 @@
 //!   field, so the step is a no-op (the deserializer defaults it to `None`).
 //! - v2 → v3: entries gained ordered `custom_fields`. Old payloads simply lack
 //!   the field, so the step is a no-op (the deserializer defaults it empty).
+//! - v3 → v4: entries gained the `passkey` kind/body. Existing v3 payloads
+//!   contain no passkeys, so the step is a no-op.
 
 use crate::error::Error;
 
@@ -33,6 +35,10 @@ pub fn migrate(mut vault: Vault, from_version: u16) -> Result<Vault, Error> {
             2 => {
                 // v2 → v3: entries gain ordered `custom_fields`. A v2 payload
                 // has no field, so `#[serde(default)]` already produced empty.
+            }
+            3 => {
+                // v3 → v4: entries gain the `passkey` kind/body. Existing v3
+                // payloads contain no passkeys, so no structural backfill is needed.
             }
             other => return Err(Error::UnsupportedVersion(other)),
         }
@@ -95,6 +101,23 @@ mod tests {
         vault.schema_version = 2;
 
         let migrated = migrate(vault.clone(), 2).unwrap();
+        assert_eq!(migrated.schema_version, VAULT_SCHEMA_VERSION);
+        assert_eq!(migrated.entries.len(), vault.entries.len());
+        assert!(migrated.entries[0].custom_fields.is_empty());
+    }
+
+    #[test]
+    fn v3_migrates_to_current() {
+        let mut vault = Vault::new();
+        vault.add_entry(Entry::note(
+            "a",
+            Note {
+                content: "b".into(),
+            },
+        ));
+        vault.schema_version = 3;
+
+        let migrated = migrate(vault.clone(), 3).unwrap();
         assert_eq!(migrated.schema_version, VAULT_SCHEMA_VERSION);
         assert_eq!(migrated.entries.len(), vault.entries.len());
         assert!(migrated.entries[0].custom_fields.is_empty());

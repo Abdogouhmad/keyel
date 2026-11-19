@@ -10,6 +10,7 @@ import 'api/generator.dart';
 import 'api/health.dart';
 import 'api/import_export.dart';
 import 'api/models.dart';
+import 'api/passkeys.dart';
 import 'api/session.dart';
 import 'api/totp.dart';
 
@@ -77,7 +78,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 1909936644;
+  int get rustContentHash => 235933711;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -98,6 +99,11 @@ abstract class RustLibApi extends BaseApi {
     required String newMaster,
   });
 
+  Future<PasskeyCreateResultDto> crateApiPasskeysCreatePasskeyForRequest({
+    required String requestJson,
+    required String origin,
+  });
+
   Future<String> crateApiSessionCreateVault({required String master});
 
   Future<TotpCodeDto> crateApiTotpCurrentCode({required String id});
@@ -105,6 +111,8 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiEntriesDeleteEntry({required String id});
 
   Future<void> crateApiEntriesDeleteFolder({required String id});
+
+  Future<void> crateApiPasskeysDeletePasskey({required String id});
 
   Future<void> crateApiImportExportExportBackup({
     required String path,
@@ -137,6 +145,12 @@ abstract class RustLibApi extends BaseApi {
 
   Future<EntryDetailDto> crateApiEntriesGetEntry({required String id});
 
+  Future<String> crateApiPasskeysGetPasskeyAssertionResponse({
+    required String requestJson,
+    required String origin,
+    String? credentialIdB64,
+  });
+
   Future<ImportReportDto> crateApiImportExportImportBackup({
     required String path,
     required String password,
@@ -163,6 +177,10 @@ abstract class RustLibApi extends BaseApi {
 
   Future<List<FolderDto>> crateApiEntriesListFolders();
 
+  Future<List<EntrySummaryDto>> crateApiPasskeysListPasskeysForRp({
+    required String rpId,
+  });
+
   void crateApiSessionLock();
 
   Stream<String> crateApiSessionLockEvents();
@@ -179,6 +197,11 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<void> crateApiEntriesPurgeEntry({required String id});
+
+  Future<void> crateApiPasskeysRecordPasskeySignCount({
+    required String id,
+    required int signCount,
+  });
 
   Future<void> crateApiEntriesRenameFolder({
     required String id,
@@ -200,6 +223,10 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateApiEntriesRevealField({
     required String id,
     required SecretFieldDto field,
+  });
+
+  Future<String> crateApiPasskeysStorePasskey({
+    required PasskeyCreateDto passkey,
   });
 
   Future<void> crateApiSessionUnlockWithMaster({required String master});
@@ -314,6 +341,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<PasskeyCreateResultDto> crateApiPasskeysCreatePasskeyForRequest({
+    required String requestJson,
+    required String origin,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          sse_encode_String(origin, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_passkey_create_result_dto,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiPasskeysCreatePasskeyForRequestConstMeta,
+        argValues: [requestJson, origin],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPasskeysCreatePasskeyForRequestConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_passkey_for_request",
+        argNames: ["requestJson", "origin"],
+      );
+
+  @override
   Future<String> crateApiSessionCreateVault({required String master}) {
     return handler.executeNormal(
       NormalTask(
@@ -323,7 +385,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
@@ -351,7 +413,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -379,7 +441,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -407,7 +469,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 8,
             port: port_,
           );
         },
@@ -426,6 +488,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "delete_folder", argNames: ["id"]);
 
   @override
+  Future<void> crateApiPasskeysDeletePasskey({required String id}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiPasskeysDeletePasskeyConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPasskeysDeletePasskeyConstMeta =>
+      const TaskConstMeta(debugName: "delete_passkey", argNames: ["id"]);
+
+  @override
   Future<void> crateApiImportExportExportBackup({
     required String path,
     required String password,
@@ -439,7 +529,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -470,7 +560,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 11,
             port: port_,
           );
         },
@@ -504,7 +594,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 12,
             port: port_,
           );
         },
@@ -540,7 +630,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_bool(capitalize, serializer);
           sse_encode_bool(includeNumber, serializer);
           sse_encode_String(separator, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -578,7 +668,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_bool(digits, serializer);
           sse_encode_bool(symbols, serializer);
           sse_encode_bool(excludeAmbiguous, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -621,7 +711,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 15,
             port: port_,
           );
         },
@@ -640,6 +730,43 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "get_entry", argNames: ["id"]);
 
   @override
+  Future<String> crateApiPasskeysGetPasskeyAssertionResponse({
+    required String requestJson,
+    required String origin,
+    String? credentialIdB64,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(requestJson, serializer);
+          sse_encode_String(origin, serializer);
+          sse_encode_opt_String(credentialIdB64, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiPasskeysGetPasskeyAssertionResponseConstMeta,
+        argValues: [requestJson, origin, credentialIdB64],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPasskeysGetPasskeyAssertionResponseConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_passkey_assertion_response",
+        argNames: ["requestJson", "origin", "credentialIdB64"],
+      );
+
+  @override
   Future<ImportReportDto> crateApiImportExportImportBackup({
     required String path,
     required String password,
@@ -655,7 +782,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 17,
             port: port_,
           );
         },
@@ -690,7 +817,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 18,
             port: port_,
           );
         },
@@ -715,7 +842,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(path, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -740,7 +867,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 20,
             port: port_,
           );
         },
@@ -764,7 +891,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -798,7 +925,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 22,
             port: port_,
           );
         },
@@ -827,7 +954,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 23,
             port: port_,
           );
         },
@@ -846,12 +973,45 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "list_folders", argNames: []);
 
   @override
+  Future<List<EntrySummaryDto>> crateApiPasskeysListPasskeysForRp({
+    required String rpId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(rpId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 24,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_entry_summary_dto,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiPasskeysListPasskeysForRpConstMeta,
+        argValues: [rpId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPasskeysListPasskeysForRpConstMeta =>
+      const TaskConstMeta(
+        debugName: "list_passkeys_for_rp",
+        argNames: ["rpId"],
+      );
+
+  @override
   void crateApiSessionLock() {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -879,7 +1039,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 22,
+              funcId: 26,
               port: port_,
             );
           },
@@ -913,7 +1073,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 27,
             port: port_,
           );
         },
@@ -943,7 +1103,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 28,
             port: port_,
           );
         },
@@ -973,7 +1133,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 29,
             port: port_,
           );
         },
@@ -1001,7 +1161,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 30,
             port: port_,
           );
         },
@@ -1020,6 +1180,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "purge_entry", argNames: ["id"]);
 
   @override
+  Future<void> crateApiPasskeysRecordPasskeySignCount({
+    required String id,
+    required int signCount,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          sse_encode_u_32(signCount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 31,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiPasskeysRecordPasskeySignCountConstMeta,
+        argValues: [id, signCount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPasskeysRecordPasskeySignCountConstMeta =>
+      const TaskConstMeta(
+        debugName: "record_passkey_sign_count",
+        argNames: ["id", "signCount"],
+      );
+
+  @override
   Future<void> crateApiEntriesRenameFolder({
     required String id,
     required String name,
@@ -1033,7 +1228,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1065,7 +1260,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1096,7 +1291,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1128,7 +1323,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1163,7 +1358,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 36,
             port: port_,
           );
         },
@@ -1182,6 +1377,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "reveal_field", argNames: ["id", "field"]);
 
   @override
+  Future<String> crateApiPasskeysStorePasskey({
+    required PasskeyCreateDto passkey,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_passkey_create_dto(passkey, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 37,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiPasskeysStorePasskeyConstMeta,
+        argValues: [passkey],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiPasskeysStorePasskeyConstMeta =>
+      const TaskConstMeta(debugName: "store_passkey", argNames: ["passkey"]);
+
+  @override
   Future<void> crateApiSessionUnlockWithMaster({required String master}) {
     return handler.executeNormal(
       NormalTask(
@@ -1191,7 +1416,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1224,7 +1449,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1255,7 +1480,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 40,
             port: port_,
           );
         },
@@ -1279,7 +1504,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -1301,7 +1526,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_String,
@@ -1327,7 +1552,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 43,
             port: port_,
           );
         },
@@ -1424,6 +1649,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PasskeyCreateDto dco_decode_box_autoadd_passkey_create_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_passkey_create_dto(raw);
+  }
+
+  @protected
+  PasskeyDetailDto dco_decode_box_autoadd_passkey_detail_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_passkey_detail_dto(raw);
+  }
+
+  @protected
   TotpAlgorithmDto dco_decode_box_autoadd_totp_algorithm_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_totp_algorithm_dto(raw);
@@ -1501,8 +1738,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EntryDetailDto dco_decode_entry_detail_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 15)
-      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
+    if (arr.length != 16)
+      throw Exception('unexpected arr length: expect 16 but see ${arr.length}');
     return EntryDetailDto(
       id: dco_decode_String(arr[0]),
       kind: dco_decode_entry_kind_dto(arr[1]),
@@ -1518,7 +1755,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       login: dco_decode_opt_box_autoadd_login_detail_dto(arr[11]),
       card: dco_decode_opt_box_autoadd_card_detail_dto(arr[12]),
       note: dco_decode_opt_box_autoadd_note_detail_dto(arr[13]),
-      customFields: dco_decode_list_custom_field_detail_dto(arr[14]),
+      passkey: dco_decode_opt_box_autoadd_passkey_detail_dto(arr[14]),
+      customFields: dco_decode_list_custom_field_detail_dto(arr[15]),
     );
   }
 
@@ -1819,6 +2057,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PasskeyDetailDto? dco_decode_opt_box_autoadd_passkey_detail_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_passkey_detail_dto(raw);
+  }
+
+  @protected
   TotpAlgorithmDto? dco_decode_opt_box_autoadd_totp_algorithm_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_totp_algorithm_dto(raw);
@@ -1840,6 +2084,62 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int? dco_decode_opt_box_autoadd_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_8(raw);
+  }
+
+  @protected
+  PasskeyCreateDto dco_decode_passkey_create_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 13)
+      throw Exception('unexpected arr length: expect 13 but see ${arr.length}');
+    return PasskeyCreateDto(
+      title: dco_decode_String(arr[0]),
+      rpId: dco_decode_String(arr[1]),
+      rpName: dco_decode_String(arr[2]),
+      credentialId: dco_decode_list_prim_u_8_strict(arr[3]),
+      userHandle: dco_decode_list_prim_u_8_strict(arr[4]),
+      userName: dco_decode_String(arr[5]),
+      userDisplayName: dco_decode_String(arr[6]),
+      publicKey: dco_decode_list_prim_u_8_strict(arr[7]),
+      privateKey: dco_decode_list_prim_u_8_strict(arr[8]),
+      algorithm: dco_decode_i_32(arr[9]),
+      signCount: dco_decode_u_32(arr[10]),
+      transports: dco_decode_list_String(arr[11]),
+      discoverable: dco_decode_bool(arr[12]),
+    );
+  }
+
+  @protected
+  PasskeyCreateResultDto dco_decode_passkey_create_result_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return PasskeyCreateResultDto(
+      entryId: dco_decode_String(arr[0]),
+      responseJson: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
+  PasskeyDetailDto dco_decode_passkey_detail_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return PasskeyDetailDto(
+      rpId: dco_decode_String(arr[0]),
+      rpName: dco_decode_String(arr[1]),
+      userName: dco_decode_String(arr[2]),
+      userDisplayName: dco_decode_String(arr[3]),
+      credentialId: dco_decode_String(arr[4]),
+      algorithm: dco_decode_i_32(arr[5]),
+      signCount: dco_decode_u_32(arr[6]),
+      createdAt: dco_decode_u_64(arr[7]),
+      lastUsedAt: dco_decode_opt_box_autoadd_u_64(arr[8]),
+      transports: dco_decode_list_String(arr[9]),
+      discoverable: dco_decode_bool(arr[10]),
+    );
   }
 
   @protected
@@ -2010,6 +2310,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PasskeyCreateDto sse_decode_box_autoadd_passkey_create_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_passkey_create_dto(deserializer));
+  }
+
+  @protected
+  PasskeyDetailDto sse_decode_box_autoadd_passkey_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_passkey_detail_dto(deserializer));
+  }
+
+  @protected
   TotpAlgorithmDto sse_decode_box_autoadd_totp_algorithm_dto(
     SseDeserializer deserializer,
   ) {
@@ -2112,6 +2428,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_login = sse_decode_opt_box_autoadd_login_detail_dto(deserializer);
     var var_card = sse_decode_opt_box_autoadd_card_detail_dto(deserializer);
     var var_note = sse_decode_opt_box_autoadd_note_detail_dto(deserializer);
+    var var_passkey = sse_decode_opt_box_autoadd_passkey_detail_dto(
+      deserializer,
+    );
     var var_customFields = sse_decode_list_custom_field_detail_dto(
       deserializer,
     );
@@ -2130,6 +2449,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       login: var_login,
       card: var_card,
       note: var_note,
+      passkey: var_passkey,
       customFields: var_customFields,
     );
   }
@@ -2569,6 +2889,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PasskeyDetailDto? sse_decode_opt_box_autoadd_passkey_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_passkey_detail_dto(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   TotpAlgorithmDto? sse_decode_opt_box_autoadd_totp_algorithm_dto(
     SseDeserializer deserializer,
   ) {
@@ -2612,6 +2945,81 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     } else {
       return null;
     }
+  }
+
+  @protected
+  PasskeyCreateDto sse_decode_passkey_create_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_rpId = sse_decode_String(deserializer);
+    var var_rpName = sse_decode_String(deserializer);
+    var var_credentialId = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_userHandle = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_userName = sse_decode_String(deserializer);
+    var var_userDisplayName = sse_decode_String(deserializer);
+    var var_publicKey = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_privateKey = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_algorithm = sse_decode_i_32(deserializer);
+    var var_signCount = sse_decode_u_32(deserializer);
+    var var_transports = sse_decode_list_String(deserializer);
+    var var_discoverable = sse_decode_bool(deserializer);
+    return PasskeyCreateDto(
+      title: var_title,
+      rpId: var_rpId,
+      rpName: var_rpName,
+      credentialId: var_credentialId,
+      userHandle: var_userHandle,
+      userName: var_userName,
+      userDisplayName: var_userDisplayName,
+      publicKey: var_publicKey,
+      privateKey: var_privateKey,
+      algorithm: var_algorithm,
+      signCount: var_signCount,
+      transports: var_transports,
+      discoverable: var_discoverable,
+    );
+  }
+
+  @protected
+  PasskeyCreateResultDto sse_decode_passkey_create_result_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_entryId = sse_decode_String(deserializer);
+    var var_responseJson = sse_decode_String(deserializer);
+    return PasskeyCreateResultDto(
+      entryId: var_entryId,
+      responseJson: var_responseJson,
+    );
+  }
+
+  @protected
+  PasskeyDetailDto sse_decode_passkey_detail_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_rpId = sse_decode_String(deserializer);
+    var var_rpName = sse_decode_String(deserializer);
+    var var_userName = sse_decode_String(deserializer);
+    var var_userDisplayName = sse_decode_String(deserializer);
+    var var_credentialId = sse_decode_String(deserializer);
+    var var_algorithm = sse_decode_i_32(deserializer);
+    var var_signCount = sse_decode_u_32(deserializer);
+    var var_createdAt = sse_decode_u_64(deserializer);
+    var var_lastUsedAt = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_transports = sse_decode_list_String(deserializer);
+    var var_discoverable = sse_decode_bool(deserializer);
+    return PasskeyDetailDto(
+      rpId: var_rpId,
+      rpName: var_rpName,
+      userName: var_userName,
+      userDisplayName: var_userDisplayName,
+      credentialId: var_credentialId,
+      algorithm: var_algorithm,
+      signCount: var_signCount,
+      createdAt: var_createdAt,
+      lastUsedAt: var_lastUsedAt,
+      transports: var_transports,
+      discoverable: var_discoverable,
+    );
   }
 
   @protected
@@ -2802,6 +3210,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_passkey_create_dto(
+    PasskeyCreateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_passkey_create_dto(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_passkey_detail_dto(
+    PasskeyDetailDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_passkey_detail_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_totp_algorithm_dto(
     TotpAlgorithmDto self,
     SseSerializer serializer,
@@ -2895,6 +3321,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_login_detail_dto(self.login, serializer);
     sse_encode_opt_box_autoadd_card_detail_dto(self.card, serializer);
     sse_encode_opt_box_autoadd_note_detail_dto(self.note, serializer);
+    sse_encode_opt_box_autoadd_passkey_detail_dto(self.passkey, serializer);
     sse_encode_list_custom_field_detail_dto(self.customFields, serializer);
   }
 
@@ -3270,6 +3697,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_passkey_detail_dto(
+    PasskeyDetailDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_passkey_detail_dto(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_totp_algorithm_dto(
     TotpAlgorithmDto? self,
     SseSerializer serializer,
@@ -3310,6 +3750,56 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (self != null) {
       sse_encode_box_autoadd_u_8(self, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_passkey_create_dto(
+    PasskeyCreateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.rpId, serializer);
+    sse_encode_String(self.rpName, serializer);
+    sse_encode_list_prim_u_8_strict(self.credentialId, serializer);
+    sse_encode_list_prim_u_8_strict(self.userHandle, serializer);
+    sse_encode_String(self.userName, serializer);
+    sse_encode_String(self.userDisplayName, serializer);
+    sse_encode_list_prim_u_8_strict(self.publicKey, serializer);
+    sse_encode_list_prim_u_8_strict(self.privateKey, serializer);
+    sse_encode_i_32(self.algorithm, serializer);
+    sse_encode_u_32(self.signCount, serializer);
+    sse_encode_list_String(self.transports, serializer);
+    sse_encode_bool(self.discoverable, serializer);
+  }
+
+  @protected
+  void sse_encode_passkey_create_result_dto(
+    PasskeyCreateResultDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.entryId, serializer);
+    sse_encode_String(self.responseJson, serializer);
+  }
+
+  @protected
+  void sse_encode_passkey_detail_dto(
+    PasskeyDetailDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.rpId, serializer);
+    sse_encode_String(self.rpName, serializer);
+    sse_encode_String(self.userName, serializer);
+    sse_encode_String(self.userDisplayName, serializer);
+    sse_encode_String(self.credentialId, serializer);
+    sse_encode_i_32(self.algorithm, serializer);
+    sse_encode_u_32(self.signCount, serializer);
+    sse_encode_u_64(self.createdAt, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.lastUsedAt, serializer);
+    sse_encode_list_String(self.transports, serializer);
+    sse_encode_bool(self.discoverable, serializer);
   }
 
   @protected

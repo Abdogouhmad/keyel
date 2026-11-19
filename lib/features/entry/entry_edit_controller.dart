@@ -163,6 +163,7 @@ class EntryEditController {
         EntryKindDto.login => VaultEntryKind.login,
         EntryKindDto.card => VaultEntryKind.card,
         EntryKindDto.note => VaultEntryKind.note,
+        EntryKindDto.passkey => VaultEntryKind.passkey,
       };
 
       if (detail.login != null) {
@@ -285,6 +286,7 @@ class EntryEditController {
       VaultEntryKind.login => EntryKindDto.login,
       VaultEntryKind.card => EntryKindDto.card,
       VaultEntryKind.note => EntryKindDto.note,
+      VaultEntryKind.passkey => EntryKindDto.passkey,
     };
 
     final draft = EntryDraft(

@@ -5,5 +5,6 @@ pub mod generator;
 pub mod health;
 pub mod import_export;
 pub mod models;
+pub mod passkeys;
 pub mod session;
 pub mod totp;

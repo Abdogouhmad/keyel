@@ -1431,6 +1431,7 @@ IconData resolveEntryIcon(
     VaultEntryKind.login => Icons.key_rounded,
     VaultEntryKind.card => Icons.credit_card_rounded,
     VaultEntryKind.note => Icons.sticky_note_2_rounded,
+    VaultEntryKind.passkey => Icons.vpn_key_rounded,
   };
 }
 

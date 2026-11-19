@@ -97,11 +97,7 @@ class DebugCard extends StatelessWidget {
 /// Vault creation form for the debug screen.
 class DebugCreateCard extends StatelessWidget {
   /// Creates the create-vault card.
-  const new({
-    required this.controller,
-    required this.onCreate,
-    super.key,
-  });
+  const new({required this.controller, required this.onCreate, super.key});
 
   /// Master password controller.
   final TextEditingController controller;
@@ -111,27 +107,29 @@ class DebugCreateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DebugCard(children: [
-      Text('Create a vault', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: KeyelSpacing.sm),
-      const Text('Choose a master password. It cannot be recovered.'),
-      const SizedBox(height: KeyelSpacing.md),
-      TextField(
-        key: const ValueKey('debugMaster'),
-        controller: controller,
-        obscureText: true,
-        autocorrect: false,
-        enableSuggestions: false,
-        decoration: const InputDecoration(labelText: 'Master password'),
-        onSubmitted: (_) => onCreate(),
-      ),
-      const SizedBox(height: KeyelSpacing.md),
-      FilledButton(
-        key: const ValueKey('debugCreate'),
-        onPressed: onCreate,
-        child: const Text('Create vault'),
-      ),
-    ]);
+    return DebugCard(
+      children: [
+        Text('Create a vault', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: KeyelSpacing.sm),
+        const Text('Choose a master password. It cannot be recovered.'),
+        const SizedBox(height: KeyelSpacing.md),
+        TextField(
+          key: const ValueKey('debugMaster'),
+          controller: controller,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          decoration: const InputDecoration(labelText: 'Master password'),
+          onSubmitted: (_) => onCreate(),
+        ),
+        const SizedBox(height: KeyelSpacing.md),
+        FilledButton(
+          key: const ValueKey('debugCreate'),
+          onPressed: onCreate,
+          child: const Text('Create vault'),
+        ),
+      ],
+    );
   }
 }
 
@@ -168,48 +166,52 @@ class DebugUnlockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DebugCard(children: [
-      Text('Unlock', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: KeyelSpacing.md),
-      TextField(
-        key: const ValueKey('debugMaster'),
-        controller: masterController,
-        obscureText: true,
-        autocorrect: false,
-        enableSuggestions: false,
-        decoration: const InputDecoration(labelText: 'Master password'),
-        onSubmitted: (_) => onUnlockMaster(),
-      ),
-      const SizedBox(height: KeyelSpacing.md),
-      FilledButton(
-        key: const ValueKey('debugUnlock'),
-        onPressed: onUnlockMaster,
-        child: const Text('Unlock'),
-      ),
-      const SizedBox(height: KeyelSpacing.sm),
-      TextButton.icon(
-        onPressed: onToggleRecovery,
-        icon: Icon(
-          showRecovery ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-        ),
-        label: const Text('Use recovery key'),
-      ),
-      if (showRecovery) ...[
-        const SizedBox(height: KeyelSpacing.sm),
+    return DebugCard(
+      children: [
+        Text('Unlock', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: KeyelSpacing.md),
         TextField(
-          controller: recoveryController,
+          key: const ValueKey('debugMaster'),
+          controller: masterController,
+          obscureText: true,
           autocorrect: false,
           enableSuggestions: false,
-          decoration: const InputDecoration(labelText: 'Recovery key'),
-          onSubmitted: (_) => onUnlockRecovery(),
+          decoration: const InputDecoration(labelText: 'Master password'),
+          onSubmitted: (_) => onUnlockMaster(),
+        ),
+        const SizedBox(height: KeyelSpacing.md),
+        FilledButton(
+          key: const ValueKey('debugUnlock'),
+          onPressed: onUnlockMaster,
+          child: const Text('Unlock'),
         ),
         const SizedBox(height: KeyelSpacing.sm),
-        OutlinedButton(
-          onPressed: onUnlockRecovery,
-          child: const Text('Unlock with recovery key'),
+        TextButton.icon(
+          onPressed: onToggleRecovery,
+          icon: Icon(
+            showRecovery
+                ? Icons.expand_less_rounded
+                : Icons.expand_more_rounded,
+          ),
+          label: const Text('Use recovery key'),
         ),
+        if (showRecovery) ...[
+          const SizedBox(height: KeyelSpacing.sm),
+          TextField(
+            controller: recoveryController,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: const InputDecoration(labelText: 'Recovery key'),
+            onSubmitted: (_) => onUnlockRecovery(),
+          ),
+          const SizedBox(height: KeyelSpacing.sm),
+          OutlinedButton(
+            onPressed: onUnlockRecovery,
+            child: const Text('Unlock with recovery key'),
+          ),
+        ],
       ],
-    ]);
+    );
   }
 }
 
@@ -242,44 +244,46 @@ class DebugAddEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DebugCard(children: [
-      Text('Add a login', style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: KeyelSpacing.md),
-      TextField(
-        key: const ValueKey('debugEntryTitle'),
-        controller: titleController,
-        decoration: const InputDecoration(labelText: 'Title'),
-      ),
-      const SizedBox(height: KeyelSpacing.sm),
-      TextField(
-        controller: usernameController,
-        autocorrect: false,
-        decoration: const InputDecoration(labelText: 'Username'),
-      ),
-      const SizedBox(height: KeyelSpacing.sm),
-      TextField(
-        key: const ValueKey('debugEntryPassword'),
-        controller: passwordController,
-        obscureText: true,
-        autocorrect: false,
-        enableSuggestions: false,
-        decoration: const InputDecoration(labelText: 'Password'),
-      ),
-      const SizedBox(height: KeyelSpacing.sm),
-      TextField(
-        controller: urlController,
-        keyboardType: TextInputType.url,
-        autocorrect: false,
-        decoration: const InputDecoration(labelText: 'URL (optional)'),
-      ),
-      const SizedBox(height: KeyelSpacing.md),
-      FilledButton.icon(
-        key: const ValueKey('debugAddLogin'),
-        onPressed: onAdd,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add login'),
-      ),
-    ]);
+    return DebugCard(
+      children: [
+        Text('Add a login', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: KeyelSpacing.md),
+        TextField(
+          key: const ValueKey('debugEntryTitle'),
+          controller: titleController,
+          decoration: const InputDecoration(labelText: 'Title'),
+        ),
+        const SizedBox(height: KeyelSpacing.sm),
+        TextField(
+          controller: usernameController,
+          autocorrect: false,
+          decoration: const InputDecoration(labelText: 'Username'),
+        ),
+        const SizedBox(height: KeyelSpacing.sm),
+        TextField(
+          key: const ValueKey('debugEntryPassword'),
+          controller: passwordController,
+          obscureText: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          decoration: const InputDecoration(labelText: 'Password'),
+        ),
+        const SizedBox(height: KeyelSpacing.sm),
+        TextField(
+          controller: urlController,
+          keyboardType: TextInputType.url,
+          autocorrect: false,
+          decoration: const InputDecoration(labelText: 'URL (optional)'),
+        ),
+        const SizedBox(height: KeyelSpacing.md),
+        FilledButton.icon(
+          key: const ValueKey('debugAddLogin'),
+          onPressed: onAdd,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add login'),
+        ),
+      ],
+    );
   }
 }
 
@@ -337,63 +341,65 @@ class DebugEntriesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return DebugCard(children: [
-      Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Entries (${entries.length})',
-              style: Theme.of(context).textTheme.titleLarge,
+    return DebugCard(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Entries (${entries.length})',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
-          ),
-          IconButton(
-            tooltip: 'Refresh',
-            onPressed: onRefresh,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-          IconButton(
-            tooltip: 'Lock now',
-            onPressed: onLock,
-            icon: const Icon(Icons.lock_rounded),
-          ),
-        ],
-      ),
-      TextField(
-        controller: searchController,
-        decoration: const InputDecoration(
-          labelText: 'Search metadata',
-          prefixIcon: Icon(Icons.search_rounded),
+            IconButton(
+              tooltip: 'Refresh',
+              onPressed: onRefresh,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+            IconButton(
+              tooltip: 'Lock now',
+              onPressed: onLock,
+              icon: const Icon(Icons.lock_rounded),
+            ),
+          ],
         ),
-        onChanged: onSearchChanged,
-      ),
-      SwitchListTile.adaptive(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('Show trashed entries'),
-        value: showTrash,
-        onChanged: onShowTrashChanged,
-      ),
-      if (loading)
-        const Padding(
-          padding: EdgeInsets.all(KeyelSpacing.md),
-          child: Center(child: CircularProgressIndicator()),
-        )
-      else if (entries.isEmpty)
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: KeyelSpacing.md),
-          child: Text('No entries yet. Add one above.'),
-        )
-      else
-        for (final entry in entries)
-          DebugEntryTile(
-            entry: entry,
-            onReveal: () => onReveal(entry),
-            onToggleDeleted: () => onToggleDeleted(entry),
+        TextField(
+          controller: searchController,
+          decoration: const InputDecoration(
+            labelText: 'Search metadata',
+            prefixIcon: Icon(Icons.search_rounded),
           ),
-      if (sessionError != null) ...[
-        const SizedBox(height: KeyelSpacing.sm),
-        Text(sessionError!, style: TextStyle(color: scheme.error)),
+          onChanged: onSearchChanged,
+        ),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Show trashed entries'),
+          value: showTrash,
+          onChanged: onShowTrashChanged,
+        ),
+        if (loading)
+          const Padding(
+            padding: EdgeInsets.all(KeyelSpacing.md),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (entries.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: KeyelSpacing.md),
+            child: Text('No entries yet. Add one above.'),
+          )
+        else
+          for (final entry in entries)
+            DebugEntryTile(
+              entry: entry,
+              onReveal: () => onReveal(entry),
+              onToggleDeleted: () => onToggleDeleted(entry),
+            ),
+        if (sessionError != null) ...[
+          const SizedBox(height: KeyelSpacing.sm),
+          Text(sessionError!, style: TextStyle(color: scheme.error)),
+        ],
       ],
-    ]);
+    );
   }
 }
 
@@ -424,10 +430,13 @@ class DebugEntryTile extends StatelessWidget {
         EntryKindDto.login => Icons.key_rounded,
         EntryKindDto.card => Icons.credit_card_rounded,
         EntryKindDto.note => Icons.sticky_note_2_rounded,
+        EntryKindDto.passkey => Icons.vpn_key_rounded,
       }),
       title: Text(entry.title),
       subtitle: Text(
-        entry.deletedAt != null ? 'In trash · ${entry.subtitle}' : entry.subtitle,
+        entry.deletedAt != null
+            ? 'In trash · ${entry.subtitle}'
+            : entry.subtitle,
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -474,37 +483,39 @@ class DebugChangeMasterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DebugCard(children: [
-      ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        childrenPadding: EdgeInsets.zero,
-        title: Text(
-          'Change master password',
-          style: Theme.of(context).textTheme.titleMedium,
+    return DebugCard(
+      children: [
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: EdgeInsets.zero,
+          title: Text(
+            'Change master password',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          children: [
+            TextField(
+              controller: oldController,
+              obscureText: true,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: const InputDecoration(labelText: 'Current password'),
+            ),
+            const SizedBox(height: KeyelSpacing.sm),
+            TextField(
+              controller: newController,
+              obscureText: true,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: const InputDecoration(labelText: 'New password'),
+            ),
+            const SizedBox(height: KeyelSpacing.md),
+            OutlinedButton(
+              onPressed: onChange,
+              child: const Text('Change master password'),
+            ),
+          ],
         ),
-        children: [
-          TextField(
-            controller: oldController,
-            obscureText: true,
-            autocorrect: false,
-            enableSuggestions: false,
-            decoration: const InputDecoration(labelText: 'Current password'),
-          ),
-          const SizedBox(height: KeyelSpacing.sm),
-          TextField(
-            controller: newController,
-            obscureText: true,
-            autocorrect: false,
-            enableSuggestions: false,
-            decoration: const InputDecoration(labelText: 'New password'),
-          ),
-          const SizedBox(height: KeyelSpacing.md),
-          OutlinedButton(
-            onPressed: onChange,
-            child: const Text('Change master password'),
-          ),
-        ],
-      ),
-    ]);
+      ],
+    );
   }
 }

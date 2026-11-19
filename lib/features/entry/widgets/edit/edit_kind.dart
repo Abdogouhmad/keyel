@@ -7,6 +7,7 @@ String editKindLabel(VaultEntryKind kind) => switch (kind) {
   VaultEntryKind.login => 'Login',
   VaultEntryKind.card => 'Card',
   VaultEntryKind.note => 'Note',
+  VaultEntryKind.passkey => 'Passkey',
 };
 
 /// Glyph representing an entry kind, used for the editor avatar.
@@ -14,4 +15,5 @@ IconData editKindIcon(VaultEntryKind kind) => switch (kind) {
   VaultEntryKind.login => Icons.shield_rounded,
   VaultEntryKind.card => Icons.credit_card_rounded,
   VaultEntryKind.note => Icons.description_rounded,
+  VaultEntryKind.passkey => Icons.vpn_key_rounded,
 };
