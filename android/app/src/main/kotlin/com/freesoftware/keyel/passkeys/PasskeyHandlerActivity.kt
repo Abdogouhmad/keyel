@@ -184,8 +184,10 @@ class PasskeyHandlerActivity : FlutterActivity() {
         return try {
             val obj = JSONObject(requestJson)
             when {
-                obj.has("rpId") -> obj.optString("rpId", null)
-                obj.has("rp") -> obj.optJSONObject("rp")?.optString("id", null)
+                obj.has("rpId") -> obj.optString("rpId").takeIf { it.isNotBlank() }
+                obj.has("rp") -> obj.optJSONObject("rp")
+                    ?.optString("id")
+                    ?.takeIf { it.isNotBlank() }
                 else -> null
             }
         } catch (_: Throwable) {
