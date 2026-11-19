@@ -64,22 +64,28 @@ Manual smoke on physical/target devices (create/edit/delete/reorder/reveal/copy/
 
 ---
 
-## 4. 1.4.0 kickoff (next phase)
+## 4. 1.4.0 kickoff (in progress) — spike completed
 
 **Goal:** store and autofill passkeys (WebAuthn / Credential Manager) per roadmap 1.4.0.
 
+**Spike deliverable:** [`docs/passkeys-1.4.0-spike.md`](passkeys-1.4.0-spike.md) — inspected current Android autofill/manifest/build integration, core/bridge/UI kind touchpoints, and drafted:
+- **Platform:** Credential Manager provider surface (dependencies, `CredentialProviderService`, manifest/meta-data, create/get/clear flows, user verification + vault-unlock gating), capability/OS gating (provider support is device/API-dependent; `minSdk 26` app but passkey-provider likely needs newer API), and integration points alongside existing `AutofillService`.
+- **Data model & schema v4:** proposed `Passkey` entry kind/body (`rp_id/name`, `credential_id`, `user_handle`, user names, public/private key material, algorithm, `sign_count`, timestamps, transports/discoverable), secret handling/zeroization (private key never in DTOs/summaries/search/diagnostics; ceremony-only use), stepwise v3→v4 migration, and exhaustive cross-cutting match sites (model/migrate/index/autofill/import/health/API/FRB/Flutter UI).
+- **API/bridge:** secret-free passkey DTOs, ceremony-driven create/get operations (no private-key reveal), platform-channel contract boundaries, and repository/UI flow outline.
+- **Autofill/matching:** RP-bound passkey selection (distinct from login host/package heuristics), counter persistence, explicit user verification/selection.
+- **Interop & security:** encrypted backup round-trips via payload; CSV passkeys likely unsupported initially (must avoid silent loss/leakage); threat-model updates for ceremony/RP binding/counters.
+- **Risks/open decisions:** key-handling strategy (vault-held Rust key vs hardware/platform-backed), target SDK/dependency matrix, provider backport/support, and ceremony API split.
+
 **Initial observations (codebase/platform touchpoints)**
-- Existing autofill: `crates/keyel_core/src/autofill.rs`, `rust/src/api/autofill.rs`, `lib/features/autofill/**`, `android/app/src/main/kotlin/com/freesoftware/keyel/autofill/*` (e.g. `KeyelAutofillService`, parser/activities, manifest declarations).
+- Existing autofill: `crates/keyel_core/src/autofill.rs`, `rust/src/api/autofill.rs`, `lib/features/autofill/**`, `android/app/src/main/kotlin/com/freesoftware/keyel/autofill/*` (e.g. `KeyelAutofillService`, parser/activities, manifest declarations), `lib/main_autofill.dart`.
 - Vault/session: schema migrations and secret-handling patterns established in 1.3.0 apply to passkey private material (must be encrypted at rest, zeroized, never exposed in summaries/diagnostics).
-- Bridge: FRB DTO/API additions will be required for passkey entries/ceremonies; platform channel work likely needed for Android Credential Manager.
+- Bridge/UI: FRB DTO/API additions and regenerated bindings required; adding an `EntryKind`/body variant is cross-cutting across Rust core/API and many Flutter switches.
 
-**Recommended spike/first steps**
-1. **Platform spike (Android):** evaluate Credential Manager provider APIs, required manifest/service entries, user-verification/unlock integration, and minimum supported API level/UX constraints on target devices.
-2. **Data model design:** define passkey credential record (rp id/name, credential id, user name/display name, user handle, algorithm, public key, encrypted private key/handle material, counters/timestamps, created/last-used) and schema v4 migration + DTO/reveal rules.
-3. **Ceremony boundaries:** decide Rust vs platform responsibilities for create/get flows, keeping private key use minimal/auditable and origin/RP binding correct.
-4. **UX/capability states:** unsupported platform/version handling, management UI, and picker integration with clear RP context.
-
-**Risks/open questions:** device/OS support variability, secure hardware-backed key handling expectations, multi-platform parity (desktop/iOS later), and export/import interoperability for passkeys (separate from CSV).
+**Recommended next steps (from spike)**
+1. Decide/document **key-handling strategy** (vault-held software key in Rust vs hardware/platform-backed) and backup/portability/security implications.
+2. Confirm **target Android/SDK and dependency versions** for Credential Manager provider support; prototype **`CredentialProviderService` skeleton + manifest + capability detection** on API 34+.
+3. Implement **schema v4 draft in core** (types, migration, zeroize, search/subtitle, tests), then extend API/FRB/bindings and fix exhaustiveness.
+4. Define **ceremony API contract** (Kotlin ↔ Flutter ↔ Rust) with strict no-secret-crossing boundaries, then build create/get end-to-end with management UI and unsupported states.
 
 ---
 

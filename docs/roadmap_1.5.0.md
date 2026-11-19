@@ -147,7 +147,7 @@ by storing and autofilling passkeys, building on existing autofill foundations.
    - [ ] Unit/integration tests for model serialization, migration, and selection logic; platform/manual verification on supported devices.
    - [ ] Update docs/changelog and in-app help/capability messaging.
 
-> **Kickoff (2026-11-19):** 1.3.0 completed; 1.4.0 moved to in-progress planning/spike. See `docs/audit-1.5.0.md` for current-state notes and initial touchpoints/risks.
+> **Kickoff (2026-11-19):** 1.3.0 completed; 1.4.0 moved to in-progress planning/spike. Spike draft: [`docs/passkeys-1.4.0-spike.md`](passkeys-1.4.0-spike.md). See `docs/audit-1.5.0.md` for status and next steps.
 
 ---
 
