@@ -8,8 +8,10 @@ use keyel_core::autofill::{AutofillMatch, MatchQuality};
 use keyel_core::health::{HealthIssue, HealthReport};
 use keyel_core::import::{ImportFailure, ImportFormat, ImportMode, ImportReport, ParsedImport};
 use keyel_core::vault::{
-    Card, Entry, EntryBody, EntryKind, EntrySummary, Login, Note, TotpAlgorithm, TotpConfig,
+    Card, CustomField, CustomFieldKind, Entry, EntryBody, EntryKind, EntrySummary, Login, Note,
+    TotpAlgorithm, TotpConfig,
 };
+use uuid::Uuid;
 
 /// What kind of secret an entry holds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -160,6 +162,86 @@ pub struct NoteDetailDto {
     pub has_content: bool,
 }
 
+/// The value kind of a user-defined custom field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CustomFieldKindDto {
+    /// Plain text. Safe to show and searchable as metadata.
+    Text,
+    /// Secret text. Masked and never indexed.
+    Hidden,
+    /// A URL. Treated as non-secret metadata.
+    Url,
+}
+
+impl From<CustomFieldKind> for CustomFieldKindDto {
+    fn from(kind: CustomFieldKind) -> Self {
+        match kind {
+            CustomFieldKind::Text => Self::Text,
+            CustomFieldKind::Hidden => Self::Hidden,
+            CustomFieldKind::Url => Self::Url,
+        }
+    }
+}
+
+impl From<CustomFieldKindDto> for CustomFieldKind {
+    fn from(kind: CustomFieldKindDto) -> Self {
+        match kind {
+            CustomFieldKindDto::Text => Self::Text,
+            CustomFieldKindDto::Hidden => Self::Hidden,
+            CustomFieldKindDto::Url => Self::Url,
+        }
+    }
+}
+
+/// A user-defined custom field with secrets masked.
+///
+/// Hidden field values are never included; request them via
+/// `reveal_custom_field`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomFieldDetailDto {
+    /// Stable identifier.
+    pub id: String,
+    /// User-visible label.
+    pub label: String,
+    /// How the value should be interpreted and displayed.
+    pub kind: CustomFieldKindDto,
+    /// Non-secret value. Always empty for hidden fields.
+    pub value: String,
+    /// Whether a hidden value is stored (always `false` for non-hidden).
+    pub has_hidden_value: bool,
+}
+
+impl From<&CustomField> for CustomFieldDetailDto {
+    fn from(field: &CustomField) -> Self {
+        let secret = field.is_secret();
+        Self {
+            id: field.id.to_string(),
+            label: field.label.clone(),
+            kind: field.kind.into(),
+            value: if secret {
+                String::new()
+            } else {
+                field.value.clone()
+            },
+            has_hidden_value: secret && !field.value.is_empty(),
+        }
+    }
+}
+
+/// A user-defined custom field to create or update.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomFieldDraft {
+    /// Existing field id to update; `None` creates a new field.
+    pub id: Option<String>,
+    /// User-visible label.
+    pub label: String,
+    /// How the value should be interpreted and displayed.
+    pub kind: CustomFieldKindDto,
+    /// Field value. For hidden fields, `None` keeps the existing secret when
+    /// updating a field with the same id.
+    pub value: Option<String>,
+}
+
 /// A single entry with masked secrets.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EntryDetailDto {
@@ -191,6 +273,8 @@ pub struct EntryDetailDto {
     pub card: Option<CardDetailDto>,
     /// Note metadata, when this is a note.
     pub note: Option<NoteDetailDto>,
+    /// User-defined extra fields, in display order.
+    pub custom_fields: Vec<CustomFieldDetailDto>,
 }
 
 impl From<&Entry> for EntryDetailDto {
@@ -244,6 +328,7 @@ impl From<&Entry> for EntryDetailDto {
             login,
             card,
             note,
+            custom_fields: entry.custom_fields.iter().map(CustomFieldDetailDto::from).collect(),
         }
     }
 }
@@ -297,6 +382,46 @@ pub struct EntryDraft {
     pub card_brand: Option<String>,
     /// Secure-note body. `None` keeps the existing content on update.
     pub note_content: Option<String>,
+    /// User-defined custom fields, in display order.
+    pub custom_fields: Vec<CustomFieldDraft>,
+}
+
+
+
+/// Resolve custom-field drafts against existing fields, preserving hidden
+/// secrets when a draft value is omitted for the same field id.
+pub(crate) fn map_custom_fields(
+    drafts: Vec<CustomFieldDraft>,
+    existing: &[CustomField],
+) -> Vec<CustomField> {
+    drafts
+        .into_iter()
+        .map(|draft| {
+            let id = draft
+                .id
+                .as_deref()
+                .and_then(|id| Uuid::parse_str(id).ok());
+            let previous = id.and_then(|id| existing.iter().find(|field| field.id == id));
+            let kind: CustomFieldKind = draft.kind.into();
+            let value = match draft.value {
+                Some(value) => value,
+                None if matches!(kind, CustomFieldKind::Hidden) => previous
+                    .filter(|field| field.is_secret())
+                    .map(|field| field.value.clone())
+                    .unwrap_or_default(),
+                None => previous
+                    .filter(|field| !field.is_secret())
+                    .map(|field| field.value.clone())
+                    .unwrap_or_default(),
+            };
+            CustomField {
+                id: id.unwrap_or_else(Uuid::now_v7),
+                label: draft.label,
+                value,
+                kind,
+            }
+        })
+        .collect()
 }
 
 impl EntryDraft {

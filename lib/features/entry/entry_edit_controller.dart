@@ -14,6 +14,7 @@ class LoadedEntry {
     required this.favorite,
     this.folderId,
     this.icon,
+    this.customFields = const [],
   });
 
   /// Entry kind restored from the vault.
@@ -27,6 +28,9 @@ class LoadedEntry {
 
   /// Optional icon key slug restored from the vault.
   final String? icon;
+
+  /// Custom fields restored from the vault, as drafts.
+  final List<CustomFieldDraft> customFields;
 }
 
 /// Owns the text controllers and persistence behind the entry editor.
@@ -46,6 +50,9 @@ class EntryEditController {
 
   /// Optional icon slug chosen by the user.
   String? iconKey;
+
+  /// Custom fields preserved/edited for this entry.
+  List<CustomFieldDraft> customFields = const [];
 
   /// Updates the icon key and requests a rebuild.
   void setIconKey(String? key) {
@@ -163,12 +170,22 @@ class EntryEditController {
       }
 
       iconKey = detail.icon;
+      customFields = [
+        for (final f in detail.customFields)
+          CustomFieldDraft(
+            id: f.id,
+            label: f.label,
+            kind: f.kind,
+            value: f.kind == CustomFieldKindDto.hidden ? null : f.value,
+          ),
+      ];
 
       return LoadedEntry(
         kind: kind,
         favorite: detail.favorite,
         folderId: detail.folderId,
         icon: detail.icon,
+        customFields: customFields,
       );
     } on Object catch (error) {
       callbacks.notifyError(error);
@@ -249,6 +266,7 @@ class EntryEditController {
       noteContent: kind == VaultEntryKind.note && notes.text.isNotEmpty
           ? notes.text
           : null,
+      customFields: customFields,
     );
 
     try {

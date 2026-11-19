@@ -77,7 +77,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 1363391542;
+  int get rustContentHash => 1909936644;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -191,6 +191,11 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<void> crateApiEntriesRestoreEntry({required String id});
+
+  Future<String> crateApiEntriesRevealCustomField({
+    required String id,
+    required String fieldId,
+  });
 
   Future<String> crateApiEntriesRevealField({
     required String id,
@@ -1110,6 +1115,41 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "restore_entry", argNames: ["id"]);
 
   @override
+  Future<String> crateApiEntriesRevealCustomField({
+    required String id,
+    required String fieldId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          sse_encode_String(fieldId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 30,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_vault_api_error,
+        ),
+        constMeta: kCrateApiEntriesRevealCustomFieldConstMeta,
+        argValues: [id, fieldId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiEntriesRevealCustomFieldConstMeta =>
+      const TaskConstMeta(
+        debugName: "reveal_custom_field",
+        argNames: ["id", "fieldId"],
+      );
+
+  @override
   Future<String> crateApiEntriesRevealField({
     required String id,
     required SecretFieldDto field,
@@ -1123,7 +1163,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 31,
             port: port_,
           );
         },
@@ -1151,7 +1191,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1184,7 +1224,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1215,7 +1255,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1239,7 +1279,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -1261,7 +1301,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_String,
@@ -1287,7 +1327,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 36,
+            funcId: 37,
             port: port_,
           );
         },
@@ -1423,11 +1463,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CustomFieldDetailDto dco_decode_custom_field_detail_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return CustomFieldDetailDto(
+      id: dco_decode_String(arr[0]),
+      label: dco_decode_String(arr[1]),
+      kind: dco_decode_custom_field_kind_dto(arr[2]),
+      value: dco_decode_String(arr[3]),
+      hasHiddenValue: dco_decode_bool(arr[4]),
+    );
+  }
+
+  @protected
+  CustomFieldDraft dco_decode_custom_field_draft(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return CustomFieldDraft(
+      id: dco_decode_opt_String(arr[0]),
+      label: dco_decode_String(arr[1]),
+      kind: dco_decode_custom_field_kind_dto(arr[2]),
+      value: dco_decode_opt_String(arr[3]),
+    );
+  }
+
+  @protected
+  CustomFieldKindDto dco_decode_custom_field_kind_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CustomFieldKindDto.values[raw as int];
+  }
+
+  @protected
   EntryDetailDto dco_decode_entry_detail_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 14)
-      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
+    if (arr.length != 15)
+      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
     return EntryDetailDto(
       id: dco_decode_String(arr[0]),
       kind: dco_decode_entry_kind_dto(arr[1]),
@@ -1443,6 +1518,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       login: dco_decode_opt_box_autoadd_login_detail_dto(arr[11]),
       card: dco_decode_opt_box_autoadd_card_detail_dto(arr[12]),
       note: dco_decode_opt_box_autoadd_note_detail_dto(arr[13]),
+      customFields: dco_decode_list_custom_field_detail_dto(arr[14]),
     );
   }
 
@@ -1450,8 +1526,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   EntryDraft dco_decode_entry_draft(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 21)
-      throw Exception('unexpected arr length: expect 21 but see ${arr.length}');
+    if (arr.length != 22)
+      throw Exception('unexpected arr length: expect 22 but see ${arr.length}');
     return EntryDraft(
       id: dco_decode_opt_String(arr[0]),
       kind: dco_decode_entry_kind_dto(arr[1]),
@@ -1474,6 +1550,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       cardCvv: dco_decode_opt_String(arr[18]),
       cardBrand: dco_decode_opt_String(arr[19]),
       noteContent: dco_decode_opt_String(arr[20]),
+      customFields: dco_decode_list_custom_field_draft(arr[21]),
     );
   }
 
@@ -1625,6 +1702,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<AutofillMatchDto> dco_decode_list_autofill_match_dto(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_autofill_match_dto).toList();
+  }
+
+  @protected
+  List<CustomFieldDetailDto> dco_decode_list_custom_field_detail_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_custom_field_detail_dto)
+        .toList();
+  }
+
+  @protected
+  List<CustomFieldDraft> dco_decode_list_custom_field_draft(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_custom_field_draft).toList();
   }
 
   @protected
@@ -1960,6 +2053,49 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CustomFieldDetailDto sse_decode_custom_field_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_label = sse_decode_String(deserializer);
+    var var_kind = sse_decode_custom_field_kind_dto(deserializer);
+    var var_value = sse_decode_String(deserializer);
+    var var_hasHiddenValue = sse_decode_bool(deserializer);
+    return CustomFieldDetailDto(
+      id: var_id,
+      label: var_label,
+      kind: var_kind,
+      value: var_value,
+      hasHiddenValue: var_hasHiddenValue,
+    );
+  }
+
+  @protected
+  CustomFieldDraft sse_decode_custom_field_draft(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_opt_String(deserializer);
+    var var_label = sse_decode_String(deserializer);
+    var var_kind = sse_decode_custom_field_kind_dto(deserializer);
+    var var_value = sse_decode_opt_String(deserializer);
+    return CustomFieldDraft(
+      id: var_id,
+      label: var_label,
+      kind: var_kind,
+      value: var_value,
+    );
+  }
+
+  @protected
+  CustomFieldKindDto sse_decode_custom_field_kind_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return CustomFieldKindDto.values[inner];
+  }
+
+  @protected
   EntryDetailDto sse_decode_entry_detail_dto(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -1976,6 +2112,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_login = sse_decode_opt_box_autoadd_login_detail_dto(deserializer);
     var var_card = sse_decode_opt_box_autoadd_card_detail_dto(deserializer);
     var var_note = sse_decode_opt_box_autoadd_note_detail_dto(deserializer);
+    var var_customFields = sse_decode_list_custom_field_detail_dto(
+      deserializer,
+    );
     return EntryDetailDto(
       id: var_id,
       kind: var_kind,
@@ -1991,6 +2130,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       login: var_login,
       card: var_card,
       note: var_note,
+      customFields: var_customFields,
     );
   }
 
@@ -2018,6 +2158,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_cardCvv = sse_decode_opt_String(deserializer);
     var var_cardBrand = sse_decode_opt_String(deserializer);
     var var_noteContent = sse_decode_opt_String(deserializer);
+    var var_customFields = sse_decode_list_custom_field_draft(deserializer);
     return EntryDraft(
       id: var_id,
       kind: var_kind,
@@ -2040,6 +2181,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       cardCvv: var_cardCvv,
       cardBrand: var_cardBrand,
       noteContent: var_noteContent,
+      customFields: var_customFields,
     );
   }
 
@@ -2215,6 +2357,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <AutofillMatchDto>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_autofill_match_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CustomFieldDetailDto> sse_decode_list_custom_field_detail_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CustomFieldDetailDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_custom_field_detail_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<CustomFieldDraft> sse_decode_list_custom_field_draft(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <CustomFieldDraft>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_custom_field_draft(deserializer));
     }
     return ans_;
   }
@@ -2672,6 +2842,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_custom_field_detail_dto(
+    CustomFieldDetailDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.label, serializer);
+    sse_encode_custom_field_kind_dto(self.kind, serializer);
+    sse_encode_String(self.value, serializer);
+    sse_encode_bool(self.hasHiddenValue, serializer);
+  }
+
+  @protected
+  void sse_encode_custom_field_draft(
+    CustomFieldDraft self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_String(self.id, serializer);
+    sse_encode_String(self.label, serializer);
+    sse_encode_custom_field_kind_dto(self.kind, serializer);
+    sse_encode_opt_String(self.value, serializer);
+  }
+
+  @protected
+  void sse_encode_custom_field_kind_dto(
+    CustomFieldKindDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_entry_detail_dto(
     EntryDetailDto self,
     SseSerializer serializer,
@@ -2691,6 +2895,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_login_detail_dto(self.login, serializer);
     sse_encode_opt_box_autoadd_card_detail_dto(self.card, serializer);
     sse_encode_opt_box_autoadd_note_detail_dto(self.note, serializer);
+    sse_encode_list_custom_field_detail_dto(self.customFields, serializer);
   }
 
   @protected
@@ -2717,6 +2922,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_String(self.cardCvv, serializer);
     sse_encode_opt_String(self.cardBrand, serializer);
     sse_encode_opt_String(self.noteContent, serializer);
+    sse_encode_list_custom_field_draft(self.customFields, serializer);
   }
 
   @protected
@@ -2867,6 +3073,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_autofill_match_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_custom_field_detail_dto(
+    List<CustomFieldDetailDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_custom_field_detail_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_custom_field_draft(
+    List<CustomFieldDraft> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_custom_field_draft(item, serializer);
     }
   }
 

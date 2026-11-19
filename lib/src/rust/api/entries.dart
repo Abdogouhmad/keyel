@@ -75,9 +75,21 @@ Future<void> moveEntries({required List<String> ids, String? folderId}) =>
 
 /// Return one plaintext secret field.
 ///
-/// This is the **only** bridge function that returns a password or any other
-/// secret. Callers should reveal on demand and avoid caching the result.
+/// This is the only bridge path for fixed entry secrets. Callers should reveal
+/// on demand and avoid caching the result.
 Future<String> revealField({
   required String id,
   required SecretFieldDto field,
 }) => RustLib.instance.api.crateApiEntriesRevealField(id: id, field: field);
+
+/// Return the plaintext value of a hidden custom field.
+///
+/// Only hidden custom fields can be revealed through this path. Non-secret
+/// custom-field values are already present in the entry detail.
+Future<String> revealCustomField({
+  required String id,
+  required String fieldId,
+}) => RustLib.instance.api.crateApiEntriesRevealCustomField(
+  id: id,
+  fieldId: fieldId,
+);

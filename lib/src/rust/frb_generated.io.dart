@@ -81,6 +81,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CardDetailDto dco_decode_card_detail_dto(dynamic raw);
 
   @protected
+  CustomFieldDetailDto dco_decode_custom_field_detail_dto(dynamic raw);
+
+  @protected
+  CustomFieldDraft dco_decode_custom_field_draft(dynamic raw);
+
+  @protected
+  CustomFieldKindDto dco_decode_custom_field_kind_dto(dynamic raw);
+
+  @protected
   EntryDetailDto dco_decode_entry_detail_dto(dynamic raw);
 
   @protected
@@ -127,6 +136,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<AutofillMatchDto> dco_decode_list_autofill_match_dto(dynamic raw);
+
+  @protected
+  List<CustomFieldDetailDto> dco_decode_list_custom_field_detail_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<CustomFieldDraft> dco_decode_list_custom_field_draft(dynamic raw);
 
   @protected
   List<EntrySummaryDto> dco_decode_list_entry_summary_dto(dynamic raw);
@@ -278,6 +295,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CardDetailDto sse_decode_card_detail_dto(SseDeserializer deserializer);
 
   @protected
+  CustomFieldDetailDto sse_decode_custom_field_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CustomFieldDraft sse_decode_custom_field_draft(SseDeserializer deserializer);
+
+  @protected
+  CustomFieldKindDto sse_decode_custom_field_kind_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   EntryDetailDto sse_decode_entry_detail_dto(SseDeserializer deserializer);
 
   @protected
@@ -326,6 +356,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<AutofillMatchDto> sse_decode_list_autofill_match_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CustomFieldDetailDto> sse_decode_list_custom_field_detail_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CustomFieldDraft> sse_decode_list_custom_field_draft(
     SseDeserializer deserializer,
   );
 
@@ -513,6 +553,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_card_detail_dto(CardDetailDto self, SseSerializer serializer);
 
   @protected
+  void sse_encode_custom_field_detail_dto(
+    CustomFieldDetailDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_custom_field_draft(
+    CustomFieldDraft self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_custom_field_kind_dto(
+    CustomFieldKindDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_entry_detail_dto(
     EntryDetailDto self,
     SseSerializer serializer,
@@ -587,6 +645,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_autofill_match_dto(
     List<AutofillMatchDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_custom_field_detail_dto(
+    List<CustomFieldDetailDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_custom_field_draft(
+    List<CustomFieldDraft> self,
     SseSerializer serializer,
   );
 

@@ -221,6 +221,15 @@ class EntryDetailController {
           cardholder: detail.card?.cardholder ?? '',
           cardExpiry: detail.card?.expiry ?? '',
           cardBrand: detail.card?.brand,
+          customFields: [
+            for (final f in detail.customFields)
+              CustomFieldDraft(
+                id: f.id,
+                label: f.label,
+                kind: f.kind,
+                value: f.kind == CustomFieldKindDto.hidden ? null : f.value,
+              ),
+          ],
         ),
       );
       await load();

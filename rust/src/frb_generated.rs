@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1363391542;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1909936644;
 
 // Section: executor
 
@@ -1042,6 +1042,40 @@ fn wire__crate__api__entries__restore_entry_impl(
         },
     )
 }
+fn wire__crate__api__entries__reveal_custom_field_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "reveal_custom_field",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_id = <String>::sse_decode(&mut deserializer);
+            let api_field_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
+                    let output_ok = crate::api::entries::reveal_custom_field(api_id, api_field_id)?;
+                    std::result::Result::Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__entries__reveal_field_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1343,6 +1377,53 @@ impl SseDecode for crate::api::models::CardDetailDto {
     }
 }
 
+impl SseDecode for crate::api::models::CustomFieldDetailDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_label = <String>::sse_decode(deserializer);
+        let mut var_kind = <crate::api::models::CustomFieldKindDto>::sse_decode(deserializer);
+        let mut var_value = <String>::sse_decode(deserializer);
+        let mut var_hasHiddenValue = <bool>::sse_decode(deserializer);
+        return crate::api::models::CustomFieldDetailDto {
+            id: var_id,
+            label: var_label,
+            kind: var_kind,
+            value: var_value,
+            has_hidden_value: var_hasHiddenValue,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::CustomFieldDraft {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <Option<String>>::sse_decode(deserializer);
+        let mut var_label = <String>::sse_decode(deserializer);
+        let mut var_kind = <crate::api::models::CustomFieldKindDto>::sse_decode(deserializer);
+        let mut var_value = <Option<String>>::sse_decode(deserializer);
+        return crate::api::models::CustomFieldDraft {
+            id: var_id,
+            label: var_label,
+            kind: var_kind,
+            value: var_value,
+        };
+    }
+}
+
+impl SseDecode for crate::api::models::CustomFieldKindDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::models::CustomFieldKindDto::Text,
+            1 => crate::api::models::CustomFieldKindDto::Hidden,
+            2 => crate::api::models::CustomFieldKindDto::Url,
+            _ => unreachable!("Invalid variant for CustomFieldKindDto: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for crate::api::models::EntryDetailDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1360,6 +1441,8 @@ impl SseDecode for crate::api::models::EntryDetailDto {
         let mut var_login = <Option<crate::api::models::LoginDetailDto>>::sse_decode(deserializer);
         let mut var_card = <Option<crate::api::models::CardDetailDto>>::sse_decode(deserializer);
         let mut var_note = <Option<crate::api::models::NoteDetailDto>>::sse_decode(deserializer);
+        let mut var_customFields =
+            <Vec<crate::api::models::CustomFieldDetailDto>>::sse_decode(deserializer);
         return crate::api::models::EntryDetailDto {
             id: var_id,
             kind: var_kind,
@@ -1375,6 +1458,7 @@ impl SseDecode for crate::api::models::EntryDetailDto {
             login: var_login,
             card: var_card,
             note: var_note,
+            custom_fields: var_customFields,
         };
     }
 }
@@ -1404,6 +1488,8 @@ impl SseDecode for crate::api::models::EntryDraft {
         let mut var_cardCvv = <Option<String>>::sse_decode(deserializer);
         let mut var_cardBrand = <Option<String>>::sse_decode(deserializer);
         let mut var_noteContent = <Option<String>>::sse_decode(deserializer);
+        let mut var_customFields =
+            <Vec<crate::api::models::CustomFieldDraft>>::sse_decode(deserializer);
         return crate::api::models::EntryDraft {
             id: var_id,
             kind: var_kind,
@@ -1426,6 +1512,7 @@ impl SseDecode for crate::api::models::EntryDraft {
             card_cvv: var_cardCvv,
             card_brand: var_cardBrand,
             note_content: var_noteContent,
+            custom_fields: var_customFields,
         };
     }
 }
@@ -1642,6 +1729,34 @@ impl SseDecode for Vec<crate::api::models::AutofillMatchDto> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::models::AutofillMatchDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::models::CustomFieldDetailDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::models::CustomFieldDetailDto>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::models::CustomFieldDraft> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::models::CustomFieldDraft>::sse_decode(
                 deserializer,
             ));
         }
@@ -2050,13 +2165,16 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         29 => wire__crate__api__entries__restore_entry_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
-        32 => {
+        30 => {
+            wire__crate__api__entries__reveal_custom_field_impl(port, ptr, rust_vec_len, data_len)
+        }
+        31 => wire__crate__api__entries__reveal_field_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__session__unlock_with_master_impl(port, ptr, rust_vec_len, data_len),
+        33 => {
             wire__crate__api__session__unlock_with_recovery_impl(port, ptr, rust_vec_len, data_len)
         }
-        33 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__entries__upsert_entry_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__session__verify_master_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2074,8 +2192,8 @@ fn pde_ffi_dispatcher_sync_impl(
         16 => wire__crate__api__session__init_impl(ptr, rust_vec_len, data_len),
         18 => wire__crate__api__session__is_unlocked_impl(ptr, rust_vec_len, data_len),
         21 => wire__crate__api__session__lock_impl(ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__session__vault_exists_impl(ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__session__vault_path_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2150,6 +2268,75 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::models::CardDetailDto>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::CustomFieldDetailDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.label.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+            self.value.into_into_dart().into_dart(),
+            self.has_hidden_value.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::CustomFieldDetailDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::CustomFieldDetailDto>
+    for crate::api::models::CustomFieldDetailDto
+{
+    fn into_into_dart(self) -> crate::api::models::CustomFieldDetailDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::CustomFieldDraft {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.label.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+            self.value.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::CustomFieldDraft
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::CustomFieldDraft>
+    for crate::api::models::CustomFieldDraft
+{
+    fn into_into_dart(self) -> crate::api::models::CustomFieldDraft {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::models::CustomFieldKindDto {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Text => 0.into_dart(),
+            Self::Hidden => 1.into_dart(),
+            Self::Url => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::models::CustomFieldKindDto
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::models::CustomFieldKindDto>
+    for crate::api::models::CustomFieldKindDto
+{
+    fn into_into_dart(self) -> crate::api::models::CustomFieldKindDto {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::models::EntryDetailDto {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -2167,6 +2354,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::models::EntryDetailDto {
             self.login.into_into_dart().into_dart(),
             self.card.into_into_dart().into_dart(),
             self.note.into_into_dart().into_dart(),
+            self.custom_fields.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -2207,6 +2395,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::models::EntryDraft {
             self.card_cvv.into_into_dart().into_dart(),
             self.card_brand.into_into_dart().into_dart(),
             self.note_content.into_into_dart().into_dart(),
+            self.custom_fields.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -2730,6 +2919,44 @@ impl SseEncode for crate::api::models::CardDetailDto {
     }
 }
 
+impl SseEncode for crate::api::models::CustomFieldDetailDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.label, serializer);
+        <crate::api::models::CustomFieldKindDto>::sse_encode(self.kind, serializer);
+        <String>::sse_encode(self.value, serializer);
+        <bool>::sse_encode(self.has_hidden_value, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::CustomFieldDraft {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.label, serializer);
+        <crate::api::models::CustomFieldKindDto>::sse_encode(self.kind, serializer);
+        <Option<String>>::sse_encode(self.value, serializer);
+    }
+}
+
+impl SseEncode for crate::api::models::CustomFieldKindDto {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::models::CustomFieldKindDto::Text => 0,
+                crate::api::models::CustomFieldKindDto::Hidden => 1,
+                crate::api::models::CustomFieldKindDto::Url => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::api::models::EntryDetailDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2747,6 +2974,7 @@ impl SseEncode for crate::api::models::EntryDetailDto {
         <Option<crate::api::models::LoginDetailDto>>::sse_encode(self.login, serializer);
         <Option<crate::api::models::CardDetailDto>>::sse_encode(self.card, serializer);
         <Option<crate::api::models::NoteDetailDto>>::sse_encode(self.note, serializer);
+        <Vec<crate::api::models::CustomFieldDetailDto>>::sse_encode(self.custom_fields, serializer);
     }
 }
 
@@ -2774,6 +3002,7 @@ impl SseEncode for crate::api::models::EntryDraft {
         <Option<String>>::sse_encode(self.card_cvv, serializer);
         <Option<String>>::sse_encode(self.card_brand, serializer);
         <Option<String>>::sse_encode(self.note_content, serializer);
+        <Vec<crate::api::models::CustomFieldDraft>>::sse_encode(self.custom_fields, serializer);
     }
 }
 
@@ -2946,6 +3175,26 @@ impl SseEncode for Vec<crate::api::models::AutofillMatchDto> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::models::AutofillMatchDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::models::CustomFieldDetailDto> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::CustomFieldDetailDto>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::models::CustomFieldDraft> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::models::CustomFieldDraft>::sse_encode(item, serializer);
         }
     }
 }

@@ -95,6 +95,15 @@ class VaultRepository {
         cardholder: detail.card?.cardholder ?? '',
         cardExpiry: detail.card?.expiry ?? '',
         cardBrand: detail.card?.brand,
+        customFields: [
+          for (final f in detail.customFields)
+            CustomFieldDraft(
+              id: f.id,
+              label: f.label,
+              kind: f.kind,
+              value: f.kind == CustomFieldKindDto.hidden ? null : f.value,
+            ),
+        ],
       ),
     );
   }
@@ -207,6 +216,7 @@ class VaultRepository {
         totpPeriod: 30,
         cardholder: '',
         cardExpiry: '',
+        customFields: const [],
       ),
     );
   }
@@ -223,6 +233,12 @@ class VaultRepository {
   /// Reveal one secret field. The only path that returns plaintext secrets.
   Future<String> revealField(String id, SecretFieldDto field) =>
       entries_api.revealField(id: id, field: field);
+
+  /// Reveal a hidden custom field's plaintext value for an entry.
+  ///
+  /// Only hidden custom fields can be revealed through this path.
+  Future<String> revealCustomField(String id, String fieldId) =>
+      entries_api.revealCustomField(id: id, fieldId: fieldId);
 
   /// Force delete the vault file from disk.
   /// Useful for debugging or implementing a "Factory Reset" feature in settings.

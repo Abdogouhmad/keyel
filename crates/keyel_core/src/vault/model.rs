@@ -22,7 +22,8 @@ use super::history::{record_password_change, PasswordHistoryEntry};
 /// History:
 /// - v1: initial payload.
 /// - v2: entries gained an optional user-chosen `icon`.
-pub const VAULT_SCHEMA_VERSION: u16 = 2;
+/// - v3: entries gained ordered `custom_fields`.
+pub const VAULT_SCHEMA_VERSION: u16 = 3;
 
 /// How long a soft-deleted entry stays in the trash.
 pub const TRASH_RETENTION_SECS: u64 = 30 * 24 * 60 * 60;
@@ -45,6 +46,51 @@ pub enum EntryKind {
     Card,
     /// Free-form secure note.
     Note,
+}
+
+/// The value kind of a user-defined custom field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CustomFieldKind {
+    /// Plain text. Safe to show and searchable as metadata.
+    Text,
+    /// Secret text (PIN, recovery code, answer). Masked and never indexed.
+    Hidden,
+    /// A URL. Treated as non-secret metadata.
+    Url,
+}
+
+/// A user-defined extra field stored on an entry.
+///
+/// `Hidden` values are secrets: they are masked by default, revealed only on
+/// demand, and excluded from metadata search and diagnostics.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CustomField {
+    /// Stable identifier, used by the UI to address a specific field.
+    pub id: Uuid,
+    /// User-visible label.
+    pub label: String,
+    /// Field value. Secret when `kind` is [`CustomFieldKind::Hidden`].
+    pub value: String,
+    /// How the value should be interpreted and displayed.
+    pub kind: CustomFieldKind,
+}
+
+impl CustomField {
+    /// Build a new custom field with a fresh id.
+    pub fn new(label: impl Into<String>, value: impl Into<String>, kind: CustomFieldKind) -> Self {
+        Self {
+            id: Uuid::now_v7(),
+            label: label.into(),
+            value: value.into(),
+            kind,
+        }
+    }
+
+    /// Whether this field's value is secret.
+    pub fn is_secret(&self) -> bool {
+        matches!(self.kind, CustomFieldKind::Hidden)
+    }
 }
 
 /// A folder groups entries. Folders never contain secrets.
@@ -79,6 +125,11 @@ pub struct Entry {
     /// `#[serde(default)]` keeps payloads written before schema v2 readable.
     #[serde(default)]
     pub icon: Option<String>,
+    /// User-defined extra fields, in display order.
+    ///
+    /// `#[serde(default)]` keeps payloads written before schema v3 readable.
+    #[serde(default)]
+    pub custom_fields: Vec<CustomField>,
     /// Creation time (Unix seconds).
     pub created_at: u64,
     /// Last modification time (Unix seconds).
@@ -101,6 +152,7 @@ impl Entry {
             folder_id: None,
             favorite: false,
             icon: None,
+            custom_fields: Vec::new(),
             created_at: now,
             updated_at: now,
             deleted_at: None,
@@ -151,12 +203,18 @@ impl Entry {
     /// Match a query that has already been normalized by `index::normalize`.
     ///
     /// Only metadata is searched: title, tags, username, URL, cardholder and
-    /// brand. Passwords, notes and card numbers are never matched.
+    /// brand, plus non-secret custom-field labels and values (`text`/`url`).
+    /// Passwords, notes, card numbers and hidden custom-field values are never
+    /// matched.
     pub(crate) fn matches_normalized(&self, query: &str) -> bool {
         let contains = |value: &str| super::index::normalize(value).contains(query);
 
         contains(&self.title)
             || self.tags.iter().any(|tag| contains(tag))
+            || self.custom_fields.iter().any(|field| {
+                contains(&field.label)
+                    || (!field.is_secret() && contains(&field.value))
+            })
             || match &self.body {
                 EntryBody::Login(login) => contains(&login.username) || contains(&login.url),
                 EntryBody::Card(card) => {
@@ -172,6 +230,11 @@ impl Entry {
     /// callers before that point.
     pub(crate) fn zeroize_secrets(&mut self) {
         self.notes.zeroize();
+        for field in &mut self.custom_fields {
+            if field.is_secret() {
+                field.value.zeroize();
+            }
+        }
         match &mut self.body {
             EntryBody::Login(login) => {
                 login.password.zeroize();
@@ -569,6 +632,11 @@ mod tests {
             totp: Some(TotpConfig::new("JBSWY3DPEHPK3PXP")),
             ..login("hunter2")
         });
+        entry.custom_fields = vec![
+            CustomField::new("PIN", "1234", CustomFieldKind::Hidden),
+            CustomField::new("Profile", "https://example.com/u/ada", CustomFieldKind::Url),
+            CustomField::new("Note", "vip", CustomFieldKind::Text),
+        ];
         vault.add_entry(entry);
         vault.add_entry(Entry::note(
             "Recovery",
@@ -684,6 +752,11 @@ mod tests {
             },
         );
         entry.notes = "recovery codes".into();
+        entry.custom_fields = vec![
+            CustomField::new("PIN", "1234", CustomFieldKind::Hidden),
+            CustomField::new("Public", "visible", CustomFieldKind::Text),
+            CustomField::new("Site", "https://x.example", CustomFieldKind::Url),
+        ];
         entry.zeroize_secrets();
         assert!(entry.notes.is_empty());
         let EntryBody::Login(login) = &entry.body else {
@@ -692,6 +765,9 @@ mod tests {
         assert!(login.password.is_empty());
         assert!(login.password_history.iter().all(|h| h.password.is_empty()));
         assert!(login.totp.as_ref().unwrap().secret.is_empty());
+        assert!(entry.custom_fields[0].value.is_empty(), "hidden custom field must be wiped");
+        assert_eq!(entry.custom_fields[1].value, "visible");
+        assert_eq!(entry.custom_fields[2].value, "https://x.example");
 
         let mut card = Entry::card(
             "Visa",

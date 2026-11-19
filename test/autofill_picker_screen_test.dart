@@ -71,6 +71,7 @@ class _FakeRepository extends VaultRepository {
       hasPassword: true,
       passwordHistoryCount: 0,
     ),
+    customFields: const [],
   );
 
   @override

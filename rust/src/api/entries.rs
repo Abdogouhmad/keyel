@@ -7,7 +7,8 @@ use uuid::Uuid;
 
 use super::error::VaultApiError;
 use super::models::{
-    EntryDetailDto, EntryDraft, EntryKindDto, EntrySummaryDto, FolderDto, SecretFieldDto,
+    map_custom_fields, EntryDetailDto, EntryDraft, EntryKindDto, EntrySummaryDto, FolderDto,
+    SecretFieldDto,
 };
 use super::session::with_session;
 
@@ -76,6 +77,11 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
         let folder_id = draft.folder_id.as_deref().map(parse_id).transpose()?;
         let favorite = draft.favorite;
         let icon = draft.icon.clone();
+        let existing_custom = existing
+            .as_ref()
+            .map(|entry| entry.custom_fields.as_slice())
+            .unwrap_or(&[]);
+        let custom_fields = map_custom_fields(draft.custom_fields.clone(), existing_custom);
 
         let body = match kind {
             EntryKindDto::Login => {
@@ -111,6 +117,7 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
                 entry.favorite = favorite;
                 entry.icon = icon;
                 entry.body = body;
+                entry.custom_fields = custom_fields;
                 session.vault_mut().update_entry(entry)?;
                 id
             }
@@ -121,6 +128,7 @@ pub fn upsert_entry(draft: EntryDraft) -> Result<String, VaultApiError> {
                 entry.folder_id = folder_id;
                 entry.favorite = favorite;
                 entry.icon = icon;
+                entry.custom_fields = custom_fields;
                 session.vault_mut().add_entry(entry)
             }
         };
@@ -230,8 +238,8 @@ pub fn move_entries(ids: Vec<String>, folder_id: Option<String>) -> Result<(), V
 
 /// Return one plaintext secret field.
 ///
-/// This is the **only** bridge function that returns a password or any other
-/// secret. Callers should reveal on demand and avoid caching the result.
+/// This is the only bridge path for fixed entry secrets. Callers should reveal
+/// on demand and avoid caching the result.
 pub fn reveal_field(id: String, field: SecretFieldDto) -> Result<String, VaultApiError> {
     with_session(|session| {
         let id = parse_id(&id)?;
@@ -266,5 +274,26 @@ pub fn reveal_field(id: String, field: SecretFieldDto) -> Result<String, VaultAp
         };
 
         Ok(value.to_owned())
+    })
+}
+
+/// Return the plaintext value of a hidden custom field.
+///
+/// Only hidden custom fields can be revealed through this path. Non-secret
+/// custom-field values are already present in the entry detail.
+pub fn reveal_custom_field(id: String, field_id: String) -> Result<String, VaultApiError> {
+    with_session(|session| {
+        let id = parse_id(&id)?;
+        let field_id = parse_id(&field_id)?;
+        let entry = session.vault().entry(id).ok_or(VaultApiError::NotFound)?;
+        let field = entry
+            .custom_fields
+            .iter()
+            .find(|field| field.id == field_id)
+            .ok_or(VaultApiError::NotFound)?;
+        if !field.is_secret() {
+            return Err(VaultApiError::InvalidField);
+        }
+        Ok(field.value.clone())
     })
 }
