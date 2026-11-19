@@ -5,6 +5,25 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-11-19
+
+### Changed
+
+- **Passkey provider candidate surfacing (Android)** — refined Credential
+  Manager system-picker entries to be request/RP-contextual (for example
+  showing the relying party for passkey save/use actions) and to reduce
+  redundant actions when a direct passkey flow can be offered.
+- **Ceremony handoff context** — provider-to-handler passkey requests now carry
+  non-secret request/RP context so the in-app unlock/selection flow can present
+  the correct relying-party context consistently.
+
+### Security
+
+- Candidate surfacing remains metadata-only and secret-free. Individual passkey
+  account details stay inside the encrypted vault and are enumerated only after
+  user authentication/unlock inside Keyel; no private key material or secrets are
+  exposed to the provider process, system picker, logs, or diagnostics.
+
 ## [1.4.0] - 2026-11-19
 
 ### Added
@@ -56,9 +75,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Passkey provider support depends on device/OS capabilities and configuration;
   on unsupported devices Keyel reports the limitation gracefully.
-- This release provides a functional initial ceremony flow; provider candidate
-  surfacing and broader app/browser/device compatibility may be refined in
-  follow-up updates.
+- This release provides a functional initial ceremony flow; broader
+  app/browser/device compatibility may be refined in follow-up updates based on
+  real-device behavior.
 
 ## [1.3.0] - 2026-11-19
 

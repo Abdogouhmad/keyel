@@ -123,7 +123,9 @@ class PasskeyHandlerActivity : FlutterActivity() {
                             callingRequest.requestJson
                         } else null
                         val origin = computeOrigin(request.callingAppInfo)
-                        val rpId = extractRpId(requestJson)
+                        val rpId = intent?.getStringExtra(KeyelCredentialProviderService.EXTRA_RP_ID)
+                            ?.takeIf { it.isNotBlank() }
+                            ?: extractRpId(requestJson)
                         mapOf(
                             "mode" to "create",
                             "requestJson" to requestJson,
@@ -139,11 +141,17 @@ class PasskeyHandlerActivity : FlutterActivity() {
                     val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
                     if (request == null) {
                         // Unlock-only/auth action without a specific selection.
+                        val requestJson = intent?.getStringExtra(
+                            KeyelCredentialProviderService.EXTRA_REQUEST_JSON,
+                        )
+                        val rpId = intent?.getStringExtra(KeyelCredentialProviderService.EXTRA_RP_ID)
+                            ?.takeIf { it.isNotBlank() }
+                            ?: extractRpId(requestJson)
                         mapOf(
                             "mode" to "unlock",
-                            "requestJson" to intent?.getStringExtra(KeyelCredentialProviderService.EXTRA_REQUEST_JSON),
+                            "requestJson" to requestJson,
                             "origin" to null,
-                            "rpId" to extractRpId(intent?.getStringExtra(KeyelCredentialProviderService.EXTRA_REQUEST_JSON)),
+                            "rpId" to rpId,
                         )
                     } else {
                         val option = request.credentialOptions.firstOrNull {
@@ -151,7 +159,9 @@ class PasskeyHandlerActivity : FlutterActivity() {
                         } as? androidx.credentials.GetPublicKeyCredentialOption
                         val requestJson = option?.requestJson
                         val origin = computeOrigin(request.callingAppInfo)
-                        val rpId = extractRpId(requestJson)
+                        val rpId = intent?.getStringExtra(KeyelCredentialProviderService.EXTRA_RP_ID)
+                            ?.takeIf { it.isNotBlank() }
+                            ?: extractRpId(requestJson)
                         mapOf(
                             "mode" to "get",
                             "requestJson" to requestJson,
