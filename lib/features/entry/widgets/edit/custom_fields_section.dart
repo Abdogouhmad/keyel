@@ -113,10 +113,10 @@ class _AddFieldButton extends StatelessWidget {
 
 class _CustomFieldEditorRow extends StatefulWidget {
   const new({
-    super.key,
     required this.index,
     required this.field,
     required this.controller,
+    super.key,
   });
 
   final int index;

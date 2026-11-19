@@ -5,6 +5,19 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-11-19
+
+### Fixed
+
+- **CI/release build** — resolved the analyzer and clippy failures that blocked
+  the 1.4.x passkeys release: required named parameters now precede optional
+  ones in the custom-fields editor, the PASSKEY RP lookup helpers no longer sit
+  after the test module, and the base64url padding check uses the idiomatic
+  integer API.
+- **Dependency security** — upgraded the P-256/RustCrypto stack (`p256` 0.14,
+  `crypto-bigint` 0.7.11) to clear RUSTSEC-2026-0387 without suppressing the
+  advisory; private-key generation/signing semantics are unchanged.
+
 ## [1.4.2] - 2026-11-19
 
 ### Fixed

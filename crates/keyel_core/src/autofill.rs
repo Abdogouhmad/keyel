@@ -226,6 +226,46 @@ fn entry_matches_query(entry: &crate::vault::Entry, query: &str) -> bool {
         }
 }
 
+/// Return non-secret summaries of passkey entries matching a relying party ID.
+///
+/// Matching is exact on the RP ID (case-insensitive host normalization) so the
+/// caller can present candidates for a WebAuthn get/create ceremony. No secret
+/// key material is included in the returned summaries.
+pub fn find_passkeys_for_rp(vault: &Vault, rp_id: &str) -> Vec<EntrySummary> {
+    let rp_id = rp_id.trim().to_ascii_lowercase();
+    if rp_id.is_empty() {
+        return Vec::new();
+    }
+    vault
+        .entries
+        .iter()
+        .filter(|entry| entry.deleted_at.is_none())
+        .filter_map(|entry| match &entry.body {
+            EntryBody::Passkey(passkey) if passkey.rp_id.trim().to_ascii_lowercase() == rp_id => {
+                Some(entry.summary())
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+/// Record that a passkey was used for an assertion: update sign count and last-used time.
+///
+/// `sign_count` should be the new counter value reported/maintained by the caller.
+/// Returns `true` if the entry was found and updated.
+pub fn record_passkey_use(vault: &mut Vault, id: uuid::Uuid, sign_count: u32, at: u64) -> bool {
+    let Some(entry) = vault.entry_mut(id) else {
+        return false;
+    };
+    let EntryBody::Passkey(passkey) = &mut entry.body else {
+        return false;
+    };
+    passkey.sign_count = sign_count;
+    passkey.last_used_at = Some(at);
+    entry.updated_at = at;
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -469,44 +509,4 @@ mod tests {
         let login_id = vault.add_entry(login("Mail", "ada", "https://example.com"));
         assert!(!record_passkey_use(&mut vault, login_id, 3, 4));
     }
-}
-
-/// Return non-secret summaries of passkey entries matching a relying party ID.
-///
-/// Matching is exact on the RP ID (case-insensitive host normalization) so the
-/// caller can present candidates for a WebAuthn get/create ceremony. No secret
-/// key material is included in the returned summaries.
-pub fn find_passkeys_for_rp(vault: &Vault, rp_id: &str) -> Vec<EntrySummary> {
-    let rp_id = rp_id.trim().to_ascii_lowercase();
-    if rp_id.is_empty() {
-        return Vec::new();
-    }
-    vault
-        .entries
-        .iter()
-        .filter(|entry| entry.deleted_at.is_none())
-        .filter_map(|entry| match &entry.body {
-            EntryBody::Passkey(passkey) if passkey.rp_id.trim().to_ascii_lowercase() == rp_id => {
-                Some(entry.summary())
-            }
-            _ => None,
-        })
-        .collect()
-}
-
-/// Record that a passkey was used for an assertion: update sign count and last-used time.
-///
-/// `sign_count` should be the new counter value reported/maintained by the caller.
-/// Returns `true` if the entry was found and updated.
-pub fn record_passkey_use(vault: &mut Vault, id: uuid::Uuid, sign_count: u32, at: u64) -> bool {
-    let Some(entry) = vault.entry_mut(id) else {
-        return false;
-    };
-    let EntryBody::Passkey(passkey) = &mut entry.body else {
-        return false;
-    };
-    passkey.sign_count = sign_count;
-    passkey.last_used_at = Some(at);
-    entry.updated_at = at;
-    true
 }

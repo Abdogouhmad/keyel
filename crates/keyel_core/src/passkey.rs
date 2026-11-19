@@ -16,7 +16,7 @@
 use ciborium::value::{Integer, Value};
 use p256::ecdsa::signature::Signer;
 use p256::ecdsa::{Signature, SigningKey};
-use p256::elliptic_curve::rand_core::OsRng;
+use p256::elliptic_curve::Generate;
 use p256::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
@@ -57,7 +57,7 @@ pub struct GeneratedPasskey {
 
 /// Generate a new ES256 (P-256) credential.
 pub fn generate_es256_credential() -> Result<GeneratedPasskey> {
-    let signing_key = SigningKey::random(&mut OsRng);
+    let signing_key = SigningKey::generate();
     let verify_key = signing_key.verifying_key();
 
     let private_key_pkcs8 = signing_key
@@ -66,14 +66,12 @@ pub fn generate_es256_credential() -> Result<GeneratedPasskey> {
         .as_bytes()
         .to_vec();
 
-    let point = verify_key.to_encoded_point(false);
+    let point = verify_key.to_sec1_point(false);
     let x = point.x().ok_or(PasskeyError::Crypto)?.to_vec();
     let y = point.y().ok_or(PasskeyError::Crypto)?.to_vec();
     let public_key_cose = encode_cose_ec2_p256_public_key(&x, &y, -7)?;
 
-    let mut credential_id = vec![0u8; 32];
-    use p256::elliptic_curve::rand_core::RngCore;
-    OsRng.fill_bytes(&mut credential_id);
+    let credential_id = <[u8; 32] as Generate>::generate().to_vec();
 
     Ok(GeneratedPasskey {
         credential_id,
@@ -124,7 +122,7 @@ pub fn b64url_decode(s: &str) -> Result<Vec<u8>> {
         .or_else(|_| {
             // Try with padding added if needed.
             let mut padded = s.to_string();
-            while padded.len() % 4 != 0 {
+            while !padded.len().is_multiple_of(4) {
                 padded.push('=');
             }
             data_encoding::BASE64URL.decode(padded.as_bytes())
