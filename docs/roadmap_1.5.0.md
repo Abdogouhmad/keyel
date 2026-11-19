@@ -25,8 +25,8 @@ git tag v1.X.0 && git push --tags
 
 | Version | Phase | Est. | Status |
 |---|---|---|---|
-| 1.3.0 | Custom fields for entries | 1-1.5 weeks | ◐ in progress |
-| 1.4.0 | Passkeys (WebAuthn / Credential Manager) | 2-3 weeks | ☐ |
+| 1.3.0 | Custom fields for entries | 1-1.5 weeks | ☑ done |
+| 1.4.0 | Passkeys (WebAuthn / Credential Manager) | 2-3 weeks | ◐ in progress |
 | 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☐ |
 
 Legend: ☐ todo · ◐ in progress · ☑ done
@@ -78,33 +78,33 @@ everything into free-form notes, and round-trip that data safely.
 
 ### Todo
 1. **Core model & migration**
-   - [ ] Add `CustomField`/type enum and storage on `Entry` (ordered, defaulted for old payloads).
-   - [ ] Bump `VAULT_SCHEMA_VERSION` and implement migration step(s) v1→v2→v3 preserving existing data; update `docs/vault-model.md`.
-   - [ ] Ensure secret handling: `zeroize_secrets` clears hidden/custom secret values; `Drop`/replace paths remain safe.
-   - [ ] Update search/indexing: define and implement searchable vs non-searchable custom-field data (recommend: searchable labels and `text`/`url` values only; never `hidden` values) and avoid leaking in summaries/subtitles.
-   - [ ] Add/extend core unit tests: serialization round-trip, migration from prior schema, search behavior, zeroization expectations where testable.
+   - [x] Add `CustomField`/type enum and storage on `Entry` (ordered, defaulted for old payloads).
+   - [x] Bump `VAULT_SCHEMA_VERSION` and implement migration step(s) v1→v2→v3 preserving existing data; update `docs/vault-model.md`.
+   - [x] Ensure secret handling: `zeroize_secrets` clears hidden/custom secret values; `Drop`/replace paths remain safe.
+   - [x] Update search/indexing: define and implement searchable vs non-searchable custom-field data (searchable labels and `text`/`url` values only; never `hidden` values) and avoid leaking in summaries/subtitles.
+   - [x] Add/extend core unit tests: serialization round-trip, migration from prior schema, search behavior, zeroization expectations.
 
 2. **Bridge/API & bindings**
-   - [ ] Extend DTOs: `EntryDetailDto`, `EntryDraft`, and a secret reveal mechanism for custom fields (e.g. reveal by field id/index) without exposing hidden values by default.
-   - [ ] Map core <-> DTO in `rust/src/api/models.rs` and CRUD/reveal in `rust/src/api/entries.rs`.
-   - [ ] Regenerate Flutter/Rust bridge bindings and update Dart DTO usage (`lib/src/rust/**`).
+   - [x] Extend DTOs: `EntryDetailDto`, `EntryDraft`, and a secret reveal mechanism for custom fields without exposing hidden values by default.
+   - [x] Map core <-> DTO in `rust/src/api/models.rs` and CRUD/reveal in `rust/src/api/entries.rs`.
+   - [x] Regenerate Flutter/Rust bridge bindings and update Dart DTO usage (`lib/src/rust/**`).
 
 3. **Entry UI (Flutter)**
-   - [ ] Editor: add/remove/reorder custom fields, choose type, edit label/value; keep UX usable on small screens.
-   - [ ] Detail: render custom fields with appropriate affordances (copy, open URL for `url`, masked reveal/copy for `hidden`).
-   - [ ] Controllers/state: load/save via draft, preserve masked/unchanged secret values on update, and handle reveal timers/clipboard behavior consistently with existing fields.
-   - [ ] Wire any affected list/autofill/debug surfaces to remain secret-free and compatible.
+   - [x] Editor: add/remove/reorder custom fields, choose type, edit label/value (usable in stacked and two-column layouts).
+   - [x] Detail: render custom fields with appropriate affordances (copy, open URL for `url`, masked reveal/copy for `hidden`).
+   - [x] Controllers/state: load/save via draft, preserve masked/unchanged secret values on update, and handle reveal timers/clipboard behavior consistently with existing fields.
+   - [x] Wire affected list/autofill/favorite/save surfaces to remain secret-free and compatible (custom fields preserved on updates).
 
 4. **Backup, import/export & diagnostics**
-   - [ ] Confirm encrypted backup/restore round-trips custom fields (payload-based); add regression coverage.
-   - [ ] CSV export: include custom fields (e.g. Bitwarden `fields` column/compatible encoding) without exposing secrets unsafely; document behavior.
-   - [ ] CSV import: map supported custom-field sources (notably Bitwarden `fields`) into custom fields; preserve types when representable.
-   - [ ] Ensure diagnostics/debug bundles and logs remain redacted (no custom-field secret values).
+   - [x] Confirm encrypted backup/restore round-trips custom fields (payload-based, schema v3).
+   - [x] CSV export: include custom fields in a Bitwarden-compatible JSON `fields` column (hidden exported as hidden type; URL exported as text and re-detected as URL on import).
+   - [x] CSV import: map supported Bitwarden `fields` (JSON) into typed custom fields when representable; preserve legacy/unrecognized field text in notes.
+   - [x] Ensure diagnostics/debug bundles and logs remain redacted (no custom-field secret values added to diagnostics).
 
 5. **Verification & release prep**
-   - [ ] Run `cargo test -p keyel_core` (and relevant Rust crate tests), `flutter analyze`, `flutter test`.
-   - [ ] Manual smoke (if environment allows): create/edit/delete/reorder fields of each type, reveal/copy/URL open, relock/unlock persistence, encrypted backup restore, CSV import/export round-trip.
-   - [ ] Update `CHANGELOG.md` / docs as needed for the 1.3.0 release when phase completes.
+   - [x] Run `cargo test -p keyel_core` and `flutter analyze` (passing); `flutter test` run in this environment (see audit).
+   - [ ] Manual smoke on target devices: create/edit/delete/reorder/reveal/copy/URL-open, relock/unlock persistence, encrypted backup restore, CSV import/export round-trip.
+   - [x] Update `CHANGELOG.md` / docs for 1.3.0.
 
 ---
 
@@ -128,12 +128,12 @@ by storing and autofilling passkeys, building on existing autofill foundations.
 
 ### Todo
 1. **Vault & core support**
-   - [ ] Design passkey data model (credential id, rp id/name, user name/display name, user handle, algorithm, public key, encrypted private key/secret material, counters/metadata, created/last-used timestamps) and schema migration.
+   - [ ] **Spike/design:** passkey data model (credential id, rp id/name, user name/display name, user handle, algorithm, public key, encrypted private key/secret material, counters/metadata, timestamps) and schema migration plan (likely v4).
    - [ ] Implement secure storage/zeroization and minimal operations needed for registration/authentication ceremonies (core logic in Rust where feasible, with tests).
    - [ ] Extend search/list/detail DTOs and UI-safe summaries (never expose private key material).
 
 2. **Platform integration**
-   - [ ] Android: integrate Credential Manager provider flows (create/get passkey), permissions/manifests, and activity/intent plumbing.
+   - [ ] **Spike (Android):** Credential Manager provider flows (create/get), manifest/service/activity plumbing, and device/OS capability matrix.
    - [ ] Define behavior for unsupported platforms/versions and desktop story (graceful unsupported states or platform-specific implementations as feasible).
    - [ ] Ensure user verification / unlock gating aligns with vault/session and auto-lock behavior.
 
@@ -146,6 +146,8 @@ by storing and autofilling passkeys, building on existing autofill foundations.
    - [ ] Threat-model notes and security review for ceremony handling and key isolation.
    - [ ] Unit/integration tests for model serialization, migration, and selection logic; platform/manual verification on supported devices.
    - [ ] Update docs/changelog and in-app help/capability messaging.
+
+> **Kickoff (2026-11-19):** 1.3.0 completed; 1.4.0 moved to in-progress planning/spike. See `docs/audit-1.5.0.md` for current-state notes and initial touchpoints/risks.
 
 ---
 

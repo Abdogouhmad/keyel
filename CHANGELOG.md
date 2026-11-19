@@ -5,6 +5,35 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-19
+
+### Added
+
+- **Custom fields for entries** — add ordered extra fields to any login, card,
+  or secure note. Each field has a label, value, and type (`text`, `hidden`, or
+  `url`) and can be added, removed, or reordered in the editor.
+- **Secret-safe custom-field handling** — hidden custom-field values are treated
+  as secrets: masked in entry details, revealed/copied only on demand (with
+  auto-hide), excluded from search/indexing, diagnostics, and logs, and wiped
+  from memory alongside other secrets.
+- **Custom-field import/export** — CSV export includes custom fields in a
+  Bitwarden-compatible `fields` column; Bitwarden-style custom fields are mapped
+  into typed fields on import while preserving backward compatibility for legacy
+  field text. Encrypted backups round-trip custom fields with the vault payload.
+
+### Changed
+
+- **Vault payload schema v3** — entries now store ordered `custom_fields`.
+  Existing v1/v2 vaults migrate in place on open (defaulting to no custom
+  fields) and persist as v3; unknown/future schema versions remain rejected.
+- **Search** — custom-field labels and non-secret (`text`/`url`) values are
+  searchable; hidden custom-field values are never matched.
+
+### Security
+
+- Hidden custom-field secrets are never exposed in summaries or detail DTOs and
+  are only retrievable through an explicit reveal path for the requested field.
+
 ## [1.2.0] - 2026-11-18
 
 ### Added

@@ -60,6 +60,51 @@ class EntryEditController {
     callbacks.rebuild();
   }
 
+  /// Replaces the custom-fields list and requests a rebuild.
+  void setCustomFields(List<CustomFieldDraft> next) {
+    customFields = List<CustomFieldDraft>.unmodifiable(next);
+    callbacks.rebuild();
+  }
+
+  /// Adds an empty custom field of the given kind.
+  void addCustomField([CustomFieldKindDto kind = CustomFieldKindDto.text]) {
+    setCustomFields([
+      ...customFields,
+      CustomFieldDraft(
+        label: '',
+        kind: kind,
+        value: kind == CustomFieldKindDto.hidden ? null : '',
+      ),
+    ]);
+  }
+
+  /// Removes a custom field at [index].
+  void removeCustomField(int index) {
+    if (index < 0 || index >= customFields.length) return;
+    final next = [...customFields]..removeAt(index);
+    setCustomFields(next);
+  }
+
+  /// Updates a custom field at [index].
+  void updateCustomField(int index, CustomFieldDraft updated) {
+    if (index < 0 || index >= customFields.length) return;
+    final next = [...customFields];
+    next[index] = updated;
+    setCustomFields(next);
+  }
+
+  /// Moves a custom field from [oldIndex] to [newIndex].
+  void reorderCustomField(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= customFields.length) return;
+    var target = newIndex;
+    if (target > oldIndex) target -= 1;
+    if (target < 0 || target >= customFields.length) return;
+    final next = [...customFields];
+    final item = next.removeAt(oldIndex);
+    next.insert(target, item);
+    setCustomFields(next);
+  }
+
   /// Screen callbacks for rebuilds and user feedback.
   final EntryEditCallbacks callbacks;
 

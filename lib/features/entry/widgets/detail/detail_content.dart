@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/entry/widgets/detail/card_details.dart';
 import 'package:keyel/features/entry/widgets/detail/credentials_card.dart';
+import 'package:keyel/features/entry/widgets/detail/custom_fields_card.dart';
 import 'package:keyel/features/entry/widgets/detail/detail_hero.dart';
 import 'package:keyel/features/entry/widgets/detail/health_card.dart';
 import 'package:keyel/features/entry/widgets/detail/note_details.dart';
@@ -21,11 +22,14 @@ class DetailContent extends StatelessWidget {
     required this.revealedCardNumber,
     required this.revealedCvv,
     required this.revealedNote,
+    required this.revealedCustomFields,
     required this.onToggleRevealPassword,
     required this.onToggleRevealCard,
     required this.onToggleRevealNote,
+    required this.onToggleRevealCustomField,
     required this.onCopy,
     required this.onCopyPassword,
+    required this.onCopyCustomField,
     required this.onOpenUrl,
     super.key,
   });
@@ -48,6 +52,9 @@ class DetailContent extends StatelessWidget {
   /// Revealed note content, or `null` when hidden.
   final String? revealedNote;
 
+  /// Revealed hidden custom-field values keyed by custom-field id.
+  final Map<String, String> revealedCustomFields;
+
   /// Reveals or hides the login password.
   final VoidCallback onToggleRevealPassword;
 
@@ -57,11 +64,17 @@ class DetailContent extends StatelessWidget {
   /// Reveals or hides the note content.
   final VoidCallback onToggleRevealNote;
 
+  /// Reveals or hides a hidden custom field.
+  final void Function(String fieldId) onToggleRevealCustomField;
+
   /// Copies a value to the clipboard with feedback.
   final void Function(String value, String message) onCopy;
 
   /// Copies the password, revealing it first if needed.
   final VoidCallback onCopyPassword;
+
+  /// Copies a custom-field value, revealing hidden values first if needed.
+  final void Function(CustomFieldDetailDto field) onCopyCustomField;
 
   /// Opens a URL shown on the detail screen.
   final void Function(String url) onOpenUrl;
@@ -112,6 +125,16 @@ class DetailContent extends StatelessWidget {
               entryId: detail.id,
               period: detail.login?.totpPeriod ?? 30,
               onCopy: onCopy,
+            ),
+          ],
+          if (detail.customFields.isNotEmpty) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            CustomFieldsCard(
+              fields: detail.customFields,
+              revealedValues: revealedCustomFields,
+              onToggleReveal: onToggleRevealCustomField,
+              onCopyField: onCopyCustomField,
+              onOpenUrl: onOpenUrl,
             ),
           ],
           const SizedBox(height: KeyelSpacing.md),

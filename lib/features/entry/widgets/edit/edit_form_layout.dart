@@ -9,6 +9,7 @@ import 'package:keyel/features/entry/entry_edit_controller.dart';
 import 'package:keyel/features/entry/models/entry_icon.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/entry/widgets/edit/card_section.dart';
+import 'package:keyel/features/entry/widgets/edit/custom_fields_section.dart';
 import 'package:keyel/features/entry/widgets/edit/icon_picker_sheet.dart';
 import 'package:keyel/features/entry/widgets/edit/identity_card.dart';
 import 'package:keyel/features/entry/widgets/edit/login_fields.dart';
@@ -215,14 +216,22 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
     VaultEntryKind.card => [
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
-    VaultEntryKind.note => [_organizationSection()],
+    VaultEntryKind.note => [
+      _organizationSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+    ],
   };
 
   /// All sections stacked in a single column on narrow windows.
@@ -245,6 +254,8 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
     VaultEntryKind.card => [
@@ -252,12 +263,16 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
       const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
+      const SizedBox(height: KeyelSpacing.md),
       _notesSection(),
     ],
     VaultEntryKind.note => [
       _noteContentSection(),
       const SizedBox(height: KeyelSpacing.md),
       _organizationSection(),
+      const SizedBox(height: KeyelSpacing.md),
+      _customFieldsSection(),
     ],
   };
 
@@ -302,6 +317,9 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     onFavoriteChanged: widget.onFavoriteChanged,
     onFolderTap: () => unawaited(_chooseFolder()),
   );
+
+  Widget _customFieldsSection() =>
+      CustomFieldsSection(controller: widget.controller);
 
   void _suggestUsername() {
     setState(() => widget.controller.username.text = 'alex.dev@hey.com');

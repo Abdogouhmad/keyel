@@ -34,7 +34,9 @@ class EntryDetailController {
   String? _revealedCardNumber;
   String? _revealedCvv;
   String? _revealedNote;
+  final Map<String, String> _revealedCustomFields = <String, String>{};
   Timer? _hideTimer;
+  final Map<String, Timer> _customFieldHideTimers = <String, Timer>{};
 
   /// Latest loaded detail record, or `null` while missing.
   EntryDetailDto? get detail => _detail;
@@ -56,6 +58,9 @@ class EntryDetailController {
 
   /// Revealed note content, or `null` when hidden.
   String? get revealedNote => _revealedNote;
+
+  /// Revealed hidden custom-field values keyed by custom-field id.
+  Map<String, String> get revealedCustomFields => _revealedCustomFields;
 
   /// Loads the entry from the vault repository.
   Future<void> load() async {
@@ -182,6 +187,61 @@ class EntryDetailController {
     }
   }
 
+  /// Reveals or hides a hidden custom field with an auto-hide timer.
+  Future<void> toggleRevealCustomField(String fieldId) async {
+    if (_revealedCustomFields.containsKey(fieldId)) {
+      _revealedCustomFields.remove(fieldId);
+      _customFieldHideTimers.remove(fieldId)?.cancel();
+      callbacks.rebuild();
+      return;
+    }
+
+    try {
+      final plain = await repository.revealCustomField(entryId, fieldId);
+      _revealedCustomFields[fieldId] = plain;
+      callbacks.rebuild();
+      _customFieldHideTimers.remove(fieldId)?.cancel();
+      _customFieldHideTimers[fieldId] = Timer(const Duration(seconds: 15), () {
+        _revealedCustomFields.remove(fieldId);
+        _customFieldHideTimers.remove(fieldId);
+        callbacks.rebuild();
+      });
+    } on Object catch (error) {
+      callbacks.notifyError(error);
+    }
+  }
+
+  /// Copies a custom-field value, revealing hidden values first if needed.
+  Future<void> copyCustomField(CustomFieldDetailDto field) async {
+    if (field.kind == CustomFieldKindDto.hidden) {
+      final revealed = _revealedCustomFields[field.id];
+      if (revealed != null) {
+        callbacks.copy(
+          revealed,
+          '${_customFieldLabel(field)} copied${SensitiveClipboard.instance.clearHint}',
+        );
+        return;
+      }
+      try {
+        final plain = await repository.revealCustomField(entryId, field.id);
+        callbacks.copy(
+          plain,
+          '${_customFieldLabel(field)} copied${SensitiveClipboard.instance.clearHint}',
+        );
+      } on Object catch (error) {
+        callbacks.notifyError(error);
+      }
+      return;
+    }
+
+    callbacks.copy(field.value, '${_customFieldLabel(field)} copied');
+  }
+
+  String _customFieldLabel(CustomFieldDetailDto field) {
+    final label = field.label.trim();
+    return label.isEmpty ? 'Field' : label;
+  }
+
   /// Opens a URL shown on the detail screen in the default external app.
   ///
   /// Bare hosts are upgraded to https first; the user is told when the value
@@ -272,8 +332,12 @@ class EntryDetailController {
     callbacks.onEdited?.call();
   }
 
-  /// Cancels the pending auto-hide timer.
+  /// Cancels pending auto-hide timers.
   void dispose() {
     _hideTimer?.cancel();
+    for (final timer in _customFieldHideTimers.values) {
+      timer.cancel();
+    }
+    _customFieldHideTimers.clear();
   }
 }

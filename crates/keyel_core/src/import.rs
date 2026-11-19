@@ -16,7 +16,9 @@ use uuid::Uuid;
 
 use crate::csv;
 use crate::totp;
-use crate::vault::{Entry, EntryBody, EntryKind, Login, Note, TotpConfig, Vault};
+use crate::vault::{
+    CustomField, CustomFieldKind, Entry, EntryBody, EntryKind, Login, Note, TotpConfig, Vault,
+};
 
 /// A CSV export format this importer understands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -300,13 +302,14 @@ pub fn export_csv(vault: &Vault) -> String {
             }
         };
 
+        let fields = export_bitwarden_fields(&entry.custom_fields);
         out.push_str(&csv::write_row(&[
             folder,
             if entry.favorite { "1" } else { "0" },
             kind,
             &entry.title,
             &notes,
-            "",
+            &fields,
             "0",
             &url,
             &username,
@@ -409,15 +412,26 @@ impl Columns {
             && password.is_empty()
             && url.is_empty()
             && notes.is_empty()
+            && fields.trim().is_empty()
         {
             return Ok(None);
         }
 
+        let (custom_fields, parsed_fields) = parse_bitwarden_fields(fields);
+        let extra_notes = match parsed_fields {
+            // Structured JSON fields parsed: custom fields captured, no legacy text to append.
+            Some(_) => String::new(),
+            // Unrecognized/legacy fields text: preserve it in notes as before.
+            None => fields.to_string(),
+        };
+
         let entry = match kind.as_str() {
             "note" => {
-                let content = join_blocks(&[notes, fields]);
+                let content = join_blocks(&[notes, &extra_notes]);
                 let title = fallback_title(name, &["Secure note"]);
-                Entry::note(title, Note { content })
+                let mut entry = Entry::note(title, Note { content });
+                entry.custom_fields = custom_fields;
+                entry
             }
             "" | "login" => {
                 let title = fallback_title(name, &[url, username, "Imported login"]);
@@ -429,16 +443,20 @@ impl Columns {
                     password_history: Vec::new(),
                 };
                 let mut entry = Entry::login(title, login);
-                entry.notes = join_blocks(&[notes, fields]);
+                entry.notes = join_blocks(&[notes, &extra_notes]);
+                entry.custom_fields = custom_fields;
                 entry
             }
             // Cards and identities are not representable in the Bitwarden CSV
             // format; keep the payload as a secure note so nothing is lost.
             other => {
                 let header = format!("Imported Bitwarden {other} item.");
-                let content = join_blocks(&[&header, notes, fields]);
+                // Preserve structured custom fields when parsed; otherwise keep raw fields.
+                let content = join_blocks(&[&header, notes, &extra_notes]);
                 let title = fallback_title(name, &["Imported item"]);
-                Entry::note(title, Note { content })
+                let mut entry = Entry::note(title, Note { content });
+                entry.custom_fields = custom_fields;
+                entry
             }
         };
 
@@ -526,6 +544,272 @@ fn join_blocks(blocks: &[&str]) -> String {
     }
     out
 }
+
+/// Encode custom fields into Bitwarden's JSON `fields` column.
+///
+/// `type`: 0 = text, 1 = hidden, 2 = boolean (not used), 3 = linked (not used).
+/// URL custom fields are exported as text fields so the value round-trips.
+fn export_bitwarden_fields(fields: &[CustomField]) -> String {
+    if fields.is_empty() {
+        return String::new();
+    }
+    let mut out = String::from("[");
+    for (i, field) in fields.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        let kind = match field.kind {
+            CustomFieldKind::Hidden => 1,
+            CustomFieldKind::Text | CustomFieldKind::Url => 0,
+        };
+        out.push_str(&format!(
+            "{{\"name\":{},\"value\":{},\"type\":{},\"linkedId\":null}}",
+            json_string(&field.label),
+            json_string(&field.value),
+            kind
+        ));
+    }
+    out.push(']');
+    out
+}
+
+/// Parse Bitwarden-style custom fields from the CSV `fields` column.
+///
+/// Returns `(custom_fields, fallback_note)` where `fallback_note` is `Some`
+/// when fields were parsed structurally (possibly empty) and the caller should
+/// not also append the raw field string to notes; `None` means parsing did not
+/// recognize the format and the raw string should be preserved as text.
+fn parse_bitwarden_fields(raw: &str) -> (Vec<CustomField>, Option<String>) {
+    let raw = raw.trim();
+    if raw.is_empty() {
+        return (Vec::new(), Some(String::new()));
+    }
+
+    // Bitwarden CSV uses a JSON array in the `fields` column.
+    if raw.starts_with('[') {
+        if let Some(fields) = parse_fields_json_array(raw) {
+            return (fields, Some(String::new()));
+        }
+    }
+
+    // Not a recognized Bitwarden fields payload: preserve as text (legacy behavior).
+    (Vec::new(), None)
+}
+
+fn parse_fields_json_array(raw: &str) -> Option<Vec<CustomField>> {
+    let mut s = raw.trim();
+    if !s.starts_with('[') || !s.ends_with(']') {
+        return None;
+    }
+    s = &s[1..s.len() - 1];
+    let mut fields = Vec::new();
+    let mut rest = s.trim_start();
+    while !rest.is_empty() {
+        if rest.starts_with(',') {
+            rest = rest[1..].trim_start();
+            continue;
+        }
+        if !rest.starts_with('{') {
+            return None;
+        }
+        let (obj, next) = extract_json_object(rest)?;
+        if let Some(field) = parse_field_object(obj) {
+            fields.push(field);
+        }
+        rest = next.trim_start();
+    }
+    Some(fields)
+}
+
+fn extract_json_object(s: &str) -> Option<(&str, &str)> {
+    let bytes = s.as_bytes();
+    let mut depth = 0i32;
+    let mut in_str = false;
+    let mut escape = false;
+    for (i, &b) in bytes.iter().enumerate() {
+        if in_str {
+            if escape {
+                escape = false;
+            } else if b == b'\\' {
+                escape = true;
+            } else if b == b'"' {
+                in_str = false;
+            }
+            continue;
+        }
+        match b {
+            b'"' => in_str = true,
+            b'{' => depth += 1,
+            b'}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some((&s[..=i], &s[i + 1..]));
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+fn parse_field_object(obj: &str) -> Option<CustomField> {
+    let name = json_get_string(obj, "name").unwrap_or_default();
+    let value = json_get_string(obj, "value").unwrap_or_default();
+    let typ = json_get_number(obj, "type").unwrap_or(0);
+    if name.trim().is_empty() && value.is_empty() {
+        return None;
+    }
+    let kind = match typ {
+        1 => CustomFieldKind::Hidden,
+        _ => {
+            if looks_like_url(&value) {
+                CustomFieldKind::Url
+            } else {
+                CustomFieldKind::Text
+            }
+        }
+    };
+    Some(CustomField::new(name, value, kind))
+}
+
+fn looks_like_url(value: &str) -> bool {
+    let v = value.trim().to_ascii_lowercase();
+    v.starts_with("https://") || v.starts_with("http://")
+}
+
+fn json_get_string(obj: &str, key: &str) -> Option<String> {
+    let needle = format!("\"{}\"", key);
+    let mut i = 0;
+    let bytes = obj.as_bytes();
+    while i + needle.len() <= bytes.len() {
+        if obj[i..].starts_with(&needle) {
+            // find colon
+            let mut j = i + needle.len();
+            while j < bytes.len() && bytes[j].is_ascii_whitespace() {
+                j += 1;
+            }
+            if j >= bytes.len() || bytes[j] != b':' {
+                i += 1;
+                continue;
+            }
+            j += 1;
+            while j < bytes.len() && bytes[j].is_ascii_whitespace() {
+                j += 1;
+            }
+            if j >= bytes.len() {
+                return None;
+            }
+            if bytes[j] == b'"' {
+                return parse_json_string(&obj[j..]).map(|(v, _)| v);
+            } else if obj[j..].starts_with("null") {
+                return Some(String::new());
+            } else {
+                return None;
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn json_get_number(obj: &str, key: &str) -> Option<i64> {
+    let needle = format!("\"{}\"", key);
+    let mut i = 0;
+    let bytes = obj.as_bytes();
+    while i + needle.len() <= bytes.len() {
+        if obj[i..].starts_with(&needle) {
+            let mut j = i + needle.len();
+            while j < bytes.len() && bytes[j].is_ascii_whitespace() {
+                j += 1;
+            }
+            if j >= bytes.len() || bytes[j] != b':' {
+                i += 1;
+                continue;
+            }
+            j += 1;
+            while j < bytes.len() && bytes[j].is_ascii_whitespace() {
+                j += 1;
+            }
+            let start = j;
+            if j < bytes.len() && (bytes[j] == b'-' || bytes[j].is_ascii_digit()) {
+                j += 1;
+                while j < bytes.len() && bytes[j].is_ascii_digit() {
+                    j += 1;
+                }
+                return obj[start..j].parse::<i64>().ok();
+            }
+            return None;
+        }
+        i += 1;
+    }
+    None
+}
+
+fn parse_json_string(s: &str) -> Option<(String, &str)> {
+    let bytes = s.as_bytes();
+    if bytes.first().copied()? != b'"' {
+        return None;
+    }
+    let mut out = String::new();
+    let mut i = 1;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'"' => return Some((out, &s[i + 1..])),
+            b'\\' => {
+                i += 1;
+                let esc = *bytes.get(i)?;
+                let ch = match esc {
+                    b'"' => '"',
+                    b'\\' => '\\',
+                    b'/' => '/',
+                    b'b' => '\u{0008}',
+                    b'f' => '\u{000C}',
+                    b'n' => '\n',
+                    b'r' => '\r',
+                    b't' => '\t',
+                    b'u' => {
+                        let hex = s.get(i + 1..i + 5)?;
+                        let code = u16::from_str_radix(hex, 16).ok()?;
+                        i += 4;
+                        char::from_u32(u32::from(code)).unwrap_or('\u{FFFD}')
+                    }
+                    _ => return None,
+                };
+                out.push(ch);
+            }
+            b if b < 0x20 => return None,
+            _ => {
+                let ch = s[i..].chars().next()?;
+                out.push(ch);
+                i += ch.len_utf8();
+                continue;
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn json_string(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for ch in s.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            '\u{0008}' => out.push_str("\\b"),
+            '\u{000C}' => out.push_str("\\f"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -713,6 +997,42 @@ mod tests {
             panic!("expected note");
         };
         assert_eq!(note.content, "one\ntwo");
+    }
+
+    #[test]
+    fn bitwarden_custom_fields_round_trip_through_csv_export() {
+        let mut vault = Vault::new();
+        let mut entry = Entry::login(
+            "Service",
+            Login {
+                username: "ada".into(),
+                password: "pw".into(),
+                url: "https://svc.example".into(),
+                ..Login::default()
+            },
+        );
+        entry.custom_fields = vec![
+            CustomField::new("Department", "Engineering", CustomFieldKind::Text),
+            CustomField::new("PIN", "1234", CustomFieldKind::Hidden),
+            CustomField::new("Portal", "https://portal.example", CustomFieldKind::Url),
+        ];
+        vault.add_entry(entry);
+
+        let csv = export_csv(&vault);
+        let parsed = parse(&csv).unwrap();
+        assert_eq!(parsed.entries.len(), 1);
+        let imported = &parsed.entries[0].entry;
+        assert_eq!(imported.custom_fields.len(), 3);
+        assert_eq!(imported.custom_fields[0].label, "Department");
+        assert_eq!(imported.custom_fields[0].value, "Engineering");
+        assert_eq!(imported.custom_fields[0].kind, CustomFieldKind::Text);
+        assert_eq!(imported.custom_fields[1].label, "PIN");
+        assert_eq!(imported.custom_fields[1].value, "1234");
+        assert_eq!(imported.custom_fields[1].kind, CustomFieldKind::Hidden);
+        assert_eq!(imported.custom_fields[2].label, "Portal");
+        assert_eq!(imported.custom_fields[2].value, "https://portal.example");
+        // URL exported as Bitwarden text field (type 0) is re-detected as URL on import.
+        assert_eq!(imported.custom_fields[2].kind, CustomFieldKind::Url);
     }
 
     #[test]
