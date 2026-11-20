@@ -151,7 +151,7 @@ class BreachCheckRow extends ConsumerWidget {
                 ),
                 TextButton.icon(
                   onPressed: () => unawaited(
-                    ref.read(breachOptInProvider.notifier).set(false),
+                    ref.read(breachOptInProvider.notifier).set(enabled: false),
                   ),
                   icon: const Icon(Icons.toggle_off_outlined),
                   label: const Text('Turn off'),
@@ -211,7 +211,7 @@ class BreachCheckRow extends ConsumerWidget {
       ),
     );
     if (accepted == true && context.mounted) {
-      await ref.read(breachOptInProvider.notifier).set(true);
+      await ref.read(breachOptInProvider.notifier).set(enabled: true);
     }
   }
 }

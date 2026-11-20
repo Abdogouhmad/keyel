@@ -58,7 +58,7 @@ class BreachOptInNotifier extends Notifier<bool> {
   bool build() => AppPreferences.instance.breachCheckEnabled;
 
   /// Enable or disable checks. Disabling also cancels any in-flight check.
-  Future<void> set(bool enabled) async {
+  Future<void> set({required bool enabled}) async {
     AppPreferences.instance.breachCheckEnabled = enabled;
     // Update the UI first: settings.json is best-effort and disk I/O must not
     // delay the user's explicit choice.
