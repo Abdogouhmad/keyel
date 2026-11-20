@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "1.8.5",
-  "latestVersionCode": 10805,
+  "latestVersionName": "1.8.6",
+  "latestVersionCode": 10806,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.8.5/keyel-v1.8.5-universal.apk",
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.8.6/keyel-v1.8.6-universal.apk",
   "size": 43488922,
-  "sha256": "554f15be1ae851cadebca7b854e951e0bbbbce31d38de5fd473d7916faa3a384",
-  "releaseNotes": "## [1.8.5] - 2026-11-20\n\nUpdate notifications and a beta channel, plus three fixes to 1.8.2. No vault\nschema change; one new opt-in Android permission (`POST_NOTIFICATIONS`).\n\n### Added\n\n- **Automatic update checks with notifications.** Keyel quietly checks the\n  selected release channel when it opens, on resume, and while it is in the\n  foreground (no background service). A new release raises an Android OS\n  notification — once per version — and a dismissible banner at the top of the\n  app that opens *Software Update*. Checks are throttled and persisted, can be\n  turned off, and never upload vault data. Android 13+ asks for\n  `POST_NOTIFICATIONS` once; declining still shows the in-app banner.\n- **Stable and beta release channels.** *Software Update* lets you switch\n  between the verified stable manifest and a separate beta manifest. Beta\n  builds are manual GitHub prereleases with their own SHA-256-verified APK\n  manifest, so opting in never changes what stable users receive.\n\n### Changed\n\n- **Clearer dark / light / system switcher.** The Appearance screen now uses\n  self-explaining radio cards with a short description for each mode and a\n  badge showing the current system brightness, instead of an unlabelled\n  segmented control.\n\n### Fixed\n\n- **Black screenshots when protection was disabled.** The screenshot switch\n  now reliably clears the native `FLAG_SECURE` when turned off, and re-applies\n  it on every lock or background transition. Lock, unlock, autofill and passkey\n  screens remain protected regardless of the switch; the autofill and passkey\n  entrypoints set the flag natively before Flutter starts.\n- **Spurious \"copied an empty text\" toast after clipboard wipe.** Wiping now\n  uses Android's `clearPrimaryClip()` instead of copying an empty value, and\n  empty fields no longer show a \"copied\" confirmation.\n- Beta update detection no longer relies on a hash scraped from release notes;\n  both channels use the same committed, checksum-verified manifest.\n\n### Security\n\n- Screenshot blocking still defaults to on and fails closed. Notification\n  permission is opt-in, revocable in Android settings, and notification text\n  contains only the version and channel — never vault contents.",
-  "publishedAt": "2026-11-20T21:19:43.652491+00:00",
+  "sha256": "71f0a8b9c90fdb5ed70a175281de4d6eda3b9881ba9d01abd6555018fd91f8c5",
+  "releaseNotes": "## [1.8.6] - 2026-11-20\n\nA small Appearance cleanup. No vault, security or permission changes.\n\n### Changed\n\n- Removed the \"Page / Card\" dark-surface sample from the Pure black (AMOLED)\n  setting on the Appearance screen. The AMOLED switch itself is unchanged; the\n  live theme preview at the top of the screen still reflects the selection.",
+  "publishedAt": "2026-11-20T21:49:20.256980+00:00",
   "channel": "stable",
   "isPrerelease": false
 }
