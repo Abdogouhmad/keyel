@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/core/platform/secure_screen.dart';
 import 'package:keyel/core/router/app_router.dart';
 import 'package:keyel/core/security/auto_lock_host.dart';
+import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
@@ -25,7 +26,8 @@ Future<void> main() async {
   );
 
   // Keep screenshots and the Recents thumbnail out of the lock screen from the
-  // first frame onward.
+  // first frame onward. ScreenshotProtectionHost relaxes this only after the
+  // vault unlocks and only when the user opted in to allowing captures.
   await setSecureScreen(secure: true);
 
   // Bring up the Rust side (FRB).
@@ -42,7 +44,11 @@ Future<void> main() async {
     debugPrint('Keyel: vault storage is unavailable: $error');
   }
 
-  runApp(const ProviderScope(child: AutoLockHost(child: KeyelApp())));
+  runApp(
+    const ProviderScope(
+      child: AutoLockHost(child: ScreenshotProtectionHost(child: KeyelApp())),
+    ),
+  );
 }
 
 /// The Keyel root widget.

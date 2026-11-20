@@ -5,6 +5,29 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.2] - 2026-11-20
+
+Three follow-ups to 1.8.0. No vault schema change and no new permission.
+
+### Added
+
+- **Screenshot protection switch** in Settings → Security & Access. Turning it
+  off lets you capture in-app screens (for example to share a design). The
+  preference is persisted and reported honestly on the security dashboard.
+  Lock, unlock and first-run screens and the autofill/passkey entrypoints keep
+  blocking screenshots regardless of the switch.
+- **Live theme preview** on the Appearance screen, rendered with the selected
+  palette and mode, plus a dark-surface sample that shows exactly what the
+  AMOLED switch changes. Theme-mode captions now say what each option does.
+- **Return path from "Review settings"**: the security dashboard switches to
+  the Settings tab through the shell and Settings shows a labelled back arrow
+  to Security for that entry.
+
+### Security
+
+- Screenshot blocking defaults to on and fails closed: a missing preference
+  value keeps it enabled, and every lock restores it.
+
 ## [1.8.0] - 2026-11-20
 
 A quality release: faster hot screens, stronger secret handling, and a more

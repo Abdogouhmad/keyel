@@ -10,6 +10,7 @@ class KeyelTopBar extends StatelessWidget {
   const new({
     required this.title,
     required this.icon,
+    this.iconTooltip,
     this.trailing,
     this.onIconTap,
     super.key,
@@ -20,6 +21,12 @@ class KeyelTopBar extends StatelessWidget {
 
   /// Leading glyph shown inside a circular tonal hull.
   final IconData icon;
+
+  /// Optional label for the leading glyph; defaults to [title].
+  ///
+  /// Set this when the glyph is a back action so screen readers announce where
+  /// it goes instead of reading the page title again.
+  final String? iconTooltip;
 
   /// Optional action aligned to the end.
   final Widget? trailing;
@@ -40,7 +47,7 @@ class KeyelTopBar extends StatelessWidget {
           children: [
             KeyelIconHull(
               icon: icon,
-              tooltip: title,
+              tooltip: iconTooltip ?? title,
               onPressed: onIconTap,
               background: scheme.secondaryContainer,
               foreground: scheme.primary,

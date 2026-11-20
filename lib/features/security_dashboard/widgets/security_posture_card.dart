@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/breach_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart'
@@ -78,8 +79,9 @@ class SecurityPosture {
 /// Connects the posture card to the same non-secret state the features use.
 ///
 /// Auto-lock and clipboard values come from [AppPreferences] (the source the
-/// settings screen writes); the breach flag is a Riverpod provider so toggling
-/// it in the breach row updates this card immediately. No state is duplicated.
+/// settings screen writes); the breach and screenshot flags are Riverpod
+/// providers so toggling them updates this card immediately. No state is
+/// duplicated.
 class SecurityPostureCardConnector extends ConsumerWidget {
   /// Creates the connected posture card.
   const new({super.key});
@@ -88,6 +90,7 @@ class SecurityPostureCardConnector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = AppPreferences.instance;
     final optedIn = ref.watch(breachOptInProvider);
+    final screenshotsBlocked = ref.watch(screenshotProtectionProvider);
 
     final lockLabel = autoLockLabel(prefs.autoLockDelay);
     final clipboardSeconds = prefs.clipboardClearSeconds;
@@ -115,12 +118,16 @@ class SecurityPostureCardConnector extends ConsumerWidget {
                     'Locking always clears it.'
               : 'Clipboard wipe: only on lock or when leaving the app.',
         ),
-        screenshot: const SecurityPostureSeal(
+        screenshot: SecurityPostureSeal(
           label: 'Screenshot blocking',
-          value: 'Always on',
+          value: screenshotsBlocked ? 'Enabled' : 'Off',
           icon: Icons.no_photography_rounded,
-          active: true,
-          semanticsLabel: 'Screenshot blocking: always on.',
+          active: screenshotsBlocked,
+          semanticsLabel: screenshotsBlocked
+              ? 'Screenshot blocking: enabled while the vault is unlocked. '
+                    'Lock screens are always protected.'
+              : 'Screenshot blocking: off. Lock and unlock screens are still '
+                    'protected.',
         ),
         breach: SecurityPostureSeal(
           label: 'Breach check',
@@ -132,7 +139,11 @@ class SecurityPostureCardConnector extends ConsumerWidget {
               : 'Breach check: off. No password data is sent.',
         ),
       ),
-      onReviewSettings: () => context.push(KeyelRoutes.settings),
+      // `settings` is a shell branch, so push() used to strand the user on a
+      // page without the tab bar. go() switches branches and keeps navigation
+      // chrome; ?from=security adds an explicit back arrow in Settings.
+      onReviewSettings: () =>
+          context.go('${KeyelRoutes.settings}?from=security'),
     );
   }
 }

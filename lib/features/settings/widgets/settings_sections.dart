@@ -55,11 +55,13 @@ class SettingsSecuritySection extends StatelessWidget {
     required this.biometricEnabled,
     required this.autoLockDelay,
     required this.clipboardSeconds,
+    required this.screenshotProtection,
     required this.onLockNow,
     required this.onChangeMaster,
     required this.onAutoLock,
     required this.onToggleBiometric,
     required this.onClipboard,
+    required this.onScreenshotProtectionChanged,
     super.key,
   });
 
@@ -78,6 +80,9 @@ class SettingsSecuritySection extends StatelessWidget {
   /// Current clipboard clear timeout in seconds.
   final int clipboardSeconds;
 
+  /// Whether screenshots are blocked while the vault is unlocked.
+  final bool screenshotProtection;
+
   /// Locks the vault immediately.
   final VoidCallback onLockNow;
 
@@ -92,6 +97,9 @@ class SettingsSecuritySection extends StatelessWidget {
 
   /// Opens the clipboard clear picker.
   final VoidCallback onClipboard;
+
+  /// Enables or disables screenshots while the vault is unlocked.
+  final ValueChanged<bool> onScreenshotProtectionChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +170,17 @@ class SettingsSecuritySection extends StatelessWidget {
                 ),
               ),
               onTap: onClipboard,
+            ),
+            SettingsRow(
+              icon: Icons.no_photography_rounded,
+              title: 'Screenshot protection',
+              subtitle:
+                  'Block screenshots and Recents previews while the vault '
+                  'is open. Lock screens stay protected either way.',
+              trailing: Switch.adaptive(
+                value: screenshotProtection,
+                onChanged: onScreenshotProtectionChanged,
+              ),
             ),
           ],
         ),

@@ -17,6 +17,7 @@ void _reset(AppPreferences prefs) {
     ..generatorIncludeNumber = false
     ..generatorSeparator = '-'
     ..clipboardClearSeconds = 30
+    ..screenshotProtection = true
     ..unlockFailures = 0
     ..unlockLockedUntilMs = null
     ..themeMode = 'system'
@@ -137,6 +138,30 @@ void main() {
     await prefs.load(vaultPath);
     expect(prefs.clipboardClearSeconds, 0);
     expect(prefs.clipboardClearDelay, isNull);
+  });
+
+  test('screenshot protection round-trips and fails safe', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_screenshot');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    prefs.screenshotProtection = false;
+    await prefs.load(vaultPath);
+    await prefs.save();
+
+    prefs.screenshotProtection = true;
+    await prefs.load(vaultPath);
+    expect(prefs.screenshotProtection, isFalse, reason: 'explicit opt-out');
+
+    // A settings file with no screenshot key keeps protection on.
+    final freshDir = await Directory.systemTemp.createTemp(
+      'keyel_prefs_screenshot_default',
+    );
+    addTearDown(() => freshDir.delete(recursive: true));
+    await File('${freshDir.path}/settings.json').writeAsString('{}');
+    prefs.screenshotProtection = false;
+    await prefs.load('${freshDir.path}/vault.keyel');
+    expect(prefs.screenshotProtection, isTrue);
   });
 
   test('appearance preferences round-trip through settings.json', () async {

@@ -20,6 +20,7 @@ SecurityPostureSeal _seal({
 SecurityPosture _posture({
   bool clipboardActive = true,
   bool breachActive = true,
+  bool screenshotActive = true,
 }) => SecurityPosture(
   autoLock: _seal(
     label: 'Auto-lock',
@@ -35,9 +36,9 @@ SecurityPosture _posture({
   ),
   screenshot: _seal(
     label: 'Screenshot blocking',
-    value: 'Always on',
+    value: screenshotActive ? 'Enabled' : 'Off',
     icon: Icons.no_photography_rounded,
-    active: true,
+    active: screenshotActive,
   ),
   breach: _seal(
     label: 'Breach check',
@@ -84,8 +85,7 @@ void main() {
       }
       expect(find.text('After 1 minute'), findsOneWidget);
       expect(find.text('30 seconds'), findsOneWidget);
-      expect(find.text('Always on'), findsOneWidget);
-      expect(find.text('Enabled'), findsOneWidget);
+      expect(find.text('Enabled'), findsNWidgets(2));
       expect(find.text('Review settings'), findsOneWidget);
     });
 
@@ -99,7 +99,23 @@ void main() {
       expect(find.text('On lock only'), findsOneWidget);
       expect(find.text('Off'), findsOneWidget);
       expect(find.text('30 seconds'), findsNothing);
-      expect(find.text('Enabled'), findsNothing);
+      expect(find.text('Enabled'), findsOneWidget);
+    });
+
+    testWidgets('shows screenshots as off when the user allowed captures', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(_posture(screenshotActive: false), onReview: () {}),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('3/4'), findsOneWidget);
+      expect(find.text('Off'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('Screenshot blocking: Off')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the review action is wired', (tester) async {

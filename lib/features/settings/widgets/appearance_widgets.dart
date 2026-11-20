@@ -29,60 +29,131 @@ class AppearancePaletteTile extends StatelessWidget {
         ? palette.darkScheme()
         : palette.lightScheme();
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${palette.label}. ${palette.description}',
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: KeyelSpacing.sm,
+            vertical: 10,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(KeyelRadii.field),
+                  gradient: LinearGradient(
+                    colors: [swatchScheme.primary, swatchScheme.tertiary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: selected ? scheme.primary : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: KeyelSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      palette.label,
+                      style: textTheme.titleSmall?.copyWith(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      palette.description,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact, information-bearing sample of the resolved dark surfaces.
+///
+/// It reads [AppearanceState.darkTheme], so toggling AMOLED immediately shows
+/// the difference between a card and the page behind it.
+class DarkSurfaceStrip extends StatelessWidget {
+  /// Creates a dark-surface sample.
+  const new({required this.appearance, super.key});
+
+  /// Appearance settings currently selected by the user.
+  final AppearanceState appearance;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = appearance.darkTheme.colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget swatch(Color color, Color foreground, String label) => Expanded(
+      child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: KeyelSpacing.sm,
-          vertical: 10,
+          vertical: KeyelSpacing.md,
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(KeyelRadii.field),
-                gradient: LinearGradient(
-                  colors: [swatchScheme.primary, swatchScheme.tertiary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border.all(
-                  color: selected ? scheme.primary : Colors.transparent,
-                  width: 2,
-                ),
-              ),
-            ),
-            const SizedBox(width: KeyelSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    palette.label,
-                    style: textTheme.titleSmall?.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    palette.description,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
-              color: selected ? scheme.primary : scheme.onSurfaceVariant,
-            ),
-          ],
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(KeyelRadii.sm),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: textTheme.labelSmall?.copyWith(
+            color: foreground,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+
+    return Semantics(
+      container: true,
+      label: 'Dark surfaces: page and card colors for the selected palette.',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          KeyelSpacing.md,
+          0,
+          KeyelSpacing.md,
+          KeyelSpacing.md,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(KeyelSpacing.sm),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(KeyelRadii.field),
+          ),
+          child: Row(
+            children: [
+              swatch(scheme.surface, scheme.onSurface, 'Page'),
+              const SizedBox(width: KeyelSpacing.sm),
+              swatch(scheme.surfaceContainer, scheme.onSurface, 'Card'),
+            ],
+          ),
         ),
       ),
     );

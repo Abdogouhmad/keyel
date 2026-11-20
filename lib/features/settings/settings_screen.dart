@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/app_info.dart';
 import 'package:keyel/core/ota/ota_provider.dart';
 import 'package:keyel/core/platform/autofill_platform.dart';
 import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/platform/debug_bundle.dart';
+import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/file_transfer_service.dart';
@@ -142,6 +145,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _setScreenshotProtection(bool enabled) async {
+    if (!enabled) {
+      final confirmed = await KeyelConfirmDialog.show(
+        context,
+        title: 'Allow screenshots?',
+        body:
+            'Anything on screen, including a revealed secret, could be '
+            'captured or appear in your Recents preview. The lock and unlock '
+            'screens stay protected.',
+        confirmLabel: 'Allow screenshots',
+        destructive: true,
+      );
+      if (!confirmed || !mounted) return;
+    }
+    ref
+        .read(screenshotProtectionProvider.notifier)
+        .setEnabled(enabled: enabled);
+    if (!mounted) return;
+    showKeyelSnack(
+      context,
+      enabled
+          ? 'Screenshot protection on'
+          : 'Screenshots allowed while unlocked',
+      icon: Icons.no_photography_rounded,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -154,6 +184,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final repo = ref.watch(vaultRepositoryProvider);
     final otaState = ref.watch(otaProvider);
     final appearance = ref.watch(appearanceProvider);
+    final screenshotProtection = ref.watch(screenshotProtectionProvider);
+    // The security dashboard links here with ?from=security. Show a real back
+    // arrow for that entry so the user can return to where they came from.
+    final returnToSecurity =
+        GoRouter.maybeOf(context)?.state.uri.queryParameters['from'] ==
+        'security';
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -165,7 +201,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               SliverToBoxAdapter(
                 child: KeyelTopBar(
                   title: 'Settings',
-                  icon: Icons.tune_rounded,
+                  icon: returnToSecurity
+                      ? Icons.arrow_back_rounded
+                      : Icons.tune_rounded,
+                  iconTooltip: returnToSecurity ? 'Back to Security' : null,
+                  onIconTap: returnToSecurity
+                      ? () => context.go(KeyelRoutes.security)
+                      : null,
                   trailing: KeyelIconHull(
                     icon: Icons.help_outline_rounded,
                     tooltip: 'Help & support',
@@ -236,6 +278,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           .autoLockDelay,
                       clipboardSeconds:
                           AppPreferences.instance.clipboardClearSeconds,
+                      screenshotProtection: screenshotProtection,
                       onLockNow: () {
                         ref.read(vaultSessionProvider.notifier).lock();
                         showKeyelSnack(
@@ -256,6 +299,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         await showClipboardDialog(context);
                         if (mounted) setState(() {});
                       },
+                      onScreenshotProtectionChanged: (value) =>
+                          unawaited(_setScreenshotProtection(value)),
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
                     SettingsAutofillSection(
