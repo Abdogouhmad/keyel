@@ -150,7 +150,6 @@ class AppearanceScreen extends ConsumerWidget {
                                 notifier.setAmoledBlack(enabled: value),
                           ),
                         ),
-                        DarkSurfaceStrip(appearance: appearance),
                       ],
                     ),
                     const SizedBox(height: KeyelSpacing.lg),

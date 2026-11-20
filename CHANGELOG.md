@@ -5,6 +5,16 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.6] - 2026-11-20
+
+A small Appearance cleanup. No vault, security or permission changes.
+
+### Changed
+
+- Removed the "Page / Card" dark-surface sample from the Pure black (AMOLED)
+  setting on the Appearance screen. The AMOLED switch itself is unchanged; the
+  live theme preview at the top of the screen still reflects the selection.
+
 ## [1.8.5] - 2026-11-20
 
 Update notifications and a beta channel, plus three fixes to 1.8.2. No vault

@@ -57,13 +57,6 @@ void main() {
       find.text('Follows your device appearance and changes along with it.'),
       findsOneWidget,
     );
-    // The dark-surface sample sits lower in the lazy list.
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
-    await tester.pumpAndSettle();
-    expect(
-      _labelStartingWith(tester, 'Dark surfaces'),
-      contains('page and card colors'),
-    );
   });
 
   testWidgets('changing mode updates the preview and its caption', (
