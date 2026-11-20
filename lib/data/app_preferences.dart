@@ -69,6 +69,13 @@ class AppPreferences {
   /// never clear them. Not a secret.
   int clipboardClearSeconds = 30;
 
+  /// Whether screenshots and Recents previews are blocked while unlocked.
+  ///
+  /// Defaults to `true`. Disabling it lets the user capture in-app designs;
+  /// the lock/unlock screens and the autofill/passkey entrypoints stay secure
+  /// regardless. Not a secret.
+  bool screenshotProtection = true;
+
   /// How long copied secrets stay on the clipboard, or `null` to never clear.
   Duration? get clipboardClearDelay => clipboardClearSeconds <= 0
       ? null
@@ -149,6 +156,8 @@ class AppPreferences {
       if (clipboard is int && clipboard >= 0) {
         clipboardClearSeconds = clipboard;
       }
+      // Fail safe: only an explicit `false` relaxes the default.
+      screenshotProtection = decoded['screenshotProtection'] != false;
       final failures = decoded['unlockFailures'];
       if (failures is int && failures >= 0) {
         unlockFailures = failures;
@@ -218,6 +227,7 @@ class AppPreferences {
           'autofillAskToSave': autofillAskToSave,
           'autofillMatchMode': autofillMatchMode,
           'clipboardClearSeconds': clipboardClearSeconds,
+          'screenshotProtection': screenshotProtection,
           'unlockFailures': unlockFailures,
           'unlockLockedUntilMs': unlockLockedUntilMs,
           'themeMode': themeMode,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/features/settings/widgets/appearance_preview.dart';
 import 'package:keyel/features/settings/widgets/appearance_widgets.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -67,6 +68,17 @@ class AppearanceScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                   horizontal: KeyelSpacing.md,
                 ),
+                sliver: SliverToBoxAdapter(
+                  child: AppearancePreview(appearance: appearance),
+                ),
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: KeyelSpacing.lg),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: KeyelSpacing.md,
+                ),
                 sliver: SliverList.list(
                   children: [
                     const KeyelSectionLabel(
@@ -97,7 +109,7 @@ class AppearanceScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: KeyelSpacing.sm),
                           Text(
-                            'System follows your device appearance setting.',
+                            _modeDescription(appearance.themeMode),
                             style: textTheme.bodySmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
@@ -106,9 +118,13 @@ class AppearanceScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
+                    KeyelSectionLabel(
                       label: 'Color palette',
                       icon: Icons.palette_outlined,
+                      trailing: KeyelBadge(
+                        label: '${KeyelPalette.values.length} colors',
+                        compact: true,
+                      ),
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
                     KeyelSectionCard(
@@ -159,6 +175,7 @@ class AppearanceScreen extends ConsumerWidget {
                                 notifier.setAmoledBlack(enabled: value),
                           ),
                         ),
+                        DarkSurfaceStrip(appearance: appearance),
                       ],
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
@@ -210,5 +227,12 @@ class AppearanceScreen extends ConsumerWidget {
     ThemeMode.system => Icons.brightness_auto_rounded,
     ThemeMode.light => Icons.light_mode_rounded,
     ThemeMode.dark => Icons.dark_mode_rounded,
+  };
+
+  String _modeDescription(ThemeMode mode) => switch (mode) {
+    ThemeMode.system =>
+      'Follows your device appearance and changes along with it.',
+    ThemeMode.light => 'Stays light even when your device uses dark mode.',
+    ThemeMode.dark => 'Stays dark even when your device uses light mode.',
   };
 }

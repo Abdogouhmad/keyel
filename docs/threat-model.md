@@ -152,7 +152,15 @@ reveals on demand and clears the clipboard after a delay.
 
 - `FLAG_SECURE` is toggled through `keyel/platform` (`setSecure` in
   `MainActivity.kt`, `lib/core/platform/secure_screen.dart`); while on, the OS
-  blocks screenshots and blanks the Recents thumbnail.
+  blocks screenshots and blanks the Recents thumbnail. It is set before the
+  first frame, so the unlock and recovery-key screens are always protected.
+- Since 1.8.2 the user may turn screenshot blocking off while the vault is
+  unlocked (Settings → Security & Access), for example to share an in-app
+  design. `ScreenshotProtectionHost` reapplies the flag from the session state
+  and the persisted preference, so any lock, the no-vault state, and the
+  autofill/passkey entrypoints stay protected regardless of that choice. The
+  security dashboard reports the current state rather than claiming it is
+  always on.
 - The autofill picker activity is `excludeFromRecents` and `noHistory`.
 - Passwords are masked by default in the UI.
 - Copied secrets are flagged sensitive (`ClipDescription.EXTRA_IS_SENSITIVE`)
