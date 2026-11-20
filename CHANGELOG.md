@@ -5,6 +5,51 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.5] - 2026-11-20
+
+Update notifications and a beta channel, plus three fixes to 1.8.2. No vault
+schema change; one new opt-in Android permission (`POST_NOTIFICATIONS`).
+
+### Added
+
+- **Automatic update checks with notifications.** Keyel quietly checks the
+  selected release channel when it opens, on resume, and while it is in the
+  foreground (no background service). A new release raises an Android OS
+  notification — once per version — and a dismissible banner at the top of the
+  app that opens *Software Update*. Checks are throttled and persisted, can be
+  turned off, and never upload vault data. Android 13+ asks for
+  `POST_NOTIFICATIONS` once; declining still shows the in-app banner.
+- **Stable and beta release channels.** *Software Update* lets you switch
+  between the verified stable manifest and a separate beta manifest. Beta
+  builds are manual GitHub prereleases with their own SHA-256-verified APK
+  manifest, so opting in never changes what stable users receive.
+
+### Changed
+
+- **Clearer dark / light / system switcher.** The Appearance screen now uses
+  self-explaining radio cards with a short description for each mode and a
+  badge showing the current system brightness, instead of an unlabelled
+  segmented control.
+
+### Fixed
+
+- **Black screenshots when protection was disabled.** The screenshot switch
+  now reliably clears the native `FLAG_SECURE` when turned off, and re-applies
+  it on every lock or background transition. Lock, unlock, autofill and passkey
+  screens remain protected regardless of the switch; the autofill and passkey
+  entrypoints set the flag natively before Flutter starts.
+- **Spurious "copied an empty text" toast after clipboard wipe.** Wiping now
+  uses Android's `clearPrimaryClip()` instead of copying an empty value, and
+  empty fields no longer show a "copied" confirmation.
+- Beta update detection no longer relies on a hash scraped from release notes;
+  both channels use the same committed, checksum-verified manifest.
+
+### Security
+
+- Screenshot blocking still defaults to on and fails closed. Notification
+  permission is opt-in, revocable in Android settings, and notification text
+  contains only the version and channel — never vault contents.
+
 ## [1.8.2] - 2026-11-20
 
 Three follow-ups to 1.8.0. No vault schema change and no new permission.

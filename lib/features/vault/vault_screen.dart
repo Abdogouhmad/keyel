@@ -66,11 +66,18 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       if (mounted) showKeyelSnack(context, describeVaultError(error));
     },
     copy: (value, message) {
+      if (!mounted) return;
+      if (value.isEmpty) {
+        showKeyelSnack(
+          context,
+          'Nothing to copy',
+          icon: Icons.info_outline_rounded,
+        );
+        return;
+      }
       unawaited(SensitiveClipboard.instance.copy(value));
       unawaited(Haptics.light());
-      if (mounted) {
-        showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
-      }
+      showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
     },
     confirmDelete: (count) => confirmVaultDelete(context, count),
     pickFolder: () => pickVaultFolder(context, _controller.folders),

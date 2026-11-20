@@ -59,6 +59,9 @@ class OtaRelease {
     required this.fileSize,
     this.sha256,
     this.isPrerelease = false,
+    this.versionCode,
+    this.minSupportedVersionCode,
+    this.isMandatory = false,
   });
 
   /// Semantic version string (e.g. `1.1.0`).
@@ -91,6 +94,15 @@ class OtaRelease {
   /// Whether this release is marked as pre-release / beta.
   final bool isPrerelease;
 
+  /// Android version code published with the manifest, when available.
+  final int? versionCode;
+
+  /// Oldest Android version code this release supports, when available.
+  final int? minSupportedVersionCode;
+
+  /// Whether the release is marked mandatory by the manifest.
+  final bool isMandatory;
+
   /// Formatted human-readable file size (e.g. "18.4 MB").
   String get formattedSize {
     if (fileSize <= 0) return '';
@@ -119,6 +131,8 @@ class OtaState {
     this.errorMessage,
     this.channel = OtaChannel.stable,
     this.autoCheck = true,
+    this.notificationsEnabled = false,
+    this.dismissedVersion,
   });
 
   /// Current step in update lifecycle.
@@ -154,8 +168,14 @@ class OtaState {
   /// Selected release channel.
   final OtaChannel channel;
 
-  /// Whether automatic update check on start is enabled.
+  /// Whether automatic update checks are enabled.
   final bool autoCheck;
+
+  /// Whether the OS currently allows update notifications.
+  final bool notificationsEnabled;
+
+  /// Update version whose top banner was dismissed by the user.
+  final String? dismissedVersion;
 
   /// Whether an update check is currently running.
   bool get isChecking => step == OtaStep.checking;
@@ -191,6 +211,8 @@ class OtaState {
     String? Function()? errorMessage,
     OtaChannel? channel,
     bool? autoCheck,
+    bool? notificationsEnabled,
+    String? Function()? dismissedVersion,
   }) {
     return OtaState(
       step: step ?? this.step,
@@ -209,39 +231,88 @@ class OtaState {
       errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
       channel: channel ?? this.channel,
       autoCheck: autoCheck ?? this.autoCheck,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      dismissedVersion: dismissedVersion != null
+          ? dismissedVersion()
+          : this.dismissedVersion,
     );
   }
 }
 
-/// Compares two semver strings (e.g. `1.1.0` vs `1.0.0`).
-/// Returns positive if [v1] > [v2], negative if [v1] < [v2], 0 if equal.
+/// Parsed semantic version used for ordering releases.
+class _ParsedVersion {
+  /// Creates a parsed version.
+  const new(this.core, this.prerelease);
+
+  /// Numeric `major.minor.patch` components.
+  final List<int> core;
+
+  /// Dot-separated pre-release identifiers, empty for a final release.
+  final List<String> prerelease;
+}
+
+_ParsedVersion _parseVersion(String input) {
+  var clean = input.trim();
+  if (clean.startsWith('v') || clean.startsWith('V')) {
+    clean = clean.substring(1);
+  }
+  final plusIndex = clean.indexOf('+');
+  if (plusIndex != -1) {
+    clean = clean.substring(0, plusIndex);
+  }
+  final dashIndex = clean.indexOf('-');
+  final identifiers = <String>[];
+  if (dashIndex != -1) {
+    identifiers.addAll(clean.substring(dashIndex + 1).split('.'));
+    clean = clean.substring(0, dashIndex);
+  }
+  final core = clean
+      .split('.')
+      .map((part) => int.tryParse(part) ?? 0)
+      .toList(growable: false);
+  return _ParsedVersion(core, identifiers);
+}
+
+/// Compares two semantic version strings, including pre-release precedence.
+///
+/// Returns a positive value when [v1] is newer, a negative value when [v2] is
+/// newer, and zero when they represent the same version. Build metadata is
+/// ignored, as required by SemVer.
 int compareVersions(String v1, String v2) {
-  List<int> parse(String v) {
-    var clean = v.trim();
-    if (clean.startsWith('v') || clean.startsWith('V')) {
-      clean = clean.substring(1);
-    }
-    final plusIndex = clean.indexOf('+');
-    if (plusIndex != -1) {
-      clean = clean.substring(0, plusIndex);
-    }
-    final dashIndex = clean.indexOf('-');
-    if (dashIndex != -1) {
-      clean = clean.substring(0, dashIndex);
-    }
-    return clean.split('.').map((part) => int.tryParse(part) ?? 0).toList();
+  final a = _parseVersion(v1);
+  final b = _parseVersion(v2);
+
+  final maxLen = a.core.length > b.core.length ? a.core.length : b.core.length;
+  for (var i = 0; i < maxLen; i++) {
+    final left = i < a.core.length ? a.core[i] : 0;
+    final right = i < b.core.length ? b.core[i] : 0;
+    if (left != right) return left.compareTo(right);
   }
 
-  final p1 = parse(v1);
-  final p2 = parse(v2);
+  // A final release outranks any pre-release with the same core version.
+  if (a.prerelease.isEmpty && b.prerelease.isEmpty) return 0;
+  if (a.prerelease.isEmpty) return 1;
+  if (b.prerelease.isEmpty) return -1;
 
-  final maxLen = p1.length > p2.length ? p1.length : p2.length;
-  for (var i = 0; i < maxLen; i++) {
-    final num1 = i < p1.length ? p1[i] : 0;
-    final num2 = i < p2.length ? p2[i] : 0;
-    if (num1 != num2) {
-      return num1.compareTo(num2);
+  final maxPre = a.prerelease.length > b.prerelease.length
+      ? a.prerelease.length
+      : b.prerelease.length;
+  for (var i = 0; i < maxPre; i++) {
+    if (i >= a.prerelease.length) return -1;
+    if (i >= b.prerelease.length) return 1;
+    final left = a.prerelease[i];
+    final right = b.prerelease[i];
+    if (left == right) continue;
+
+    final leftNum = int.tryParse(left);
+    final rightNum = int.tryParse(right);
+    if (leftNum != null && rightNum != null) {
+      return leftNum.compareTo(rightNum);
     }
+    // Numeric identifiers always sort before alphanumeric ones.
+    if (leftNum != null) return -1;
+    if (rightNum != null) return 1;
+    return left.compareTo(right);
   }
   return 0;
 }

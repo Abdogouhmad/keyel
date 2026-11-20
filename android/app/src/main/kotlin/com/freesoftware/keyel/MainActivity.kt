@@ -1,9 +1,15 @@
 package com.freesoftware.keyel
 
+import android.Manifest
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.PersistableBundle
 import android.provider.Settings
@@ -18,6 +24,15 @@ import io.flutter.plugin.common.MethodChannel
 // rather than the default FlutterActivity.
 class MainActivity : FlutterFragmentActivity() {
     private val channelName = "keyel/platform"
+    private val notificationChannelName = "keyel/notifications"
+
+    private var pendingNotificationPermissionResult: MethodChannel.Result? = null
+
+    companion object {
+        private const val NOTIFICATION_CHANNEL_ID = "keyel_updates"
+        private const val UPDATE_NOTIFICATION_ID = 1001
+        private const val POST_NOTIFICATIONS_REQUEST_CODE = 4321
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -53,15 +68,14 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(null)
                     }
 
+                    // Wipe with the platform clear API instead of writing an
+                    // empty clip. setPrimaryClip(empty) looks like a normal copy
+                    // to OEM keyboards/toasts, which surfaced a spurious
+                    // "copied an empty text" notification after every wipe.
+                    // clearPrimaryClip() removes the value without a copy event.
                     "clearSensitive" -> {
                         val clipboard = getSystemService(ClipboardManager::class.java)
-                        val clip = ClipData.newPlainText("Keyel secret", "")
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            val extras = PersistableBundle()
-                            extras.putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-                            clip.description.extras = extras
-                        }
-                        clipboard.setPrimaryClip(clip)
+                        clipboard.clearPrimaryClip()
                         result.success(null)
                     }
 
@@ -181,5 +195,124 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, notificationChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "areNotificationsEnabled" -> result.success(areNotificationsEnabled())
+
+                    "requestPermission" -> requestNotificationPermission(result)
+
+                    "showUpdate" -> showUpdateNotification(
+                        call.argument<String>("version").orEmpty(),
+                        call.argument<String>("channel").orEmpty(),
+                        result
+                    )
+
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    private fun areNotificationsEnabled(): Boolean {
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!manager.areNotificationsEnabled()) return false
+        // On API 33+ the runtime permission is separate from the app-level flag.
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun requestNotificationPermission(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            result.success(areNotificationsEnabled())
+            return
+        }
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            result.success(true)
+            return
+        }
+        // Only one request can be in flight; resolve a stale result if a
+        // previous dialog never reported back (e.g. activity recreation).
+        pendingNotificationPermissionResult?.success(false)
+        pendingNotificationPermissionResult = result
+        try {
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                POST_NOTIFICATIONS_REQUEST_CODE
+            )
+        } catch (_: Exception) {
+            pendingNotificationPermissionResult = null
+            result.success(false)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != POST_NOTIFICATIONS_REQUEST_CODE) return
+        val result = pendingNotificationPermissionResult ?: return
+        pendingNotificationPermissionResult = null
+        result.success(
+            grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    private fun showUpdateNotification(
+        version: String,
+        channel: String,
+        result: MethodChannel.Result
+    ) {
+        if (!areNotificationsEnabled()) {
+            result.success(false)
+            return
+        }
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(
+            NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Keyel updates",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Notifies about new Keyel releases available to install."
+            }
+        )
+
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+        val immutableFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_IMMUTABLE
+        } else {
+            0
+        }
+        val contentIntent = if (launchIntent != null) {
+            PendingIntent.getActivity(
+                this,
+                0,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or immutableFlag
+            )
+        } else null
+
+        val betaSuffix = if (channel.equals("beta", ignoreCase = true)) " (Beta)" else ""
+        val notification = Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_keyel)
+            .setContentTitle("Update available")
+            .setContentText("Keyel v$version is ready to install$betaSuffix")
+            .setAutoCancel(true)
+            .apply { if (contentIntent != null) setContentIntent(contentIntent) }
+            .build()
+        manager.notify(UPDATE_NOTIFICATION_ID, notification)
+        result.success(true)
     }
 }

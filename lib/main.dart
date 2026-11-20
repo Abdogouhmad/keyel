@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/core/ota/ota_check_host.dart';
 import 'package:keyel/core/platform/secure_screen.dart';
 import 'package:keyel/core/router/app_router.dart';
+import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/security/auto_lock_host.dart';
 import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
+import 'package:keyel/features/ota/widgets/update_available_banner.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
 import 'package:keyel/ui/theme/appearance_provider.dart';
@@ -46,7 +51,9 @@ Future<void> main() async {
 
   runApp(
     const ProviderScope(
-      child: AutoLockHost(child: ScreenshotProtectionHost(child: KeyelApp())),
+      child: AutoLockHost(
+        child: OtaCheckHost(child: ScreenshotProtectionHost(child: KeyelApp())),
+      ),
     ),
   );
 }
@@ -63,6 +70,7 @@ class KeyelApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appearance = ref.watch(appearanceProvider);
+    final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
       title: 'Keyel',
@@ -70,10 +78,14 @@ class KeyelApp extends ConsumerWidget {
       themeMode: appearance.themeMode,
       theme: appearance.lightTheme,
       darkTheme: appearance.darkTheme,
-      routerConfig: ref.watch(appRouterProvider),
-      // Honour the platform high-contrast setting on every route and sheet.
+      routerConfig: router,
+      // Honour the platform high-contrast setting on every route and sheet,
+      // and show update notices above the routed page rather than as a snackbar.
       builder: (context, child) => KeyelTheme.highContrastBuilder(
-        child: child ?? const SizedBox.shrink(),
+        child: UpdateAvailableBanner(
+          onOpen: () => unawaited(router.push(KeyelRoutes.softwareUpdate)),
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
     );
   }

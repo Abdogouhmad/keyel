@@ -54,9 +54,21 @@
 #   ./build.sh --detect-version      print tag= / version= / versionCode= lines
 #                                    (append to $GITHUB_OUTPUT)
 #   ./build.sh --release-notes       extract this version's CHANGELOG section
-#                                    into dist/notes.md
+#                                    into dist/notes.md (or use KEYEL_RELEASE_NOTES)
 #   ./build.sh --no-version-checksum skip the uncommitted-changes warning
 #   ./build.sh -v                    verbose (kept for parity)
+#
+# Beta channel (manual workflow_dispatch only — stable always derives from
+# pubspec.yaml and CHANGELOG.md):
+#   KEYEL_CHANNEL=beta \
+#   KEYEL_RELEASE_VERSION=1.9.0-beta.1 \
+#   KEYEL_RELEASE_NOTES='## [1.9.0-beta.1] ...' \
+#     ./build.sh
+#   KEYEL_RELEASE_VERSION overrides the pubspec version (semver core before
+#   '-' drives versionCode); KEYEL_RELEASE_NOTES, when non-empty, is written
+#   verbatim to dist/notes.md so a beta needs no CHANGELOG section. Betas never
+#   touch pubspec.yaml and are published as GitHub prereleases with their own
+#   OTA manifest (update_manifest_beta.json).
 #
 # Troubleshooting:
 #   * Spurious Kotlin errors from a native plugin ("Unresolved reference
@@ -153,15 +165,43 @@ sdk_tool() {
 }
 
 # ── Versioning ────────────────────────────────────────────────────────────────
-# `pubspec.yaml` is the single source of truth. The tag is `v<semver>` and the
-# versionCode is major*10000 + minor*100 + patch. build.sh hands it to Flutter
-# via --build-number (see VERSION_ARGS), so the APK's versionCode is always
-# predictable and strictly increases between releases.
-get_version() { sed -n 's/^version: *//p' pubspec.yaml | head -n1; }
+# `pubspec.yaml` is the single source of truth for STABLE releases. The tag is
+# `v<semver>` and the versionCode is major*10000 + minor*100 + patch, computed
+# from the semver CORE only (a `-prerelease` suffix is a version-name detail,
+# not a numeric component). build.sh hands it to Flutter via --build-number
+# (see VERSION_ARGS), so the APK's versionCode is always predictable and
+# strictly increases between releases.
+#
+# CI may override the version for a manual beta dispatch with
+# KEYEL_RELEASE_VERSION; stable builds never set it, so they keep deriving
+# from pubspec.yaml. Fail early on a malformed override or a beta with no
+# version at all (never silently fall back to the stable version).
+SEMVER_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
+if [[ -n "${KEYEL_RELEASE_VERSION:-}" && ! "$KEYEL_RELEASE_VERSION" =~ $SEMVER_RE ]]; then
+  err "KEYEL_RELEASE_VERSION must be a semver like 1.9.0-beta.1 (got '$KEYEL_RELEASE_VERSION')."
+  exit 1
+fi
+if [[ "${KEYEL_CHANNEL:-stable}" == beta && -z "${KEYEL_RELEASE_VERSION:-}" ]]; then
+  err "channel=beta requires beta_version (a semver like 1.9.0-beta.1)."
+  exit 1
+fi
+
+get_version() {
+  if [[ -n "${KEYEL_RELEASE_VERSION:-}" ]]; then
+    printf '%s' "$KEYEL_RELEASE_VERSION"
+  else
+    sed -n 's/^version: *//p' pubspec.yaml | head -n1
+  fi
+}
 
 VERSION="$(get_version)"
 VERSION="${VERSION%%+*}" # strip any +<build-number> metadata
-IFS='.' read -r MAJOR MINOR PATCH <<<"$VERSION"
+VERSION_CORE="${VERSION%%-*}" # semver core: drop the -prerelease suffix
+if [[ ! "$VERSION_CORE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  err "Unsupported version '$VERSION': expected major.minor.patch with optional -prerelease."
+  exit 1
+fi
+IFS='.' read -r MAJOR MINOR PATCH <<<"$VERSION_CORE"
 VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
 TAG="v${VERSION}"
 
@@ -171,10 +211,17 @@ if [[ "$MODE" == detect-version ]]; then
   exit 0
 fi
 
-# ── Mode: extract this release's CHANGELOG section into dist/notes.md ─────────
+# ── Mode: write this release's notes into dist/notes.md ──────────────────────
 if [[ "$MODE" == release-notes ]]; then
   mkdir -p dist
-  # Strip only TRAILING whitespace; leading indentation is Markdown structure.
+  # Beta dispatch: the operator supplies markdown via KEYEL_RELEASE_NOTES, so no
+  # CHANGELOG section is required (betas do not bump pubspec.yaml/CHANGELOG.md).
+  if [[ -n "${KEYEL_RELEASE_NOTES:-}" ]]; then
+    printf '%s\n' "$KEYEL_RELEASE_NOTES" >dist/notes.md
+    info "Release notes supplied via KEYEL_RELEASE_NOTES -> dist/notes.md ($(wc -l <dist/notes.md) lines)"
+    exit 0
+  fi
+  # Stable: strip only TRAILING whitespace; leading indentation is Markdown structure.
   sed -n "/^## \\[$VERSION\\]/,/^## \\[/p" CHANGELOG.md |
     sed '$d' |
     sed -E '/^[[:space:]]*\[[^]]+\]:[[:space:]]/d' |

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,6 +8,21 @@ import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_sections.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
+
+/// A session whose status can be flipped mid-test without the Rust bridge.
+class _MutableSession extends VaultSessionNotifier {
+  @override
+  VaultSessionState build() =>
+      const VaultSessionState(status: VaultStatus.unlocked);
+
+  void lockNow() => state = const VaultSessionState(status: VaultStatus.locked);
+}
+
+Future<void> _flushPlatformCalls(WidgetTester tester) async {
+  await tester.pump();
+  await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+  await tester.pump();
+}
 
 Widget _section({
   required bool screenshotProtection,
@@ -91,5 +107,57 @@ void main() {
     await tester.tap(find.byType(Switch).last);
     await tester.pump();
     expect(changes, [false]);
+  });
+
+  testWidgets('the host reapplies the platform flag on every state change', (
+    tester,
+  ) async {
+    const channel = MethodChannel('keyel/platform');
+    final secureCalls = <bool>[];
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          ..setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'setSecure') {
+              final args = call.arguments as Map<Object?, Object?>;
+              secureCalls.add(args['secure']! as bool);
+            }
+            return null;
+          });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    final container = ProviderContainer(
+      overrides: [vaultSessionProvider.overrideWith(_MutableSession.new)],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: ScreenshotProtectionHost(child: SizedBox.shrink()),
+        ),
+      ),
+    );
+    await _flushPlatformCalls(tester);
+    expect(secureCalls, [true], reason: 'startup flag from main()');
+
+    // The regression: this used to be a no-op because Riverpod 3 had already
+    // closed the listeners registered in initState.
+    container
+        .read(screenshotProtectionProvider.notifier)
+        .setEnabled(enabled: false);
+    await _flushPlatformCalls(tester);
+    expect(secureCalls, [true, false]);
+
+    (container.read(vaultSessionProvider.notifier) as _MutableSession)
+        .lockNow();
+    await _flushPlatformCalls(tester);
+    expect(secureCalls, [true, false, true]);
+
+    container
+        .read(screenshotProtectionProvider.notifier)
+        .setEnabled(enabled: false);
+    await _flushPlatformCalls(tester);
+    expect(secureCalls, [true, false, true], reason: 'locked stays secure');
   });
 }

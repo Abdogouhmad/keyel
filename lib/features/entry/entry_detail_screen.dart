@@ -100,6 +100,16 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
   void _copy(String value, String message) {
     if (!mounted) return;
+    // Never claim a copy happened when the field is empty: that would write
+    // nothing useful and show a misleading "copied" snackbar.
+    if (value.isEmpty) {
+      showKeyelSnack(
+        context,
+        'Nothing to copy',
+        icon: Icons.info_outline_rounded,
+      );
+      return;
+    }
     unawaited(SensitiveClipboard.instance.copy(value));
     unawaited(Haptics.light());
     showKeyelSnack(context, message, icon: Icons.content_copy_rounded);

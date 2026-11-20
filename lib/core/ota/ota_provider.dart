@@ -1,10 +1,11 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/core/app_info.dart';
 import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/core/ota/ota_service.dart';
+import 'package:keyel/core/platform/update_notifications.dart';
+import 'package:keyel/data/app_preferences.dart';
 
 /// Provider exposing the singleton [OtaService].
 final otaServiceProvider = Provider<OtaService>((ref) {
@@ -15,17 +16,36 @@ final otaServiceProvider = Provider<OtaService>((ref) {
 class OtaNotifier extends Notifier<OtaState> {
   CancelToken? _cancelToken;
 
-  @override
-  OtaState build() {
-    return const OtaState(currentVersion: AppInfo.version);
-  }
+  AppPreferences get _prefs => AppPreferences.instance;
 
   OtaService get _service => ref.read(otaServiceProvider);
 
+  UpdateNotificationPlatform get _notifications =>
+      ref.read(updateNotificationProvider);
+
+  @override
+  OtaState build() {
+    final prefs = _prefs;
+    final lastCheck = prefs.otaLastCheckedMs;
+    return OtaState(
+      currentVersion: AppInfo.version,
+      channel: prefs.otaChannel == 'beta' ? OtaChannel.beta : OtaChannel.stable,
+      autoCheck: prefs.otaAutoCheck,
+      lastChecked: lastCheck == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(lastCheck),
+      dismissedVersion: prefs.otaDismissedVersion,
+    );
+  }
+
   /// Checks for newer releases on the configured channel.
+  ///
+  /// Silent checks ([userInitiated] `false`) do not surface transient network
+  /// errors and post an OS notification only for a newly discovered version.
   Future<void> checkForUpdates({bool userInitiated = true}) async {
     if (state.isChecking || state.isDownloading) return;
 
+    final previousStep = state.step;
     state = state.copyWith(step: OtaStep.checking, errorMessage: () => null);
 
     try {
@@ -36,12 +56,20 @@ class OtaNotifier extends Notifier<OtaState> {
       if (!ref.mounted) return;
 
       final now = DateTime.now();
+      _prefs.otaLastCheckedMs = now.millisecondsSinceEpoch;
+      await _prefs.save();
+      if (!ref.mounted) return;
+
       if (newer != null) {
         state = state.copyWith(
           step: OtaStep.available,
           availableRelease: () => newer,
           lastChecked: () => now,
+          dismissedVersion: () => _prefs.otaDismissedVersion,
         );
+        if (!userInitiated) {
+          await _maybeNotify(newer);
+        }
       } else {
         state = state.copyWith(
           step: OtaStep.upToDate,
@@ -51,12 +79,64 @@ class OtaNotifier extends Notifier<OtaState> {
       }
     } on Object catch (e) {
       if (!ref.mounted) return;
-      state = state.copyWith(
-        step: OtaStep.error,
-        errorMessage: () => e.toString().replaceFirst('Exception: ', ''),
-        lastChecked: DateTime.now,
-      );
+      if (userInitiated) {
+        state = state.copyWith(
+          step: OtaStep.error,
+          errorMessage: () => e.toString().replaceFirst('Exception: ', ''),
+          lastChecked: DateTime.now,
+        );
+      } else {
+        // A background check must not replace useful UI or flash an error.
+        state = state.copyWith(step: previousStep, lastChecked: DateTime.now);
+      }
     }
+  }
+
+  Future<void> _maybeNotify(OtaRelease release) async {
+    if (!state.autoCheck || _prefs.otaLastNotifiedVersion == release.version) {
+      return;
+    }
+    final shown = await _notifications.showUpdateAvailable(
+      version: release.version,
+      channel: state.channel.label,
+    );
+    if (!shown || !ref.mounted) return;
+
+    _prefs.otaLastNotifiedVersion = release.version;
+    await _prefs.save();
+    if (!ref.mounted) return;
+    state = state.copyWith(notificationsEnabled: true);
+  }
+
+  /// Refreshes the cached Android notification-permission state.
+  Future<void> refreshNotificationPermission() async {
+    final enabled = await _notifications.areNotificationsEnabled();
+    if (!ref.mounted) return;
+    state = state.copyWith(notificationsEnabled: enabled);
+  }
+
+  /// Requests notification permission once, remembering the prompt.
+  Future<bool> requestNotifications() async {
+    // Set the flag before awaiting so a second resume cannot prompt twice.
+    final prefs = _prefs..otaNotificationPromptShown = true;
+    await prefs.save();
+    final granted = await _notifications.requestPermission();
+    if (!ref.mounted) return granted;
+    state = state.copyWith(notificationsEnabled: granted);
+    return granted;
+  }
+
+  /// Prompts for notifications on the first automatic check, then stays quiet.
+  ///
+  /// When the prompt was already shown this only refreshes the cached state,
+  /// so a permission granted in Android settings is reflected in the UI.
+  Future<void> maybePromptForNotifications() async {
+    if (!state.autoCheck) return;
+    if (_prefs.otaNotificationPromptShown) {
+      await refreshNotificationPermission();
+      return;
+    }
+    await requestNotifications();
   }
 
   /// Begins downloading the available release APK.
@@ -179,20 +259,41 @@ class OtaNotifier extends Notifier<OtaState> {
     }
   }
 
-  /// Changes the release channel (Stable vs Beta).
-  void setChannel(OtaChannel channel) {
+  /// Changes the release channel (Stable vs Beta) and rechecks immediately.
+  Future<void> setChannel(OtaChannel channel) async {
     if (state.channel == channel) return;
+    final prefs = _prefs
+      ..otaChannel = channel == OtaChannel.beta ? 'beta' : 'stable'
+      ..otaDismissedVersion = null;
+    await prefs.save();
+    if (!ref.mounted) return;
+
     state = state.copyWith(
       channel: channel,
       step: OtaStep.idle,
       availableRelease: () => null,
+      dismissedVersion: () => null,
     );
-    unawaited(checkForUpdates());
+    await checkForUpdates();
   }
 
-  /// Toggles automatic checking on startup.
-  void setAutoCheck({required bool enabled}) {
+  /// Persists the automatic-check preference and requests permission if on.
+  Future<void> setAutoCheck({required bool enabled}) async {
+    final prefs = _prefs..otaAutoCheck = enabled;
+    await prefs.save();
+    if (!ref.mounted) return;
     state = state.copyWith(autoCheck: enabled);
+    if (enabled) await requestNotifications();
+  }
+
+  /// Hides the top banner for the currently available version only.
+  Future<void> dismissUpdateBanner() async {
+    final version = state.availableRelease?.version;
+    if (version == null) return;
+    final prefs = _prefs..otaDismissedVersion = version;
+    await prefs.save();
+    if (!ref.mounted) return;
+    state = state.copyWith(dismissedVersion: () => version);
   }
 
   /// Dismisses an active error and returns to idle or available.

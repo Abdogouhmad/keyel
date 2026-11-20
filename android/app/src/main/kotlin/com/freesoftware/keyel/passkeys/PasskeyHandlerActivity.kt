@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.credentials.CreatePublicKeyCredentialResponse
 import androidx.credentials.PublicKeyCredential
@@ -35,6 +36,12 @@ class PasskeyHandlerActivity : FlutterActivity() {
     private val channelName = "keyel/passkey"
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // This window can show private keys' details and confirmation codes.
+        // Set the flag before the early-exit path so even a cancelled request
+        // never produces a capturable frame. Dart's setSecureScreen channel is
+        // not registered on this activity.
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+
         // Ensure we have a resolvable request early; fail closed if not.
         val action = intent?.action
         if (action == null) {

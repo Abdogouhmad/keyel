@@ -8,6 +8,8 @@ import 'package:http/testing.dart';
 import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/core/ota/ota_provider.dart';
 import 'package:keyel/core/ota/ota_service.dart';
+import 'package:keyel/core/platform/update_notifications.dart';
+import 'package:keyel/data/app_preferences.dart';
 
 /// Simulates a download that bypassed the service's checksum gate, so the
 /// provider-level refusal can be asserted independently.
@@ -57,7 +59,43 @@ class _UnverifiedOtaService extends OtaService {
   }
 }
 
+/// Notification adapter that records posts without touching the platform.
+class _FakeUpdateNotifications extends UpdateNotificationPlatform {
+  bool enabled = false;
+  int permissionRequests = 0;
+  final List<String> postedVersions = <String>[];
+
+  @override
+  Future<bool> areNotificationsEnabled() async => enabled;
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequests++;
+    enabled = true;
+    return true;
+  }
+
+  @override
+  Future<bool> showUpdateAvailable({
+    required String version,
+    required String channel,
+  }) async {
+    postedVersions.add(version);
+    return true;
+  }
+}
+
 void main() {
+  setUp(() {
+    AppPreferences.instance
+      ..otaChannel = 'stable'
+      ..otaAutoCheck = true
+      ..otaLastCheckedMs = null
+      ..otaLastNotifiedVersion = null
+      ..otaDismissedVersion = null
+      ..otaNotificationPromptShown = false;
+  });
+
   group('OTA Semver Comparison', () {
     test('compareVersions accurately orders semver strings', () {
       expect(compareVersions('1.1.0', '1.0.0'), greaterThan(0));
@@ -68,6 +106,25 @@ void main() {
       expect(compareVersions('2.0.0', '1.99.99'), greaterThan(0));
       expect(compareVersions('1.0.1', '1.0.0'), greaterThan(0));
     });
+
+    test(
+      'pre-releases sort below their final version but above older ones',
+      () {
+        expect(compareVersions('1.9.0', '1.9.0-beta.1'), greaterThan(0));
+        expect(compareVersions('1.9.0-beta.1', '1.9.0'), lessThan(0));
+        expect(compareVersions('1.9.0-beta.2', '1.9.0-beta.1'), greaterThan(0));
+        expect(
+          compareVersions('1.9.0-beta.10', '1.9.0-beta.2'),
+          greaterThan(0),
+        );
+        expect(
+          compareVersions('1.9.0-beta.1', '1.9.0-alpha.9'),
+          greaterThan(0),
+        );
+        expect(compareVersions('1.9.0-beta.1', '1.8.9'), greaterThan(0));
+        expect(compareVersions('v1.9.0-beta.1+42', '1.9.0-beta.1'), equals(0));
+      },
+    );
   });
 
   group('OTA Models', () {
@@ -247,6 +304,63 @@ void main() {
       // Already on the manifest's version: nothing to do.
       expect(await service.checkForUpdate(currentVersion: '1.2.0'), isNull);
     });
+
+    test('beta channel reads its own manifest and marks prereleases', () async {
+      final betaSha = List.filled(64, 'b').join();
+      final mockClient = MockClient((request) async {
+        expect(request.url.path, endsWith('/update_manifest_beta.json'));
+        expect(request.url.queryParameters['ts'], isNotEmpty);
+        return http.Response(
+          jsonEncode({
+            'channel': 'beta',
+            'isPrerelease': true,
+            'latestVersionName': '1.9.0-beta.1',
+            'latestVersionCode': 10900,
+            'apkUrl': 'https://example.com/keyel-v1.9.0-beta.1-universal.apk',
+            'size': 1234,
+            'sha256': betaSha,
+            'releaseNotes': 'Beta preview',
+            'publishedAt': '2026-11-20T00:00:00Z',
+          }),
+          200,
+        );
+      });
+
+      final service = OtaService(client: mockClient);
+      final update = await service.checkForUpdate(
+        currentVersion: '1.8.2',
+        channel: OtaChannel.beta,
+      );
+
+      expect(update, isNotNull);
+      expect(update!.version, equals('1.9.0-beta.1'));
+      expect(update.isPrerelease, isTrue);
+      expect(update.versionCode, equals(10900));
+      expect(update.sha256, equals(betaSha));
+    });
+
+    test('an empty beta manifest yields no update', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'channel': 'beta',
+            'isPrerelease': true,
+            'latestVersionName': '',
+            'apkUrl': '',
+            'sha256': '',
+          }),
+          200,
+        );
+      });
+      final service = OtaService(client: mockClient);
+      expect(
+        await service.checkForUpdate(
+          currentVersion: '1.8.2',
+          channel: OtaChannel.beta,
+        ),
+        isNull,
+      );
+    });
   });
 
   group('OtaNotifier', () {
@@ -291,12 +405,128 @@ void main() {
       );
       expect(container.read(otaProvider).lastChecked, isNotNull);
 
-      notifier.setChannel(OtaChannel.beta);
+      await notifier.setChannel(OtaChannel.beta);
       expect(container.read(otaProvider).channel, equals(OtaChannel.beta));
 
-      notifier.setAutoCheck(enabled: false);
+      await notifier.setAutoCheck(enabled: false);
       expect(container.read(otaProvider).autoCheck, isFalse);
     });
+
+    test(
+      'silent checks notify once per version and persist preferences',
+      () async {
+        final sha = List.filled(64, 'c').join();
+        final service = OtaService(
+          client: MockClient((request) async {
+            return http.Response(
+              jsonEncode({
+                'latestVersionName': '2.0.0',
+                'apkUrl': 'https://example.com/keyel-v2.0.0-universal.apk',
+                'size': 1234,
+                'sha256': sha,
+                'releaseNotes': 'Next',
+                'publishedAt': '2026-11-20T00:00:00Z',
+              }),
+              200,
+            );
+          }),
+        );
+        final notifications = _FakeUpdateNotifications();
+        final container = ProviderContainer(
+          overrides: [
+            otaServiceProvider.overrideWithValue(service),
+            updateNotificationProvider.overrideWithValue(notifications),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final notifier = container.read(otaProvider.notifier);
+        await notifier.checkForUpdates(userInitiated: false);
+
+        expect(container.read(otaProvider).step, equals(OtaStep.available));
+        expect(notifications.postedVersions, equals(['2.0.0']));
+        expect(AppPreferences.instance.otaLastNotifiedVersion, equals('2.0.0'));
+        expect(AppPreferences.instance.otaLastCheckedMs, isNotNull);
+
+        await notifier.checkForUpdates(userInitiated: false);
+        expect(
+          notifications.postedVersions,
+          equals(['2.0.0']),
+          reason: 'the same version must not notify twice',
+        );
+      },
+    );
+
+    test('a failed silent check stays quiet', () async {
+      final service = OtaService(
+        client: MockClient((request) async => throw StateError('offline')),
+      );
+      final container = ProviderContainer(
+        overrides: [otaServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(otaProvider.notifier)
+          .checkForUpdates(userInitiated: false);
+
+      expect(container.read(otaProvider).step, equals(OtaStep.idle));
+      expect(container.read(otaProvider).errorMessage, isNull);
+      expect(container.read(otaProvider).lastChecked, isNotNull);
+    });
+
+    test(
+      'channel, auto-check and banner dismissal survive a rebuild',
+      () async {
+        final service = OtaService(
+          client: MockClient((request) async {
+            return http.Response(
+              jsonEncode({
+                'latestVersionName': '3.0.0',
+                'apkUrl': 'https://example.com/keyel-v3.0.0-universal.apk',
+                'size': 1234,
+                'sha256': List.filled(64, 'd').join(),
+                'releaseNotes': 'Next',
+                'publishedAt': '2026-11-20T00:00:00Z',
+              }),
+              200,
+            );
+          }),
+        );
+        final notifications = _FakeUpdateNotifications();
+        final container = ProviderContainer(
+          overrides: [
+            otaServiceProvider.overrideWithValue(service),
+            updateNotificationProvider.overrideWithValue(notifications),
+          ],
+        );
+
+        final notifier = container.read(otaProvider.notifier);
+        await notifier.setChannel(OtaChannel.beta);
+        await notifier.setAutoCheck(enabled: true);
+        await notifier.checkForUpdates();
+        await notifier.dismissUpdateBanner();
+
+        expect(AppPreferences.instance.otaChannel, equals('beta'));
+        expect(AppPreferences.instance.otaAutoCheck, isTrue);
+        expect(notifications.permissionRequests, equals(1));
+        expect(AppPreferences.instance.otaDismissedVersion, equals('3.0.0'));
+
+        container.dispose();
+        final restored = ProviderContainer(
+          overrides: [
+            otaServiceProvider.overrideWithValue(service),
+            updateNotificationProvider.overrideWithValue(notifications),
+          ],
+        );
+        addTearDown(restored.dispose);
+
+        final state = restored.read(otaProvider);
+        expect(state.channel, equals(OtaChannel.beta));
+        expect(state.autoCheck, isTrue);
+        expect(state.dismissedVersion, equals('3.0.0'));
+      },
+    );
   });
 
   group('OtaService checksum verification', () {

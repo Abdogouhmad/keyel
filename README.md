@@ -87,13 +87,34 @@ shasum -a 256 -c checksums.txt      # macOS
 > warns once — right-click **Keyel → Open**, or allow it in *System Settings → Privacy &
 > Security*.
 
+### Release channels
+
+Android updates are checked against one of two manifests:
+
+| Channel | Manifest | How it is published |
+|---|---|---|
+| **Stable** | [`update_manifest.json`](update_manifest.json) | Automatically when a version bump lands on `main` (`pubspec.yaml` + `CHANGELOG.md`). |
+| **Beta** | [`update_manifest_beta.json`](update_manifest_beta.json) | Manually, by dispatching the `release` workflow with `channel=beta` and a `beta_version` (and optional `beta_notes`). |
+
+Beta builds are **GitHub prereleases** with their own manifest, so opting into one never
+changes what stable users are offered. A beta does **not** touch `pubspec.yaml` or
+`CHANGELOG.md` and is **never** published automatically on a push — someone must start the
+workflow. Both channels sign and verify their APKs the same way, and every downloaded APK
+is SHA-256-checked before install. The beta manifest starts empty (no beta published yet);
+the updater simply finds no candidate until the first beta dispatch.
+
 ## Security at a glance
 
 - The release APK requests `INTERNET` for the update checker/downloader and, **only after
   you opt in** in *Security Health*, the HIBP breach-check range request. Both are HTTPS;
   no vault data, username or password is uploaded — the breach check sends only the first
-  5 characters of a locally computed SHA-1 hash. Downloaded APKs are SHA-256-verified
-  before the system installer runs.
+  5 characters of a locally computed SHA-1 hash. Automatic update checks (on by default,
+  toggleable in *Software Update*) read only the public channel manifest when the app opens
+  and while it is in the foreground — there is no background service. Downloaded APKs are
+  SHA-256-verified before the system installer runs.
+- On Android 13+ the app requests `POST_NOTIFICATIONS` so an update can raise an OS
+  notification alongside the in-app banner. It is opt-in, shown once, and can be revoked in
+  Android settings; no other notifications are sent.
 - `allowBackup=false`; cloud and device backups exclude the vault file.
 - Secrets live in Rust (`zeroize` / `secrecy`); Dart receives only user-revealed values.
 - *Settings → Report a problem* shares a redacted diagnostics file (version, device, OS,

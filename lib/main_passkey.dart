@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:keyel/core/platform/secure_screen.dart';
 import 'package:keyel/core/security/auto_lock_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
@@ -35,7 +34,8 @@ const _channel = MethodChannel('keyel/passkey');
 Future<void> mainPasskey() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  await setSecureScreen(secure: true);
+  // PasskeyHandlerActivity sets FLAG_SECURE natively before this entrypoint
+  // starts; the keyel/platform channel is not registered on that activity.
 
   await RustLib.init();
 

@@ -43,8 +43,9 @@ bool shouldBlockScreenshots({
 ///
 /// `main()` sets `FLAG_SECURE` before the first frame so the unlock screen is
 /// never exposed. This host then relaxes it after the vault unlocks when the
-/// user has chosen to allow screenshots, and restores it on every lock. The
-/// separate autofill and passkey entrypoints keep the flag set unconditionally.
+/// user has chosen to allow screenshots, and restores it on every lock and
+/// every background transition. The separate autofill and passkey activities
+/// keep the flag set unconditionally at the native level.
 class ScreenshotProtectionHost extends ConsumerStatefulWidget {
   /// Creates the host around [child].
   const new({required this.child, super.key});
@@ -58,18 +59,38 @@ class ScreenshotProtectionHost extends ConsumerStatefulWidget {
 }
 
 class _ScreenshotProtectionHostState
-    extends ConsumerState<ScreenshotProtectionHost> {
+    extends ConsumerState<ScreenshotProtectionHost>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    ref.listen(
-      vaultSessionProvider.select((state) => state.status),
-      (_, _) => _apply(),
-    );
-    ref.listen(screenshotProtectionProvider, (_, _) => _apply());
+    WidgetsBinding.instance.addObserver(this);
     // Apply after mount: preferences are loaded before runApp, and the first
     // platform call must not delay the first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) => _apply());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _apply();
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        // The Recents snapshot is taken while backgrounded, before auto-lock
+        // may have fired. Always keep it blank, even when captures are allowed
+        // in the foreground.
+        unawaited(setSecureScreen(secure: true));
+      case AppLifecycleState.inactive:
+        break;
+    }
   }
 
   void _apply() {
@@ -81,5 +102,14 @@ class _ScreenshotProtectionHostState
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    // Riverpod 3 closes build-time listeners after every build; registering
+    // them here (instead of initState) is what keeps the switch reactive.
+    ref.listen(
+      vaultSessionProvider.select((state) => state.status),
+      (_, _) => _apply(),
+    );
+    ref.listen(screenshotProtectionProvider, (_, _) => _apply());
+    return widget.child;
+  }
 }

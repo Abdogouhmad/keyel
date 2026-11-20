@@ -858,4 +858,53 @@ design (docs/roadmap.md header).
   with `create_new` + mode `0600` on Unix so a umask or a symlink cannot widen
   access to them.
 
+## 2026-11-20 (stable + beta OTA channels)
+
+- **Two OTA channels, two manifests.** `update_manifest.json` stays the stable
+  manifest and `update_manifest_beta.json` is the new beta manifest. Both carry
+  `channel` and `isPrerelease`; the CI computes sha256/size from the universal
+  APK of the run that publishes them and verifies the released APK against the
+  manifest of that channel. Only the manifest that changed is committed back.
+  The beta manifest is seeded with an empty version/hash and a "no beta yet"
+  note, so the updater fails closed and finds no candidate until a beta ships.
+
+- **Beta is a manual prerelease, stable is push-driven.** A push to `main`
+  touching `pubspec.yaml`/`CHANGELOG.md` is always stable. Beta only exists via
+  `workflow_dispatch` with `channel=beta`, `beta_version` (semver, e.g.
+  `1.9.0-beta.1`) and optional `beta_notes`; the workflow fails fast when the
+  version is missing or malformed. Beta does not bump `pubspec.yaml` or
+  `CHANGELOG.md`, is never auto-published on push, and its GitHub release is
+  marked `--prerelease`. Stable keeps its exact original release path.
+
+- **The version override is CI-only and does not weaken the build.** `build.sh`
+  honors `KEYEL_RELEASE_VERSION` solely for the beta dispatch; stable still
+  derives from `pubspec.yaml`. `versionCode` is computed from the semver core
+  (`1.9.0-beta.1` -> `10900`) because a prerelease suffix is not a numeric
+  component. Operator-supplied `KEYEL_RELEASE_NOTES` replace the CHANGELOG
+  requirement for beta; stable keeps strict CHANGELOG extraction. Signing,
+  apksigner verification and the password-manager policy checks run unchanged
+  for both channels, and no tag is ever pushed from a local checkout.
+
+## 2026-11-20 (automatic update notifications)
+
+- **Foreground-only checks, no background service.** An `OtaCheckHost` wraps the root
+  app and checks the selected channel's manifest on mount, on every resume, and on a
+  30-minute timer while the app is visible. Silent checks are throttled with a persisted
+  `otaLastCheckedMs`, never surface network errors, and never interfere with a download
+  in progress. No alarm, service or receiver is registered: an update is detected the next
+  time the user opens Keyel, which preserves the "no background network" promise.
+
+- **Both an OS notification and a global in-app banner.** A successful silent check
+  posts a native Android notification through `keyel/notifications` (one per discovered
+  version, tracked by `otaLastNotifiedVersion`) and surfaces a dismissible top banner in
+  `MaterialApp.builder`, above every route. The banner is not a snackbar or dialog, so it
+  does not interrupt the user; dismissing hides only the currently offered version. The
+  banner animates with `KeyelMotion` and respects reduced motion and 200% text scale.
+
+- **Notifications are opt-in and honest.** `POST_NOTIFICATIONS` is requested once on the
+  first automatic check (remembered by `otaNotificationPromptShown`) and can be revoked in
+  Android settings. The updater screen shows the current permission state and an explicit
+  "Enable update notifications" action; declining never blocks the in-app banner or the
+  manual check. The notification contains only the version and channel — no vault data.
+
 

@@ -36,14 +36,16 @@ class OtaStatusBanner extends StatelessWidget {
         scheme.primary,
         scheme.primaryContainer.withValues(alpha: 0.5),
         'Keyel is up to date',
-        'Version ${state.currentVersion} • Latest release installed',
+        state.channel == OtaChannel.beta
+            ? 'No beta release yet • Version ${state.currentVersion} installed'
+            : 'Version ${state.currentVersion} • Latest release installed',
       ),
       OtaStep.available => (
         Icons.system_update_rounded,
         scheme.onTertiaryContainer,
         scheme.tertiaryContainer,
         'Update Available',
-        'Keyel v${state.availableRelease!.version} is ready to download',
+        'Keyel v${state.availableRelease!.version} • ${state.channel.label} channel',
       ),
       OtaStep.downloading => (
         Icons.downloading_rounded,
@@ -331,6 +333,7 @@ class OtaPreferencesCard extends StatelessWidget {
     required this.state,
     required this.onChannelChanged,
     required this.onAutoCheckChanged,
+    required this.onEnableNotifications,
     super.key,
   });
 
@@ -342,6 +345,9 @@ class OtaPreferencesCard extends StatelessWidget {
 
   /// Called when auto-check preference changes.
   final ValueChanged<bool> onAutoCheckChanged;
+
+  /// Requests the Android notification permission.
+  final VoidCallback onEnableNotifications;
 
   @override
   Widget build(BuildContext context) {
@@ -389,9 +395,9 @@ class OtaPreferencesCard extends StatelessWidget {
           const Divider(height: KeyelSpacing.lg),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Check for updates on launch'),
+            title: const Text('Check for updates automatically'),
             subtitle: Text(
-              'Notifies you when a new release is available',
+              'Checks on launch and when you return, on the selected channel.',
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -399,6 +405,35 @@ class OtaPreferencesCard extends StatelessWidget {
             value: state.autoCheck,
             onChanged: onAutoCheckChanged,
           ),
+          if (state.autoCheck) ...[
+            const SizedBox(height: KeyelSpacing.xs),
+            if (state.notificationsEnabled)
+              Row(
+                children: [
+                  Icon(
+                    Icons.notifications_active_rounded,
+                    size: 18,
+                    color: scheme.primary,
+                  ),
+                  const SizedBox(width: KeyelSpacing.xs),
+                  Text(
+                    'Update notifications are on',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.notifications_none_rounded),
+                  label: const Text('Enable update notifications'),
+                  onPressed: onEnableNotifications,
+                ),
+              ),
+          ],
         ],
       ),
     );
@@ -465,7 +500,7 @@ class OtaPrivacyNotice extends StatelessWidget {
           const SizedBox(width: KeyelSpacing.sm),
           Expanded(
             child: Text(
-              'Privacy guarantee: OTA update checks query public release tags only. Your vault database, passwords, keys, and biometrics never leave this device.',
+              'Privacy guarantee: automatic checks read the public channel manifest only, on launch and while the app is open. Your vault database, passwords, keys, and biometrics never leave this device.',
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.4,

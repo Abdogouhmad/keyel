@@ -1,11 +1,23 @@
 name: release
 
-# Builds and publishes the release whenever the shipped version changes on
-# `main` (a push touching `pubspec.yaml` or `CHANGELOG.md`), plus manual runs via
-# workflow_dispatch. The git tag `v<version>` is derived from `version:` in
-# pubspec.yaml — the same scheme `build.sh --detect-version` uses — so there is
-# no tag-trigger to maintain and CHANGELOG.md stays the single source of truth
-# for release notes.
+# Builds and publishes releases from `main` (a push touching `pubspec.yaml` or
+# `CHANGELOG.md` is ALWAYS the stable channel), plus manual runs via
+# workflow_dispatch. Both channels share this pipeline but use different
+# versions, release flags and OTA manifests:
+#
+#   STABLE — automatic on a version-bump push, or channel=stable dispatch.
+#     `version:` in pubspec.yaml is the source of truth and the notes are the
+#     matching `## [<version>]` CHANGELOG.md section. Publishes a normal GitHub
+#     release and rewrites update_manifest.json.
+#
+#   BETA — manual workflow_dispatch only, channel=beta. Supply `beta_version`
+#     (semver, e.g. 1.9.0-beta.1) and optionally `beta_notes` (markdown).
+#     pubspec.yaml and CHANGELOG.md are NOT touched, and a push NEVER
+#     publishes a beta. The tag `v<beta_version>` is created server-side, the
+#     GitHub release is marked --prerelease, and the OTA manifest is the
+#     separate update_manifest_beta.json. versionCode comes from the semver
+#     core only (1.9.0-beta.1 -> 10900); a prerelease suffix is a version-name
+#     detail and is not a numeric versionCode component.
 #
 #   Every platform ships from one trigger:
 #     - Android: split-per-abi arm64-v8a + armeabi-v7a and a universal APK
@@ -16,8 +28,11 @@ name: release
 #       so a user can double-click to install rather than unpack an archive.
 #     - macOS (universal x86_64+arm64): a .app .zip AND a drag-to-install .dmg.
 #   All artifacts plus a SHA-256 `checksums.txt` are attached to the GitHub
-#   release, whose notes are the matching `## [<version>]` section of
-#   CHANGELOG.md, used verbatim (also copied into the manifest's `releaseNotes`).
+#   release: notes are the matching `## [<version>]` CHANGELOG.md section for
+#   stable, or the operator's `beta_notes` for beta, used verbatim (also copied
+#   into that channel's manifest `releaseNotes`). Each manifest carries
+#   `channel` and `isPrerelease`, and the universal APK is SHA-256/size-checked
+#   against the manifest of the channel that was actually published.
 #
 #   Signs-policy (Android refuses to install an UNSIGNED release APK and refuses
 #   a "signature update" over a differently-signed app): every APK is signed with
@@ -32,10 +47,17 @@ name: release
 # is dominated by the actual compiles rather than by re-downloading or
 # re-compiling tooling.
 #
-# To release a new version:
+# To release a new STABLE version:
 #   1. Bump `version:` in pubspec.yaml.
 #   2. Add a `## [<version>]` section to CHANGELOG.md.
-#   3. Merge onto main — the tag, GitHub release and OTA manifest follow.
+#   3. Merge onto main — the tag, GitHub release and stable OTA manifest follow.
+#
+# To publish a BETA:
+#   1. Actions → release → Run workflow → channel=beta (never on push).
+#   2. Enter beta_version and, ideally, beta_notes; no version bump or
+#      CHANGELOG entry is needed.
+#   3. The prerelease, its tag and update_manifest_beta.json follow; only that
+#      manifest is committed back, so stable users are unaffected.
 #
 # Secrets to configure in the repo (Settings → Secrets and variables → Actions):
 #   KEYEL_KEYSTORE_BASE64   = base64 of the keyel-release.jks keystore
@@ -54,6 +76,24 @@ on:
       - 'pubspec.yaml'
       - 'CHANGELOG.md'
   workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Release channel (beta is a manual prerelease; pushes to main are always stable)'
+        type: choice
+        options:
+          - stable
+          - beta
+        default: stable
+      beta_version:
+        description: 'Beta version only, semver e.g. 1.9.0-beta.1 (required when channel=beta; ignored for stable)'
+        type: string
+        required: false
+        default: ''
+      beta_notes:
+        description: 'Beta release notes (markdown). When empty, a matching CHANGELOG.md section is required.'
+        type: string
+        required: false
+        default: ''
 
 # A newer commit on the same branch makes an in-flight release obsolete.
 concurrency:
@@ -69,6 +109,15 @@ env:
   # verified against. Flutter and AGP must be upgraded together.
   FLUTTER_VERSION: 3.47.9
   FRB_CODEGEN_VERSION: 2.13.0
+
+  # Channel selection for EVERY job (android/desktop/publish), so one dispatch
+  # drives the version, notes, tag, release flag and manifest everywhere.
+  # Pushes to main never carry inputs, so they always resolve to stable and
+  # to an empty override -> build.sh keeps deriving from pubspec.yaml.
+  KEYEL_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || 'stable' }}
+  # Only a beta dispatch sets an override; stable deliberately leaves it empty.
+  KEYEL_RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'beta' && inputs.beta_version || '' }}
+  KEYEL_RELEASE_NOTES: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'beta' && inputs.beta_notes || '' }}
 
 jobs:
   # ── Android: signed, verified APKs ──────────────────────────────────────────
@@ -352,9 +401,11 @@ jobs:
           chmod +x ./build.sh
           ./build.sh --detect-version >> "$GITHUB_OUTPUT"
 
-      # Extract ONLY this release's `## [<version>]` section from CHANGELOG.md
-      # (fails when it is missing so an unreleased change never ships silently).
-      - name: Extract release notes from CHANGELOG
+      # Stable: extract ONLY this release's `## [<version>]` section from
+      # CHANGELOG.md (fails when missing so an unreleased change never ships).
+      # Beta: build.sh writes KEYEL_RELEASE_NOTES verbatim instead; if those
+      # are empty it falls back to the same strict CHANGELOG extraction.
+      - name: 'Write release notes (stable = CHANGELOG / beta = beta_notes)'
         run: ./build.sh --release-notes
 
       - name: List staged artifacts
@@ -403,15 +454,25 @@ jobs:
           fi
           artifacts=(dist/*.apk dist/*.zip dist/*.tar.gz dist/*setup.exe dist/*.dmg dist/checksums.txt)
 
+          # Beta is a GitHub prerelease; stable keeps the exact original
+          # `gh release create` invocation (no extra flag).
+          PRERELEASE_ARGS=()
+          if [[ "$KEYEL_CHANNEL" == beta ]]; then
+            PRERELEASE_ARGS=(--prerelease)
+          fi
+
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
             --title "keyel ${{ steps.version.outputs.version }}" \
             --notes-file dist/notes.md \
+            ${PRERELEASE_ARGS[@]+"${PRERELEASE_ARGS[@]}"} \
             "${artifacts[@]}"
 
-      # Rewrite the OTA manifest: version, universal-APK URL + its fresh sha256
-      # and size, and this release's notes (from CHANGELOG.md, not duplicated).
-      - name: Update update_manifest.json
+      # Rewrite the OTA manifest for THIS channel: version, universal-APK URL
+      # plus its fresh sha256/size, and this release's notes (never duplicated).
+      # Stable -> update_manifest.json; beta -> update_manifest_beta.json, so a
+      # prerelease can never be offered to stable users (or vice versa).
+      - name: Update OTA manifest (${{ env.KEYEL_CHANNEL }})
         env:
           VERSION: ${{ steps.version.outputs.version }}
           VERSION_CODE: ${{ steps.version.outputs.versionCode }}
@@ -426,6 +487,11 @@ jobs:
           version_code = int(os.environ["VERSION_CODE"])
           tag = os.environ["TAG"]
           repo = os.environ["REPO"]
+          channel = os.environ["KEYEL_CHANNEL"]
+          if channel not in ("stable", "beta"):
+              raise SystemExit(f"Unsupported release channel: {channel}")
+          is_prerelease = channel == "beta"
+          manifest_path = "update_manifest_beta.json" if is_prerelease else "update_manifest.json"
 
           with open("dist/notes.md") as fh:
               release_notes = fh.read().strip()
@@ -433,7 +499,7 @@ jobs:
           # The manifest is committed, so it may already exist (seeded or from a
           # previous release); start from {} so the very first release works too.
           try:
-              with open("update_manifest.json") as fh:
+              with open(manifest_path) as fh:
                   manifest = json.load(fh)
           except FileNotFoundError:
               manifest = {}
@@ -461,28 +527,36 @@ jobs:
           manifest["publishedAt"] = (
               datetime.datetime.now(datetime.timezone.utc).isoformat()
           )
+          manifest["channel"] = channel
+          manifest["isPrerelease"] = is_prerelease
 
-          with open("update_manifest.json", "w") as fh:
+          with open(manifest_path, "w") as fh:
               json.dump(manifest, fh, indent=2, ensure_ascii=False)
               fh.write("\n")
 
-          # Emit what we hashed so the verification step can prove the file we
-          # published is byte-for-byte the file the manifest points at.
+          # Emit the path + hash so the verification step checks the manifest of
+          # the channel that was actually published.
+          print(manifest_path)
           print(manifest["sha256"])
           PY
 
-      # The manifest's sha256 is only meaningful if it describes the APK that was
-      # actually published. A staging mistake or a mangled upload would otherwise
-      # ship an update that fails verification on every device.
-      - name: Verify published APK matches the manifest
+      # The channel manifest's sha256 is only meaningful if it describes the APK
+      # that was actually published. A staging mistake or a mangled upload would
+      # otherwise ship an update that fails verification on every device.
+      - name: Verify published APK matches the ${{ env.KEYEL_CHANNEL }} manifest
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
+          if [[ "$KEYEL_CHANNEL" == beta ]]; then
+            MANIFEST="update_manifest_beta.json"
+          else
+            MANIFEST="update_manifest.json"
+          fi
           local_sha="$(sha256sum "dist/keyel-v${VERSION}-universal.apk" | cut -d' ' -f1)"
           manifest_sha="$(python3 -c \
-            "import json;print(json.load(open('update_manifest.json'))['sha256'])")"
+            "import json;print(json.load(open('$MANIFEST'))['sha256'])")"
           if [[ "$local_sha" != "$manifest_sha" ]]; then
             echo "::error::Manifest sha256 ($manifest_sha) != built APK ($local_sha)"
             exit 1
@@ -499,18 +573,28 @@ jobs:
             echo "::error::Published APK ($published_sha) != manifest sha256 ($manifest_sha)"
             exit 1
           fi
-          echo "Verified: published APK matches update_manifest.json ($published_sha)"
+          echo "Verified: published APK matches $MANIFEST ($published_sha)"
 
-      - name: Commit manifest back to main
+      # Only the manifest of the published channel is committed back, with a
+      # channel-aware message; the other channel's file is left untouched.
+      - name: Commit ${{ env.KEYEL_CHANNEL }} manifest back to main
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet update_manifest.json; then
-            echo "No manifest changes."
+          set -euo pipefail
+          if [[ "$KEYEL_CHANNEL" == beta ]]; then
+            MANIFEST="update_manifest_beta.json"
+            LABEL="beta OTA manifest"
+          else
+            MANIFEST="update_manifest.json"
+            LABEL="OTA manifest"
+          fi
+          if git diff --quiet -- "$MANIFEST"; then
+            echo "No $MANIFEST changes."
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add update_manifest.json
-            git commit -m "chore(release): update OTA manifest for v${{ steps.version.outputs.version }}"
+            git add "$MANIFEST"
+            git commit -m "chore(release): update $LABEL for v${{ steps.version.outputs.version }}"
             git push origin HEAD:main
           fi

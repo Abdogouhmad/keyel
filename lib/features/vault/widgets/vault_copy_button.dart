@@ -41,14 +41,21 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
           final pass = await ref
               .read(vaultRepositoryProvider)
               .revealField(entry.id, SecretFieldDto.loginPassword);
-          unawaited(SensitiveClipboard.instance.copy(pass));
-          if (mounted) {
+          if (!mounted) return;
+          if (pass.isEmpty) {
             showKeyelSnack(
               context,
-              'Password copied${SensitiveClipboard.instance.clearHint}',
-              icon: Icons.content_copy_rounded,
+              'Nothing to copy',
+              icon: Icons.info_outline_rounded,
             );
+            return;
           }
+          unawaited(SensitiveClipboard.instance.copy(pass));
+          showKeyelSnack(
+            context,
+            'Password copied${SensitiveClipboard.instance.clearHint}',
+            icon: Icons.content_copy_rounded,
+          );
         } on Object catch (error) {
           if (mounted) showKeyelSnack(context, describeVaultError(error));
         }
@@ -58,14 +65,21 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
         final cardNum = await ref
             .read(vaultRepositoryProvider)
             .revealField(entry.id, SecretFieldDto.cardNumber);
-        unawaited(SensitiveClipboard.instance.copy(cardNum));
-        if (mounted) {
+        if (!mounted) return;
+        if (cardNum.isEmpty) {
           showKeyelSnack(
             context,
-            'Card number copied to clipboard',
-            icon: Icons.content_copy_rounded,
+            'Nothing to copy',
+            icon: Icons.info_outline_rounded,
           );
+          return;
         }
+        unawaited(SensitiveClipboard.instance.copy(cardNum));
+        showKeyelSnack(
+          context,
+          'Card number copied to clipboard',
+          icon: Icons.content_copy_rounded,
+        );
       } on Object catch (_) {
         if (mounted) {
           unawaited(context.push(KeyelRoutes.entryDetail(entry.id)));

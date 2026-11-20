@@ -87,34 +87,9 @@ class AppearanceScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
                     KeyelSectionCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SegmentedButton<ThemeMode>(
-                            segments: ThemeMode.values
-                                .map(
-                                  (mode) => ButtonSegment<ThemeMode>(
-                                    value: mode,
-                                    label: Text(
-                                      KeyelPaletteX.themeModeLabel(mode),
-                                    ),
-                                    icon: Icon(_modeIcon(mode)),
-                                  ),
-                                )
-                                .toList(),
-                            selected: {appearance.themeMode},
-                            onSelectionChanged: (selection) =>
-                                notifier.setThemeMode(selection.first),
-                            showSelectedIcon: false,
-                          ),
-                          const SizedBox(height: KeyelSpacing.sm),
-                          Text(
-                            _modeDescription(appearance.themeMode),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                      child: ThemeModeSelector(
+                        selected: appearance.themeMode,
+                        onChanged: notifier.setThemeMode,
                       ),
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
@@ -222,17 +197,4 @@ class AppearanceScreen extends ConsumerWidget {
       ),
     );
   }
-
-  IconData _modeIcon(ThemeMode mode) => switch (mode) {
-    ThemeMode.system => Icons.brightness_auto_rounded,
-    ThemeMode.light => Icons.light_mode_rounded,
-    ThemeMode.dark => Icons.dark_mode_rounded,
-  };
-
-  String _modeDescription(ThemeMode mode) => switch (mode) {
-    ThemeMode.system =>
-      'Follows your device appearance and changes along with it.',
-    ThemeMode.light => 'Stays light even when your device uses dark mode.',
-    ThemeMode.dark => 'Stays dark even when your device uses light mode.',
-  };
 }

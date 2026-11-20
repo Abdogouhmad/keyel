@@ -110,6 +110,24 @@ class AppPreferences {
   /// or password-derived value is ever stored here. See `docs/roadmap_1.7.0.md`.
   bool breachCheckEnabled = false;
 
+  /// Selected OTA channel: `stable` or `beta`.
+  String otaChannel = 'stable';
+
+  /// Whether Keyel checks for updates when it opens and on foreground resume.
+  bool otaAutoCheck = true;
+
+  /// Epoch milliseconds of the last OTA check, used to throttle silent checks.
+  int? otaLastCheckedMs;
+
+  /// Version for which an update notification was last posted.
+  String? otaLastNotifiedVersion;
+
+  /// Version whose in-app update banner the user dismissed.
+  String? otaDismissedVersion;
+
+  /// Whether the Android notification permission prompt was already shown.
+  bool otaNotificationPromptShown = false;
+
   /// Remember a search term, keeping at most eight unique values.
   void rememberSearch(String query) {
     final trimmed = query.trim();
@@ -188,6 +206,23 @@ class AppPreferences {
       hapticsEnabled = decoded['hapticsEnabled'] != false;
       breachCheckEnabled = decoded['breachCheckEnabled'] == true;
 
+      otaChannel = decoded['otaChannel'] == 'beta' ? 'beta' : 'stable';
+      otaAutoCheck = decoded['otaAutoCheck'] != false;
+      final lastOtaCheck = decoded['otaLastCheckedMs'];
+      if (lastOtaCheck is int && lastOtaCheck > 0) {
+        otaLastCheckedMs = lastOtaCheck;
+      }
+      final lastNotified = decoded['otaLastNotifiedVersion'];
+      if (lastNotified is String && lastNotified.isNotEmpty) {
+        otaLastNotifiedVersion = lastNotified;
+      }
+      final dismissedUpdate = decoded['otaDismissedVersion'];
+      if (dismissedUpdate is String && dismissedUpdate.isNotEmpty) {
+        otaDismissedVersion = dismissedUpdate;
+      }
+      otaNotificationPromptShown =
+          decoded['otaNotificationPromptShown'] == true;
+
       final generator = decoded['generator'];
       if (generator is Map) {
         generatorMode = generator['mode'] == 'passphrase'
@@ -236,6 +271,12 @@ class AppPreferences {
           'animationsEnabled': animationsEnabled,
           'hapticsEnabled': hapticsEnabled,
           'breachCheckEnabled': breachCheckEnabled,
+          'otaChannel': otaChannel,
+          'otaAutoCheck': otaAutoCheck,
+          'otaLastCheckedMs': otaLastCheckedMs,
+          'otaLastNotifiedVersion': otaLastNotifiedVersion,
+          'otaDismissedVersion': otaDismissedVersion,
+          'otaNotificationPromptShown': otaNotificationPromptShown,
           'recentSearches': recentSearches,
           'generator': {
             'mode': generatorMode,

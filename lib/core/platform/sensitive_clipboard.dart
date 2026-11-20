@@ -68,16 +68,20 @@ class SensitiveClipboard {
     await Clipboard.setData(ClipboardData(text: text));
   }
 
-  /// Clears the clipboard as a sensitive entry so the OS does not keep the
-  /// empty value in its history or offer it as a suggestion.
+  /// Clears the clipboard without writing an empty clip.
+  ///
+  /// On Android the native channel calls `clearPrimaryClip()`, so the OS does
+  /// not broadcast a copy event (which some OEMs show as a toast) and there is
+  /// no empty value to keep in history or offer as a suggestion.
   Future<void> _clearSensitive() async {
-    if (Platform.isAndroid) {
-      try {
-        await _channel.invokeMethod<void>('clearSensitive');
-        return;
-      } on Object catch (_) {
-        // Fall through to the platform-agnostic clipboard.
-      }
+    // Try the native channel on every platform. On Android it uses
+    // clearPrimaryClip(); elsewhere the call fails fast and we fall back to
+    // the platform-agnostic clipboard.
+    try {
+      await _channel.invokeMethod<void>('clearSensitive');
+      return;
+    } on Object catch (_) {
+      // Fall through to the platform-agnostic clipboard.
     }
     await Clipboard.setData(const ClipboardData(text: ''));
   }

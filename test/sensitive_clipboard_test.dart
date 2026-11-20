@@ -7,13 +7,22 @@ import 'package:keyel/data/app_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late List<MethodCall> calls;
+  late List<MethodCall> platformCalls;
+  late List<MethodCall> keyelCalls;
 
   setUp(() {
-    calls = <MethodCall>[];
+    platformCalls = <MethodCall>[];
+    keyelCalls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-          calls.add(call);
+          platformCalls.add(call);
+          return null;
+        });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('keyel/platform'), (
+          call,
+        ) async {
+          keyelCalls.add(call);
           return null;
         });
     AppPreferences.instance.clipboardClearSeconds = 30;
@@ -24,26 +33,35 @@ void main() {
     SensitiveClipboard.instance.cancel();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('keyel/platform'), null);
   });
+
+  List<MethodCall> clipboardWrites() => platformCalls
+      .where((call) => call.method == 'Clipboard.setData')
+      .toList();
 
   testWidgets('clears the clipboard after the configured delay', (
     tester,
   ) async {
     await SensitiveClipboard.instance.copy('secret');
 
-    expect(calls, hasLength(1));
-    expect(calls.single.method, 'Clipboard.setData');
-    expect((calls.single.arguments as Map<Object?, Object?>)['text'], 'secret');
+    expect(clipboardWrites(), hasLength(1));
+    expect(
+      (clipboardWrites().single.arguments as Map<Object?, Object?>)['text'],
+      'secret',
+    );
 
     // Nothing happens before the deadline.
     await tester.pump(const Duration(seconds: 29));
-    expect(calls, hasLength(1));
+    expect(keyelCalls, isEmpty);
 
-    // The timer fires and wipes the clipboard.
+    // The timer fires and wipes via the native clear API, not a copy event.
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
-    expect(calls, hasLength(2));
-    expect((calls.last.arguments as Map<Object?, Object?>)['text'], '');
+    expect(keyelCalls, hasLength(1));
+    expect(keyelCalls.single.method, 'clearSensitive');
+    expect(clipboardWrites(), hasLength(1));
   });
 
   testWidgets('never clears the clipboard when the delay is zero', (
@@ -54,7 +72,8 @@ void main() {
     await SensitiveClipboard.instance.copy('secret');
     await tester.pump(const Duration(minutes: 5));
 
-    expect(calls, hasLength(1));
+    expect(keyelCalls, isEmpty);
+    expect(clipboardWrites(), hasLength(1));
   });
 
   testWidgets('a newer copy replaces the pending wipe', (tester) async {
@@ -64,13 +83,17 @@ void main() {
     await tester.pump(const Duration(seconds: 20));
 
     // Only the first copy's timer would have fired at t=30s; it was cancelled.
-    expect(calls, hasLength(2));
-    expect((calls.last.arguments as Map<Object?, Object?>)['text'], 'second');
+    expect(clipboardWrites(), hasLength(2));
+    expect(
+      (clipboardWrites().last.arguments as Map<Object?, Object?>)['text'],
+      'second',
+    );
 
     await tester.pump(const Duration(seconds: 10));
     await tester.pump();
-    expect(calls, hasLength(3));
-    expect((calls.last.arguments as Map<Object?, Object?>)['text'], '');
+    expect(keyelCalls, hasLength(1));
+    expect(keyelCalls.single.method, 'clearSensitive');
+    expect(clipboardWrites(), hasLength(2));
   });
 
   group('clearHint', () {

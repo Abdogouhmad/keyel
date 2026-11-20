@@ -46,18 +46,23 @@ class OtaService {
   final http.Client _client;
   final OtaPlatform _platform;
 
-  /// URI of the committed OTA manifest (`update_manifest.json`).
+  /// URI of the manifest for [channel].
   ///
-  /// `raw.githubusercontent.com` is fronted by a CDN that can serve a stale
-  /// copy for minutes after a release is committed; a per-request timestamp
-  /// varies the cache key, so a check reads the manifest that was just
-  /// published. The server ignores the query string when resolving the path.
-  Uri manifestUri({DateTime? now}) {
+  /// Stable and beta are separate committed files so a prerelease can never
+  /// replace a verified stable version. `raw.githubusercontent.com` is fronted
+  /// by a CDN that can serve a stale copy for minutes after a release is
+  /// committed; a per-request timestamp varies the cache key. Existing query
+  /// parameters (including those of a custom URL) are preserved.
+  Uri manifestUri({OtaChannel channel = OtaChannel.stable, DateTime? now}) {
     final base =
         customManifestUrl ??
-        'https://raw.githubusercontent.com/$repo/main/update_manifest.json';
-    final stamp = (now ?? DateTime.now()).millisecondsSinceEpoch;
-    return Uri.parse('$base?ts=$stamp');
+        (channel == OtaChannel.beta
+            ? 'https://raw.githubusercontent.com/$repo/main/update_manifest_beta.json'
+            : 'https://raw.githubusercontent.com/$repo/main/update_manifest.json');
+    final uri = Uri.parse(base);
+    final query = Map<String, String>.from(uri.queryParameters);
+    query['ts'] = (now ?? DateTime.now()).millisecondsSinceEpoch.toString();
+    return uri.replace(queryParameters: query);
   }
 
   /// Checks for newer releases matching the selected [channel].
@@ -68,10 +73,11 @@ class OtaService {
     final releases = await fetchReleases(channel: channel);
     if (releases.isEmpty) return null;
 
-    for (final release in releases) {
-      if (channel == OtaChannel.stable && release.isPrerelease) {
-        continue;
-      }
+    final candidates = releases.where((release) {
+      return channel != OtaChannel.stable || !release.isPrerelease;
+    }).toList()..sort((a, b) => compareVersions(b.version, a.version));
+
+    for (final release in candidates) {
       if (compareVersions(release.version, currentVersion) > 0) {
         return release;
       }
@@ -81,19 +87,15 @@ class OtaService {
 
   /// Fetches the candidate releases for [channel].
   ///
-  /// The stable channel reads the committed `update_manifest.json` — the file
-  /// the release workflow rewrites on every publish, and the only source that
-  /// carries the APK's SHA-256. The beta channel reads the GitHub Releases API
-  /// so pre-releases keep working. A `customManifestUrl` overrides both and is
-  /// parsed as either shape.
+  /// Both channels read a committed manifest rewritten by the release workflow:
+  /// `update_manifest.json` for stable and `update_manifest_beta.json` for beta.
+  /// This keeps the same fail-closed SHA-256 gate for prereleases and avoids
+  /// the unauthenticated GitHub API's rate limit. A `customManifestUrl`
+  /// overrides both and is parsed as either a manifest or a release object.
   Future<List<OtaRelease>> fetchReleases({
     OtaChannel channel = OtaChannel.stable,
   }) async {
-    final uri = customManifestUrl != null
-        ? manifestUri()
-        : channel == OtaChannel.beta
-        ? Uri.parse('https://api.github.com/repos/$repo/releases')
-        : manifestUri();
+    final uri = manifestUri(channel: channel);
 
     final response = await _client
         .get(
@@ -149,6 +151,7 @@ class OtaService {
     // A publish with a missing/malformed hash is a broken release, not an
     // unverified one we should offer to install.
     if (!isValidOtaChecksum(sha256)) return null;
+    final declaredChannel = json['channel'] as String?;
     return OtaRelease(
       version: version,
       tagName: 'v$version',
@@ -161,6 +164,10 @@ class OtaService {
       fileName: apkUrl.split('/').last,
       fileSize: json['size'] as int? ?? 0,
       sha256: sha256!.trim(),
+      isPrerelease: json['isPrerelease'] == true || declaredChannel == 'beta',
+      versionCode: json['latestVersionCode'] as int?,
+      minSupportedVersionCode: json['minSupportedVersionCode'] as int?,
+      isMandatory: json['mandatory'] == true,
     );
   }
 
@@ -206,12 +213,19 @@ class OtaService {
     final fileName = chosenAsset['name'] as String? ?? 'keyel-update.apk';
     final fileSize = chosenAsset['size'] as int? ?? 0;
 
-    // Search for a SHA-256 hash in the release body
+    // Prefer GitHub's asset digest; fall back to a hash in the release body
+    // for custom release sources that publish it as prose.
     String? sha256Checksum;
-    final hashRegex = RegExp(r'\b([a-fA-F0-9]{64})\b');
-    final match = hashRegex.firstMatch(body);
-    if (match != null) {
-      sha256Checksum = match.group(1);
+    final digest = chosenAsset['digest'] as String?;
+    if (digest != null && digest.startsWith('sha256:')) {
+      sha256Checksum = digest.substring('sha256:'.length);
+    }
+    if (!isValidOtaChecksum(sha256Checksum)) {
+      final hashRegex = RegExp(r'\b([a-fA-F0-9]{64})\b');
+      final match = hashRegex.firstMatch(body);
+      if (match != null) {
+        sha256Checksum = match.group(1);
+      }
     }
     // The GitHub Releases body is authored text, so the hash may be absent or
     // malformed. Fail closed instead of installing an unverified APK.

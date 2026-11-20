@@ -79,9 +79,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Dark'));
+    // The richer cards push the Dark option below the fold.
+    final darkDescription = find.text(
+      'Stays dark even when your device uses light mode.',
+    );
+    await tester.ensureVisible(darkDescription);
     await tester.pumpAndSettle();
+    await tester.tap(darkDescription);
+    await tester.pumpAndSettle();
+    expect(prefs.themeMode, 'dark');
 
+    await tester.scrollUntilVisible(find.text('Live preview'), -200);
+    await tester.pumpAndSettle();
     expect(_previewLabel(tester), contains('Theme preview: Indigo, Dark mode'));
     expect(
       find.text('Stays dark even when your device uses light mode.'),
