@@ -177,7 +177,8 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final unlocked =
-        ref.watch(vaultSessionProvider).status == VaultStatus.unlocked;
+        ref.watch(vaultSessionProvider.select((state) => state.status)) ==
+        VaultStatus.unlocked;
 
     return Scaffold(
       backgroundColor: scheme.surface,

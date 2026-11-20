@@ -27,6 +27,8 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: test
         run: cargo test --workspace
+      - name: no secret logs
+        run: ./tool/check_no_secret_logs.sh
 
   security:
     runs-on: ubuntu-latest

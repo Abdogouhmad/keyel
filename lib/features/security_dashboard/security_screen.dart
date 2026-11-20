@@ -10,6 +10,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/security_dashboard/health_category.dart';
 import 'package:keyel/features/security_dashboard/widgets/health_issue_sheet.dart';
 import 'package:keyel/features/security_dashboard/widgets/score_card.dart';
+import 'package:keyel/features/security_dashboard/widgets/security_posture_card.dart';
 import 'package:keyel/features/security_dashboard/widgets/security_tip_card.dart';
 import 'package:keyel/features/security_dashboard/widgets/vulnerability_audit_section.dart';
 import 'package:keyel/features/security_dashboard/widgets/vulnerability_summary.dart';
@@ -109,6 +110,10 @@ class _Dashboard extends StatelessWidget {
         KeyelSpacing.xl,
       ),
       children: [
+        // What the user can control right now, above the score that summarizes
+        // the credentials themselves. Both read the same non-secret state.
+        const SecurityPostureCardConnector(),
+        const SizedBox(height: KeyelSpacing.lg),
         ScoreCard(
           score: report.score,
           issueCount: _issueCount,

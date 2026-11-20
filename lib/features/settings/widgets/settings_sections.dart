@@ -50,7 +50,7 @@ class SettingsAppearanceSection extends StatelessWidget {
 class SettingsSecuritySection extends StatelessWidget {
   /// Creates the security section.
   const new({
-    required this.session,
+    required this.status,
     required this.biometricBusy,
     required this.biometricEnabled,
     required this.autoLockDelay,
@@ -63,8 +63,8 @@ class SettingsSecuritySection extends StatelessWidget {
     super.key,
   });
 
-  /// Current vault session.
-  final VaultSessionState session;
+  /// Current vault lifecycle (the only session field this section renders).
+  final VaultStatus status;
 
   /// Whether a biometric toggle operation is in progress.
   final bool biometricBusy;
@@ -96,7 +96,7 @@ class SettingsSecuritySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final unlocked = session.status == VaultStatus.unlocked;
+    final unlocked = status == VaultStatus.unlocked;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

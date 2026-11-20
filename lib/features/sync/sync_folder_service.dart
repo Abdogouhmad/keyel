@@ -19,9 +19,8 @@ class PlatformSyncFolderService implements SyncFolderService {
   const new();
 
   @override
-  Future<String?> pickFolder() => FilePicker.getDirectoryPath(
-    dialogTitle: 'Choose a sync folder',
-  );
+  Future<String?> pickFolder() =>
+      FilePicker.getDirectoryPath(dialogTitle: 'Choose a sync folder');
 
   @override
   Future<String> appSyncFolder() async {

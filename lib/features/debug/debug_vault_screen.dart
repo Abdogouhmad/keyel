@@ -255,6 +255,8 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // DebugStatusCard renders status + busy + error, so this screen genuinely
+    // needs the whole snapshot; hot application screens narrow with `select`.
     final session = ref.watch(vaultSessionProvider);
     final scheme = Theme.of(context).colorScheme;
 
@@ -279,9 +281,8 @@ class _DebugVaultScreenState extends ConsumerState<DebugVaultScreen> {
                 showRecovery: _showRecoveryUnlock,
                 onUnlockMaster: () => unawaited(_unlock(recovery: false)),
                 onUnlockRecovery: () => unawaited(_unlock(recovery: true)),
-                onToggleRecovery: () => setState(
-                  () => _showRecoveryUnlock = !_showRecoveryUnlock,
-                ),
+                onToggleRecovery: () =>
+                    setState(() => _showRecoveryUnlock = !_showRecoveryUnlock),
               ),
             if (session.status == VaultStatus.unlocked) ...[
               DebugAddEntryCard(

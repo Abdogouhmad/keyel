@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/platform/secure_screen.dart';
+import 'package:keyel/core/security/auto_lock_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/data/vault_session_provider.dart';
@@ -54,7 +55,11 @@ Future<void> mainPasskey() async {
   }
 
   runApp(
-    ProviderScope(child: _PasskeyApp(args: args ?? const <Object?, Object?>{})),
+    ProviderScope(
+      child: AutoLockHost(
+        child: _PasskeyApp(args: args ?? const <Object?, Object?>{}),
+      ),
+    ),
   );
 }
 
@@ -93,8 +98,9 @@ class _PasskeyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(vaultSessionProvider);
-    final isUnlocked = session.status == VaultStatus.unlocked;
+    final isUnlocked =
+        ref.watch(vaultSessionProvider.select((state) => state.status)) ==
+        VaultStatus.unlocked;
     final prefs = AppPreferences.instance;
     final palette = KeyelPaletteX.fromId(prefs.paletteId);
     final themeMode = KeyelPaletteX.themeModeFromId(prefs.themeMode);

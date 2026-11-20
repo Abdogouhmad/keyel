@@ -1,5 +1,11 @@
 include: package:very_good_analysis/analysis_options.yaml
 
+# Toolchain note: CI pins Flutter 3.47.9 (.github/workflows/ci.yml,
+# FLUTTER_VERSION) and Rust 1.97.0. Local analysis uses whatever is installed;
+# run ./tool/check_ci.sh to execute the exact CI command set and catch drift
+# before pushing. 3.50.x deprecates package:flutter/material.dart in favour of
+# package:material_ui/material_ui.dart; we stay on material until CI moves.
+
 analyzer:
   exclude:
     # flutter_rust_bridge generated files.

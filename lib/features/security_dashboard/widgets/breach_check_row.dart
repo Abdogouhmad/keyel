@@ -24,11 +24,15 @@ class BreachCheckRow extends ConsumerWidget {
     final enabled = ref.watch(breachOptInProvider);
     final check = ref.watch(breachCheckProvider);
     final unlocked =
-        ref.watch(vaultSessionProvider).status == VaultStatus.unlocked;
+        ref.watch(vaultSessionProvider.select((state) => state.status)) ==
+        VaultStatus.unlocked;
     // Rust clears pending digests on lock; mirror that in the UI and cancel any
     // in-flight fetch so a late response cannot repopulate the result.
-    ref.listen(vaultSessionProvider, (previous, next) {
-      if (next.status != VaultStatus.unlocked) {
+    ref.listen(vaultSessionProvider.select((state) => state.status), (
+      _,
+      status,
+    ) {
+      if (status != VaultStatus.unlocked) {
         ref.read(breachCheckProvider.notifier).cancel();
       }
     });

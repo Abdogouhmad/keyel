@@ -131,8 +131,9 @@ void main() {
     expect(find.text('Disable sync'), findsOneWidget);
   });
 
-  testWidgets('enabling picks a folder and shows the pairing code once',
-      (tester) async {
+  testWidgets('enabling picks a folder and shows the pairing code once', (
+    tester,
+  ) async {
     final repo = _FakeRepository(status: _disabled);
     await tester.pumpWidget(_host(const SyncScreen(), repository: repo));
     await tester.pumpAndSettle();
@@ -177,8 +178,9 @@ void main() {
     expect(find.text('Sync enabled'), findsOneWidget);
   });
 
-  testWidgets('sync now uses the stored folder and reports conflicts',
-      (tester) async {
+  testWidgets('sync now uses the stored folder and reports conflicts', (
+    tester,
+  ) async {
     final repo = _FakeRepository(status: _enabled);
     await tester.pumpWidget(_host(const SyncScreen(), repository: repo));
     await tester.pumpAndSettle();

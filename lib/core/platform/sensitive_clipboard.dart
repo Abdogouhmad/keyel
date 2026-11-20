@@ -1,8 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/data/app_preferences.dart';
+
+/// Immediate clipboard wipe used on vault lock and app background.
+///
+/// Overridable in tests so session behaviour can be asserted without touching
+/// the platform clipboard. See `docs/threat-model.md` (T5).
+final clipboardWipeProvider = Provider<Future<void> Function()>(
+  (ref) => SensitiveClipboard.instance.clearOnLock,
+);
 
 /// Copies sensitive text and wipes the clipboard after a short delay.
 ///
@@ -21,6 +31,8 @@ class SensitiveClipboard {
   /// Shared helper used by detail and list screens.
   static final instance = SensitiveClipboard._();
 
+  static const _channel = MethodChannel('keyel/platform');
+
   Timer? _clearTimer;
 
   /// Copy [text] and schedule a clipboard wipe.
@@ -29,14 +41,61 @@ class SensitiveClipboard {
   /// immediately. When neither is set to clear, any pending wipe is cancelled
   /// and the value stays until the user copies something else.
   Future<void> copy(String text, {Duration? timeout}) async {
-    await Clipboard.setData(ClipboardData(text: text));
+    await _setSensitive(text);
     _clearTimer?.cancel();
     _clearTimer = null;
     final delay = timeout ?? AppPreferences.instance.clipboardClearDelay;
     if (delay == null || delay <= Duration.zero) return;
     _clearTimer = Timer(delay, () {
-      unawaited(Clipboard.setData(const ClipboardData(text: '')));
+      unawaited(_clearSensitive());
     });
+  }
+
+  /// Writes a clipboard entry through the native channel so Android 13+ can
+  /// mark it sensitive. Falls back to Flutter's clipboard when the channel is
+  /// unavailable (tests, desktop) or the host OS has no implementation.
+  Future<void> _setSensitive(String text) async {
+    if (Platform.isAndroid) {
+      try {
+        await _channel.invokeMethod<void>('copySensitive', <String, Object?>{
+          'text': text,
+        });
+        return;
+      } on Object catch (_) {
+        // Fall through to the platform-agnostic clipboard.
+      }
+    }
+    await Clipboard.setData(ClipboardData(text: text));
+  }
+
+  /// Clears the clipboard as a sensitive entry so the OS does not keep the
+  /// empty value in its history or offer it as a suggestion.
+  Future<void> _clearSensitive() async {
+    if (Platform.isAndroid) {
+      try {
+        await _channel.invokeMethod<void>('clearSensitive');
+        return;
+      } on Object catch (_) {
+        // Fall through to the platform-agnostic clipboard.
+      }
+    }
+    await Clipboard.setData(const ClipboardData(text: ''));
+  }
+
+  /// Wipe immediately for a security event.
+  ///
+  /// Unlike the timed clear this is unconditional: choosing "Never clear" only
+  /// opts out of the automatic timer while the vault stays unlocked and the
+  /// app stays in the foreground. Locking or backgrounding always wins.
+  Future<void> clearOnLock() async {
+    _clearTimer?.cancel();
+    _clearTimer = null;
+    try {
+      await _clearSensitive();
+    } on Object catch (_) {
+      // No platform binding (unit tests) or clipboard unavailable: wiping is
+      // best effort, as with the timed clear.
+    }
   }
 
   /// Cancel a pending wipe, for example when the screen is disposed.

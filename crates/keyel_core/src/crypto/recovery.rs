@@ -42,7 +42,9 @@ impl RecoveryKey {
     /// Case, spaces, hyphens and `=` padding are ignored. `0`/`O` and `1`/`I`
     /// are treated as the same character to tolerate handwriting and fonts.
     pub fn parse(input: &str) -> Result<Self, Error> {
-        let mut cleaned = String::with_capacity(input.len());
+        // Both the normalized text and the decoded bytes carry the full key;
+        // wrap them so no transient copy survives the parse.
+        let mut cleaned = Zeroizing::new(String::with_capacity(input.len()));
         for ch in input.chars() {
             if ch.is_ascii_alphanumeric() {
                 cleaned.push(match ch.to_ascii_uppercase() {
@@ -52,9 +54,11 @@ impl RecoveryKey {
                 });
             }
         }
-        let decoded = BASE32_NOPAD
-            .decode(cleaned.as_bytes())
-            .map_err(|_| Error::InvalidRecoveryKey)?;
+        let decoded = Zeroizing::new(
+            BASE32_NOPAD
+                .decode(cleaned.as_bytes())
+                .map_err(|_| Error::InvalidRecoveryKey)?,
+        );
         if decoded.len() != RECOVERY_KEY_LEN {
             return Err(Error::InvalidRecoveryKey);
         }
@@ -65,7 +69,9 @@ impl RecoveryKey {
 
     /// Encode for display, grouped with hyphens.
     pub fn encode(&self) -> String {
-        let encoded = BASE32_NOPAD.encode(&self.0[..]);
+        // The encoded form is the key itself; zeroize our working copy even
+        // though the returned, grouped string must stay available to the caller.
+        let encoded = Zeroizing::new(BASE32_NOPAD.encode(&self.0[..]));
         encoded
             .as_bytes()
             .chunks(RECOVERY_GROUP_LEN)

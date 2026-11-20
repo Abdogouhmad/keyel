@@ -40,27 +40,32 @@ impl PairingCode {
 
     /// Encode as a copyable/QR-scannable string.
     pub fn encode(&self) -> String {
-        let mut raw = Vec::with_capacity(PAYLOAD_LEN);
+        let mut raw = Zeroizing::new(Vec::with_capacity(PAYLOAD_LEN));
         raw.extend_from_slice(&self.sync_id);
         raw.extend_from_slice(&self.sync_key[..]);
         raw.extend_from_slice(&tag(&self.sync_id, &self.sync_key));
+        // `base32` produces the bearer secret returned to the caller; only the
+        // intermediate raw bytes are ours to zeroize.
         format!("{PREFIX}{}", BASE32_NOPAD.encode(&raw))
     }
 
     /// Parse a pairing code, rejecting bad formatting, length or typos.
     pub fn parse(input: &str) -> Result<Self, Error> {
         let trimmed = input.trim();
-        let upper = trimmed.to_ascii_uppercase();
+        let upper = Zeroizing::new(trimmed.to_ascii_uppercase());
         let body = upper
             .strip_prefix(PREFIX)
             .ok_or(Error::InvalidRecoveryKey)?;
-        let compact: String = body
-            .chars()
-            .filter(|c| !c.is_whitespace() && *c != '-')
-            .collect();
-        let raw = BASE32_NOPAD
-            .decode(compact.as_bytes())
-            .map_err(|_| Error::InvalidRecoveryKey)?;
+        let compact: Zeroizing<String> = Zeroizing::new(
+            body.chars()
+                .filter(|c| !c.is_whitespace() && *c != '-')
+                .collect(),
+        );
+        let raw = Zeroizing::new(
+            BASE32_NOPAD
+                .decode(compact.as_bytes())
+                .map_err(|_| Error::InvalidRecoveryKey)?,
+        );
         if raw.len() != PAYLOAD_LEN {
             return Err(Error::InvalidRecoveryKey);
         }

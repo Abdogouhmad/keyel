@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// A secured text field for passwords, passphrases and recovery keys.
 ///
-/// Content is always masked on first paint and secrets are only ever
-/// revealed through an explicit user action on the trailing toggle.
+/// Content is always masked on first paint. A reveal is an explicit,
+/// single-tap action and re-masks itself after [revealDuration] so a secret can
+/// never stay on screen by accident when the user walks away.
 class KeyelPasswordField extends StatefulWidget {
   /// Creates a password field.
   const new({
@@ -20,6 +23,9 @@ class KeyelPasswordField extends StatefulWidget {
     this.horizontalPadding = KeyelSpacing.lg,
     super.key,
   });
+
+  /// How long a revealed value stays visible before re-masking.
+  static const revealDuration = Duration(seconds: 15);
 
   /// Text controller owned by the caller.
   final TextEditingController controller;
@@ -54,6 +60,30 @@ class KeyelPasswordField extends StatefulWidget {
 
 class _KeyelPasswordFieldState extends State<KeyelPasswordField> {
   bool _obscure = true;
+  Timer? _revealTimer;
+
+  @override
+  void dispose() {
+    _revealTimer?.cancel();
+    super.dispose();
+  }
+
+  void _toggleReveal() {
+    setState(() {
+      _obscure = !_obscure;
+      _revealTimer?.cancel();
+      _revealTimer = null;
+      if (!_obscure) {
+        _revealTimer = Timer(KeyelPasswordField.revealDuration, () {
+          if (!mounted) return;
+          setState(() {
+            _obscure = true;
+            _revealTimer = null;
+          });
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +113,7 @@ class _KeyelPasswordFieldState extends State<KeyelPasswordField> {
             borderSide: BorderSide.none,
           ),
           suffixIcon: IconButton(
-            // Reveal is an explicit, single-tap action; mask again on
-            // losing the tap — secrets never stay visible by accident.
-            onPressed: () => setState(() => _obscure = !_obscure),
+            onPressed: _toggleReveal,
             icon: Icon(
               _obscure
                   ? Icons.visibility_off_outlined

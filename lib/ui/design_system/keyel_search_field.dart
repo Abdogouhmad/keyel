@@ -11,6 +11,7 @@ class KeyelSearchField extends StatefulWidget {
     this.onChanged,
     this.trailing,
     this.autofocus = false,
+    this.focusNode,
     super.key,
   });
 
@@ -29,18 +30,25 @@ class KeyelSearchField extends StatefulWidget {
   /// Whether the field grabs focus on first build.
   final bool autofocus;
 
+  /// Optional focus node owned by the caller (used by the global find action).
+  /// When omitted the field creates and disposes its own node.
+  final FocusNode? focusNode;
+
   @override
   State<KeyelSearchField> createState() => _KeyelSearchFieldState();
 }
 
 class _KeyelSearchFieldState extends State<KeyelSearchField> {
+  late final FocusNode _ownedFocusNode;
   late final FocusNode _focusNode;
   bool _focused = false;
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode()..addListener(_handleFocus);
+    _ownedFocusNode = FocusNode();
+    _focusNode = widget.focusNode ?? _ownedFocusNode;
+    _focusNode.addListener(_handleFocus);
   }
 
   void _handleFocus() {
@@ -50,9 +58,8 @@ class _KeyelSearchFieldState extends State<KeyelSearchField> {
 
   @override
   void dispose() {
-    _focusNode
-      ..removeListener(_handleFocus)
-      ..dispose();
+    _focusNode.removeListener(_handleFocus);
+    if (widget.focusNode == null) _ownedFocusNode.dispose();
     super.dispose();
   }
 

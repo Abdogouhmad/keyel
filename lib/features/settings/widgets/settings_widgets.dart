@@ -6,10 +6,10 @@ import 'package:keyel/ui/keyel.dart';
 /// Displays the current vault status and storage location.
 class VaultProfileCard extends StatelessWidget {
   /// Creates a vault profile card.
-  const new({required this.session, this.vaultPath, super.key});
+  const new({required this.status, this.vaultPath, super.key});
 
-  /// Current vault session snapshot.
-  final VaultSessionState session;
+  /// Current vault lifecycle (the only session field this card renders).
+  final VaultStatus status;
 
   /// Resolved vault file path, if known.
   final String? vaultPath;
@@ -19,7 +19,7 @@ class VaultProfileCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final statusName = session.status.toString();
+    final statusName = status.toString();
     final unlocked = statusName.contains('unlocked');
     final locked = statusName.contains('locked');
 

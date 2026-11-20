@@ -100,7 +100,10 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       if (!mounted) return;
       final saved = await _showPairingCode(code);
       if (saved == true && mounted) {
-        showKeyelSnack(context, 'Sync enabled. Share the code with your other device only once.');
+        showKeyelSnack(
+          context,
+          'Sync enabled. Share the code with your other device only once.',
+        );
       }
     });
   }
@@ -108,7 +111,11 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   Future<void> _join() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
-      showKeyelSnack(context, 'Enter the pairing code first.', icon: Icons.key_off_outlined);
+      showKeyelSnack(
+        context,
+        'Enter the pairing code first.',
+        icon: Icons.key_off_outlined,
+      );
       return;
     }
     final folder = await _pickFolder();
@@ -116,7 +123,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final confirmed = await KeyelConfirmDialog.show(
       context,
       title: 'Join this sync group?',
-      body: 'Remote vault data will be merged with this vault on the next '
+      body:
+          'Remote vault data will be merged with this vault on the next '
           'manual sync. Conflicting items become separate copies; nothing is '
           'silently overwritten or deleted.',
       confirmLabel: 'Join group',
@@ -161,7 +169,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     final confirmed = await KeyelConfirmDialog.show(
       context,
       title: 'Disable sync?',
-      body: 'Local sync stops. Remote files are left untouched and can be '
+      body:
+          'Local sync stops. Remote files are left untouched and can be '
           'restored by joining again with the pairing code.',
       confirmLabel: 'Disable sync',
       destructive: true,
@@ -202,9 +211,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               const SizedBox(height: 16),
               SelectableText(
                 code,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
+                style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(fontFamily: KeyelTheme.monoFamily),
               ),
               const SizedBox(height: 12),
@@ -332,8 +339,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                           subtitle: _loading
                               ? 'Reading sync state…'
                               : enabled
-                                  ? 'Last sync: ${_lastSyncLabel(status!)}'
-                                  : 'Your vault stays on this device only.',
+                              ? 'Last sync: ${_lastSyncLabel(status!)}'
+                              : 'Your vault stays on this device only.',
                         ),
                         if (enabled && status != null) ...[
                           SettingsRow(
@@ -407,7 +414,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                           SettingsRow(
                             icon: Icons.key_outlined,
                             title: 'Show pairing code',
-                            subtitle: 'Pair another device with this sync group.',
+                            subtitle:
+                                'Pair another device with this sync group.',
                             onTap: _busy ? null : _showCodeAgain,
                           ),
                           SettingsRow(

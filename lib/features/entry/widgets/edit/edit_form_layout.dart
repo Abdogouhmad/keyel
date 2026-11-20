@@ -70,10 +70,12 @@ class EditFormLayout extends ConsumerStatefulWidget {
 class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
   bool _obscurePassword = true;
   List<FolderDto> _folders = [];
+  late PasswordStrength _strength;
 
   @override
   void initState() {
     super.initState();
+    _strength = PasswordStrength.estimate(widget.controller.password.text);
     unawaited(_loadFolders());
   }
 
@@ -107,15 +109,18 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     unawaited(_loadFolders());
   }
 
-  PasswordStrength get _strength =>
-      PasswordStrength.estimate(widget.controller.password.text);
+  void _refreshStrength() {
+    _strength = PasswordStrength.estimate(widget.controller.password.text);
+  }
 
   void _generatePassword() {
     final generated = widget.controller.generatePassword();
     if (generated == null) return;
     setState(() {
       widget.controller.password.text = generated;
-      _obscurePassword = false;
+      // A freshly generated password stays masked; revealing it is always an
+      // explicit tap on the visibility toggle.
+      _refreshStrength();
     });
   }
 
@@ -313,7 +318,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     strength: _strength,
     obscure: _obscurePassword,
     onToggleObscure: _toggleObscure,
-    onChanged: (_) => setState(() {}),
+    onChanged: (_) => setState(_refreshStrength),
     onGenerate: _generatePassword,
   );
 
@@ -406,5 +411,4 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
       ),
     );
   }
-
 }

@@ -12,7 +12,10 @@
 //!   by storing the bare package name as its URL.
 //! - **Web:** same host, or a subdomain of the other host. A subdomain shares
 //!   its registrable domain with its parent, so `login.example.com` matches
-//!   `example.com` but `evil-example.com` does not.
+//!   `example.com` but `evil-example.com` does not. A web domain is only a
+//!   fill target when no app package was reported, or when the reporter is a
+//!   known browser: any other app can host `victim.com` in a WebView and claim
+//!   that domain, so only its own `androidapp://` package entry can match.
 //!
 //! There is no public-suffix list yet, so we never collapse to an eTLD+1
 //! guess; matching across hosts only happens on a label boundary, which can
@@ -22,6 +25,36 @@
 
 use crate::vault::index::normalize;
 use crate::vault::{EntryBody, EntrySummary, Vault};
+
+/// Packages whose reported web domain is trusted as a fill target.
+///
+/// The Android autofill framework reports both the hosting app's package and
+/// the domain of a WebView. An arbitrary app can embed a WebView showing
+/// `victim.com` and place a native password field beside it; without this
+/// allowlist the domain fallback would offer the victim's credential. Package
+/// names come from the framework, not the requesting app, so they cannot be
+/// spoofed by the app itself. See `docs/threat-model.md` (T7).
+const TRUSTED_BROWSER_PACKAGES: &[&str] = &[
+    "com.android.chrome",
+    "com.chrome.beta",
+    "com.chrome.dev",
+    "com.chrome.canary",
+    "com.google.android.apps.chrome",
+    "com.android.browser",
+    "org.mozilla.firefox",
+    "org.mozilla.firefox_beta",
+    "org.mozilla.fennec_fdroid",
+    "com.microsoft.emmx",
+    "com.brave.browser",
+    "com.opera.browser",
+    "com.opera.mini.native",
+    "com.duckduckgo.mobile.android",
+    "com.vivaldi.browser",
+];
+
+fn is_trusted_browser(package: &str) -> bool {
+    TRUSTED_BROWSER_PACKAGES.contains(&package)
+}
 
 /// What is asking to be filled.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -76,12 +109,20 @@ pub fn find_matches(vault: &Vault, target: &MatchTarget, query: &str) -> Vec<Aut
         .package
         .as_deref()
         .map(str::trim)
-        .filter(|value| !value.is_empty());
-    let domain = target
-        .web_domain
-        .as_deref()
-        .and_then(host_of)
-        .map(|host| strip_www(&host));
+        .filter(|value| !value.is_empty())
+        .map(str::to_ascii_lowercase);
+    let package = package.as_deref();
+    // A WebView in an untrusted app can claim any web domain. Ignore it as a
+    // fill target; explicit search still works and is reported as `Search`.
+    let domain = if package.is_some_and(|value| !is_trusted_browser(value)) {
+        None
+    } else {
+        target
+            .web_domain
+            .as_deref()
+            .and_then(host_of)
+            .map(|host| strip_www(&host))
+    };
     let query = normalize(query.trim());
 
     let mut exact = Vec::new();
@@ -399,6 +440,51 @@ mod tests {
             web_domain: None,
         };
         assert!(find_matches(&vault, &target, "").is_empty());
+    }
+
+    #[test]
+    fn webview_in_another_app_cannot_borrow_a_web_domain() {
+        let vault = vault_with(vec![login("Bank", "ada", "https://victim.com")]);
+        let target = MatchTarget {
+            package: Some("com.evil".into()),
+            web_domain: Some("victim.com".into()),
+        };
+        assert!(find_matches(&vault, &target, "").is_empty());
+
+        // An explicit search is still available, but must stay warning-level.
+        let searched = find_matches(&vault, &target, "bank");
+        assert_eq!(searched.len(), 1);
+        assert_eq!(searched[0].quality, MatchQuality::Search);
+    }
+
+    #[test]
+    fn trusted_browsers_keep_web_domain_matching() {
+        let vault = vault_with(vec![login("Bank", "ada", "https://victim.com")]);
+        for package in [
+            "com.android.chrome",
+            "org.mozilla.firefox",
+            "COM.ANDROID.CHROME",
+        ] {
+            let target = MatchTarget {
+                package: Some(package.into()),
+                web_domain: Some("victim.com".into()),
+            };
+            let matches = find_matches(&vault, &target, "");
+            assert_eq!(matches.len(), 1, "package: {package}");
+            assert_eq!(matches[0].quality, MatchQuality::Exact);
+        }
+    }
+
+    #[test]
+    fn untrusted_package_still_matches_its_own_app_entry() {
+        let vault = vault_with(vec![login("App", "ada", "androidapp://com.evil")]);
+        let target = MatchTarget {
+            package: Some("com.evil".into()),
+            web_domain: Some("victim.com".into()),
+        };
+        let matches = find_matches(&vault, &target, "");
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].quality, MatchQuality::Exact);
     }
 
     #[test]

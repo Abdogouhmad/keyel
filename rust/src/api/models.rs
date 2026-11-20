@@ -234,7 +234,7 @@ impl From<&CustomField> for CustomFieldDetailDto {
 }
 
 /// A user-defined custom field to create or update.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct CustomFieldDraft {
     /// Existing field id to update; `None` creates a new field.
     pub id: Option<String>,
@@ -245,6 +245,17 @@ pub struct CustomFieldDraft {
     /// Field value. For hidden fields, `None` keeps the existing secret when
     /// updating a field with the same id.
     pub value: Option<String>,
+}
+
+impl std::fmt::Debug for CustomFieldDraft {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CustomFieldDraft")
+            .field("id", &self.id)
+            .field("label", &self.label)
+            .field("kind", &self.kind)
+            .field("value", &self.value.as_ref().map(|_| "[REDACTED]"))
+            .finish()
+    }
 }
 
 /// Non-secret passkey metadata. Private key material is never exposed.
@@ -398,7 +409,7 @@ impl From<&Entry> for EntryDetailDto {
 /// Secret fields are optional: `None` keeps the existing value when `id`
 /// points at an entry, and means "empty" for a new entry. This lets an editor
 /// save masked fields without ever receiving their plaintext.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct EntryDraft {
     /// Existing entry to update; `None` creates a new entry.
     pub id: Option<String>,
@@ -444,6 +455,38 @@ pub struct EntryDraft {
     pub note_content: Option<String>,
     /// User-defined custom fields, in display order.
     pub custom_fields: Vec<CustomFieldDraft>,
+}
+
+impl std::fmt::Debug for EntryDraft {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Drafts cross the bridge with plaintext values. Debug output must
+        // never become a side channel (threat model T3).
+        let redacted = |value: &Option<String>| value.as_ref().map(|_| "[REDACTED]");
+        f.debug_struct("EntryDraft")
+            .field("id", &self.id)
+            .field("kind", &self.kind)
+            .field("title", &self.title)
+            .field("notes", &redacted(&self.notes))
+            .field("tags", &self.tags)
+            .field("folder_id", &self.folder_id)
+            .field("favorite", &self.favorite)
+            .field("icon", &self.icon)
+            .field("username", &self.username)
+            .field("password", &redacted(&self.password))
+            .field("url", &self.url)
+            .field("totp_secret", &redacted(&self.totp_secret))
+            .field("totp_algorithm", &self.totp_algorithm)
+            .field("totp_digits", &self.totp_digits)
+            .field("totp_period", &self.totp_period)
+            .field("cardholder", &self.cardholder)
+            .field("card_number", &redacted(&self.card_number))
+            .field("card_expiry", &self.card_expiry)
+            .field("card_cvv", &redacted(&self.card_cvv))
+            .field("card_brand", &self.card_brand)
+            .field("note_content", &redacted(&self.note_content))
+            .field("custom_fields", &self.custom_fields)
+            .finish()
+    }
 }
 
 /// Resolve custom-field drafts against existing fields, preserving hidden
@@ -550,7 +593,7 @@ pub struct FolderDto {
 ///
 /// Unlike the vault DTOs this carries the shared secret, because the caller
 /// supplied it (scanned or typed) and needs it back to save the entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct TotpConfigDto {
     /// Normalised base32 secret.
     pub secret: String,
@@ -562,8 +605,19 @@ pub struct TotpConfigDto {
     pub period: u32,
 }
 
+impl std::fmt::Debug for TotpConfigDto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TotpConfigDto")
+            .field("secret", &"[REDACTED]")
+            .field("algorithm", &self.algorithm)
+            .field("digits", &self.digits)
+            .field("period", &self.period)
+            .finish()
+    }
+}
+
 /// A live one-time code for an entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct TotpCodeDto {
     /// The zero-padded numeric code.
     pub code: String,
@@ -571,6 +625,16 @@ pub struct TotpCodeDto {
     pub seconds_left: u32,
     /// The configured period, for the countdown ring.
     pub period: u32,
+}
+
+impl std::fmt::Debug for TotpCodeDto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TotpCodeDto")
+            .field("code", &"[REDACTED]")
+            .field("seconds_left", &self.seconds_left)
+            .field("period", &self.period)
+            .finish()
+    }
 }
 
 /// A secret-free reference to an affected entry in a health report.
@@ -921,4 +985,66 @@ pub struct BreachReportDto {
     pub checked_count: u32,
     /// Number of distinct prefixes queried.
     pub queried_prefixes: u32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SENTINEL: &str = "SENTINEL-SUPER-SECRET-12345";
+
+    #[test]
+    fn secret_drafts_never_print_secrets_in_debug() {
+        let field = CustomFieldDraft {
+            id: None,
+            label: "CVV".into(),
+            kind: CustomFieldKindDto::Hidden,
+            value: Some(SENTINEL.into()),
+        };
+        let totp = TotpConfigDto {
+            secret: SENTINEL.into(),
+            algorithm: TotpAlgorithmDto::Sha1,
+            digits: 6,
+            period: 30,
+        };
+        let code = TotpCodeDto {
+            code: SENTINEL.into(),
+            seconds_left: 10,
+            period: 30,
+        };
+        let draft = EntryDraft {
+            id: None,
+            kind: EntryKindDto::Login,
+            title: "Bank".into(),
+            notes: Some(SENTINEL.into()),
+            tags: Vec::new(),
+            folder_id: None,
+            favorite: false,
+            icon: None,
+            username: "ada".into(),
+            password: Some(SENTINEL.into()),
+            url: "https://example.com".into(),
+            totp_secret: Some(SENTINEL.into()),
+            totp_algorithm: TotpAlgorithmDto::Sha1,
+            totp_digits: 6,
+            totp_period: 30,
+            cardholder: String::new(),
+            card_number: Some(SENTINEL.into()),
+            card_expiry: String::new(),
+            card_cvv: Some(SENTINEL.into()),
+            card_brand: None,
+            note_content: Some(SENTINEL.into()),
+            custom_fields: vec![field],
+        };
+
+        for debug in [
+            format!("{:?}", draft.custom_fields[0]),
+            format!("{totp:?}"),
+            format!("{code:?}"),
+            format!("{draft:?}"),
+        ] {
+            assert!(!debug.contains(SENTINEL), "secret leaked: {debug}");
+            assert!(debug.contains("[REDACTED]"), "missing marker: {debug}");
+        }
+    }
 }

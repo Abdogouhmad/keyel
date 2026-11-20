@@ -81,9 +81,7 @@ class OtaScreen extends ConsumerWidget {
                     notifier.setAutoCheck(enabled: value),
               ),
               const SizedBox(height: KeyelSpacing.md),
-              OtaLocalInstallButton(
-                onInstallLocal: notifier.installLocalApk,
-              ),
+              OtaLocalInstallButton(onInstallLocal: notifier.installLocalApk),
               const SizedBox(height: KeyelSpacing.xl),
               const OtaPrivacyNotice(),
               const SizedBox(height: KeyelSpacing.xl),

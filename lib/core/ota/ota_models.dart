@@ -170,11 +170,12 @@ class OtaState {
           step == OtaStep.downloaded) &&
       availableRelease != null;
 
-  /// Whether an update is downloaded and ready to install.
+  /// Whether an update is downloaded and verified, ready to install.
   bool get isReadyToInstall =>
       step == OtaStep.downloaded &&
       downloadedFilePath != null &&
-      downloadedFilePath!.isNotEmpty;
+      downloadedFilePath!.isNotEmpty &&
+      isChecksumVerified;
 
   /// Returns a copy with updated properties.
   OtaState copyWith({

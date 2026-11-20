@@ -341,6 +341,11 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: no secret logs
+        run: |
+          chmod +x ./tool/check_no_secret_logs.sh
+          ./tool/check_no_secret_logs.sh
+
       - name: Determine version
         id: version
         run: |

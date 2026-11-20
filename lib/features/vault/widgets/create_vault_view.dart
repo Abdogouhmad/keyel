@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -95,12 +95,11 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
             actions: [
               TextButton.icon(
                 onPressed: () {
-                  unawaited(
-                    Clipboard.setData(ClipboardData(text: recoveryKey)),
-                  );
+                  unawaited(SensitiveClipboard.instance.copy(recoveryKey));
                   showKeyelSnack(
                     dialogCtx,
-                    'Recovery key copied to clipboard',
+                    'Recovery key copied to clipboard'
+                    '${SensitiveClipboard.instance.clearHint}',
                     icon: Icons.content_copy_rounded,
                   );
                 },

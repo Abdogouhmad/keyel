@@ -52,7 +52,8 @@ class CustomFieldsSection extends StatelessWidget {
                 field: fields[i],
                 controller: controller,
               ),
-              if (i != fields.length - 1) const SizedBox(height: KeyelSpacing.sm),
+              if (i != fields.length - 1)
+                const SizedBox(height: KeyelSpacing.sm),
             ],
           ],
         ],
@@ -79,10 +80,7 @@ class _AddFieldButton extends StatelessWidget {
           value: CustomFieldKindDto.hidden,
           child: Text('Hidden field'),
         ),
-        PopupMenuItem(
-          value: CustomFieldKindDto.url,
-          child: Text('URL field'),
-        ),
+        PopupMenuItem(value: CustomFieldKindDto.url, child: Text('URL field')),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -96,13 +94,16 @@ class _AddFieldButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.add_rounded,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 4),
             Text(
               'Add',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+              style: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(color: Theme.of(context).colorScheme.primary),
             ),
           ],
         ),
@@ -141,11 +142,13 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
   @override
   void didUpdateWidget(covariant _CustomFieldEditorRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.field.label != widget.field.label && _label.text != widget.field.label) {
+    if (oldWidget.field.label != widget.field.label &&
+        _label.text != widget.field.label) {
       _label.text = widget.field.label;
     }
     final nextValue = widget.field.value ?? '';
-    if (oldWidget.field.value != widget.field.value && _value.text != nextValue) {
+    if (oldWidget.field.value != widget.field.value &&
+        _value.text != nextValue) {
       _value.text = nextValue;
     }
   }
@@ -157,13 +160,10 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
     super.dispose();
   }
 
-  void _commit({
-    String? label,
-    String? value,
-    CustomFieldKindDto? kind,
-  }) {
+  void _commit({String? label, String? value, CustomFieldKindDto? kind}) {
     final nextKind = kind ?? widget.field.kind;
-    var nextValue = value ??
+    var nextValue =
+        value ??
         (nextKind == CustomFieldKindDto.hidden
             ? widget.field.value
             : _value.text);
@@ -193,7 +193,8 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isHidden = widget.field.kind == CustomFieldKindDto.hidden;
-    final preserved = isHidden && widget.field.value == null && widget.field.id != null;
+    final preserved =
+        isHidden && widget.field.value == null && widget.field.id != null;
 
     return Container(
       padding: const EdgeInsets.all(KeyelSpacing.sm),
@@ -288,7 +289,9 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
                 CustomFieldKindDto.url => 'URL',
                 CustomFieldKindDto.text => 'Value',
               },
-              hintText: preserved ? 'Saved securely (leave blank to keep)' : null,
+              hintText: preserved
+                  ? 'Saved securely (leave blank to keep)'
+                  : null,
               isDense: true,
             ),
             onChanged: (v) => _commit(value: v),
@@ -298,9 +301,8 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
               padding: const EdgeInsets.only(top: 4),
               child: Text(
                 'Existing hidden value will be kept unless you enter a new one.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ),
         ],

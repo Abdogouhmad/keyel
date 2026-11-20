@@ -9,6 +9,54 @@ import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/core/ota/ota_provider.dart';
 import 'package:keyel/core/ota/ota_service.dart';
 
+/// Simulates a download that bypassed the service's checksum gate, so the
+/// provider-level refusal can be asserted independently.
+class _UnverifiedOtaService extends OtaService {
+  new() : super(client: MockClient((_) async => http.Response('[]', 200)));
+
+  int installCalls = 0;
+
+  @override
+  Future<OtaRelease?> checkForUpdate({
+    required String currentVersion,
+    OtaChannel channel = OtaChannel.stable,
+  }) async {
+    return OtaRelease(
+      version: '9.9.9',
+      tagName: 'v9.9.9',
+      title: 'Unverified update',
+      releaseNotes: '',
+      publishedAt: DateTime(2026),
+      downloadUrl: 'https://example.com/app.apk',
+      fileName: 'app.apk',
+      fileSize: 1,
+    );
+  }
+
+  @override
+  Future<File> downloadRelease(
+    OtaRelease release, {
+    OtaDownloadProgressCallback? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    final file = File('${Directory.systemTemp.path}/keyel-unverified-test.apk');
+    await file.writeAsBytes(const [1, 2, 3]);
+    addTearDown(() {
+      if (file.existsSync()) file.deleteSync();
+    });
+    return file;
+  }
+
+  @override
+  Future<bool> canInstallPackages() async => true;
+
+  @override
+  Future<bool> installApk(String filePath) async {
+    installCalls++;
+    return true;
+  }
+}
+
 void main() {
   group('OTA Semver Comparison', () {
     test('compareVersions accurately orders semver strings', () {
@@ -79,8 +127,13 @@ void main() {
       final stateDownloaded = stateAvailable.copyWith(
         step: OtaStep.downloaded,
         downloadedFilePath: () => '/tmp/app.apk',
+        isChecksumVerified: true,
       );
       expect(stateDownloaded.isReadyToInstall, isTrue);
+      expect(
+        stateDownloaded.copyWith(isChecksumVerified: false).isReadyToInstall,
+        isFalse,
+      );
     });
   });
 
@@ -184,10 +237,7 @@ void main() {
       expect(update, isNotNull);
       expect(update!.version, equals('1.2.0'));
       expect(update.tagName, equals('v1.2.0'));
-      expect(
-        update.downloadUrl,
-        endsWith('keyel-v1.2.0-universal.apk'),
-      );
+      expect(update.downloadUrl, endsWith('keyel-v1.2.0-universal.apk'));
       expect(update.fileName, equals('keyel-v1.2.0-universal.apk'));
       expect(update.fileSize, equals(12345678));
       expect(update.sha256, equals(manifestSha));
@@ -195,10 +245,7 @@ void main() {
       expect(update.isPrerelease, isFalse);
 
       // Already on the manifest's version: nothing to do.
-      expect(
-        await service.checkForUpdate(currentVersion: '1.2.0'),
-        isNull,
-      );
+      expect(await service.checkForUpdate(currentVersion: '1.2.0'), isNull);
     });
   });
 
@@ -210,7 +257,7 @@ void main() {
             {
               'tag_name': 'v1.2.0',
               'name': 'Keyel 1.2.0',
-              'body': 'Notes',
+              'body': 'SHA256: ${List.filled(64, '3').join()}\nNotes',
               'prerelease': false,
               'published_at': '2026-11-16T00:00:00Z',
               'assets': [
@@ -275,6 +322,96 @@ void main() {
         ),
         isFalse,
       );
+    });
+
+    test(
+      'manifest and beta releases without a checksum are not offered',
+      () async {
+        final manifestClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'latestVersionName': '9.9.9',
+              'apkUrl': 'https://example.com/app.apk',
+              'size': 100,
+            }),
+            200,
+          );
+        });
+        final manifestService = OtaService(client: manifestClient);
+        expect(
+          await manifestService.checkForUpdate(currentVersion: '1.0.0'),
+          isNull,
+        );
+
+        final betaClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode([
+              {
+                'tag_name': 'v9.9.9',
+                'name': 'No checksum',
+                'body': 'Release notes without a hash',
+                'prerelease': true,
+                'published_at': '2026-11-16T12:00:00Z',
+                'assets': [
+                  {
+                    'name': 'app.apk',
+                    'browser_download_url': 'https://example.com/app.apk',
+                    'size': 100,
+                  },
+                ],
+              },
+            ]),
+            200,
+          );
+        });
+        final betaService = OtaService(client: betaClient);
+        expect(
+          await betaService.checkForUpdate(
+            currentVersion: '1.0.0',
+            channel: OtaChannel.beta,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    test('downloadRelease refuses a release with no checksum', () async {
+      var requests = 0;
+      final client = MockClient((request) async {
+        requests++;
+        return http.Response('apk', 200);
+      });
+      final service = OtaService(client: client);
+      final release = OtaRelease(
+        version: '9.9.9',
+        tagName: 'v9.9.9',
+        title: 'Unverified',
+        releaseNotes: '',
+        publishedAt: DateTime(2026),
+        downloadUrl: 'https://example.com/app.apk',
+        fileName: 'app.apk',
+        fileSize: 3,
+      );
+
+      await expectLater(service.downloadRelease(release), throwsStateError);
+      expect(requests, 0);
+    });
+
+    test('provider refuses to install an unverified download', () async {
+      final service = _UnverifiedOtaService();
+      final container = ProviderContainer(
+        overrides: [otaServiceProvider.overrideWithValue(service)],
+      );
+      addTearDown(container.dispose);
+      final notifier = container.read(otaProvider.notifier);
+
+      await notifier.checkForUpdates();
+      await notifier.startDownload();
+
+      expect(container.read(otaProvider).isChecksumVerified, isFalse);
+      expect(await notifier.installUpdate(), isFalse);
+      expect(service.installCalls, 0);
+      expect(container.read(otaProvider).errorMessage, contains('checksum'));
     });
   });
 }
