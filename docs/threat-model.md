@@ -70,11 +70,12 @@ coercion resistance, and protecting data the user deliberately exports to CSV.
 |---|---|---|
 | A1 | Opportunistic thief | Has the locked device; no root |
 | A2 | Malicious app on the device | Runs in its own sandbox; can drive Autofill |
-| A3 | Network attacker | Can intercept the update check and download (since 1.1.0) |
+| A3 | Network attacker | Can intercept the update check and download (since 1.1.0), and observe or tamper with an opted-in breach-check request (since 1.7.0) |
 | A4 | Offline attacker | Has a copy of `vault.keyel` (e.g. from a backup) |
 | A5 | Shoulder surfer / screen recorder | Can see the screen and the task switcher |
 | A6 | Forensic examiner | Full disk image of a rooted or unlocked device |
 | A7 | Malicious sync backend / pairing-code holder (since 1.5.0) | Can read, copy, delete or roll back encrypted sync files in the user's folder; may have seen the one-time pairing code |
+| A8 | Breach-check service (since 1.7.0) | Receives a 20-bit SHA-1 prefix and ordinary HTTP metadata; can answer falsely or record that a prefix was queried, but never receives a password, username or full digest |
 
 ## 5. Threats and mitigations
 
@@ -281,6 +282,38 @@ that device's synced vault (equivalent to vault-file theft plus recovery key),
 but cannot forge updates without the sync key. A user who loses the pairing code
 and all vaults cannot recover the sync group; keep an encrypted backup.
 
+### T15 — Breach-check egress and false results (A3, A8, since 1.7.0)
+
+The optional breach check is the only vault-derived data that ever leaves the
+device. It is off by default, requires an unlocked vault and an explicit,
+revocable opt-in, and runs only when the user taps **Check now** — never at
+unlock and never in the background.
+
+- **Only a 20-bit prefix is sent.** `crates/keyel_core/src/breach.rs` computes
+  SHA-1 in Rust (protocol compatibility, not password storage) and exposes only
+  the first five uppercase hex characters. The full digest is `Zeroizing`, lives
+  only in a bridge-local pending check, and is wiped on finish, cancel, error,
+  and session lock (`drop_session`).
+- **Dart cannot widen the request.** `lib/core/breach/breach_service.dart`
+  hard-codes the HTTPS endpoint, validates that the prefix is exactly five hex
+  characters before building the URL, applies a timeout, and treats any non-200
+  response as an error. There is no configurable endpoint.
+- **Matching stays in Rust.** Only `(entry id, entry title, count)` crosses the
+  result bridge. The raw HTTP body is an opaque transport value in the one
+  fetch DTO; Dart never parses it. No password, full digest, parsed response or
+  result state is persisted, logged, added to diagnostics, or stored in a
+  settings preference.
+- **Failures do not produce false assurance.** Rust requires exactly one
+  response body per requested prefix and rejects a non-empty body containing
+  malformed `SUFFIX:COUNT` lines. Missing, duplicated or unparsable responses
+  surface an error rather than "no exposed passwords found".
+
+*Residual:* HIBP and a network observer learn that *some* password with a given
+20-bit hash prefix was looked up; k-anonymity hides which candidate it was. A
+malicious service can return wrong counts for that prefix, but cannot read the
+vault, learn a password, or change vault data. Correctness depends on trusting
+HIBP's data; privacy does not.
+
 ## 6. Verification map
 
 | Threat | How it is checked |
@@ -295,6 +328,7 @@ and all vaults cannot recover the sync group; keep an encrypted backup.
 | T12 | `cargo audit` + `cargo deny` CI job |
 | T13 | `test/ota_test.dart` (SHA-256 verify, mismatch aborts, channel filter); on-device install pending |
 | T14 | `crates/keyel_core/tests/sync.rs` + `sync` unit tests (envelope tamper/wrong-key/truncation, pairing typo rejection, merge idempotency/convergence, corrupt blob leaves vault untouched, folder atomic I/O); `test/sync_screen_test.dart` (pairing-code acknowledgement, status, manual sync) |
+| T15 | `crates/keyel_core/src/breach.rs` known-answer/parser tests; `test/breach_test.dart` (HTTPS endpoint and prefix validation, opt-in disclosure, unlocked gating, error/cleanup, title/count-only results); secret-free DTO shape in `rust/src/api/breach.rs` |
 
 ## 7. Open items
 
@@ -303,5 +337,7 @@ and all vaults cannot recover the sync group; keep an encrypted backup.
 2. Multi-hour fuzz soak and crash-to-regression promotion (T6).
 3. Independent review of this document and `docs/crypto-design.md` before 1.0.
 4. Optional: a public suffix list for web matching (T7).
+5. Device smoke for 1.7.0: opt-in flow, offline failure, locked vault, relock
+   mid-check, and a known-breached password against the live HIBP endpoint.
 
-_Last updated: 2026-11-19 (1.5.0 E2EE sync)._
+_Last updated: 2026-11-20 (1.7.0 opt-in breach check)._

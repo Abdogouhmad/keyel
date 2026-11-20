@@ -50,7 +50,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Vulnerability audit'), findsOneWidget);
     expect(find.text('Insecure websites (HTTP)'), findsOneWidget);
-    expect(find.text('Offline breach check'), findsOneWidget);
+    expect(find.text('Breach check'), findsOneWidget);
   });
 
   testWidgets('security dashboard shows the all-clear state', (tester) async {

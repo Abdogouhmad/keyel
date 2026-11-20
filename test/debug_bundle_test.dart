@@ -28,13 +28,17 @@ void main() {
         ..paletteId = 'indigo'
         ..amoledBlack = false
         ..animationsEnabled = true
-        ..hapticsEnabled = true;
+        ..hapticsEnabled = true
+        ..breachCheckEnabled = false;
     });
 
     test('reports the version and never leaks recent searches', () {
       // A recent search is user data (site names) and must stay out of the
       // bundle even though AppPreferences holds it.
       AppPreferences.instance.recentSearches = <String>['secret-bank.example'];
+      // Even the non-secret opt-in flag stays out: diagnostics must contain
+      // no breach request, hash or result state.
+      AppPreferences.instance.breachCheckEnabled = true;
       // Non-default appearance values are non-secret and must be reported.
       AppPreferences.instance
         ..themeMode = 'dark'
@@ -53,6 +57,7 @@ void main() {
       expect(text, contains('animationsEnabled: false'));
       expect(text, contains('hapticsEnabled: false'));
       expect(text, isNot(contains('secret-bank.example')));
+      expect(text.toLowerCase(), isNot(contains('breach')));
       expect(text, contains('No vault data'));
     });
   });

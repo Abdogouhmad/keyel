@@ -335,6 +335,11 @@ String describeVaultError(Object error) {
       VaultApiError.unsupportedFormat =>
         'That CSV format is not supported. Use a Bitwarden or Chrome export.',
       VaultApiError.malformedImport => 'That file is not a valid CSV export.',
+      VaultApiError.breachCheckActive =>
+        'A breach check is already in progress.',
+      VaultApiError.breachInvalidToken => 'That breach check has expired.',
+      VaultApiError.breachInvalidResponse =>
+        'The breach service returned an unexpected response.',
       VaultApiError.internal => 'Internal error.',
     };
   }

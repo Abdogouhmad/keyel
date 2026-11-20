@@ -782,4 +782,31 @@ design (docs/roadmap.md header).
   that is an acceptable one-time break, and every later release upgrades
   cleanly from here.
 
+## 2026-11-20
+
+- **Version 1.7.0 is the opt-in breach check; 1.6.0 is reserved.** The user
+  chose to skip the one-tap lock/quick-access idea for now and build the HIBP
+  k-anonymity check next. Scope is in `docs/roadmap_1.7.0.md`; the stale "1.4"
+  row in the old roadmap now points there.
+
+- **The offline promise is narrowed, not removed.** Keyel stays local and
+  offline by default. With explicit, revocable opt-in, the app may contact one
+  additional HTTPS endpoint — `https://api.pwnedpasswords.com/range/` — and
+  only when the user taps **Check now** with the vault unlocked. This extends
+  the 2026-11-17 OTA decision; no Keyel account or server is introduced.
+
+- **SHA-1 is protocol compatibility, not password storage.** Rust hashes each
+  active login password and sends only the first five hex characters. Dart
+  never sees a password or full digest, has no configurable endpoint, and only
+  returns raw range bodies to Rust for comparison. Full digests are `Zeroizing`
+  and live only in a pending check that is wiped on finish, cancel, error and
+  lock. This keeps the "secrets live in Rust" rule intact.
+
+- **No new Android permission, no vault schema change.** `INTERNET` already
+  exists for OTA; the opt-in flag is a non-secret `settings.json` preference,
+  so v1–v5 vaults and 1.5.0 sync payloads are unaffected.
+
+- **The release remains CI-driven.** Bump `pubspec.yaml` and `CHANGELOG.md`,
+  merge to `main`, and let the workflow cut `v1.7.0`; never push a tag by hand.
+
 

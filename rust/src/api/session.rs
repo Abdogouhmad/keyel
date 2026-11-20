@@ -13,6 +13,7 @@ use zeroize::Zeroizing;
 
 use crate::frb_generated::StreamSink;
 
+use super::breach::clear_pending;
 use super::error::VaultApiError;
 
 static SESSION: Mutex<Option<Session>> = Mutex::new(None);
@@ -227,6 +228,9 @@ pub(crate) fn with_session<T>(
 }
 
 fn drop_session(emit_event: bool) {
+    // Any in-flight breach check holds digests derived from vault passwords.
+    // They must not outlive the session they came from.
+    clear_pending();
     let taken = session_slot().take();
     if let Some(session) = taken {
         session.lock();

@@ -1,4 +1,5 @@
 pub mod autofill;
+pub mod breach;
 pub mod entries;
 pub mod error;
 pub mod generator;

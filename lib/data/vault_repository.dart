@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:keyel/src/rust/api/autofill.dart' as autofill_api;
+import 'package:keyel/src/rust/api/breach.dart' as breach_api;
 import 'package:keyel/src/rust/api/entries.dart' as entries_api;
 import 'package:keyel/src/rust/api/health.dart' as health_api;
 import 'package:keyel/src/rust/api/import_export.dart' as import_export_api;
@@ -119,6 +120,21 @@ class VaultRepository {
 
   /// Analyze the unlocked vault and return a secret-free health report.
   Future<HealthReportDto> analyzeHealth() => health_api.analyzeHealth();
+
+  /// Hash active login passwords in Rust and return only prefixes to fetch.
+  ///
+  /// No password or full digest crosses this boundary.
+  Future<BreachCheckRequestDto> beginBreachCheck() =>
+      breach_api.beginBreachCheck();
+
+  /// Compare HIBP range bodies in Rust and return only breach counts.
+  Future<BreachReportDto> finishBreachCheck({
+    required String token,
+    required List<BreachRangeResponseDto> responses,
+  }) => breach_api.finishBreachCheck(token: token, responses: responses);
+
+  /// Discard an in-flight breach check (also done automatically on lock).
+  void cancelBreachCheck() => breach_api.cancelBreachCheck();
 
   /// Find logins that can fill the requesting app or site.
   ///

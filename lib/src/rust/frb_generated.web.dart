@@ -7,6 +7,7 @@
 // ignore_for_file: argument_type_not_assignable
 
 import 'api/autofill.dart';
+import 'api/breach.dart';
 import 'api/entries.dart';
 import 'api/error.dart';
 import 'api/generator.dart';
@@ -88,6 +89,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
+  BreachCheckRequestDto dco_decode_breach_check_request_dto(dynamic raw);
+
+  @protected
+  BreachMatchDto dco_decode_breach_match_dto(dynamic raw);
+
+  @protected
+  BreachRangeResponseDto dco_decode_breach_range_response_dto(dynamic raw);
+
+  @protected
+  BreachReportDto dco_decode_breach_report_dto(dynamic raw);
+
+  @protected
   CardDetailDto dco_decode_card_detail_dto(dynamic raw);
 
   @protected
@@ -146,6 +159,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<AutofillMatchDto> dco_decode_list_autofill_match_dto(dynamic raw);
+
+  @protected
+  List<BreachMatchDto> dco_decode_list_breach_match_dto(dynamic raw);
+
+  @protected
+  List<BreachRangeResponseDto> dco_decode_list_breach_range_response_dto(
+    dynamic raw,
+  );
 
   @protected
   List<CustomFieldDetailDto> dco_decode_list_custom_field_detail_dto(
@@ -330,6 +351,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
+  BreachCheckRequestDto sse_decode_breach_check_request_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BreachMatchDto sse_decode_breach_match_dto(SseDeserializer deserializer);
+
+  @protected
+  BreachRangeResponseDto sse_decode_breach_range_response_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BreachReportDto sse_decode_breach_report_dto(SseDeserializer deserializer);
+
+  @protected
   CardDetailDto sse_decode_card_detail_dto(SseDeserializer deserializer);
 
   @protected
@@ -394,6 +431,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<AutofillMatchDto> sse_decode_list_autofill_match_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BreachMatchDto> sse_decode_list_breach_match_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<BreachRangeResponseDto> sse_decode_list_breach_range_response_dto(
     SseDeserializer deserializer,
   );
 
@@ -622,6 +669,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_breach_check_request_dto(
+    BreachCheckRequestDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_breach_match_dto(
+    BreachMatchDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_breach_range_response_dto(
+    BreachRangeResponseDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_breach_report_dto(
+    BreachReportDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_card_detail_dto(CardDetailDto self, SseSerializer serializer);
 
   @protected
@@ -717,6 +788,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_autofill_match_dto(
     List<AutofillMatchDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_breach_match_dto(
+    List<BreachMatchDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_breach_range_response_dto(
+    List<BreachRangeResponseDto> self,
     SseSerializer serializer,
   );
 

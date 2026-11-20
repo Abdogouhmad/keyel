@@ -5,6 +5,7 @@
 
 pub mod autofill;
 pub mod backup;
+pub mod breach;
 pub mod crypto;
 pub mod csv;
 pub mod error;

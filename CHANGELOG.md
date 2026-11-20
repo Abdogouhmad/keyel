@@ -5,6 +5,34 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-11-20
+
+### Added
+
+- **Opt-in password breach check.** A *Security Health* action checks saved
+  login passwords against Have I Been Pwned. It is off by default, requires an
+  explicit disclosure and opt-in, and only runs when you tap *Check now* with
+  the vault unlocked. Results show entry titles and breach counts.
+- **Local k-anonymity matching.** Rust computes SHA-1 and sends only the first
+  five hex characters of the digest over HTTPS. Dart never sees a password or
+  full hash; the range responses are compared in Rust.
+
+### Security
+
+- The opt-in flag is a non-secret preference; no hash, prefix, password or
+  breach response is stored, logged, or added to diagnostics.
+- Pending digests are `Zeroizing`, kept only in a bridge-local check, and wiped
+  on completion, cancellation, error, and vault lock. The endpoint is
+  hard-coded HTTPS and the prefix is validated before it becomes part of a URL.
+- The threat model records the narrowed network promise and the residual
+  k-anonymity metadata exposure (T15/A8).
+
+### Tests
+
+- Core SHA-1 known-answer, prefix/suffix and response-parser tests; Dart tests
+  for the endpoint/client, opt-in disclosure, unlocked gating, error cleanup,
+  and secret-free results.
+
 ## [1.5.0] - 2026-11-19
 
 ### Added

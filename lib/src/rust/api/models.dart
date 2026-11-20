@@ -8,7 +8,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `into_card`, `into_login`, `into_note`, `map_custom_fields`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// A login suggested for autofill, with no secrets attached.
 class AutofillMatchDto {
@@ -42,6 +42,120 @@ enum AutofillQualityDto {
 
   /// Only a text-search hit; the UI must warn about a possible mismatch.
   search,
+}
+
+/// First phase of a breach check: what Dart is allowed to send over the wire.
+class BreachCheckRequestDto {
+  /// Opaque token correlating the fetch phase with the compare phase.
+  final String token;
+
+  /// Deduplicated 5-character uppercase hex prefixes to query.
+  final List<String> prefixes;
+
+  /// Number of active login passwords examined in Rust.
+  final int checkedCount;
+
+  const BreachCheckRequestDto({
+    required this.token,
+    required this.prefixes,
+    required this.checkedCount,
+  });
+
+  @override
+  int get hashCode =>
+      token.hashCode ^ prefixes.hashCode ^ checkedCount.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BreachCheckRequestDto &&
+          runtimeType == other.runtimeType &&
+          token == other.token &&
+          prefixes == other.prefixes &&
+          checkedCount == other.checkedCount;
+}
+
+/// A single entry whose password appeared in a breach corpus.
+class BreachMatchDto {
+  /// Stable entry id.
+  final String entryId;
+
+  /// Entry title (non-secret metadata).
+  final String entryTitle;
+
+  /// Number of occurrences reported by HIBP.
+  final int count;
+
+  const BreachMatchDto({
+    required this.entryId,
+    required this.entryTitle,
+    required this.count,
+  });
+
+  @override
+  int get hashCode => entryId.hashCode ^ entryTitle.hashCode ^ count.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BreachMatchDto &&
+          runtimeType == other.runtimeType &&
+          entryId == other.entryId &&
+          entryTitle == other.entryTitle &&
+          count == other.count;
+}
+
+/// One HIBP range response, keyed by the prefix that was requested.
+class BreachRangeResponseDto {
+  /// The 5-character prefix used for this request.
+  final String prefix;
+
+  /// Raw response body. Dart never hashes or interprets it.
+  final String body;
+
+  const BreachRangeResponseDto({required this.prefix, required this.body});
+
+  @override
+  int get hashCode => prefix.hashCode ^ body.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BreachRangeResponseDto &&
+          runtimeType == other.runtimeType &&
+          prefix == other.prefix &&
+          body == other.body;
+}
+
+/// Secret-free outcome of one breach check.
+class BreachReportDto {
+  /// Entries with a breached password.
+  final List<BreachMatchDto> matches;
+
+  /// Number of active login passwords examined in Rust.
+  final int checkedCount;
+
+  /// Number of distinct prefixes queried.
+  final int queriedPrefixes;
+
+  const BreachReportDto({
+    required this.matches,
+    required this.checkedCount,
+    required this.queriedPrefixes,
+  });
+
+  @override
+  int get hashCode =>
+      matches.hashCode ^ checkedCount.hashCode ^ queriedPrefixes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BreachReportDto &&
+          runtimeType == other.runtimeType &&
+          matches == other.matches &&
+          checkedCount == other.checkedCount &&
+          queriedPrefixes == other.queriedPrefixes;
 }
 
 /// Non-secret card fields. Secrets are exposed only as presence flags.

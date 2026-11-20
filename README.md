@@ -89,8 +89,11 @@ shasum -a 256 -c checksums.txt      # macOS
 
 ## Security at a glance
 
-- The release APK requests `INTERNET` **only** for the update checker and downloader;
-  downloaded APKs are SHA-256-verified before the system installer runs.
+- The release APK requests `INTERNET` for the update checker/downloader and, **only after
+  you opt in** in *Security Health*, the HIBP breach-check range request. Both are HTTPS;
+  no vault data, username or password is uploaded — the breach check sends only the first
+  5 characters of a locally computed SHA-1 hash. Downloaded APKs are SHA-256-verified
+  before the system installer runs.
 - `allowBackup=false`; cloud and device backups exclude the vault file.
 - Secrets live in Rust (`zeroize` / `secrecy`); Dart receives only user-revealed values.
 - *Settings → Report a problem* shares a redacted diagnostics file (version, device, OS,

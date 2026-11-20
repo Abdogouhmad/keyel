@@ -9,6 +9,10 @@ git add -A && git commit -m "feat: <phase name>"
 git tag v0.X.0 && git push --tags
 ```
 
+> **Release process update (since 1.5.0):** the manual `git tag` command above
+> is historical. Releases are now cut by CI when a `pubspec.yaml`/`CHANGELOG.md`
+> bump lands on `main`; never push tags by hand. See `docs/DECISIONS.md`.
+
 **Rules for the whole project**
 - Crypto code gets tests before it gets UI.
 - Never log secrets. Never pass the vault key to Dart.
@@ -35,6 +39,8 @@ git tag v0.X.0 && git push --tags
 | 0.12.0 | Beta (dogfood and polish) | 2 weeks | ◐ |
 | 1.0.0 | Release | 3-4 days | ☑ |
 | 1.1.0 | Desktop, updates and icons | 1.5 weeks | ◐ |
+| 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☑ |
+| 1.7.0 | Opt-in HIBP breach check | 1–1.5 weeks | ◐ |
 
 Estimates assume part-time work. Adjust to your pace.
 
@@ -651,6 +657,10 @@ and macOS desktop builds beside the Linux one.
 | 1.4 | Optional breach check (HIBP k-anonymity) behind explicit opt-in |
 | 2.0 | End-to-end encrypted sync with a Rust server (reuse the vault format; server only stores ciphertext) |
 | 2.1 | Wear OS companion for TOTP |
+
+> **Update (2026-11-20):** the breach-check idea in this table is now version
+> **1.7.0**, scoped in [`docs/roadmap_1.7.0.md`](roadmap_1.7.0.md). Version
+> 1.6.0 (one-tap lock / shortcuts / widgets) remains reserved and not started.
 
 ---
 

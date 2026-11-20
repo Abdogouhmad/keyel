@@ -48,6 +48,12 @@ pub enum VaultApiError {
     UnsupportedFormat,
     /// An import file is not valid CSV.
     MalformedImport,
+    /// A breach check is already in progress.
+    BreachCheckActive,
+    /// The breach check token is missing, stale, or does not match.
+    BreachInvalidToken,
+    /// An HIBP range response could not be interpreted safely.
+    BreachInvalidResponse,
     /// An unexpected internal failure.
     Internal,
 }

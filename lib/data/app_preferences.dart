@@ -97,6 +97,12 @@ class AppPreferences {
   /// Whether haptic feedback is enabled.
   bool hapticsEnabled = true;
 
+  /// Whether the user opted in to HIBP breach checks.
+  ///
+  /// Off by default. This is a non-secret preference: no hash, prefix, result,
+  /// or password-derived value is ever stored here. See `docs/roadmap_1.7.0.md`.
+  bool breachCheckEnabled = false;
+
   /// Remember a search term, keeping at most eight unique values.
   void rememberSearch(String query) {
     final trimmed = query.trim();
@@ -171,6 +177,7 @@ class AppPreferences {
       amoledBlack = decoded['amoledBlack'] == true;
       animationsEnabled = decoded['animationsEnabled'] != false;
       hapticsEnabled = decoded['hapticsEnabled'] != false;
+      breachCheckEnabled = decoded['breachCheckEnabled'] == true;
 
       final generator = decoded['generator'];
       if (generator is Map) {
@@ -218,6 +225,7 @@ class AppPreferences {
           'amoledBlack': amoledBlack,
           'animationsEnabled': animationsEnabled,
           'hapticsEnabled': hapticsEnabled,
+          'breachCheckEnabled': breachCheckEnabled,
           'recentSearches': recentSearches,
           'generator': {
             'mode': generatorMode,

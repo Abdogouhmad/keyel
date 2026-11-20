@@ -422,7 +422,7 @@ Matching: exact package for apps, registrable domain for web, warn on mismatch.
 ## 15. Stretch and open decisions
 
 - **License:** GPL-3.0 / AGPL-3.0 (strong copyleft, common for password managers) or MIT.
-- **Breach check:** optional HIBP k-anonymity range query. It needs the `INTERNET` permission, so keep it a separate opt-in build flavor or a clearly explained opt-in.
+- **Breach check:** optional HIBP k-anonymity range query. It needs the `INTERNET` permission, so keep it a separate opt-in build flavor or a clearly explained opt-in. Shipped in **1.7.0** as a clearly explained, revocable opt-in (no separate build flavor); see `docs/roadmap_1.7.0.md`.
 - **Passkeys:** Credential Manager provider API on Android 14+.
 - **Wipe after N attempts:** off by default (risky), opt-in only.
 - **Name check:** search the Play Store and trademark databases for "Keyel" before committing. Alternatives: *Pinlock, Vaultel, Keybit*.

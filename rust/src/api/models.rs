@@ -880,3 +880,45 @@ impl From<CoreSyncReport> for SyncReportDto {
         }
     }
 }
+
+/// First phase of a breach check: what Dart is allowed to send over the wire.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BreachCheckRequestDto {
+    /// Opaque token correlating the fetch phase with the compare phase.
+    pub token: String,
+    /// Deduplicated 5-character uppercase hex prefixes to query.
+    pub prefixes: Vec<String>,
+    /// Number of active login passwords examined in Rust.
+    pub checked_count: u32,
+}
+
+/// One HIBP range response, keyed by the prefix that was requested.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BreachRangeResponseDto {
+    /// The 5-character prefix used for this request.
+    pub prefix: String,
+    /// Raw response body. Dart never hashes or interprets it.
+    pub body: String,
+}
+
+/// A single entry whose password appeared in a breach corpus.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BreachMatchDto {
+    /// Stable entry id.
+    pub entry_id: String,
+    /// Entry title (non-secret metadata).
+    pub entry_title: String,
+    /// Number of occurrences reported by HIBP.
+    pub count: u32,
+}
+
+/// Secret-free outcome of one breach check.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BreachReportDto {
+    /// Entries with a breached password.
+    pub matches: Vec<BreachMatchDto>,
+    /// Number of active login passwords examined in Rust.
+    pub checked_count: u32,
+    /// Number of distinct prefixes queried.
+    pub queried_prefixes: u32,
+}

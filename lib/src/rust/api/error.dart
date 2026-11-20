@@ -62,6 +62,15 @@ enum VaultApiError {
   /// An import file is not valid CSV.
   malformedImport,
 
+  /// A breach check is already in progress.
+  breachCheckActive,
+
+  /// The breach check token is missing, stale, or does not match.
+  breachInvalidToken,
+
+  /// An HIBP range response could not be interpreted safely.
+  breachInvalidResponse,
+
   /// An unexpected internal failure.
   internal,
 }
