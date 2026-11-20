@@ -9,7 +9,7 @@ import 'models.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `read_and_parse`
+// These functions are ignored because they are not marked as `pub`: `read_and_parse`, `write_private_file`
 
 /// Parse an import file and report what it contains, without changing anything.
 ///
@@ -53,6 +53,7 @@ Future<ImportReportDto> importBackup({
 ///
 /// Every password in the vault ends up in plaintext on disk. The UI must warn
 /// the user and get explicit confirmation first, then delete the file after
-/// sharing it.
+/// sharing it. The file is created with `create_new` and mode `0600` on Unix so
+/// it never inherits a permissive umask or follows a pre-existing symlink.
 Future<void> exportCsv({required String path}) =>
     RustLib.instance.api.crateApiImportExportExportCsv(path: path);

@@ -15,6 +15,9 @@ class VaultListController extends ChangeNotifier {
   /// Creates a controller; the screen owns and disposes it.
   new({required this.repository, required this.callbacks});
 
+  /// Delay before a typed search query reaches Rust.
+  static const searchDebounce = Duration(milliseconds: 200);
+
   /// Vault repository used for all data access.
   final VaultRepository repository;
 
@@ -29,6 +32,14 @@ class VaultListController extends ChangeNotifier {
   String? _folderId;
   String? _selectedEntryId;
   final Set<String> _selectedIds = {};
+  Timer? _searchDebounceTimer;
+  int _loadGeneration = 0;
+
+  @override
+  void dispose() {
+    _searchDebounceTimer?.cancel();
+    super.dispose();
+  }
 
   /// The entries currently loaded from the repository.
   List<VaultEntry> get entries => _entries;
@@ -77,8 +88,16 @@ class VaultListController extends ChangeNotifier {
   }
 
   /// Reload entries and folders for the current query and filters.
+  ///
+  /// A generation counter discards results from a load that started before a
+  /// newer one, so a slow response cannot overwrite fresher rows.
   Future<void> load() async {
     if (!_unlocked) return;
+    // An explicit load (filter, refresh, revision) supersedes a pending typed
+    // search, otherwise the debounce would fire against stale filter state.
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = null;
+    final generation = ++_loadGeneration;
     _loading = true;
     _notifyStateChanged();
     try {
@@ -93,6 +112,7 @@ class VaultListController extends ChangeNotifier {
         favorite: _filter == VaultFilter.favorites ? true : null,
       );
       final folders = await repository.listFolders();
+      if (generation != _loadGeneration) return;
       final folderNames = {
         for (final folder in folders) folder.id: folder.name,
       };
@@ -124,19 +144,20 @@ class VaultListController extends ChangeNotifier {
           !folders.any((folder) => folder.id == _folderId)) {
         _folderId = null;
       }
-      // Keep the selection valid when rows disappeared after a reload.
-      _selectedIds.removeWhere(
-        (id) => !_entries.any((entry) => entry.id == id),
-      );
-      if (_selectedEntryId != null &&
-          !_entries.any((e) => e.id == _selectedEntryId)) {
+      // Keep the selection valid when rows disappeared after a reload. Build
+      // the id set once: the old nested scans were O(visible × selected).
+      final visibleIds = _entries.map((entry) => entry.id).toSet();
+      _selectedIds.removeWhere((id) => !visibleIds.contains(id));
+      if (_selectedEntryId != null && !visibleIds.contains(_selectedEntryId)) {
         _selectedEntryId = _entries.isNotEmpty ? _entries.first.id : null;
       }
     } on Object catch (error) {
-      callbacks.notifyError(error);
+      if (generation == _loadGeneration) callbacks.notifyError(error);
     } finally {
-      _loading = false;
-      _notifyStateChanged();
+      if (generation == _loadGeneration) {
+        _loading = false;
+        _notifyStateChanged();
+      }
     }
   }
 
@@ -157,11 +178,18 @@ class VaultListController extends ChangeNotifier {
   }
 
   /// Live search callback from the search field.
+  ///
+  /// The query updates the UI immediately, but the repository call is debounced
+  /// so a fast typist does not start one Rust load per keystroke.
   void onSearchChanged(String value) {
     if (_query == value) return;
     _query = value;
     _notifyStateChanged();
-    unawaited(load());
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = Timer(searchDebounce, () {
+      _searchDebounceTimer = null;
+      unawaited(load());
+    });
   }
 
   /// Reset the search text, folder and kind filters.

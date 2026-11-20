@@ -74,16 +74,79 @@ pub fn import_backup(
 ///
 /// Every password in the vault ends up in plaintext on disk. The UI must warn
 /// the user and get explicit confirmation first, then delete the file after
-/// sharing it.
+/// sharing it. The file is created with `create_new` and mode `0600` on Unix so
+/// it never inherits a permissive umask or follows a pre-existing symlink.
 pub fn export_csv(path: String) -> Result<(), VaultApiError> {
     with_session(|session| {
-        let csv = import::export_csv(session.vault());
-        std::fs::write(&path, csv).map_err(|_| VaultApiError::Storage)
+        let csv = Zeroizing::new(import::export_csv(session.vault()));
+        write_private_file(&path, csv.as_bytes())
     })
 }
 
+/// Create a brand-new file with owner-only permissions, then write and sync it.
+#[cfg(unix)]
+fn write_private_file(path: &str, bytes: &[u8]) -> Result<(), VaultApiError> {
+    use std::io::Write;
+    use std::os::unix::fs::OpenOptionsExt;
+
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(path)
+        .map_err(|_| VaultApiError::Storage)?;
+    file.write_all(bytes).map_err(|_| VaultApiError::Storage)?;
+    file.sync_all().map_err(|_| VaultApiError::Storage)
+}
+
+#[cfg(not(unix))]
+fn write_private_file(path: &str, bytes: &[u8]) -> Result<(), VaultApiError> {
+    use std::io::Write;
+
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(|_| VaultApiError::Storage)?;
+    file.write_all(bytes).map_err(|_| VaultApiError::Storage)?;
+    file.sync_all().map_err(|_| VaultApiError::Storage)
+}
+
 fn read_and_parse(path: &str) -> Result<ParsedImport, VaultApiError> {
-    let bytes = std::fs::read(path).map_err(|_| VaultApiError::Storage)?;
-    let text = String::from_utf8(bytes).map_err(|_| VaultApiError::MalformedImport)?;
+    // Both buffers carry the full plaintext export; keep them zeroized.
+    let raw = Zeroizing::new(std::fs::read(path).map_err(|_| VaultApiError::Storage)?);
+    let text = Zeroizing::new(
+        std::str::from_utf8(&raw)
+            .map_err(|_| VaultApiError::MalformedImport)?
+            .to_owned(),
+    );
     Ok(import::parse(&text)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg(unix)]
+    fn private_file_is_owner_only_and_never_overwritten() {
+        use std::os::unix::fs::PermissionsExt;
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("keyel-csv-perms-{nonce}"));
+        let name = path.to_str().unwrap();
+
+        write_private_file(name, b"secret").unwrap();
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode();
+        assert_eq!(mode & 0o777, 0o600);
+
+        // A second write must fail rather than truncate an existing export.
+        assert!(write_private_file(name, b"other").is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), b"secret");
+        std::fs::remove_file(&path).unwrap();
+    }
 }

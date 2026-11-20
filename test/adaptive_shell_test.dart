@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:keyel/ui/adaptive/keyel_shell.dart';
-import 'package:keyel/ui/theme/keyel_theme.dart';
+import 'package:keyel/core/focus/keyel_search_focus.dart';
+import 'package:keyel/ui/keyel.dart';
 
 // ---------------------------------------------------------------------------
 // Test harness: the real KeyelShell with four static branch screens so the
@@ -43,14 +45,16 @@ Widget _harness(
   Brightness brightness, {
   TextScaler textScaler = TextScaler.noScaling,
 }) {
-  return MediaQuery(
-    data: MediaQueryData(size: Size(width, 800), textScaler: textScaler),
-    child: MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      theme: brightness == Brightness.light
-          ? KeyelTheme.light()
-          : KeyelTheme.dark(),
-      routerConfig: _testRouter,
+  return ProviderScope(
+    child: MediaQuery(
+      data: MediaQueryData(size: Size(width, 800), textScaler: textScaler),
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        theme: brightness == Brightness.light
+            ? KeyelTheme.light()
+            : KeyelTheme.dark(),
+        routerConfig: _testRouter,
+      ),
     ),
   );
 }
@@ -98,6 +102,8 @@ void main() {
     expect(find.text('Vault'), findsNothing);
     expect(find.byIcon(Icons.key_rounded), findsNWidgets(2));
     expect(find.text('vault-content'), findsOneWidget);
+    // The 76 dp rail must contain its items (the old 80 dp item overflowed).
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('expanded window shows a labelled rail', (tester) async {
@@ -155,6 +161,61 @@ void main() {
     }
   });
 
+  testWidgets('Ctrl+F focuses the vault search field through the shell', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final router = GoRouter(
+      initialLocation: '/vault',
+      routes: [
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, shell) =>
+              KeyelShell(navigationShell: shell),
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/vault',
+                  builder: (context, state) => const _SearchProbe(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MediaQuery(
+          data: const MediaQueryData(size: Size(1000, 800)),
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final field = find.byType(TextField);
+    expect(field, findsOneWidget);
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText)).focusNode.hasFocus,
+      isFalse,
+    );
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyF);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText)).focusNode.hasFocus,
+      isTrue,
+      reason: 'the global find shortcut must focus the vault search field',
+    );
+  });
+
   // -----------------------------------------------------------------------
   // Goldens: 400 / 700 / 1000 dp in light and dark.
   // -----------------------------------------------------------------------
@@ -181,4 +242,23 @@ void main() {
   testWidgets('golden: 1000 dp expanded, dark', (tester) async {
     await _golden(tester, 1000, Brightness.dark, '1000_dark');
   });
+}
+
+/// Minimal vault-branch content: a real search field bound to the shared focus
+/// node, so the shortcut test exercises the same wiring as production.
+class _SearchProbe extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final focusNode = ref.watch(vaultSearchFocusProvider);
+    return Scaffold(
+      body: Center(
+        child: SizedBox(
+          width: 320,
+          child: KeyelSearchField(focusNode: focusNode, hintText: 'Find items'),
+        ),
+      ),
+    );
+  }
 }

@@ -113,7 +113,11 @@ class _CustomFieldRow extends StatelessWidget {
           child: Text(
             revealed ? revealedValue! : _masked(field.hasHiddenValue),
             style: revealed
-                ? KeyelTheme.mono(context, fontSize: 16, fontWeight: FontWeight.w600)
+                ? KeyelTheme.mono(
+                    context,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  )
                 : textTheme.bodyLarge?.copyWith(
                     color: scheme.onSurfaceVariant,
                     letterSpacing: 1.2,

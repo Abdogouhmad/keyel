@@ -15,6 +15,16 @@ typedef OtaDownloadProgressCallback = void Function(
   double progress,
 );
 
+/// Strict 64-hex SHA-256, the only checksum format we install against.
+final RegExp _checksumPattern = RegExp(r'^[a-fA-F0-9]{64}$');
+
+/// Whether [value] is a usable SHA-256 checksum.
+///
+/// A missing or malformed checksum must fail closed: an unverified APK is
+/// never offered as an update, downloaded, or handed to the installer.
+bool isValidOtaChecksum(String? value) =>
+    value != null && _checksumPattern.hasMatch(value.trim());
+
 /// Service providing network release checks, chunked APK downloading,
 /// SHA-256 verification and handoff to the platform installer.
 class OtaService {
@@ -43,7 +53,8 @@ class OtaService {
   /// varies the cache key, so a check reads the manifest that was just
   /// published. The server ignores the query string when resolving the path.
   Uri manifestUri({DateTime? now}) {
-    final base = customManifestUrl ??
+    final base =
+        customManifestUrl ??
         'https://raw.githubusercontent.com/$repo/main/update_manifest.json';
     final stamp = (now ?? DateTime.now()).millisecondsSinceEpoch;
     return Uri.parse('$base?ts=$stamp');
@@ -134,6 +145,10 @@ class OtaService {
     if (version.isEmpty || apkUrl.isEmpty) return null;
 
     final publishedAtStr = json['publishedAt'] as String?;
+    final sha256 = json['sha256'] as String?;
+    // A publish with a missing/malformed hash is a broken release, not an
+    // unverified one we should offer to install.
+    if (!isValidOtaChecksum(sha256)) return null;
     return OtaRelease(
       version: version,
       tagName: 'v$version',
@@ -145,7 +160,7 @@ class OtaService {
       downloadUrl: apkUrl,
       fileName: apkUrl.split('/').last,
       fileSize: json['size'] as int? ?? 0,
-      sha256: json['sha256'] as String?,
+      sha256: sha256!.trim(),
     );
   }
 
@@ -198,6 +213,9 @@ class OtaService {
     if (match != null) {
       sha256Checksum = match.group(1);
     }
+    // The GitHub Releases body is authored text, so the hash may be absent or
+    // malformed. Fail closed instead of installing an unverified APK.
+    if (!isValidOtaChecksum(sha256Checksum)) return null;
 
     return OtaRelease(
       version: version,
@@ -208,7 +226,7 @@ class OtaService {
       downloadUrl: downloadUrl,
       fileName: fileName,
       fileSize: fileSize,
-      sha256: sha256Checksum,
+      sha256: sha256Checksum!.trim(),
       isPrerelease: prerelease,
     );
   }
@@ -220,6 +238,14 @@ class OtaService {
     OtaDownloadProgressCallback? onProgress,
     CancelToken? cancelToken,
   }) async {
+    // Second line of defence: callers may construct a release directly rather
+    // than going through the parsers. Never fetch or install without a hash.
+    if (!isValidOtaChecksum(release.sha256)) {
+      throw StateError(
+        'Refusing to download an update without a valid SHA-256 checksum',
+      );
+    }
+
     final tempDir = await getTemporaryDirectory();
     final cleanFileName = release.fileName.replaceAll(RegExp(r'[^\w\.-]'), '_');
     final saveFile = File('${tempDir.path}/$cleanFileName');
@@ -275,17 +301,19 @@ class OtaService {
       rethrow;
     }
 
-    // Verify SHA-256 if expected hash is specified
-    if (release.sha256 != null && release.sha256!.isNotEmpty) {
-      final digest = await sha256.bind(saveFile.openRead()).first;
-      final computed = digest.toString().toLowerCase();
-      final expected = release.sha256!.trim().toLowerCase();
-      if (computed != expected) {
-        if (saveFile.existsSync()) saveFile.deleteSync();
-        throw StateError(
-          'Checksum mismatch: expected $expected but got $computed',
-        );
+    // Verification is mandatory, never conditional (see T13).
+    final digest = await sha256.bind(saveFile.openRead()).first;
+    final computed = digest.toString().toLowerCase();
+    final expected = release.sha256!.trim().toLowerCase();
+    if (computed != expected) {
+      if (saveFile.existsSync()) {
+        try {
+          saveFile.deleteSync();
+        } on Object catch (_) {}
       }
+      throw StateError(
+        'Checksum mismatch: expected $expected but got $computed',
+      );
     }
 
     return saveFile;

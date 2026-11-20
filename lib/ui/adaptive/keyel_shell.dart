@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:keyel/core/focus/keyel_search_focus.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/ui/keyel.dart';
 
@@ -66,7 +68,7 @@ abstract final class KeyelTab {
 
 /// Root shell widget that wraps the tab content with the appropriate
 /// navigation chrome: bottom nav on compact, rail on medium+.
-class KeyelShell extends StatelessWidget {
+class KeyelShell extends ConsumerWidget {
   /// Creates the shell.
   const new({required this.navigationShell, super.key});
 
@@ -82,22 +84,29 @@ class KeyelShell extends StatelessWidget {
   }
 
   /// Content of each tab, wrapped with the global shortcut scaffold.
-  Widget _content(BuildContext context, StatefulNavigationShell shell) {
+  Widget _content(
+    BuildContext context,
+    WidgetRef ref,
+    StatefulNavigationShell shell,
+  ) {
     return KeyelShortcuts(
-      // Search focus wiring lands with phase 0.7.
+      // The shared node belongs to the vault search field, so Ctrl/Cmd+F
+      // focuses it wherever the shell is mounted. On another tab the node is
+      // unattached and requestFocus is a harmless no-op.
+      onFind: () => focusVaultSearch(ref),
       onNewEntry: () => context.push(KeyelRoutes.newEntry),
       child: shell,
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final windowClass = WindowSizeClass.of(context);
 
     if (windowClass.isCompact) {
       return _BottomNavScaffold(
         currentIndex: navigationShell.currentIndex,
-        content: _content(context, navigationShell),
+        content: _content(context, ref, navigationShell),
         onTap: _onTap,
       );
     }
@@ -105,7 +114,7 @@ class KeyelShell extends StatelessWidget {
       // Icon-only rail.
       return _RailScaffold(
         currentIndex: navigationShell.currentIndex,
-        content: _content(context, navigationShell),
+        content: _content(context, ref, navigationShell),
         onTap: _onTap,
         width: 76,
         showLabels: false,
@@ -115,7 +124,7 @@ class KeyelShell extends StatelessWidget {
       // Rail with labels.
       return _RailScaffold(
         currentIndex: navigationShell.currentIndex,
-        content: _content(context, navigationShell),
+        content: _content(context, ref, navigationShell),
         onTap: _onTap,
         width: 108,
         showLabels: true,
@@ -125,7 +134,7 @@ class KeyelShell extends StatelessWidget {
     // Large: drawer navigation.
     return _DrawerScaffold(
       currentIndex: navigationShell.currentIndex,
-      content: _content(context, navigationShell),
+      content: _content(context, ref, navigationShell),
       onTap: _onTap,
     );
   }
@@ -372,6 +381,7 @@ class _RailScaffold extends StatelessWidget {
                         selected: i == currentIndex,
                         onTap: () => onTap(i),
                         showLabel: showLabels,
+                        itemWidth: width - 8,
                       ),
                     ),
                 ],
@@ -543,12 +553,17 @@ class _RailItem extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.showLabel,
+    required this.itemWidth,
   });
 
   final _Destination destination;
   final bool selected;
   final VoidCallback onTap;
   final bool showLabel;
+
+  /// Fits inside the rail; the medium rail is narrower than the old hard-coded
+  /// 80 dp item and used to overflow by 4 dp.
+  final double itemWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -562,7 +577,7 @@ class _RailItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
-        width: 80,
+        width: itemWidth,
         padding: const EdgeInsets.symmetric(vertical: KeyelSpacing.sm + 2),
         decoration: BoxDecoration(
           color: selected ? scheme.secondaryContainer : Colors.transparent,

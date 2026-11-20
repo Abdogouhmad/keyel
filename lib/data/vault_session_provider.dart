@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/platform/biometric_auth.dart';
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/security/unlock_throttle.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_repository.dart';
@@ -106,6 +107,9 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
   /// Start the auto-lock countdown when the app leaves the foreground.
   void onAppBackgrounded() {
     if (state.status != VaultStatus.unlocked) return;
+    // A copied secret must not survive the app leaving the foreground, even
+    // when the user chose "Never clear" for the timed wipe.
+    _wipeClipboard();
     _backgroundedAt = DateTime.now();
     _autoLockTimer?.cancel();
     if (_autoLockDelay == Duration.zero) {
@@ -130,6 +134,9 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
       _lockSubscription = ref.read(vaultRepositoryProvider).lockEvents().listen(
         (event) {
           if (event == 'locked') {
+            // Rust may lock the session on its own; treat it like an explicit
+            // lock so a copied value is never left behind.
+            _wipeClipboard();
             state = VaultSessionState(status: _lockedStatus());
           }
         },
@@ -250,9 +257,14 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     try {
       ref.read(vaultRepositoryProvider).lock();
     } finally {
+      // Wipe even if Rust failed to lock: a stale clipboard value is worse
+      // than a stale UI state.
+      _wipeClipboard();
       state = VaultSessionState(status: _lockedStatus());
     }
   }
+
+  void _wipeClipboard() => unawaited(ref.read(clipboardWipeProvider)());
 
   /// Change the master password.
   Future<void> changeMaster({

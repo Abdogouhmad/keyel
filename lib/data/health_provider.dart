@@ -20,7 +20,8 @@ const emptyHealthReport = HealthReportDto(
 /// clean report instead of throwing when the vault is not open, which keeps
 /// the dashboard renderable while a lock is in flight.
 final healthProvider = FutureProvider<HealthReportDto>((ref) {
-  if (ref.watch(vaultSessionProvider).status != VaultStatus.unlocked) {
+  if (ref.watch(vaultSessionProvider.select((state) => state.status)) !=
+      VaultStatus.unlocked) {
     return Future.value(emptyHealthReport);
   }
   return ref.watch(vaultRepositoryProvider).analyzeHealth();

@@ -13,6 +13,7 @@ import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/file_transfer_service.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart';
+import 'package:keyel/features/settings/widgets/settings_help_sheet.dart';
 import 'package:keyel/features/settings/widgets/settings_sections.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -39,14 +40,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _biometricEnabled = AppPreferences.instance.biometricEnabled;
     unawaited(_checkAutofillStatus());
     unawaited(_checkPasskeySupport());
-  }
-
-  void _notImplemented(String feature) {
-    showKeyelSnack(
-      context,
-      '$feature is planned for a future update.',
-      icon: Icons.construction_rounded,
-    );
   }
 
   Future<void> _checkAutofillStatus() async {
@@ -153,7 +146,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final session = ref.watch(vaultSessionProvider);
+    // Both settings cards below only render the lifecycle, so ignore session
+    // `busy`/`error` churn that would otherwise rebuild the whole list.
+    final sessionStatus = ref.watch(
+      vaultSessionProvider.select((state) => state.status),
+    );
     final repo = ref.watch(vaultRepositoryProvider);
     final otaState = ref.watch(otaProvider);
     final appearance = ref.watch(appearanceProvider);
@@ -172,7 +169,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   trailing: KeyelIconHull(
                     icon: Icons.help_outline_rounded,
                     tooltip: 'Help & support',
-                    onPressed: () => _notImplemented('Guided help'),
+                    onPressed: () => showSettingsHelpSheet(context),
                   ),
                 ),
               ),
@@ -214,7 +211,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 sliver: SliverToBoxAdapter(
                   child: VaultProfileCard(
-                    session: session,
+                    status: sessionStatus,
                     vaultPath: repo.vaultPath,
                   ),
                 ),
@@ -231,7 +228,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     SettingsAppearanceSection(appearance: appearance),
                     const SizedBox(height: KeyelSpacing.lg),
                     SettingsSecuritySection(
-                      session: session,
+                      status: sessionStatus,
                       biometricBusy: _biometricBusy,
                       biometricEnabled: _biometricEnabled,
                       autoLockDelay: ref

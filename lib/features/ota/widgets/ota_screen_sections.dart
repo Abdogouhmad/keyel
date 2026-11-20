@@ -25,63 +25,63 @@ class OtaStatusBanner extends StatelessWidget {
       String subtitle,
     ) = switch (state.step) {
       OtaStep.checking => (
-          Icons.sync_rounded,
-          scheme.primary,
-          scheme.primaryContainer.withValues(alpha: 0.5),
-          'Checking for updates...',
-          'Connecting to release server',
-        ),
+        Icons.sync_rounded,
+        scheme.primary,
+        scheme.primaryContainer.withValues(alpha: 0.5),
+        'Checking for updates...',
+        'Connecting to release server',
+      ),
       OtaStep.upToDate => (
-          Icons.verified_rounded,
-          scheme.primary,
-          scheme.primaryContainer.withValues(alpha: 0.5),
-          'Keyel is up to date',
-          'Version ${state.currentVersion} • Latest release installed',
-        ),
+        Icons.verified_rounded,
+        scheme.primary,
+        scheme.primaryContainer.withValues(alpha: 0.5),
+        'Keyel is up to date',
+        'Version ${state.currentVersion} • Latest release installed',
+      ),
       OtaStep.available => (
-          Icons.system_update_rounded,
-          scheme.onTertiaryContainer,
-          scheme.tertiaryContainer,
-          'Update Available',
-          'Keyel v${state.availableRelease!.version} is ready to download',
-        ),
+        Icons.system_update_rounded,
+        scheme.onTertiaryContainer,
+        scheme.tertiaryContainer,
+        'Update Available',
+        'Keyel v${state.availableRelease!.version} is ready to download',
+      ),
       OtaStep.downloading => (
-          Icons.downloading_rounded,
-          scheme.onPrimaryContainer,
-          scheme.primaryContainer,
-          'Downloading update...',
-          '${(state.downloadProgress * 100).toInt()}% • ${state.availableRelease!.formattedSize}',
-        ),
+        Icons.downloading_rounded,
+        scheme.onPrimaryContainer,
+        scheme.primaryContainer,
+        'Downloading update...',
+        '${(state.downloadProgress * 100).toInt()}% • ${state.availableRelease!.formattedSize}',
+      ),
       OtaStep.downloaded => (
-          Icons.check_circle_rounded,
-          scheme.onSecondaryContainer,
-          scheme.secondaryContainer,
-          'Ready to Install',
-          'Keyel v${state.availableRelease!.version} downloaded & verified',
-        ),
+        Icons.check_circle_rounded,
+        scheme.onSecondaryContainer,
+        scheme.secondaryContainer,
+        'Ready to Install',
+        'Keyel v${state.availableRelease!.version} downloaded & verified',
+      ),
       OtaStep.installing => (
-          Icons.install_mobile_rounded,
-          scheme.primary,
-          scheme.primaryContainer,
-          'Installing update...',
-          'Handing off to system installer',
-        ),
+        Icons.install_mobile_rounded,
+        scheme.primary,
+        scheme.primaryContainer,
+        'Installing update...',
+        'Handing off to system installer',
+      ),
       OtaStep.error => (
-          Icons.warning_amber_rounded,
-          scheme.onErrorContainer,
-          scheme.errorContainer,
-          'Update check failed',
-          state.errorMessage ?? 'Could not connect to release server',
-        ),
+        Icons.warning_amber_rounded,
+        scheme.onErrorContainer,
+        scheme.errorContainer,
+        'Update check failed',
+        state.errorMessage ?? 'Could not connect to release server',
+      ),
       OtaStep.idle => (
-          Icons.info_outline_rounded,
-          scheme.onSurfaceVariant,
-          scheme.surfaceContainerHighest,
-          'Installed Version: ${state.currentVersion}',
-          state.lastChecked != null
-              ? 'Last checked: ${_formatTime(state.lastChecked!)}'
-              : 'Tap "Check now" to look for new releases',
-        ),
+        Icons.info_outline_rounded,
+        scheme.onSurfaceVariant,
+        scheme.surfaceContainerHighest,
+        'Installed Version: ${state.currentVersion}',
+        state.lastChecked != null
+            ? 'Last checked: ${_formatTime(state.lastChecked!)}'
+            : 'Tap "Check now" to look for new releases',
+      ),
     };
 
     return KeyelSectionCard(
@@ -135,11 +135,7 @@ class OtaStatusBanner extends StatelessWidget {
 /// Download progress card shown while an update is downloading.
 class OtaDownloadProgressCard extends StatelessWidget {
   /// Creates a download progress card.
-  const new({
-    required this.state,
-    required this.onCancel,
-    super.key,
-  });
+  const new({required this.state, required this.onCancel, super.key});
 
   /// Current OTA state.
   final OtaState state;
@@ -192,10 +188,7 @@ class OtaDownloadProgressCard extends StatelessWidget {
                   color: scheme.onSurfaceVariant,
                 ),
               ),
-              TextButton(
-                onPressed: onCancel,
-                child: const Text('Cancel'),
-              ),
+              TextButton(onPressed: onCancel, child: const Text('Cancel')),
             ],
           ),
         ],

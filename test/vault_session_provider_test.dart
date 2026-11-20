@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/security/unlock_throttle.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_repository.dart';
@@ -60,9 +61,15 @@ class _UnlockRepository extends _FakeRepository {
   }
 }
 
-ProviderContainer _container(_FakeRepository repository) {
+ProviderContainer _container(
+  _FakeRepository repository, {
+  Future<void> Function()? onWipe,
+}) {
   final container = ProviderContainer(
-    overrides: [vaultRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      vaultRepositoryProvider.overrideWithValue(repository),
+      if (onWipe != null) clipboardWipeProvider.overrideWithValue(onWipe),
+    ],
   );
   addTearDown(container.dispose);
   return container;
@@ -115,6 +122,51 @@ void main() {
 
     expect(repository.locked, isTrue);
     expect(container.read(vaultSessionProvider).status, VaultStatus.locked);
+  });
+
+  group('clipboard wipe on security events', () {
+    setUp(() {
+      AppPreferences.instance.clipboardClearSeconds = 0;
+      AppPreferences.instance.autoLockDelay = const Duration(minutes: 1);
+    });
+
+    tearDown(() {
+      AppPreferences.instance.clipboardClearSeconds = 30;
+      AppPreferences.instance.autoLockDelay = const Duration(minutes: 1);
+    });
+
+    test('locking wipes even when the user chose never to clear', () {
+      var wipes = 0;
+      final repository = _LockingRepository();
+      final container = _container(
+        repository,
+        onWipe: () async {
+          wipes++;
+        },
+      );
+
+      container.read(vaultSessionProvider.notifier).lock();
+
+      expect(wipes, 1);
+      expect(repository.locked, isTrue);
+    });
+
+    test('backgrounding wipes before the auto-lock delay elapses', () {
+      var wipes = 0;
+      final repository = _LockingRepository();
+      final container = _container(
+        repository,
+        onWipe: () async {
+          wipes++;
+        },
+      );
+
+      container.read(vaultSessionProvider.notifier).onAppBackgrounded();
+
+      expect(wipes, 1);
+      // The vault stays unlocked until the configured delay passes.
+      expect(repository.locked, isFalse);
+    });
   });
 
   group('unlock throttle', () {

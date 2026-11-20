@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/platform/secure_screen.dart';
+import 'package:keyel/core/security/auto_lock_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/data/vault_session_provider.dart';
@@ -68,12 +69,14 @@ Future<void> mainAutofill() async {
     final password = args?['password'] as String? ?? '';
     runApp(
       ProviderScope(
-        child: _AutofillApp(
-          package: package,
-          webDomain: webDomain,
-          mode: mode,
-          username: username,
-          password: password,
+        child: AutoLockHost(
+          child: _AutofillApp(
+            package: package,
+            webDomain: webDomain,
+            mode: mode,
+            username: username,
+            password: password,
+          ),
         ),
       ),
     );
@@ -82,7 +85,9 @@ Future<void> mainAutofill() async {
 
   runApp(
     ProviderScope(
-      child: _AutofillApp(package: package, webDomain: webDomain, mode: mode),
+      child: AutoLockHost(
+        child: _AutofillApp(package: package, webDomain: webDomain, mode: mode),
+      ),
     ),
   );
 }
@@ -117,8 +122,9 @@ class _AutofillApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(vaultSessionProvider);
-    final isUnlocked = session.status == VaultStatus.unlocked;
+    final isUnlocked =
+        ref.watch(vaultSessionProvider.select((state) => state.status)) ==
+        VaultStatus.unlocked;
     final prefs = AppPreferences.instance;
     final palette = KeyelPaletteX.fromId(prefs.paletteId);
     final themeMode = KeyelPaletteX.themeModeFromId(prefs.themeMode);

@@ -163,6 +163,13 @@ Future<void> showClipboardDialog(BuildContext context) async {
     builder: (dialogContext) => SimpleDialog(
       title: const Text('Clear clipboard after'),
       children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(24, 0, 24, KeyelSpacing.sm),
+          child: Text(
+            'Locking the vault or leaving the app always clears it right away. '
+            'This setting controls the timer while Keyel stays open.',
+          ),
+        ),
         for (final option in options)
           SimpleDialogOption(
             onPressed: () => Navigator.of(dialogContext).pop(option),

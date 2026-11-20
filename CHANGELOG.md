@@ -5,6 +5,61 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-11-20
+
+A quality release: faster hot screens, stronger secret handling, and a more
+informative security dashboard. No new permissions, account, vault schema
+change, or change to the offline-by-default promise.
+
+### Added
+
+- **Vault posture card** on the security dashboard: four state-bearing seals
+  (auto-lock, clipboard wipe, screenshot protection, breach opt-in) with
+  semantics labels, a restrained staggered reveal, and a single *Review
+  settings* action. Reads the same non-secret state as the features themselves.
+- **Local help sheet** in Settings replaces the placeholder snackbar with
+  accurate, offline topics on the security model, shortcuts and recovery.
+- **Unsaved-changes guard** on the entry editor: leaving with edits asks for
+  confirmation, and a successful save exits without prompting.
+
+### Changed
+
+- Hot surfaces now subscribe to individual session fields with `select`, so an
+  unrelated session change no longer rebuilds static subtrees.
+- Vault search is debounced by 200 ms, stale list loads are discarded, and
+  selection pruning uses one visible-id `Set`.
+- The AMOLED theme now applies the resolved black scheme to every component
+  theme, not just the colour scheme.
+- Keyboard `Ctrl/⌘+F` focuses vault search; the medium navigation rail no
+  longer overflows its 76 dp width.
+- The import/export sheets are split into focused libraries, and UI text
+  scale / reduced-motion coverage is expanded across the new surfaces.
+
+### Security
+
+- Copied secrets are wiped on vault lock and on app backgrounding even when
+  the timed clipboard wipe preference is "Never"; that preference now controls
+  only the timed wipe while the app stays unlocked and foregrounded.
+- Reveals auto-hide after 15 s everywhere, including card/CVV, notes and
+  custom fields; `KeyelPasswordField` re-masks after 15 s and generation never
+  auto-reveals.
+- Autofill no longer falls through to web-domain matching when an app package
+  is present but has no `androidapp://` match, closing a WebView spoofing path.
+- OTA updates fail closed: a missing or malformed SHA-256 checksum means the
+  release is not offered, downloaded or installed, and a failed verification
+  deletes the partial download.
+- Auto-lock is active in the autofill and passkey entrypoints as well as the
+  main app; Android marks sensitive copies with `EXTRA_IS_SENSITIVE`.
+- Secret DTOs now have redacted `Debug` implementations, and CI mechanically
+  rejects unapproved `print`/`debugPrint`/Rust log calls.
+
+### Tests
+
+- Added coverage for clipboard lock/background wiping, autofill spoofing, OTA
+  checksums, reveal hygiene, password-field re-masking, redacted DTOs, private
+  CSV export, rebuild narrowing, posture-card states, the help sheet, search
+  debounce/stale loads, and the editor's unsaved-changes guard.
+
 ## [1.7.0] - 2026-11-20
 
 ### Added

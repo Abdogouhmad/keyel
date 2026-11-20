@@ -90,11 +90,61 @@ class EntryDetailController {
     }
   }
 
+  /// How long any revealed secret stays on screen.
+  static const revealDuration = Duration(seconds: 15);
+
+  /// Schedules (or refreshes) the single timer that hides all plain-text
+  /// reveals. Card, CVV and note values are just as sensitive as passwords and
+  /// must not be the exception.
+  void _scheduleHide() {
+    _hideTimer?.cancel();
+    _hideTimer = Timer(revealDuration, () {
+      _hideTimer = null;
+      _revealedPassword = null;
+      _revealedCardNumber = null;
+      _revealedCvv = null;
+      _revealedNote = null;
+      callbacks.rebuild();
+    });
+  }
+
+  void _cancelHideIfEmpty() {
+    if (_revealedPassword == null &&
+        _revealedCardNumber == null &&
+        _revealedCvv == null &&
+        _revealedNote == null) {
+      _hideTimer?.cancel();
+      _hideTimer = null;
+    }
+  }
+
+  /// Immediately hides every revealed secret. Called on lock/background.
+  void hideAll() {
+    final hadReveals =
+        _revealedPassword != null ||
+        _revealedCardNumber != null ||
+        _revealedCvv != null ||
+        _revealedNote != null ||
+        _revealedCustomFields.isNotEmpty;
+    _hideTimer?.cancel();
+    _hideTimer = null;
+    for (final timer in _customFieldHideTimers.values) {
+      timer.cancel();
+    }
+    _customFieldHideTimers.clear();
+    _revealedPassword = null;
+    _revealedCardNumber = null;
+    _revealedCvv = null;
+    _revealedNote = null;
+    _revealedCustomFields.clear();
+    if (hadReveals) callbacks.rebuild();
+  }
+
   /// Reveals or hides the login password with an auto-hide timer.
   Future<void> toggleRevealPassword() async {
     if (_revealedPassword != null) {
       _revealedPassword = null;
-      _hideTimer?.cancel();
+      _cancelHideIfEmpty();
       callbacks.rebuild();
       return;
     }
@@ -106,11 +156,7 @@ class EntryDetailController {
       );
       _revealedPassword = plain;
       callbacks.rebuild();
-      _hideTimer?.cancel();
-      _hideTimer = Timer(const Duration(seconds: 15), () {
-        _revealedPassword = null;
-        callbacks.rebuild();
-      });
+      _scheduleHide();
     } on Object catch (error) {
       callbacks.notifyError(error);
     }
@@ -121,6 +167,7 @@ class EntryDetailController {
     if (_revealedCardNumber != null) {
       _revealedCardNumber = null;
       _revealedCvv = null;
+      _cancelHideIfEmpty();
       callbacks.rebuild();
       return;
     }
@@ -138,6 +185,7 @@ class EntryDetailController {
       _revealedCardNumber = number;
       _revealedCvv = cvv;
       callbacks.rebuild();
+      _scheduleHide();
     } on Object catch (error) {
       callbacks.notifyError(error);
     }
@@ -147,6 +195,7 @@ class EntryDetailController {
   Future<void> toggleRevealNote() async {
     if (_revealedNote != null) {
       _revealedNote = null;
+      _cancelHideIfEmpty();
       callbacks.rebuild();
       return;
     }
@@ -158,6 +207,7 @@ class EntryDetailController {
       );
       _revealedNote = content;
       callbacks.rebuild();
+      _scheduleHide();
     } on Object catch (error) {
       callbacks.notifyError(error);
     }
@@ -201,7 +251,7 @@ class EntryDetailController {
       _revealedCustomFields[fieldId] = plain;
       callbacks.rebuild();
       _customFieldHideTimers.remove(fieldId)?.cancel();
-      _customFieldHideTimers[fieldId] = Timer(const Duration(seconds: 15), () {
+      _customFieldHideTimers[fieldId] = Timer(revealDuration, () {
         _revealedCustomFields.remove(fieldId);
         _customFieldHideTimers.remove(fieldId);
         callbacks.rebuild();
@@ -265,33 +315,9 @@ class EntryDetailController {
 
     final newFav = !detail.favorite;
     try {
-      await repository.upsertEntry(
-        EntryDraft(
-          id: detail.id,
-          kind: detail.kind,
-          title: detail.title,
-          tags: detail.tags,
-          folderId: detail.folderId,
-          favorite: newFav,
-          username: detail.login?.username ?? '',
-          url: detail.login?.url ?? '',
-          totpAlgorithm: detail.login?.totpAlgorithm ?? TotpAlgorithmDto.sha1,
-          totpDigits: detail.login?.totpDigits ?? 6,
-          totpPeriod: detail.login?.totpPeriod ?? 30,
-          cardholder: detail.card?.cardholder ?? '',
-          cardExpiry: detail.card?.expiry ?? '',
-          cardBrand: detail.card?.brand,
-          customFields: [
-            for (final f in detail.customFields)
-              CustomFieldDraft(
-                id: f.id,
-                label: f.label,
-                kind: f.kind,
-                value: f.kind == CustomFieldKindDto.hidden ? null : f.value,
-              ),
-          ],
-        ),
-      );
+      // The repository owns the "flip one flag without touching secrets"
+      // reconstruction; duplicating it here risks dropping a secret field.
+      await repository.setFavorite(detail.id, favorite: newFav);
       await load();
       callbacks.notify(
         newFav ? '${detail.title} pinned to favorites' : 'Favorite removed',

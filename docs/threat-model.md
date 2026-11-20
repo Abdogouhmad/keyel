@@ -108,10 +108,17 @@ be performed on a real build; see `docs/hardening-checklist.md`.
 
 ### T3 — Secrets in logs (A2, A6)
 
-- Rust has **no** `println!`, `eprintln!`, `dbg!` or `log::` calls.
-- Dart has a single logging call, `lib/main.dart:41`, which reports only a
-  storage error, never a secret.
-- `Debug` impls redact secrets: `Session`, `UnlockedVault` print `[REDACTED]`.
+- Rust has **no** `println!`, `eprintln!`, `dbg!` or `log::` calls in production
+  code. The only hits are timing output in the opt-in Argon2 benchmark test.
+- Dart has a single logging call, `lib/main.dart:42`, which reports only a
+  filesystem path error, never a secret.
+- `Debug` impls redact secrets: `Session`, `UnlockedVault`, `EntryDraft`,
+  `CustomFieldDraft`, `TotpConfigDto`, `TotpCodeDto`, `PasskeyCreateDto` and
+  `GeneratedPasskey` all print `[REDACTED]` for secret fields.
+- Since 1.8.0 this is **mechanically enforced**: `tool/check_no_secret_logs.sh`
+  greps every Rust and Dart source for printing calls, allows only the two
+  reviewed exceptions above, and runs in both `ci.yml` and `release.yml`.
+  Changing the allow-list is a deliberate, visible commit.
 - `build.sh --obfuscate` strips Dart symbols from release builds.
 
 *Open:* an `adb logcat` sweep across every flow on a device (roadmap 0.11.2).
@@ -128,6 +135,11 @@ be performed on a real build; see `docs/hardening-checklist.md`.
 - Bridge functions that take a master password, recovery key or backup password
   wrap the owned `String` in `Zeroizing` so the Rust-side buffer is wiped on
   return (`rust/src/api/session.rs`, `rust/src/api/import_export.rs`).
+- Since 1.8.0 `GeneratedPasskey.private_key_pkcs8` is a `Zeroizing<Vec<u8>>`,
+  and the normalized/encoded buffers in `RecoveryKey::parse/encode` and
+  `PairingCode::parse/encode` are `Zeroizing`-wrapped. The exported CSV string
+  and the raw/UTF-8 import buffers are zeroized too
+  (`rust/src/api/import_export.rs`).
 
 *Residual (accepted):* a `String` copied by a caller before wiping, and the
 Dart-side copy of a password, cannot be tracked. `EntryDraft` DTO secrets are
@@ -143,10 +155,20 @@ reveals on demand and clears the clipboard after a delay.
   blocks screenshots and blanks the Recents thumbnail.
 - The autofill picker activity is `excludeFromRecents` and `noHistory`.
 - Passwords are masked by default in the UI.
-- Copied secrets are flagged sensitive and auto-cleared
-  (`lib/core/platform/sensitive_clipboard.dart`). The clear delay is
-  user-configurable (15 s / 30 s / 1 min / never, default 30 s) via
-  `AppPreferences.clipboardClearDelay`.
+- Copied secrets are flagged sensitive (`ClipDescription.EXTRA_IS_SENSITIVE`)
+  through the `keyel/platform` native channel on Android 13+, and auto-cleared
+  (`lib/core/platform/sensitive_clipboard.dart`, `MainActivity.kt`). The clear
+  delay is user-configurable (15 s / 30 s / 1 min / never, default 30 s) via
+  `AppPreferences.clipboardClearDelay`. Since 1.8.0 an explicit lock, an
+  app-background event, or a Rust-side lock event calls `clearOnLock()`, which
+  cancels the timer and wipes the clipboard immediately. "Never clear" only
+  disables the *timed* wipe while the vault stays unlocked and foregrounded;
+  it never keeps a secret across a lock or background event. Generator,
+  recovery-key and confirmation-code copies all go through this path.
+- Since 1.8.0 revealed values auto-hide after 15 s and are cleared the moment
+  the vault locks or the app backgrounds: `EntryDetailController.hideAll()` is
+  driven by a `ref.listen` on session status, and `KeyelPasswordField` re-masks
+  any manually revealed password after the same delay.
 
 *Open:* an on-device check that `FLAG_SECURE` is actually engaged on every
 secret-bearing screen.
@@ -170,6 +192,12 @@ relationship. Look-alikes (`evil-paypal.com`, `paypal.com.evil.net`) never
 match. Weaker text hits are surfaced only through an explicit search box and are
 labelled `MatchQuality::Search` so the picker warns about a possible mismatch.
 There is **no public suffix list yet**, so we never collapse to an eTLD+1 guess.
+
+Since 1.8.0 a web-domain match is trusted **only** when the request comes from
+an allowlisted browser (or from no package at all). An arbitrary app that
+embeds `victim.com` in a WebView can no longer claim that domain: if a package
+is present and is not on the browser allow-list, domain matching is suppressed
+and no credential is offered (`crates/keyel_core/src/autofill.rs`).
 
 *Residual:* without a PSL, `foo.co.uk` and `bar.co.uk` are not recognised as
 siblings; the conservative rule errs toward not matching.
@@ -218,7 +246,10 @@ biometric unlock off; the setting is explicit.
 - Encrypted backups reuse the vault format under a user-chosen password and are
   read back through the same hardened parser.
 - CSV export is unencrypted by design; the UI warns and requires explicit
-  confirmation. The file is the user's responsibility after export.
+  confirmation. The file is the user's responsibility after export. Since 1.8.0
+  Rust creates it with `create_new` + mode `0600` on Unix (never following a
+  pre-existing symlink or inheriting a permissive umask), and both the exported
+  CSV and the import buffers are zeroized (`rust/src/api/import_export.rs`).
 
 ### T12 — Supply chain (A3-adjacent)
 
@@ -240,6 +271,10 @@ network attacker (or a compromised release host) is now in scope.
 - The downloaded APK is hashed and its SHA-256 compared against the value in the
   release manifest *before* it is handed to the system installer; a mismatch
   aborts the install.
+- Since 1.8.0 the check **fails closed**: a release with a missing or malformed
+  (non-64-hex) checksum is never offered, downloaded or installed
+  (`lib/core/ota/ota_service.dart`, `ota_provider.dart`). A failed verification
+  deletes the partial download rather than leaving it for a later install.
 - Android's own signature check refuses an APK signed by a different key, so an
   attacker who swaps the file cannot produce an installable package unless the
   signing key is also compromised.
@@ -320,15 +355,16 @@ HIBP's data; privacy does not.
 |---|---|
 | T1, T6 | `crates/keyel_core` unit/property tests; `cargo fuzz` (nightly) |
 | T2 | `build.sh` policy checks (not debuggable, `allowBackup=false`); on-device dump pending |
-| T3 | Source grep (documented in `docs/hardening-checklist.md`); `adb logcat` pending |
-| T4 | `zeroize_secrets` unit test; `Zeroizing` wrappers; review |
-| T5 | Manual on-device pass pending |
-| T7, T8 | `keyel_core::autofill` unit tests |
+| T3 | `tool/check_no_secret_logs.sh` in CI + release (automated source grep); redacted-`Debug` format tests; `adb logcat` pending |
+| T4 | `zeroize_secrets` unit test; `Zeroizing` wrappers (incl. passkey/recovery/pairing/CSV); review |
+| T5 | `test/vault_session_provider_test.dart` (lock and background wipe, including "Never clear"); `test/entry_detail_reveal_test.dart` (auto-hide + `hideAll`); `test/password_field_test.dart` (auto re-mask); manual on-device pass pending |
+| T7, T8 | `keyel_core::autofill` unit tests (incl. WebView-spoofing regression) |
 | T9 | `test/unlock_throttle_test.dart` (schedule, lock, reset, restore); `test/vault_session_provider_test.dart` (count, refuse, clear) |
 | T12 | `cargo audit` + `cargo deny` CI job |
-| T13 | `test/ota_test.dart` (SHA-256 verify, mismatch aborts, channel filter); on-device install pending |
-| T14 | `crates/keyel_core/tests/sync.rs` + `sync` unit tests (envelope tamper/wrong-key/truncation, pairing typo rejection, merge idempotency/convergence, corrupt blob leaves vault untouched, folder atomic I/O); `test/sync_screen_test.dart` (pairing-code acknowledgement, status, manual sync) |
+| T13 | `test/ota_test.dart` (SHA-256 verify, mismatch aborts, missing/malformed checksum fails closed, channel filter); on-device install pending |
+| T14 | `crates/keyel_core/tests/sync.rs` + `sync`/`pairing` unit tests (envelope tamper/wrong-key/truncation, pairing typo rejection, merge idempotency/convergence, corrupt blob leaves vault untouched, folder atomic I/O); `test/sync_screen_test.dart` (pairing-code acknowledgement, status, manual sync) |
 | T15 | `crates/keyel_core/src/breach.rs` known-answer/parser tests; `test/breach_test.dart` (HTTPS endpoint and prefix validation, opt-in disclosure, unlocked gating, error/cleanup, title/count-only results); secret-free DTO shape in `rust/src/api/breach.rs` |
+| T11 | `rust/src/api/import_export.rs` private-file test (`0600`, no overwrite) |
 
 ## 7. Open items
 
@@ -340,4 +376,6 @@ HIBP's data; privacy does not.
 5. Device smoke for 1.7.0: opt-in flow, offline failure, locked vault, relock
    mid-check, and a known-breached password against the live HIBP endpoint.
 
-_Last updated: 2026-11-20 (1.7.0 opt-in breach check)._
+_Last updated: 2026-11-20 (1.8.0 hardening: secret-log guard, reveal hygiene,
+sensitive clipboard flag, WebView-spoofing fix, fail-closed OTA, zeroization,
+private CSV)._

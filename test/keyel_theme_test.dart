@@ -69,25 +69,47 @@ void main() {
     });
 
     test('non-indigo palettes generate distinct schemes', () {
-      final oceanLight = KeyelTheme.light(
-        palette: KeyelPalette.ocean,
-      ).colorScheme;
-      final oceanDark = KeyelTheme.dark(palette: KeyelPalette.ocean).colorScheme;
+      final oceanLight = KeyelTheme.light(palette: KeyelPalette.ocean)
+          .colorScheme;
+      final oceanDark = KeyelTheme.dark(palette: KeyelPalette.ocean)
+          .colorScheme;
       expect(oceanLight.primary, isNot(KeyelColors.lightScheme.primary));
       expect(oceanDark.brightness, Brightness.dark);
       expect(oceanLight.brightness, Brightness.light);
     });
 
-    test('AMOLED black uses pure black dark surfaces', () {
-      final scheme = KeyelTheme.dark(
-        palette: KeyelPalette.ocean,
-        amoledBlack: true,
-      ).colorScheme;
-      expect(scheme.surface, Colors.black);
-      expect(scheme.surfaceDim, Colors.black);
-      expect(scheme.surfaceContainerLowest, Colors.black);
-      expect(scheme.scrim, Colors.black);
-    });
+    test(
+      'AMOLED black applies to every surface theme, not just colorScheme',
+      () {
+        final theme = KeyelTheme.dark(
+          palette: KeyelPalette.ocean,
+          amoledBlack: true,
+        );
+        final scheme = theme.colorScheme;
+        expect(scheme.surface, Colors.black);
+        expect(scheme.surfaceDim, Colors.black);
+        expect(scheme.surfaceContainerLowest, Colors.black);
+        expect(scheme.scrim, Colors.black);
+
+        // The resolved scheme must reach every component theme; before 1.8.0
+        // these read the original (grey) scheme and left a half-black UI.
+        expect(theme.scaffoldBackgroundColor, Colors.black);
+        expect(theme.appBarTheme.backgroundColor, Colors.black);
+        expect(theme.cardTheme.color, scheme.surfaceContainer);
+        expect(
+          theme.bottomSheetTheme.backgroundColor,
+          scheme.surfaceContainerHigh,
+        );
+        expect(
+          theme.dialogTheme.backgroundColor,
+          scheme.surfaceContainerHighest,
+        );
+        expect(
+          theme.inputDecorationTheme.fillColor,
+          scheme.surfaceContainerHigh,
+        );
+      },
+    );
 
     test('palette and theme mode ids round-trip helpers', () {
       expect(KeyelPaletteX.fromId('ocean'), KeyelPalette.ocean);

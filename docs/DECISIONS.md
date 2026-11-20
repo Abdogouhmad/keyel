@@ -809,4 +809,53 @@ design (docs/roadmap.md header).
 - **The release remains CI-driven.** Bump `pubspec.yaml` and `CHANGELOG.md`,
   merge to `main`, and let the workflow cut `v1.7.0`; never push a tag by hand.
 
+## 2026-11-20 (1.8.0 kickoff)
+
+- **Version 1.8.0 is a quality release across three tracks:** codebase
+  optimisation, security hardening and UI polish. Scope is in
+  `docs/roadmap_1.8.0.md`. 1.6.0 (one-tap lock / quick access) stays reserved.
+
+- **"Never clear clipboard" no longer survives a lock.** The preference now
+  controls only the timed wipe while the vault is unlocked and the app is
+  foregrounded. Locking, backgrounding, or a Rust-side lock event always wipes
+  immediately (`SensitiveClipboard.clearOnLock`). This closes the residual in
+  T5; the settings dialog was updated to say so.
+
+- **Every secret copy goes through one clipboard path.** Generator, recovery-key
+  and vault-row copies now all call `SensitiveClipboard`, so the timed wipe and
+  the lock/background wipe apply uniformly. On Android 13+ the native channel
+  sets `ClipDescription.EXTRA_IS_SENSITIVE`, keeping the value out of clipboard
+  history and suggestions; other platforms fall back to Flutter's clipboard.
+
+- **Reveals are temporary by default.** Card/CVV/note reveals share the 15-second
+  password timer and `EntryDetailController.hideAll()` clears all reveals on a
+  lock/background session change; `KeyelPasswordField` re-masks a manual reveal
+  after 15 s and never auto-reveals a generated password. A focus-loss based
+  re-mask was tried and dropped: Flutter moves focus to the trailing toggle on
+  an explicit reveal, so "focus left" cannot distinguish an intentional toggle
+  from leaving the field. A timer is unambiguous and strictly stronger.
+
+- **Autofill web domains are only trusted from a browser.** A `packageName`
+  without an `androidapp://` match no longer falls through to domain matching;
+  an arbitrary app hosting a site in a WebView cannot claim that domain. Only an
+  allowlisted browser (or a request with no package) may match a web domain.
+
+- **OTA updates fail closed on a missing or malformed checksum.** A release
+  without a 64-hex SHA-256 is not offered, downloaded or installed, and a failed
+  verification deletes the partial download. Silent no-op verification in the
+  beta channel was the security defect being closed.
+
+- **Redacted `Debug` is now a general rule, not a few special cases.** All DTOs
+  that carry a password, digest, private key, TOTP secret or decrypted field
+  implement a manual redacted `Debug`, and `tool/check_no_secret_logs.sh`
+  mechanically enforces the "no printing calls" rule in both CI and release.
+  The only allow-listed calls are a benchmark timing print and one startup
+  filesystem-path error, each justified at the call site.
+
+- **Transient secret buffers are wrapped in `Zeroizing`.** `GeneratedPasskey`,
+  recovery-key and pairing-code normalized/encoded buffers, and CSV export and
+  import buffers now wipe themselves on drop. Plaintext CSV files are created
+  with `create_new` + mode `0600` on Unix so a umask or a symlink cannot widen
+  access to them.
+
 

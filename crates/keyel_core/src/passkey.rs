@@ -21,6 +21,7 @@ use p256::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
+use zeroize::Zeroizing;
 
 /// Errors from passkey/WebAuthn operations.
 #[derive(Debug, Error)]
@@ -43,16 +44,28 @@ pub enum PasskeyError {
 pub type Result<T> = std::result::Result<T, PasskeyError>;
 
 /// Output of generating/storing a new passkey credential.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct GeneratedPasskey {
     /// Credential ID bytes (random identifier).
     pub credential_id: Vec<u8>,
     /// COSE-encoded public key bytes.
     pub public_key_cose: Vec<u8>,
-    /// Private key material in PKCS#8 DER form. Secret.
-    pub private_key_pkcs8: Vec<u8>,
+    /// Private key material in PKCS#8 DER form. Secret; zeroized on drop so a
+    /// transient copy cannot outlive the credential ceremony.
+    pub private_key_pkcs8: Zeroizing<Vec<u8>>,
     /// COSE algorithm identifier (-7 for ES256).
     pub algorithm: i32,
+}
+
+impl std::fmt::Debug for GeneratedPasskey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GeneratedPasskey")
+            .field("credential_id", &self.credential_id)
+            .field("public_key_cose", &self.public_key_cose)
+            .field("private_key_pkcs8", &"[REDACTED]")
+            .field("algorithm", &self.algorithm)
+            .finish()
+    }
 }
 
 /// Generate a new ES256 (P-256) credential.
@@ -60,11 +73,13 @@ pub fn generate_es256_credential() -> Result<GeneratedPasskey> {
     let signing_key = SigningKey::generate();
     let verify_key = signing_key.verifying_key();
 
-    let private_key_pkcs8 = signing_key
-        .to_pkcs8_der()
-        .map_err(|_| PasskeyError::Crypto)?
-        .as_bytes()
-        .to_vec();
+    let private_key_pkcs8 = Zeroizing::new(
+        signing_key
+            .to_pkcs8_der()
+            .map_err(|_| PasskeyError::Crypto)?
+            .as_bytes()
+            .to_vec(),
+    );
 
     let point = verify_key.to_sec1_point(false);
     let x = point.x().ok_or(PasskeyError::Crypto)?.to_vec();
@@ -375,6 +390,19 @@ pub fn build_get_response_json(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn generated_passkey_debug_redacts_private_key() {
+        let credential = GeneratedPasskey {
+            credential_id: vec![1, 2, 3],
+            public_key_cose: vec![4, 5],
+            private_key_pkcs8: Zeroizing::new(b"SENTINEL-PKCS8".to_vec()),
+            algorithm: -7,
+        };
+        let debug = format!("{credential:?}");
+        assert!(!debug.contains("SENTINEL"), "secret leaked: {debug}");
+        assert!(debug.contains("[REDACTED]"));
+    }
 
     #[test]
     fn b64url_round_trip() {

@@ -92,7 +92,7 @@ class OtaNotifier extends Notifier<OtaState> {
       state = state.copyWith(
         step: OtaStep.downloaded,
         downloadedFilePath: () => file.path,
-        isChecksumVerified: release.sha256 != null,
+        isChecksumVerified: isValidOtaChecksum(release.sha256),
         downloadProgress: 1,
       );
     } on CancellationException {
@@ -125,6 +125,13 @@ class OtaNotifier extends Notifier<OtaState> {
       state = state.copyWith(
         step: OtaStep.error,
         errorMessage: () => 'Update file not found on device',
+      );
+      return false;
+    }
+    if (!state.isChecksumVerified) {
+      state = state.copyWith(
+        step: OtaStep.error,
+        errorMessage: () => 'Update checksum could not be verified',
       );
       return false;
     }

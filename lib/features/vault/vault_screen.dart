@@ -97,7 +97,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(vaultSessionProvider);
+    // Only the lifecycle drives the shell; a `busy`/`error` change must not
+    // rebuild the whole vault list.
+    final status = ref.watch(
+      vaultSessionProvider.select((state) => state.status),
+    );
     ref.listen(vaultSessionProvider.select((state) => state.status), (
       previous,
       next,
@@ -117,7 +121,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       }
     });
 
-    return switch (session.status) {
+    return switch (status) {
       VaultStatus.noVault => const CreateVaultView(),
       VaultStatus.locked => const UnlockVaultView(),
       VaultStatus.unlocked => _buildUnlockedVault(context),

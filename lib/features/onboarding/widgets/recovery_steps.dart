@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/features/onboarding/widgets/step_header.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -33,11 +33,12 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
   bool _savedRecovery = false;
 
   void _copyKey() {
-    unawaited(Clipboard.setData(ClipboardData(text: widget.recoveryKey)));
+    unawaited(SensitiveClipboard.instance.copy(widget.recoveryKey));
     setState(() => _copied = true);
     showKeyelSnack(
       context,
-      'Recovery key copied to clipboard',
+      'Recovery key copied to clipboard'
+      '${SensitiveClipboard.instance.clearHint}',
       icon: Icons.content_copy_rounded,
     );
     Future.delayed(const Duration(seconds: 2), () {

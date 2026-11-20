@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/security/password_strength.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/features/generator/widgets/generator_body.dart';
@@ -184,10 +184,10 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
   }
 
   void _copy() {
-    unawaited(Clipboard.setData(ClipboardData(text: _display)));
+    unawaited(SensitiveClipboard.instance.copy(_display));
     showKeyelSnack(
       context,
-      '$_modeName copied to clipboard',
+      '$_modeName copied to clipboard${SensitiveClipboard.instance.clearHint}',
       icon: Icons.content_copy_rounded,
     );
   }
@@ -249,10 +249,8 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
                   _setCharacterClass(uppercase: value),
               onLowercaseChanged: (value) =>
                   _setCharacterClass(lowercase: value),
-              onNumbersChanged: (value) =>
-                  _setCharacterClass(numbers: value),
-              onSymbolsChanged: (value) =>
-                  _setCharacterClass(symbols: value),
+              onNumbersChanged: (value) => _setCharacterClass(numbers: value),
+              onSymbolsChanged: (value) => _setCharacterClass(symbols: value),
               onExcludeAmbiguousChanged: _setExcludeAmbiguous,
               capitalizeFirst: _capitalizeFirst,
               includeNumber: _includeNumber,

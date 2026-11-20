@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/core/focus/keyel_search_focus.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/features/vault/widgets/vault_recent_search.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -9,7 +11,7 @@ import 'package:keyel/ui/keyel.dart';
 /// Tracks whether the field is focused so recent searches only appear while
 /// the user is looking at an empty query, and commits finished queries to
 /// [AppPreferences.rememberSearch] when the field is left or cleared.
-class VaultSearchBar extends StatefulWidget {
+class VaultSearchBar extends ConsumerStatefulWidget {
   /// Creates the search field area.
   const new({required this.query, required this.onSearchChanged, super.key});
 
@@ -20,10 +22,10 @@ class VaultSearchBar extends StatefulWidget {
   final ValueChanged<String> onSearchChanged;
 
   @override
-  State<VaultSearchBar> createState() => _VaultSearchBarState();
+  ConsumerState<VaultSearchBar> createState() => _VaultSearchBarState();
 }
 
-class _VaultSearchBarState extends State<VaultSearchBar> {
+class _VaultSearchBarState extends ConsumerState<VaultSearchBar> {
   final _searchController = TextEditingController();
   bool _searchFocused = false;
   String _previousQuery = '';
@@ -79,6 +81,7 @@ class _VaultSearchBarState extends State<VaultSearchBar> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final focusNode = ref.watch(vaultSearchFocusProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -87,6 +90,7 @@ class _VaultSearchBarState extends State<VaultSearchBar> {
           onFocusChange: _handleFocusChanged,
           child: KeyelSearchField(
             controller: _searchController,
+            focusNode: focusNode,
             hintText: 'Search items, tags or notes...',
             onChanged: _handleSearchChanged,
             trailing: Container(

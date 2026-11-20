@@ -24,7 +24,7 @@ use super::session::with_session;
 ///
 /// All byte fields are stored encrypted at rest inside the vault. `private_key`
 /// is secret and is never exposed back to Dart/UI through read APIs.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PasskeyCreateDto {
     /// Entry title shown in the vault.
     pub title: String,
@@ -52,6 +52,26 @@ pub struct PasskeyCreateDto {
     pub transports: Vec<String>,
     /// Whether the credential is discoverable/resident.
     pub discoverable: bool,
+}
+
+impl std::fmt::Debug for PasskeyCreateDto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PasskeyCreateDto")
+            .field("title", &self.title)
+            .field("rp_id", &self.rp_id)
+            .field("rp_name", &self.rp_name)
+            .field("credential_id", &self.credential_id)
+            .field("user_handle", &self.user_handle)
+            .field("user_name", &self.user_name)
+            .field("user_display_name", &self.user_display_name)
+            .field("public_key", &self.public_key)
+            .field("private_key", &"[REDACTED]")
+            .field("algorithm", &self.algorithm)
+            .field("sign_count", &self.sign_count)
+            .field("transports", &self.transports)
+            .field("discoverable", &self.discoverable)
+            .finish()
+    }
 }
 
 /// Result of creating/registering a passkey via a WebAuthn ceremony.
@@ -215,7 +235,7 @@ pub fn create_passkey_for_request(
                 user_name: user_name.clone(),
                 user_display_name: display_name.clone(),
                 public_key: generated.public_key_cose.clone(),
-                private_key: generated.private_key_pkcs8.clone(),
+                private_key: generated.private_key_pkcs8.to_vec(),
                 algorithm: generated.algorithm,
                 sign_count,
                 created_at: now,
@@ -320,4 +340,33 @@ pub fn get_passkey_assertion_response(
 
         Ok(response_json)
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn passkey_create_dto_debug_redacts_private_key() {
+        const SENTINEL: &[u8] = b"SENTINEL-PRIVATE-KEY";
+        let dto = PasskeyCreateDto {
+            title: "Example".into(),
+            rp_id: "example.com".into(),
+            rp_name: "Example".into(),
+            credential_id: vec![1, 2, 3],
+            user_handle: vec![4, 5],
+            user_name: "ada".into(),
+            user_display_name: "Ada".into(),
+            public_key: vec![6, 7],
+            private_key: SENTINEL.to_vec(),
+            algorithm: -7,
+            sign_count: 0,
+            transports: Vec::new(),
+            discoverable: true,
+        };
+        let debug = format!("{dto:?}");
+        assert!(!debug.contains("83, 69"), "raw key bytes leaked: {debug}");
+        assert!(!debug.contains("SENTINEL"), "secret leaked: {debug}");
+        assert!(debug.contains("[REDACTED]"));
+    }
 }

@@ -99,6 +99,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
   }
 
   void _copy(String value, String message) {
+    if (!mounted) return;
     unawaited(SensitiveClipboard.instance.copy(value));
     unawaited(Haptics.light());
     showKeyelSnack(context, message, icon: Icons.content_copy_rounded);
@@ -110,6 +111,15 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // A revealed secret must never survive the vault locking or the app going
+    // to the background, even if the 15 s timer has not fired yet.
+    ref.listen(vaultSessionProvider.select((state) => state.status), (
+      _,
+      status,
+    ) {
+      if (status != VaultStatus.unlocked) _controller.hideAll();
+    });
+
     final entry = _controller.entry;
     final detail = _controller.detail;
     if (_controller.loading) {

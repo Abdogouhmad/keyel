@@ -140,9 +140,7 @@ void main() {
   });
 
   test('appearance preferences round-trip through settings.json', () async {
-    final dir = await Directory.systemTemp.createTemp(
-      'keyel_prefs_appearance',
-    );
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_appearance');
     addTearDown(() => dir.delete(recursive: true));
     final vaultPath = '${dir.path}/vault.keyel';
 
@@ -179,5 +177,4 @@ void main() {
     expect(prefs.animationsEnabled, isTrue);
     expect(prefs.hapticsEnabled, isTrue);
   });
-
 }

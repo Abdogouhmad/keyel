@@ -214,36 +214,41 @@ abstract final class KeyelTheme {
     );
   }
 
-  static ThemeData _build(ColorScheme scheme, {bool amoledBlack = false}) {
+  static ThemeData _build(
+    ColorScheme sourceScheme, {
+    bool amoledBlack = false,
+  }) {
     // AMOLED mode: push dark backgrounds/surfaces to pure black for OLED.
-    var resolvedScheme = scheme;
-    if (amoledBlack && scheme.brightness == Brightness.dark) {
-      resolvedScheme = scheme.copyWith(
-        surface: Colors.black,
-        surfaceDim: Colors.black,
-        surfaceBright: const Color(0xFF141414),
-        surfaceContainerLowest: Colors.black,
-        surfaceContainerLow: const Color(0xFF0A0A0A),
-        surfaceContainer: const Color(0xFF121212),
-        surfaceContainerHigh: const Color(0xFF1A1A1A),
-        surfaceContainerHighest: const Color(0xFF242424),
-        scrim: Colors.black,
-      );
-    }
+    // Every theme component below reads this one resolved scheme, so scaffold,
+    // cards, sheets and dialogs can never disagree with `colorScheme` and
+    // leave a grey panel floating on a black page.
+    final scheme = amoledBlack && sourceScheme.brightness == Brightness.dark
+        ? sourceScheme.copyWith(
+            surface: Colors.black,
+            surfaceDim: Colors.black,
+            surfaceBright: const Color(0xFF141414),
+            surfaceContainerLowest: Colors.black,
+            surfaceContainerLow: const Color(0xFF0A0A0A),
+            surfaceContainer: const Color(0xFF121212),
+            surfaceContainerHigh: const Color(0xFF1A1A1A),
+            surfaceContainerHighest: const Color(0xFF242424),
+            scrim: Colors.black,
+          )
+        : sourceScheme;
 
     // Colour every text style with the scheme's on-surface roles so text
     // entered in fields (and any unstyled text) stays readable on the
     // container surfaces in both light and dark themes.
     final textTheme = _textTheme().apply(
-      bodyColor: resolvedScheme.onSurface,
-      displayColor: resolvedScheme.onSurface,
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
     );
-    final isLight = resolvedScheme.brightness == Brightness.light;
+    final isLight = scheme.brightness == Brightness.light;
 
     final base = ThemeData(
       useMaterial3: true,
-      brightness: resolvedScheme.brightness,
-      colorScheme: resolvedScheme,
+      brightness: scheme.brightness,
+      colorScheme: scheme,
       fontFamily: fontFamily,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       splashFactory: InkSparkle.splashFactory,

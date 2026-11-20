@@ -1,6 +1,11 @@
 package com.freesoftware.keyel
 
+import android.content.ClipData
+import android.content.ClipDescription
+import android.content.ClipboardManager
 import android.content.Intent
+import android.os.Build
+import android.os.PersistableBundle
 import android.provider.Settings
 import android.view.WindowManager
 import android.view.autofill.AutofillManager
@@ -27,6 +32,36 @@ class MainActivity : FlutterFragmentActivity() {
                         } else {
                             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                         }
+                        result.success(null)
+                    }
+
+                    // Android 13+ lets an app mark a clipboard entry as
+                    // sensitive, which keeps it out of clipboard history and
+                    // suppresses the on-screen preview/auto-suggestion. Use it
+                    // for every secret copy; older Android ignores the flag but
+                    // still gets the value via the same channel.
+                    "copySensitive" -> {
+                        val text = call.argument<String>("text") ?: ""
+                        val clipboard = getSystemService(ClipboardManager::class.java)
+                        val clip = ClipData.newPlainText("Keyel secret", text)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val extras = PersistableBundle()
+                            extras.putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+                            clip.description.extras = extras
+                        }
+                        clipboard.setPrimaryClip(clip)
+                        result.success(null)
+                    }
+
+                    "clearSensitive" -> {
+                        val clipboard = getSystemService(ClipboardManager::class.java)
+                        val clip = ClipData.newPlainText("Keyel secret", "")
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val extras = PersistableBundle()
+                            extras.putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+                            clip.description.extras = extras
+                        }
+                        clipboard.setPrimaryClip(clip)
                         result.success(null)
                     }
 

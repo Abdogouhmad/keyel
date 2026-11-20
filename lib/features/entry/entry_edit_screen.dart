@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/entry/widgets/edit/edit_bar.dart';
 import 'package:keyel/features/entry/widgets/edit/edit_form_layout.dart';
 import 'package:keyel/features/entry/widgets/edit/edit_kind.dart';
+import 'package:keyel/src/rust/api/models.dart' show CustomFieldDraft;
 import 'package:keyel/ui/keyel.dart';
 
 /// Create or edit a vault entry.
@@ -30,10 +32,15 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
   VaultEntryKind _kind = VaultEntryKind.login;
   bool _favorite = false;
   String? _folderId;
+  _EditSnapshot? _baseline;
+  bool _saved = false;
 
   @override
   void initState() {
     super.initState();
+    // New entries start from the empty controllers; existing ones replace
+    // this baseline once their secrets have been loaded.
+    _baseline = _capture();
     if (widget.entryId != null) {
       unawaited(_loadExisting());
     }
@@ -53,7 +60,12 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
       notify: _notify,
       notifyError: _notifyError,
       close: () {
-        if (mounted) context.pop();
+        if (mounted) {
+          // A successful save is not an "unsaved change": skip the guard so
+          // the just-persisted entry is not reported as dirty on the way out.
+          _saved = true;
+          context.pop();
+        }
       },
     ),
   );
@@ -89,60 +101,164 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
       _kind = loaded.kind;
       _favorite = loaded.favorite;
       _folderId = loaded.folderId;
+      _baseline = _capture();
     });
   }
 
   Future<void> _save() =>
       _controller.save(kind: _kind, favorite: _favorite, folderId: _folderId);
 
+  _EditSnapshot _capture() => _EditSnapshot(
+    _controller,
+    kind: _kind,
+    favorite: _favorite,
+    folderId: _folderId,
+  );
+
+  bool _isDirty() {
+    if (_saved) return false;
+    final baseline = _baseline;
+    return baseline == null ||
+        !baseline.matches(
+          _controller,
+          kind: _kind,
+          favorite: _favorite,
+          folderId: _folderId,
+        );
+  }
+
+  Future<void> _confirmDiscard() async {
+    final confirmed = await KeyelConfirmDialog.show(
+      context,
+      title: 'Discard changes?',
+      body: 'Your edits to this entry will be lost.',
+      confirmLabel: 'Discard',
+      destructive: true,
+    );
+    if (confirmed && mounted) context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: scheme.surface,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            EditBar(
-              title: widget.entryId == null
-                  ? 'New ${editKindLabel(_kind)}'
-                  : 'Edit ${editKindLabel(_kind)}',
-              onClose: () => context.pop(),
-              onSave: _save,
-            ),
-            Expanded(
-              child: EditFormLayout(
-                controller: _controller,
-                kind: _kind,
-                onKindChanged: (kind) => setState(() => _kind = kind),
-                favorite: _favorite,
-                onFavoriteChanged: (value) => setState(() => _favorite = value),
-                folderId: _folderId,
-                onFolderChanged: (id) => setState(() => _folderId = id),
+    // canPop stays false so the decision is made at pop time: text controllers
+    // mutate without rebuilding this widget, so a build-time canPop would go
+    // stale the moment the user types.
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !mounted) return;
+        if (!_isDirty()) {
+          Navigator.of(context).pop();
+          return;
+        }
+        unawaited(_confirmDiscard());
+      },
+      child: Scaffold(
+        backgroundColor: scheme.surface,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              EditBar(
+                title: widget.entryId == null
+                    ? 'New ${editKindLabel(_kind)}'
+                    : 'Edit ${editKindLabel(_kind)}',
+                onClose: () => Navigator.of(context).maybePop(),
+                onSave: _save,
               ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          color: scheme.surface,
-          padding: const EdgeInsets.fromLTRB(
-            KeyelSpacing.md,
-            KeyelSpacing.sm,
-            KeyelSpacing.md,
-            KeyelSpacing.md,
+              Expanded(
+                child: EditFormLayout(
+                  controller: _controller,
+                  kind: _kind,
+                  onKindChanged: (kind) => setState(() => _kind = kind),
+                  favorite: _favorite,
+                  onFavoriteChanged: (value) =>
+                      setState(() => _favorite = value),
+                  folderId: _folderId,
+                  onFolderChanged: (id) => setState(() => _folderId = id),
+                ),
+              ),
+            ],
           ),
-          child: KeyelPillButton(
-            label: 'Save entry',
-            icon: Icons.check_rounded,
-            onPressed: _save,
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            color: scheme.surface,
+            padding: const EdgeInsets.fromLTRB(
+              KeyelSpacing.md,
+              KeyelSpacing.sm,
+              KeyelSpacing.md,
+              KeyelSpacing.md,
+            ),
+            child: KeyelPillButton(
+              label: 'Save entry',
+              icon: Icons.check_rounded,
+              onPressed: _save,
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Values captured at load time so "unsaved changes" can be detected without
+/// sprinkling dirty flags through every field callback. Strings and drafts are
+/// immutable, so holding references here cannot mutate the baseline.
+class _EditSnapshot {
+  new(
+    EntryEditController controller, {
+    required this.kind,
+    required this.favorite,
+    required this.folderId,
+  }) : title = controller.title.text,
+       username = controller.username.text,
+       password = controller.password.text,
+       totpSecret = controller.totpSecret.text,
+       website = controller.website.text,
+       notes = controller.notes.text,
+       cardNumber = controller.cardNumber.text,
+       cardExpiry = controller.cardExpiry.text,
+       cardholder = controller.cardholder.text,
+       iconKey = controller.iconKey,
+       customFields = List<CustomFieldDraft>.of(controller.customFields);
+
+  final VaultEntryKind kind;
+  final bool favorite;
+  final String? folderId;
+  final String title;
+  final String username;
+  final String password;
+  final String totpSecret;
+  final String website;
+  final String notes;
+  final String cardNumber;
+  final String cardExpiry;
+  final String cardholder;
+  final String? iconKey;
+  final List<CustomFieldDraft> customFields;
+
+  bool matches(
+    EntryEditController controller, {
+    required VaultEntryKind kind,
+    required bool favorite,
+    required String? folderId,
+  }) =>
+      this.kind == kind &&
+      this.favorite == favorite &&
+      this.folderId == folderId &&
+      title == controller.title.text &&
+      username == controller.username.text &&
+      password == controller.password.text &&
+      totpSecret == controller.totpSecret.text &&
+      website == controller.website.text &&
+      notes == controller.notes.text &&
+      cardNumber == controller.cardNumber.text &&
+      cardExpiry == controller.cardExpiry.text &&
+      cardholder == controller.cardholder.text &&
+      iconKey == controller.iconKey &&
+      listEquals(customFields, controller.customFields);
 }
