@@ -1,11 +1,11 @@
 {
-  "latestVersionName": "1.5.0",
-  "latestVersionCode": 10500,
+  "latestVersionName": "1.7.0",
+  "latestVersionCode": 10700,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.5.0/keyel-v1.5.0-universal.apk",
-  "size": 43176454,
-  "sha256": "65aa34b0a36f0c80a9769ddb6f39a8468b9c73039058b4a22d86da8e1ef0328f",
-  "releaseNotes": "## [1.5.0] - 2026-11-19\n\n### Added\n\n- **Opt-in cross-device sync (E2EE).** A new Sync settings page lets you enable\n  or disable sync, choose a folder, pair a second device with a one-time code,\n  see status/last-sync/device id, and run a manual foreground sync. No Keyel\n  server or account: your own sync tool (Syncthing, Nextcloud, cloud drive, USB)\n  moves the encrypted files. No new network permission is used.\n- **Sync wire format and pairing.** Versioned `KYS1` blobs use XChaCha20-Poly1305\n  under a random 256-bit sync key; the authenticated header binds sync id, writer\n  device id and a monotonic sequence. Pairing uses a typo-detecting one-time code\n  whose key is stored only inside each device's vault — never in Dart, logs or\n  the backend.\n- **Conflict-aware merge.** Per-item version vectors and tombstones produce\n  deterministic merges with non-destructive, dated conflict copies (no silent\n  overwrites), with idempotency and tamper/corruption fail-closed guarantees.\n- **Schema v5.** Additive `sync_config`, per-item `sync_meta` and tombstones;\n  v1–v4 vaults migrate forward losslessly. Sync setup survives encrypted backup.\n\n### Security\n\n- Sync key and pairing code follow the existing secret hygiene: `Zeroizing` in\n  Rust, excluded from DTOs/summaries/search/diagnostics/logs, pairing code shown\n  once with explicit acknowledgement and auto-clearing clipboard under\n  `FLAG_SECURE`. Threat model extended with the untrusted-backend analysis.\n\n### Tests\n\n- New core/FRB/integration and Flutter widget tests for the envelope, pairing,\n  version-vector merge (convergence and idempotency), corrupt/tampered remote\n  abort, atomic folder I/O, and the sync settings flows.",
-  "publishedAt": "2026-11-19T18:12:43.256221+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.7.0/keyel-v1.7.0-universal.apk",
+  "size": 43274878,
+  "sha256": "9602cccae7c8c2b934d9942361cf11cea482ae896fc381bd44a08ef807f9b007",
+  "releaseNotes": "## [1.7.0] - 2026-11-20\n\n### Added\n\n- **Opt-in password breach check.** A *Security Health* action checks saved\n  login passwords against Have I Been Pwned. It is off by default, requires an\n  explicit disclosure and opt-in, and only runs when you tap *Check now* with\n  the vault unlocked. Results show entry titles and breach counts.\n- **Local k-anonymity matching.** Rust computes SHA-1 and sends only the first\n  five hex characters of the digest over HTTPS. Dart never sees a password or\n  full hash; the range responses are compared in Rust.\n\n### Security\n\n- The opt-in flag is a non-secret preference; no hash, prefix, password or\n  breach response is stored, logged, or added to diagnostics.\n- Pending digests are `Zeroizing`, kept only in a bridge-local check, and wiped\n  on completion, cancellation, error, and vault lock. The endpoint is\n  hard-coded HTTPS and the prefix is validated before it becomes part of a URL.\n- The threat model records the narrowed network promise and the residual\n  k-anonymity metadata exposure (T15/A8).\n\n### Tests\n\n- Core SHA-1 known-answer, prefix/suffix and response-parser tests; Dart tests\n  for the endpoint/client, opt-in disclosure, unlocked gating, error cleanup,\n  and secret-free results.",
+  "publishedAt": "2026-11-20T11:48:10.824886+00:00"
 }
