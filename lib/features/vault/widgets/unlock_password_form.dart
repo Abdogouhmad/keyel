@@ -8,6 +8,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/vault/widgets/vault_biometric_button.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Master-password form shown by the unlock screen.
 ///
@@ -91,6 +92,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final throttled = _cooldown > Duration.zero;
@@ -123,7 +125,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                 ),
                 const SizedBox(height: KeyelSpacing.xl),
                 Text(
-                  'Welcome back',
+                  l10n.vaultWelcomeBack,
                   textAlign: TextAlign.center,
                   style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -132,7 +134,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                 ),
                 const SizedBox(height: KeyelSpacing.sm),
                 Text(
-                  'Enter your master password to unlock your vault.',
+                  l10n.vaultUnlockHint,
                   textAlign: TextAlign.center,
                   style: textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
@@ -148,13 +150,15 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                   cursorColor: scheme.primary,
                   onSubmitted: (_) => unawaited(_unlock()),
                   decoration: InputDecoration(
-                    labelText: 'Master password',
+                    labelText: l10n.vaultMasterPasswordLabel,
                     prefixIcon: Icon(
                       Icons.key_rounded,
                       color: scheme.onSurfaceVariant,
                     ),
                     suffixIcon: IconButton(
-                      tooltip: _obscure ? 'Show password' : 'Hide password',
+                      tooltip: _obscure
+                          ? l10n.vaultShowPassword
+                          : l10n.vaultHidePassword,
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_outlined
@@ -167,7 +171,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                 ),
                 const SizedBox(height: KeyelSpacing.md),
                 KeyelButtonM3(
-                  label: _busy ? 'Unlocking…' : 'Unlock',
+                  label: _busy ? l10n.vaultUnlocking : l10n.actionUnlock,
                   icon: _busy ? null : Icons.lock_open_rounded,
                   isFullWidth: true,
                   onPressed: (_busy || throttled)
@@ -177,8 +181,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                 if (throttled) ...[
                   const SizedBox(height: KeyelSpacing.sm),
                   Text(
-                    'Too many attempts. Try again in '
-                    '${_cooldown.inSeconds}s.',
+                    l10n.vaultTooManyAttempts(_cooldown.inSeconds),
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(color: scheme.error),
                   ),
@@ -186,7 +189,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                 const SizedBox(height: KeyelSpacing.sm),
                 TextButton(
                   onPressed: _busy ? null : widget.onForgotPassword,
-                  child: const Text('Forgot password?'),
+                  child: Text(l10n.vaultForgotPassword),
                 ),
                 const SizedBox(height: KeyelSpacing.xl),
                 Row(
@@ -195,7 +198,7 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'OR',
+                        l10n.vaultOr,
                         style: TextStyle(
                           color: scheme.onSurfaceVariant,
                           fontSize: 12,

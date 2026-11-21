@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Website matcher field for login entries.
 class WebsiteSection extends StatelessWidget {
@@ -20,7 +21,7 @@ class WebsiteSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Web Vault Matcher',
+            l10nOf(context).entryWebVaultMatcher,
             style: Theme.of(context).textTheme.titleSmall
                 ?.copyWith(color: scheme.onSurface),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/features/generator/widgets/character_rule.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A column of character type switches for password generation.
 class CharacterRules extends StatelessWidget {
@@ -52,18 +53,19 @@ class CharacterRules extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         KeyelSectionLabel(
-          label: 'Character types',
+          label: l10n.genCharacterTypes,
           color: scheme.onSurfaceVariant,
         ),
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: 'AB',
-          title: 'Uppercase letters',
+          title: l10n.genUppercase,
           subtitle: 'A-Z',
           switchValue: includeUppercase,
           onSwitchChanged: onUppercaseChanged,
@@ -71,7 +73,7 @@ class CharacterRules extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: 'ab',
-          title: 'Lowercase letters',
+          title: l10n.genLowercase,
           subtitle: 'a-z',
           switchValue: includeLowercase,
           onSwitchChanged: onLowercaseChanged,
@@ -79,7 +81,7 @@ class CharacterRules extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: '09',
-          title: 'Numbers',
+          title: l10n.genNumbers,
           subtitle: '0-9',
           switchValue: includeNumbers,
           onSwitchChanged: onNumbersChanged,
@@ -87,7 +89,7 @@ class CharacterRules extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: '#@',
-          title: 'Symbols',
+          title: l10n.genSymbols,
           subtitle: r'!@#$%^&*',
           switchValue: includeSymbols,
           onSwitchChanged: onSymbolsChanged,
@@ -95,8 +97,8 @@ class CharacterRules extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: '0O',
-          title: 'Exclude ambiguous',
-          subtitle: 'Avoids 0, O, 1, l and I confusion',
+          title: l10n.genExcludeAmbiguous,
+          subtitle: l10n.genExcludeAmbiguousSubtitle,
           switchValue: excludeAmbiguous,
           onSwitchChanged: onExcludeAmbiguousChanged,
         ),

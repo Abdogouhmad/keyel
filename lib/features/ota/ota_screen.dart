@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/core/ota/ota_provider.dart';
 import 'package:keyel/features/ota/widgets/ota_screen_sections.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Screen presenting the over-the-air update status, check triggers,
 /// download progress, release notes, and installer actions.
@@ -18,6 +19,7 @@ class OtaScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(otaProvider);
     final notifier = ref.read(otaProvider.notifier);
+    final l10n = l10nOf(context);
 
     return KeyelSubShell(
       tabIndex: KeyelTab.settings,
@@ -28,13 +30,13 @@ class OtaScreen extends ConsumerWidget {
           child: Column(
             children: [
               KeyelTopBar(
-                title: 'Software Update',
+                title: l10n.softwareUpdate,
                 icon: Icons.arrow_back_rounded,
-                iconTooltip: 'Back',
+                iconTooltip: l10n.actionBack,
                 onIconTap: () => context.pop(),
                 trailing: KeyelIconHull(
                   icon: Icons.refresh_rounded,
-                  tooltip: 'Check for updates',
+                  tooltip: l10n.checkForUpdates,
                   onPressed: state.isChecking || state.isDownloading
                       ? null
                       : notifier.checkForUpdates,
@@ -67,7 +69,7 @@ class OtaScreen extends ConsumerWidget {
                           if (!ok && context.mounted) {
                             showKeyelSnack(
                               context,
-                              'Please grant permission to install unknown apps when prompted.',
+                              l10n.otaGrantInstallPermission,
                               icon: Icons.security_rounded,
                             );
                           }

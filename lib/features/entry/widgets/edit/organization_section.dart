@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Folder picker row and favorites switch.
 class OrganizationSection extends StatelessWidget {
@@ -30,6 +31,7 @@ class OrganizationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return EditSection(
       child: Column(
@@ -52,7 +54,7 @@ class OrganizationSection extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Folder',
+                          l10n.entryFolder,
                           style: textTheme.titleSmall?.copyWith(
                             color: scheme.onSurface,
                           ),
@@ -86,13 +88,13 @@ class OrganizationSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Add to favorites',
+                        l10n.entryAddToFavorites,
                         style: textTheme.titleSmall?.copyWith(
                           color: scheme.onSurface,
                         ),
                       ),
                       Text(
-                        'Pin this entry to quick access',
+                        l10n.entryPinToQuickAccess,
                         style: textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),

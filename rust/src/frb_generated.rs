@@ -505,6 +505,7 @@ fn wire__crate__api__autofill__find_autofill_matches_impl(
             let api_package = <Option<String>>::sse_decode(&mut deserializer);
             let api_web_domain = <Option<String>>::sse_decode(&mut deserializer);
             let api_query = <String>::sse_decode(&mut deserializer);
+            let api_require_verified = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, crate::api::error::VaultApiError>((move || {
@@ -512,6 +513,7 @@ fn wire__crate__api__autofill__find_autofill_matches_impl(
                         api_package,
                         api_web_domain,
                         api_query,
+                        api_require_verified,
                     )?;
                     std::result::Result::Ok(output_ok)
                 })())

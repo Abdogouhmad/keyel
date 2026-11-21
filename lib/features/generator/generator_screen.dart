@@ -8,6 +8,7 @@ import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/features/generator/widgets/generator_body.dart';
 import 'package:keyel/src/rust/api/generator.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Generator screen — password and passphrase generation.
 class GeneratorScreen extends StatefulWidget {
@@ -62,8 +63,9 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
       ? PasswordStrength.estimate(_password)
       : PasswordStrength.estimatePassphrase(_wordCount);
 
-  String get _modeName =>
-      _mode == GeneratorMode.password ? 'Password' : 'Passphrase';
+  String get _modeName => _mode == GeneratorMode.password
+      ? currentL10n.genPassword
+      : currentL10n.genPassphrase;
 
   String _generatePassword() {
     try {
@@ -78,10 +80,10 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     } on Exception {
       showKeyelSnack(
         context,
-        'Could not generate password. Check constraints.',
+        currentL10n.genPasswordError,
         icon: Icons.error_outline_rounded,
       );
-      return 'Error';
+      return currentL10n.genError;
     }
   }
 
@@ -96,10 +98,10 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     } on Exception {
       showKeyelSnack(
         context,
-        'Could not generate passphrase.',
+        currentL10n.genPassphraseError,
         icon: Icons.error_outline_rounded,
       );
-      return 'Error';
+      return currentL10n.genError;
     }
   }
 
@@ -159,7 +161,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     if (!nextUppercase && !nextLowercase && !nextNumbers && !nextSymbols) {
       showKeyelSnack(
         context,
-        'Keep at least one character type switched on.',
+        l10nOf(context).genCharacterTypeError,
         icon: Icons.info_outline_rounded,
       );
       return;
@@ -187,7 +189,8 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     unawaited(SensitiveClipboard.instance.copy(_display));
     showKeyelSnack(
       context,
-      '$_modeName copied to clipboard${SensitiveClipboard.instance.clearHint}',
+      l10nOf(context)
+          .genCopied(_modeName, SensitiveClipboard.instance.clearHint),
       icon: Icons.content_copy_rounded,
     );
   }
@@ -195,6 +198,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -203,20 +207,20 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
         child: Column(
           children: [
             KeyelTopBar(
-              title: 'Generator',
+              title: l10n.generatorTitle,
               icon: Icons.password_rounded,
-              iconTooltip: 'About generation',
+              iconTooltip: l10n.aboutGeneration,
               onIconTap: () => showKeyelSnack(
                 context,
-                'Keyel always generates locally on your device.',
+                l10n.aboutGenerationMessage,
                 icon: Icons.security_rounded,
               ),
               trailing: KeyelIconHull(
                 icon: Icons.history_rounded,
-                tooltip: 'Generation history',
+                tooltip: l10n.generationHistory,
                 onPressed: () => showKeyelSnack(
                   context,
-                  'Generation history arrives with encrypted storage.',
+                  l10n.genHistoryMessage,
                   icon: Icons.history_rounded,
                 ),
               ),

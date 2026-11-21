@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Sentinel selection for entries that are not assigned to a folder.
 const noFolderSelection = '';
@@ -27,19 +28,20 @@ class VaultFolderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: KeyelSpacing.md),
       child: Row(
         children: [
           KeyelFilterChip(
-            label: 'All folders',
+            label: l10n.vaultAllFolders,
             selected: selectedFolderId == null,
             onTap: () => onFolderChanged(null),
           ),
           const SizedBox(width: KeyelSpacing.sm),
           KeyelFilterChip(
-            label: 'No folder',
+            label: l10n.vaultNoFolder,
             selected: selectedFolderId == noFolderSelection,
             onTap: () => onFolderChanged(noFolderSelection),
           ),

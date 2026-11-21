@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/src/rust/api/totp.dart' as totp_api;
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Dialog that validates a typed TOTP secret or `otpauth://` URI.
 ///
@@ -47,7 +48,7 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
   Future<void> _submit() async {
     final value = _controller.text.trim();
     if (value.isEmpty) {
-      setState(() => _error = 'Enter the setup key from your provider.');
+      setState(() => _error = l10nOf(context).entryTotpKeyRequired);
       return;
     }
 
@@ -64,7 +65,7 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = 'That key or link is not a valid TOTP secret.';
+        _error = l10nOf(context).entryInvalidTotpSecret;
       });
     }
   }
@@ -73,11 +74,12 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return AlertDialog(
       backgroundColor: scheme.surfaceContainerHigh,
       title: Text(
-        'Set up two-factor',
+        l10n.entryTotpSetupTitle,
         style: textTheme.titleLarge?.copyWith(color: scheme.onSurface),
       ),
       content: Column(
@@ -85,8 +87,7 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Paste the setup key (base32) or the otpauth:// link from your '
-            'provider.',
+            l10n.entryTotpSetupBody,
             style: textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -99,7 +100,7 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
             enableSuggestions: false,
             textCapitalization: TextCapitalization.characters,
             decoration: InputDecoration(
-              labelText: 'Setup key or link',
+              labelText: l10n.entrySetupKeyOrLink,
               hintText: 'JBSWY3DPEHPK3PXP',
               errorText: _error,
             ),
@@ -110,7 +111,7 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.actionCancel),
         ),
         FilledButton(
           onPressed: _busy ? null : _submit,
@@ -120,7 +121,7 @@ class _TotpSetupDialogState extends State<TotpSetupDialog> {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Save'),
+              : Text(l10n.actionSave),
         ),
       ],
     );

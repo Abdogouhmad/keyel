@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/adaptive/window.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// Presents the widget [builder] returns as a bottom sheet on compact
@@ -28,7 +29,7 @@ Future<T?> _showSide<T>(BuildContext context, WidgetBuilder builder) =>
     showGeneralDialog<T>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Sheet',
+      barrierLabel: l10nOf(context).entrySheetBarrier,
       barrierColor: Colors.black.withValues(alpha: 0.4),
       pageBuilder: (dialogContext, _, _) {
         return Align(

@@ -4,6 +4,7 @@ import 'package:keyel/features/entry/entry_edit_controller.dart';
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Editor section for user-defined custom fields.
 class CustomFieldsSection extends StatelessWidget {
@@ -17,6 +18,7 @@ class CustomFieldsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final fields = controller.customFields;
 
     return EditSection(
@@ -28,7 +30,7 @@ class CustomFieldsSection extends StatelessWidget {
               Icon(Icons.tune_rounded, size: 20, color: scheme.primary),
               const SizedBox(width: KeyelSpacing.xs),
               Text(
-                'Custom fields',
+                l10n.entryCustomFields,
                 style: textTheme.titleSmall?.copyWith(color: scheme.onSurface),
               ),
               const Spacer(),
@@ -38,7 +40,7 @@ class CustomFieldsSection extends StatelessWidget {
           if (fields.isEmpty) ...[
             const SizedBox(height: KeyelSpacing.sm),
             Text(
-              'Add extra text, hidden, or URL fields to this entry.',
+              l10n.entryCustomFieldsHint,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -68,19 +70,23 @@ class _AddFieldButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return PopupMenuButton<CustomFieldKindDto>(
-      tooltip: 'Add custom field',
+      tooltip: l10n.entryAddCustomField,
       onSelected: onAdd,
-      itemBuilder: (context) => const [
+      itemBuilder: (context) => [
         PopupMenuItem(
           value: CustomFieldKindDto.text,
-          child: Text('Text field'),
+          child: Text(l10n.entryFieldTypeText),
         ),
         PopupMenuItem(
           value: CustomFieldKindDto.hidden,
-          child: Text('Hidden field'),
+          child: Text(l10n.entryFieldTypeHidden),
         ),
-        PopupMenuItem(value: CustomFieldKindDto.url, child: Text('URL field')),
+        PopupMenuItem(
+          value: CustomFieldKindDto.url,
+          child: Text(l10n.entryFieldTypeUrl),
+        ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -101,7 +107,7 @@ class _AddFieldButton extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'Add',
+              l10n.actionAdd,
               style: Theme.of(context).textTheme.labelLarge
                   ?.copyWith(color: Theme.of(context).colorScheme.primary),
             ),
@@ -192,6 +198,7 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
     final isHidden = widget.field.kind == CustomFieldKindDto.hidden;
     final preserved =
         isHidden && widget.field.value == null && widget.field.id != null;
@@ -210,8 +217,8 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
               Expanded(
                 child: TextField(
                   controller: _label,
-                  decoration: const InputDecoration(
-                    labelText: 'Label',
+                  decoration: InputDecoration(
+                    labelText: l10n.entryFieldLabel,
                     isDense: true,
                   ),
                   onChanged: (v) => _commit(label: v),
@@ -219,7 +226,7 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
               ),
               const SizedBox(width: KeyelSpacing.xs),
               PopupMenuButton<String>(
-                tooltip: 'Field actions',
+                tooltip: l10n.entryFieldActions,
                 onSelected: (action) {
                   switch (action) {
                     case 'text':
@@ -252,23 +259,26 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
                   CheckedPopupMenuItem(
                     checked: widget.field.kind == CustomFieldKindDto.text,
                     value: 'text',
-                    child: const Text('Text'),
+                    child: Text(l10n.entryFieldTypeTextShort),
                   ),
                   CheckedPopupMenuItem(
                     checked: widget.field.kind == CustomFieldKindDto.hidden,
                     value: 'hidden',
-                    child: const Text('Hidden'),
+                    child: Text(l10n.entryFieldTypeHiddenShort),
                   ),
                   CheckedPopupMenuItem(
                     checked: widget.field.kind == CustomFieldKindDto.url,
                     value: 'url',
-                    child: const Text('URL'),
+                    child: Text(l10n.entryFieldTypeUrlShort),
                   ),
                   const PopupMenuDivider(),
-                  const PopupMenuItem(value: 'up', child: Text('Move up')),
-                  const PopupMenuItem(value: 'down', child: Text('Move down')),
+                  PopupMenuItem(value: 'up', child: Text(l10n.entryMoveUp)),
+                  PopupMenuItem(value: 'down', child: Text(l10n.entryMoveDown)),
                   const PopupMenuDivider(),
-                  const PopupMenuItem(value: 'remove', child: Text('Remove')),
+                  PopupMenuItem(
+                    value: 'remove',
+                    child: Text(l10n.actionRemove),
+                  ),
                 ],
                 icon: const Icon(Icons.more_vert_rounded),
               ),
@@ -285,13 +295,11 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
                 : TextInputType.text,
             decoration: InputDecoration(
               labelText: switch (widget.field.kind) {
-                CustomFieldKindDto.hidden => 'Value (secret)',
-                CustomFieldKindDto.url => 'URL',
-                CustomFieldKindDto.text => 'Value',
+                CustomFieldKindDto.hidden => l10n.entryValueSecret,
+                CustomFieldKindDto.url => l10n.entryFieldTypeUrlShort,
+                CustomFieldKindDto.text => l10n.entryValue,
               },
-              hintText: preserved
-                  ? 'Saved securely (leave blank to keep)'
-                  : null,
+              hintText: preserved ? l10n.entrySavedSecurelyHint : null,
               isDense: true,
             ),
             onChanged: (v) => _commit(value: v),
@@ -300,7 +308,7 @@ class _CustomFieldEditorRowState extends State<_CustomFieldEditorRow> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'Existing hidden value will be kept unless you enter a new one.',
+                l10n.entryHiddenValueKept,
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: scheme.onSurfaceVariant),
               ),

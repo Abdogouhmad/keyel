@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/models/entry_icon.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/design_system/keyel_avatar.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// The kind of secret stored in a vault entry.
 enum VaultEntryKind {
@@ -31,7 +32,7 @@ class VaultEntry {
     this.username = '',
     this.password = '',
     this.website,
-    this.folder = 'No folder',
+    String? folder,
     this.notes,
     this.favorite = false,
     this.hasTotp = false,
@@ -41,7 +42,7 @@ class VaultEntry {
     this.cardNumber,
     this.cardExpiry,
     this.cardholder,
-  });
+  }) : _folderName = folder;
 
   /// Build a presentation model from a secret-free summary.
   ///
@@ -145,8 +146,11 @@ class VaultEntry {
   /// Optional website shown on the detail screen.
   final String? website;
 
-  /// Folder label shown in badges.
-  final String folder;
+  /// Stored folder label, or `null` when the entry has no folder.
+  final String? _folderName;
+
+  /// Folder label shown in badges, with a localized fallback.
+  String get folder => _folderName ?? currentL10n.entryNoFolder;
 
   /// Optional secure note copy.
   final String? notes;
@@ -182,8 +186,9 @@ class VaultEntry {
   String get subtitle => switch (kind) {
     VaultEntryKind.login => username,
     VaultEntryKind.card => '•••• ${_lastFour()}',
-    VaultEntryKind.note => 'Secure note',
-    VaultEntryKind.passkey => username.isEmpty ? 'Passkey' : username,
+    VaultEntryKind.note => currentL10n.entrySecureNote,
+    VaultEntryKind.passkey =>
+      username.isEmpty ? currentL10n.entryKindPasskey : username,
   };
 
   /// Lower-cased haystack used by the vault search field.
@@ -203,8 +208,8 @@ class VaultEntry {
 }
 
 String _folderLabel(String? id, Map<String, String> names) {
-  if (id == null) return 'No folder';
-  return names[id] ?? 'Folder';
+  if (id == null) return currentL10n.entryNoFolder;
+  return names[id] ?? currentL10n.entryFolder;
 }
 
 /// Active entries cache / empty fallback when unpopulated.

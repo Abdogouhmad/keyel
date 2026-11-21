@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Prompts for the master password and verifies it against the vault.
 Future<String?> confirmMasterPassword(
@@ -17,19 +18,20 @@ Future<String?> confirmMasterPassword(
     return await showDialog<String>(
       context: context,
       builder: (dialogContext) {
+        final l10n = l10nOf(dialogContext);
         var verifying = false;
         String? errorText;
 
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            title: const Text('Confirm master password'),
+            title: Text(l10n.prefConfirmMasterTitle),
             content: TextField(
               controller: controller,
               obscureText: true,
               autofocus: true,
               enabled: !verifying,
               decoration: InputDecoration(
-                labelText: 'Master password',
+                labelText: l10n.prefMasterPasswordLabel,
                 errorText: errorText,
               ),
               onSubmitted: (value) {
@@ -43,14 +45,14 @@ Future<String?> confirmMasterPassword(
                 onPressed: verifying
                     ? null
                     : () => Navigator.of(dialogContext).pop(),
-                child: const Text('Cancel'),
+                child: Text(l10n.actionCancel),
               ),
               FilledButton(
                 onPressed: verifying
                     ? null
                     : () async {
                         if (controller.text.isEmpty) {
-                          setState(() => errorText = 'Password required');
+                          setState(() => errorText = l10n.prefPasswordRequired);
                           return;
                         }
                         setState(() {
@@ -64,7 +66,7 @@ Future<String?> confirmMasterPassword(
                           if (!valid) {
                             setState(() {
                               verifying = false;
-                              errorText = 'Incorrect password';
+                              errorText = l10n.prefIncorrectPassword;
                             });
                             return;
                           }
@@ -74,7 +76,7 @@ Future<String?> confirmMasterPassword(
                         } on Object {
                           setState(() {
                             verifying = false;
-                            errorText = 'Verification failed';
+                            errorText = l10n.prefVerificationFailed;
                           });
                         }
                       },
@@ -84,7 +86,7 @@ Future<String?> confirmMasterPassword(
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Continue'),
+                    : Text(l10n.actionContinue),
               ),
             ],
           ),
@@ -97,10 +99,13 @@ Future<String?> confirmMasterPassword(
 }
 
 String _autoLockLabel(Duration delay) {
-  if (delay == Duration.zero) return 'Immediately';
-  if (delay.inSeconds < 60) return 'After ${delay.inSeconds} seconds';
+  final l10n = currentL10n;
+  if (delay == Duration.zero) return l10n.prefAutoLockImmediately;
+  if (delay.inSeconds < 60) {
+    return l10n.prefAutoLockAfterSeconds(delay.inSeconds);
+  }
   final minutes = delay.inMinutes;
-  return 'After $minutes ${minutes == 1 ? "minute" : "minutes"}';
+  return l10n.prefAutoLockAfterMinutes(minutes);
 }
 
 /// Shows the auto-lock delay picker.
@@ -119,7 +124,7 @@ Future<void> showAutoLockDialog(BuildContext context, WidgetRef ref) async {
   final selected = await showDialog<Duration>(
     context: context,
     builder: (dialogContext) => SimpleDialog(
-      title: const Text('Auto-lock after'),
+      title: Text(l10nOf(dialogContext).prefAutoLockDialogTitle),
       children: [
         for (final option in options)
           SimpleDialogOption(
@@ -146,10 +151,11 @@ Future<void> showAutoLockDialog(BuildContext context, WidgetRef ref) async {
 }
 
 String _clipboardLabel(int seconds) {
-  if (seconds <= 0) return 'Never';
-  if (seconds < 60) return '$seconds seconds';
+  final l10n = currentL10n;
+  if (seconds <= 0) return l10n.prefClipboardNever;
+  if (seconds < 60) return l10n.prefClipboardSeconds(seconds);
   final minutes = seconds ~/ 60;
-  return '$minutes ${minutes == 1 ? "minute" : "minutes"}';
+  return l10n.prefClipboardMinutes(minutes);
 }
 
 /// Shows the clipboard clear timeout picker.
@@ -161,14 +167,11 @@ Future<void> showClipboardDialog(BuildContext context) async {
   final selected = await showDialog<int>(
     context: context,
     builder: (dialogContext) => SimpleDialog(
-      title: const Text('Clear clipboard after'),
+      title: Text(l10nOf(dialogContext).prefClipboardDialogTitle),
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(24, 0, 24, KeyelSpacing.sm),
-          child: Text(
-            'Locking the vault or leaving the app always clears it right away. '
-            'This setting controls the timer while Keyel stays open.',
-          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, KeyelSpacing.sm),
+          child: Text(l10nOf(dialogContext).prefClipboardDialogBody),
         ),
         for (final option in options)
           SimpleDialogOption(
@@ -204,71 +207,74 @@ Future<void> showChangeMasterDialog(BuildContext context, WidgetRef ref) async {
   try {
     await showDialog<void>(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: const Text('Change Master Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: oldController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Current Master Password',
+      builder: (dialogCtx) {
+        final l10n = l10nOf(dialogCtx);
+        return AlertDialog(
+          title: Text(l10n.prefChangeMasterTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.prefCurrentMasterPassword,
+                ),
               ),
+              const SizedBox(height: KeyelSpacing.sm),
+              TextField(
+                controller: newController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.prefNewMasterPassword,
+                ),
+              ),
+              const SizedBox(height: KeyelSpacing.sm),
+              TextField(
+                controller: confirmController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.prefConfirmNewMasterPassword,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: Text(l10n.actionCancel),
             ),
-            const SizedBox(height: KeyelSpacing.sm),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'New Master Password',
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.sm),
-            TextField(
-              controller: confirmController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm New Master Password',
-              ),
+            FilledButton(
+              onPressed: () async {
+                if (newController.text != confirmController.text) {
+                  showKeyelSnack(dialogCtx, l10n.prefNewPasswordsMismatch);
+                  return;
+                }
+                if (newController.text.isEmpty) {
+                  showKeyelSnack(dialogCtx, l10n.prefNewPasswordEmpty);
+                  return;
+                }
+                try {
+                  await ref
+                      .read(vaultSessionProvider.notifier)
+                      .changeMaster(
+                        oldMaster: oldController.text,
+                        newMaster: newController.text,
+                      );
+                  if (!context.mounted || !dialogCtx.mounted) return;
+                  Navigator.of(dialogCtx).pop();
+                  showKeyelSnack(context, l10n.prefMasterChangedSuccess);
+                } on Object catch (error) {
+                  if (dialogCtx.mounted) {
+                    showKeyelSnack(dialogCtx, describeVaultError(error));
+                  }
+                }
+              },
+              child: Text(l10n.prefChangePasswordAction),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (newController.text != confirmController.text) {
-                showKeyelSnack(dialogCtx, 'New passwords do not match.');
-                return;
-              }
-              if (newController.text.isEmpty) {
-                showKeyelSnack(dialogCtx, 'New password cannot be empty.');
-                return;
-              }
-              try {
-                await ref
-                    .read(vaultSessionProvider.notifier)
-                    .changeMaster(
-                      oldMaster: oldController.text,
-                      newMaster: newController.text,
-                    );
-                if (!context.mounted || !dialogCtx.mounted) return;
-                Navigator.of(dialogCtx).pop();
-                showKeyelSnack(context, 'Master password changed successfully');
-              } on Object catch (error) {
-                if (dialogCtx.mounted) {
-                  showKeyelSnack(dialogCtx, describeVaultError(error));
-                }
-              }
-            },
-            child: const Text('Change Password'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   } finally {
     oldController.dispose();
@@ -281,33 +287,33 @@ Future<void> showChangeMasterDialog(BuildContext context, WidgetRef ref) async {
 Future<bool> confirmFactoryReset(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.red),
-          SizedBox(width: 8),
-          Text('Factory Reset?'),
-        ],
-      ),
-      content: const Text(
-        'This will permanently delete your vault file and all stored '
-        'credentials. This action cannot be undone.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+    builder: (ctx) {
+      final l10n = l10nOf(ctx);
+      return AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(l10n.prefFactoryResetTitle),
+          ],
         ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
+        content: Text(l10n.prefFactoryResetBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.actionCancel),
           ),
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Delete Everything'),
-        ),
-      ],
-    ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.prefFactoryResetConfirm),
+          ),
+        ],
+      );
+    },
   ).then((value) => value ?? false);
 }
 

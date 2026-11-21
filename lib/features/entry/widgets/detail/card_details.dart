@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Card number, cardholder and expiry block for card entries.
 class CardDetails extends StatelessWidget {
@@ -39,18 +40,19 @@ class CardDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final card = detail.card;
     final isRevealed = revealedNumber != null;
     final displayNum = isRevealed ? revealedNumber! : '•••• •••• •••• ••••';
 
     return KeyelSectionCard(
-      title: 'Card details',
+      title: l10n.entryCardDetails,
       icon: Icons.credit_card_rounded,
       showBorder: true,
       child: Column(
         children: [
           KeyelFieldSurface(
-            label: 'Card number',
+            label: l10n.entryCardNumber,
             trailing: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
@@ -64,17 +66,19 @@ class CardDetails extends StatelessWidget {
                     icon: isRevealed
                         ? Icons.visibility_off_rounded
                         : Icons.visibility_rounded,
-                    tooltip: isRevealed ? 'Hide number' : 'Reveal number',
+                    tooltip: isRevealed
+                        ? l10n.entryHideNumber
+                        : l10n.entryRevealNumber,
                     onPressed: onToggleReveal,
                     size: 44,
                     iconSize: 20,
                   ),
                   KeyelIconHull(
                     icon: Icons.content_copy_rounded,
-                    tooltip: 'Copy card number',
+                    tooltip: l10n.entryCopyCardNumber,
                     onPressed: () => onCopy(
                       revealedNumber ?? '',
-                      'Card number copied to clipboard',
+                      l10n.entryCardNumberCopied,
                     ),
                     foreground: scheme.primary,
                     size: 44,
@@ -96,12 +100,12 @@ class CardDetails extends StatelessWidget {
           if ((card?.cardholder ?? '').isNotEmpty) ...[
             const SizedBox(height: KeyelSpacing.sm + 4),
             KeyelFieldSurface(
-              label: 'Cardholder name',
+              label: l10n.entryCardholderName,
               trailing: KeyelIconHull(
                 icon: Icons.content_copy_rounded,
-                tooltip: 'Copy cardholder',
+                tooltip: l10n.entryCopyCardholder,
                 onPressed: () =>
-                    onCopy(card!.cardholder, 'Cardholder name copied'),
+                    onCopy(card!.cardholder, l10n.entryCardholderNameCopied),
                 background: scheme.surfaceContainerHighest,
               ),
               child: Text(
@@ -119,7 +123,7 @@ class CardDetails extends StatelessWidget {
               children: [
                 Expanded(
                   child: KeyelFieldSurface(
-                    label: 'Expires',
+                    label: l10n.entryExpires,
                     child: Text(
                       card!.expiry,
                       style: KeyelTheme.mono(
@@ -133,7 +137,7 @@ class CardDetails extends StatelessWidget {
                 const SizedBox(width: KeyelSpacing.sm),
                 Expanded(
                   child: KeyelFieldSurface(
-                    label: 'Security code (CVV)',
+                    label: l10n.entrySecurityCodeCvv,
                     child: Text(
                       revealedCvv ?? '•••',
                       style: KeyelTheme.mono(

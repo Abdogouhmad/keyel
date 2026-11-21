@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// TOTP onboarding block with scan and manual-entry actions.
 class TotpSection extends StatelessWidget {
@@ -26,6 +27,7 @@ class TotpSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return EditSection(
       child: Column(
@@ -41,14 +43,14 @@ class TotpSection extends StatelessWidget {
               const SizedBox(width: KeyelSpacing.sm),
               Expanded(
                 child: Text(
-                  'Two-factor authentication',
+                  l10n.entryTwoFactorAuth,
                   style: textTheme.titleSmall?.copyWith(
                     color: scheme.onSurface,
                   ),
                 ),
               ),
               KeyelBadge(
-                label: configured ? 'Configured' : 'TOTP',
+                label: configured ? l10n.entryConfigured : 'TOTP',
                 background: configured
                     ? scheme.primaryContainer
                     : scheme.surfaceContainerHigh,
@@ -60,11 +62,7 @@ class TotpSection extends StatelessWidget {
           ),
           const SizedBox(height: KeyelSpacing.sm),
           Text(
-            configured
-                ? 'A rotating code is stored for this entry. Enter a new key '
-                      'to replace it.'
-                : 'Generate integrated 30-second rotating security codes '
-                      'directly inside Keyel.',
+            configured ? l10n.entryTotpConfiguredHint : l10n.entryTotpHint,
             style: textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -74,7 +72,7 @@ class TotpSection extends StatelessWidget {
             children: [
               Expanded(
                 child: KeyelPillButton(
-                  label: 'Scan QR Code',
+                  label: l10n.entryScanQrCode,
                   icon: Icons.qr_code_scanner_rounded,
                   tone: KeyelButtonTone.neutral,
                   height: 48,
@@ -84,7 +82,9 @@ class TotpSection extends StatelessWidget {
               const SizedBox(width: KeyelSpacing.sm),
               Expanded(
                 child: KeyelPillButton(
-                  label: configured ? 'Replace Key' : 'Enter Manually',
+                  label: configured
+                      ? l10n.entryReplaceKey
+                      : l10n.entryEnterManually,
                   icon: Icons.keyboard_rounded,
                   tone: KeyelButtonTone.neutral,
                   height: 48,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// The 56 dp full-pill search bar used across the vault.
@@ -7,7 +8,7 @@ class KeyelSearchField extends StatefulWidget {
   /// Creates a search bar.
   const new({
     this.controller,
-    this.hintText = 'Search',
+    this.hintText,
     this.onChanged,
     this.trailing,
     this.autofocus = false,
@@ -18,8 +19,8 @@ class KeyelSearchField extends StatefulWidget {
   /// Optional controller owned by the caller.
   final TextEditingController? controller;
 
-  /// Placeholder copy.
-  final String hintText;
+  /// Placeholder copy, or `null` for the localized default.
+  final String? hintText;
 
   /// Live query callback.
   final ValueChanged<String>? onChanged;
@@ -102,7 +103,7 @@ class _KeyelSearchFieldState extends State<KeyelSearchField> {
               decoration: InputDecoration(
                 isDense: true,
                 filled: false,
-                hintText: widget.hintText,
+                hintText: widget.hintText ?? l10nOf(context).searchHint,
                 hintStyle: textTheme.bodyLarge?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),

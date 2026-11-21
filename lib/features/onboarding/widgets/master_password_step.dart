@@ -5,6 +5,7 @@ import 'package:keyel/features/onboarding/widgets/step_header.dart';
 import 'package:keyel/ui/design_system/button_type.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Second onboarding frame: choose and confirm the master password.
 ///
@@ -70,15 +71,15 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const OnboardingStepHeader(
-          title: 'Create your master password',
-          subtitle:
-              'This is the only key to your vault. We cannot reset it for you.',
+        OnboardingStepHeader(
+          title: l10n.vaultCreateMasterPasswordTitle,
+          subtitle: l10n.vaultCreateMasterPasswordSubtitle,
         ),
         const SizedBox(height: KeyelSpacing.xl),
         TextField(
@@ -92,14 +93,16 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
           autofocus: true,
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            labelText: 'Master password',
+            labelText: l10n.vaultMasterPasswordLabel,
             labelStyle: TextStyle(color: scheme.onSurfaceVariant),
             prefixIcon: Icon(
               Icons.lock_outline_rounded,
               color: scheme.onSurfaceVariant,
             ),
             suffixIcon: IconButton(
-              tooltip: _obscure ? 'Show password' : 'Hide password',
+              tooltip: _obscure
+                  ? l10n.vaultShowPassword
+                  : l10n.vaultHidePassword,
               icon: Icon(
                 _obscure
                     ? Icons.visibility_outlined
@@ -122,7 +125,7 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _submit(),
           decoration: InputDecoration(
-            labelText: 'Confirm password',
+            labelText: l10n.vaultConfirmPassword,
             labelStyle: TextStyle(color: scheme.onSurfaceVariant),
             prefixIcon: Icon(
               Icons.check_circle_outline_rounded,
@@ -150,7 +153,9 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
             const SizedBox(width: KeyelSpacing.md),
             Expanded(
               child: KeyelButtonM3(
-                label: widget.busy ? 'Creating vault…' : 'Continue',
+                label: widget.busy
+                    ? l10n.vaultCreatingVault
+                    : l10n.actionContinue,
                 icon: widget.busy ? null : Icons.arrow_forward_rounded,
                 onPressed: widget.busy || !_masterValid ? null : _submit,
                 isFullWidth: true,
@@ -175,6 +180,7 @@ class _BiometricToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -197,14 +203,14 @@ class _BiometricToggle extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Unlock with biometrics',
+                  l10n.vaultUnlockWithBiometrics,
                   style: textTheme.bodyLarge?.copyWith(
                     color: scheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  'Optional — open the vault with your fingerprint or face.',
+                  l10n.vaultBiometricOptionalHint,
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),

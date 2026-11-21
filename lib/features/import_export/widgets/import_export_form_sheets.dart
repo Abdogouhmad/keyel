@@ -5,6 +5,7 @@ import 'package:keyel/features/import_export/widgets/import_export_request.dart'
 import 'package:keyel/features/import_export/widgets/import_export_sheet_parts.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Minimum length accepted for a backup password.
 const _minBackupPasswordLength = 8;
@@ -52,6 +53,7 @@ class _BackupPasswordSheetState extends State<BackupPasswordSheet> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final strength = PasswordStrength.estimate(_password.text);
+    final l10n = l10nOf(context);
     final mismatch =
         _confirm.text.isNotEmpty && _confirm.text != _password.text;
 
@@ -66,12 +68,10 @@ class _BackupPasswordSheetState extends State<BackupPasswordSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SheetHeader(
+            SheetHeader(
               icon: Icons.lock_rounded,
-              title: 'Encrypt backup',
-              subtitle:
-                  'Choose a password for this backup file. It can be different '
-                  'from your master password and is never stored.',
+              title: l10n.imexEncryptBackupTitle,
+              subtitle: l10n.imexEncryptBackupSubtitle,
             ),
             const SizedBox(height: KeyelSpacing.lg),
             TextFormField(
@@ -81,9 +81,11 @@ class _BackupPasswordSheetState extends State<BackupPasswordSheet> {
               enableSuggestions: false,
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: 'Backup password',
+                labelText: l10n.imexBackupPasswordLabel,
                 suffixIcon: IconButton(
-                  tooltip: _obscure ? 'Show password' : 'Hide password',
+                  tooltip: _obscure
+                      ? l10n.imexShowPassword
+                      : l10n.imexHidePassword,
                   onPressed: () => setState(() => _obscure = !_obscure),
                   icon: Icon(
                     _obscure
@@ -104,20 +106,19 @@ class _BackupPasswordSheetState extends State<BackupPasswordSheet> {
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
               decoration: InputDecoration(
-                labelText: 'Confirm password',
-                errorText: mismatch ? 'Passwords do not match' : null,
+                labelText: l10n.imexConfirmPasswordLabel,
+                errorText: mismatch ? l10n.imexPasswordsMismatch : null,
               ),
             ),
             const SizedBox(height: KeyelSpacing.lg),
             KeyelPillButton(
-              label: 'Export backup',
+              label: l10n.imexExportBackupAction,
               icon: Icons.file_download_outlined,
               onPressed: _valid ? _submit : null,
             ),
             const SizedBox(height: KeyelSpacing.sm),
             Text(
-              'The backup is a full, encrypted copy of your vault. Keep it '
-              'somewhere safe.',
+              l10n.imexBackupHint,
               textAlign: TextAlign.center,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -165,6 +166,7 @@ class _RestoreBackupSheetState extends State<RestoreBackupSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -179,7 +181,7 @@ class _RestoreBackupSheetState extends State<RestoreBackupSheet> {
           children: [
             SheetHeader(
               icon: Icons.restore_rounded,
-              title: 'Restore backup',
+              title: l10n.imexRestoreBackupTitle,
               subtitle: widget.fileName,
             ),
             const SizedBox(height: KeyelSpacing.lg),
@@ -190,7 +192,9 @@ class _RestoreBackupSheetState extends State<RestoreBackupSheet> {
               enableSuggestions: false,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
-              decoration: const InputDecoration(labelText: 'Backup password'),
+              decoration: InputDecoration(
+                labelText: l10n.imexBackupPasswordLabel,
+              ),
             ),
             const SizedBox(height: KeyelSpacing.lg),
             ModeSelector(
@@ -200,8 +204,8 @@ class _RestoreBackupSheetState extends State<RestoreBackupSheet> {
             const SizedBox(height: KeyelSpacing.sm),
             Text(
               _mode == ImportModeDto.merge
-                  ? 'Entries already in your vault are kept.'
-                  : 'Everything currently in your vault is replaced.',
+                  ? l10n.imexMergeHint
+                  : l10n.imexReplaceHint,
               style: textTheme.bodySmall?.copyWith(
                 color: _mode == ImportModeDto.replace
                     ? scheme.error
@@ -210,7 +214,7 @@ class _RestoreBackupSheetState extends State<RestoreBackupSheet> {
             ),
             const SizedBox(height: KeyelSpacing.lg),
             KeyelPillButton(
-              label: 'Restore',
+              label: l10n.imexRestoreAction,
               icon: Icons.restore_rounded,
               onPressed: _password.text.isEmpty ? null : _submit,
             ),
@@ -258,6 +262,7 @@ class _CsvPreviewSheetState extends State<CsvPreviewSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final preview = widget.preview;
 
     return SafeArea(
@@ -273,7 +278,7 @@ class _CsvPreviewSheetState extends State<CsvPreviewSheet> {
           children: [
             SheetHeader(
               icon: Icons.upload_file_rounded,
-              title: 'Import $_formatLabel CSV',
+              title: l10n.imexCsvImportSheetTitle(_formatLabel),
               subtitle: widget.fileName,
             ),
             const SizedBox(height: KeyelSpacing.lg),
@@ -283,23 +288,23 @@ class _CsvPreviewSheetState extends State<CsvPreviewSheet> {
                 children: [
                   CountRow(
                     icon: Icons.key_rounded,
-                    label: 'Logins',
+                    label: l10n.imexLoginsLabel,
                     count: preview.logins,
                   ),
                   CountRow(
                     icon: Icons.credit_card_rounded,
-                    label: 'Cards',
+                    label: l10n.imexCardsLabel,
                     count: preview.cards,
                   ),
                   CountRow(
                     icon: Icons.sticky_note_2_rounded,
-                    label: 'Secure notes',
+                    label: l10n.imexSecureNotesLabel,
                     count: preview.notes,
                   ),
                   if (preview.failures.isNotEmpty)
                     CountRow(
                       icon: Icons.error_outline_rounded,
-                      label: 'Skipped rows',
+                      label: l10n.imexSkippedRowsLabel,
                       count: preview.failures.length,
                       danger: true,
                     ),
@@ -318,9 +323,8 @@ class _CsvPreviewSheetState extends State<CsvPreviewSheet> {
             const SizedBox(height: KeyelSpacing.sm),
             Text(
               _mode == ImportModeDto.merge
-                  ? 'Entries that look the same as ones you already have are '
-                        'skipped.'
-                  : 'Everything currently in your vault is replaced.',
+                  ? l10n.imexCsvMergeHint
+                  : l10n.imexReplaceHint,
               style: textTheme.bodySmall?.copyWith(
                 color: _mode == ImportModeDto.replace
                     ? scheme.error
@@ -329,9 +333,7 @@ class _CsvPreviewSheetState extends State<CsvPreviewSheet> {
             ),
             const SizedBox(height: KeyelSpacing.lg),
             KeyelPillButton(
-              label:
-                  'Import ${preview.total} '
-                  '${preview.total == 1 ? "entry" : "entries"}',
+              label: l10n.imexImportCount(preview.total),
               icon: Icons.file_download_done_rounded,
               onPressed: preview.total == 0
                   ? null

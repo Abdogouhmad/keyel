@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Action reported by Android when Keyel was launched to lock immediately.
 const String lockLaunchAction = 'lock';
 
+/// Action reported by Android when Keyel was launched to open the generator.
+const String generateLaunchAction = 'generate';
+
 const MethodChannel _platformChannel = MethodChannel('keyel/platform');
 
 /// Reads and consumes a one-tap lock request made before Flutter started.

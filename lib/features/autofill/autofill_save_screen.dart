@@ -7,6 +7,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/autofill/widgets/autofill_save_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Confirmation screen shown when another app or site submits credentials that
 /// Keyel does not know about.
@@ -23,6 +24,7 @@ class AutofillSaveScreen extends ConsumerStatefulWidget {
     this.password = '',
     this.onSaved,
     this.onDecline,
+    this.onNeverForSite,
     super.key,
   });
 
@@ -44,6 +46,10 @@ class AutofillSaveScreen extends ConsumerStatefulWidget {
   /// Called when the user declines to save.
   final VoidCallback? onDecline;
 
+  /// Called when the user chooses "Never for this site". The callback persists
+  /// the denial and cancels the save request.
+  final VoidCallback? onNeverForSite;
+
   @override
   ConsumerState<AutofillSaveScreen> createState() => _AutofillSaveScreenState();
 }
@@ -54,13 +60,25 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
   late final TextEditingController _password;
   bool _saving = false;
   String? _error;
+  bool _titleInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _title = TextEditingController(text: _defaultTitle());
+    _title = TextEditingController();
     _username = TextEditingController(text: widget.username);
     _password = TextEditingController(text: widget.password);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // l10nOf needs an inherited widget, so the localized fallback title is
+    // resolved here rather than in initState (which runs before dependOn... is
+    // allowed). The guard keeps a title the user already edited intact.
+    if (_titleInitialized) return;
+    _titleInitialized = true;
+    _title.text = _defaultTitle();
   }
 
   @override
@@ -76,7 +94,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
     if (domain != null && domain.isNotEmpty) return domain;
     final package = widget.package;
     if (package != null && package.isNotEmpty) return package;
-    return 'this app';
+    return l10nOf(context).autofillTargetThisApp;
   }
 
   String _defaultTitle() {
@@ -86,7 +104,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
     }
     final package = widget.package;
     if (package != null && package.isNotEmpty) return package;
-    return 'New login';
+    return l10nOf(context).autofillNewLogin;
   }
 
   /// The stored URL used to match this login on future fills.
@@ -104,7 +122,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
     if (_saving) return;
     final title = _title.text.trim();
     if (title.isEmpty) {
-      setState(() => _error = 'Give this login a name first.');
+      setState(() => _error = l10nOf(context).autofillNameRequired);
       return;
     }
     setState(() {
@@ -153,6 +171,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -162,9 +181,9 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
           child: Column(
             children: [
               KeyelTopBar(
-                title: 'Save login?',
+                title: l10n.autofillSaveTitle,
                 icon: Icons.close_rounded,
-                iconTooltip: 'Cancel',
+                iconTooltip: l10n.actionCancel,
                 onIconTap: _decline,
               ),
               Expanded(
@@ -180,6 +199,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
                 saving: _saving,
                 onSave: () => unawaited(_save()),
                 onDecline: _decline,
+                onNeverForSite: widget.onNeverForSite,
               ),
             ],
           ),

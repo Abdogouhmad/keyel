@@ -7,6 +7,7 @@ import 'package:keyel/core/security/password_strength.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// The "Forgot password?" flow shown from the unlock screen.
 ///
@@ -80,6 +81,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -111,7 +113,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                 ),
                 const SizedBox(height: KeyelSpacing.xl),
                 Text(
-                  'Reset your master password',
+                  l10n.vaultResetMasterPasswordTitle,
                   textAlign: TextAlign.center,
                   style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -120,8 +122,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                 ),
                 const SizedBox(height: KeyelSpacing.sm),
                 Text(
-                  'Enter your recovery key to set a new master password and '
-                  'unlock your vault.',
+                  l10n.vaultResetMasterPasswordHint,
                   textAlign: TextAlign.center,
                   style: textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
@@ -142,7 +143,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                   ),
                   cursorColor: scheme.primary,
                   decoration: InputDecoration(
-                    labelText: 'Recovery key',
+                    labelText: l10n.vaultRecoveryKeyLabel,
                     prefixIcon: Icon(
                       Icons.vpn_key_rounded,
                       color: scheme.onSurfaceVariant,
@@ -161,13 +162,15 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                   ),
                   cursorColor: scheme.primary,
                   decoration: InputDecoration(
-                    labelText: 'New master password',
+                    labelText: l10n.vaultNewMasterPassword,
                     prefixIcon: Icon(
                       Icons.lock_outline_rounded,
                       color: scheme.onSurfaceVariant,
                     ),
                     suffixIcon: IconButton(
-                      tooltip: _obscure ? 'Show password' : 'Hide password',
+                      tooltip: _obscure
+                          ? l10n.vaultShowPassword
+                          : l10n.vaultHidePassword,
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_outlined
@@ -191,7 +194,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                   ),
                   cursorColor: scheme.primary,
                   decoration: InputDecoration(
-                    labelText: 'Confirm new password',
+                    labelText: l10n.vaultConfirmNewPassword,
                     prefixIcon: Icon(
                       Icons.check_circle_outline_rounded,
                       color: scheme.onSurfaceVariant,
@@ -202,7 +205,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                 KeyelStrengthMeter(strength: _strength),
                 const SizedBox(height: KeyelSpacing.xl),
                 KeyelButtonM3(
-                  label: _busy ? 'Resetting…' : 'Reset password',
+                  label: _busy ? l10n.vaultResetting : l10n.vaultResetPassword,
                   icon: _busy ? null : Icons.lock_reset_rounded,
                   isFullWidth: true,
                   onPressed: _busy || !_canReset
@@ -213,7 +216,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                 TextButton.icon(
                   onPressed: _busy ? null : widget.onBack,
                   icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                  label: const Text('Back to unlock'),
+                  label: Text(l10n.vaultBackToUnlock),
                 ),
               ],
             ),

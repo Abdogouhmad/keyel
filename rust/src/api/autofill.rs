@@ -21,11 +21,13 @@ pub fn find_autofill_matches(
     package: Option<String>,
     web_domain: Option<String>,
     query: String,
+    require_verified: bool,
 ) -> Result<Vec<AutofillMatchDto>, VaultApiError> {
     with_session(|session| {
         let target = MatchTarget {
             package,
             web_domain,
+            require_verified,
         };
         Ok(find_matches(session.vault(), &target, &query)
             .into_iter()

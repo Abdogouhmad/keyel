@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/core/security/password_strength.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Password health summary shown above the notes card.
 class HealthCard extends StatelessWidget {
@@ -19,6 +20,7 @@ class HealthCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final pass = revealedPassword;
 
     if (pass == null) {
@@ -40,14 +42,14 @@ class HealthCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Encrypted & Protected',
+                    l10n.entryEncryptedProtected,
                     style: textTheme.titleMedium?.copyWith(
                       color: scheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    'Secrets stay encrypted with Argon2id & ChaCha20-Poly1305.',
+                    l10n.entryEncryptedHint,
                     style: textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -98,7 +100,7 @@ class HealthCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${strength.label} password (${pass.length} chars)',
+                  l10n.entryPasswordHealth(strength.label, pass.length),
                   style: textTheme.titleMedium?.copyWith(
                     color: onContainer,
                     fontWeight: FontWeight.w600,
@@ -106,7 +108,7 @@ class HealthCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Score: ${(strength.score * 100).round()}%',
+                  l10n.entryPasswordScore((strength.score * 100).round()),
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),

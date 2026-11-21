@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Username, password and website block for login entries.
 class CredentialsCard extends StatelessWidget {
@@ -43,25 +44,25 @@ class CredentialsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final username = detail.login?.username ?? entry.username;
     final url = detail.login?.url ?? '';
     final isRevealed = revealedPassword != null;
     final displayPass = isRevealed ? revealedPassword! : '••••••••••••';
 
     return KeyelSectionCard(
-      title: 'Credentials',
+      title: l10n.entryCredentials,
       icon: Icons.key_rounded,
       showBorder: true,
       child: Column(
         children: [
           if (username.isNotEmpty)
             KeyelFieldSurface(
-              label: 'Username',
+              label: l10n.fieldUsername,
               trailing: KeyelIconHull(
                 icon: Icons.content_copy_rounded,
-                tooltip: 'Copy username',
-                onPressed: () =>
-                    onCopy(username, 'Username copied to clipboard'),
+                tooltip: l10n.entryCopyUsername,
+                onPressed: () => onCopy(username, l10n.entryUsernameCopied),
                 background: scheme.surfaceContainerHighest,
               ),
               child: Text(
@@ -76,7 +77,7 @@ class CredentialsCard extends StatelessWidget {
             ),
           if (username.isNotEmpty) const SizedBox(height: KeyelSpacing.sm + 4),
           KeyelFieldSurface(
-            label: 'Password',
+            label: l10n.fieldPassword,
             trailing: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
@@ -90,7 +91,9 @@ class CredentialsCard extends StatelessWidget {
                     icon: isRevealed
                         ? Icons.visibility_off_rounded
                         : Icons.visibility_rounded,
-                    tooltip: isRevealed ? 'Hide password' : 'Reveal password',
+                    tooltip: isRevealed
+                        ? l10n.entryHidePassword
+                        : l10n.entryRevealPassword,
                     onPressed: onToggleReveal,
                     size: 44,
                     iconSize: 20,
@@ -102,7 +105,7 @@ class CredentialsCard extends StatelessWidget {
                   ),
                   KeyelIconHull(
                     icon: Icons.content_copy_rounded,
-                    tooltip: 'Copy password',
+                    tooltip: l10n.entryCopyPassword,
                     onPressed: onCopyPassword,
                     foreground: scheme.primary,
                     size: 44,
@@ -128,9 +131,9 @@ class CredentialsCard extends StatelessWidget {
             PressableScale(
               onTap: () => onOpenUrl(url),
               borderRadius: BorderRadius.circular(KeyelRadii.field),
-              semanticLabel: 'Open website',
+              semanticLabel: l10n.entryOpenWebsite,
               child: KeyelFieldSurface(
-                label: 'Website URL',
+                label: l10n.entryWebsiteUrl,
                 trailing: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
@@ -142,9 +145,9 @@ class CredentialsCard extends StatelessWidget {
                     children: [
                       KeyelIconHull(
                         icon: Icons.content_copy_rounded,
-                        tooltip: 'Copy website URL',
+                        tooltip: l10n.entryCopyWebsiteUrl,
                         onPressed: () =>
-                            onCopy(url, 'Website URL copied to clipboard'),
+                            onCopy(url, l10n.entryWebsiteUrlCopied),
                         size: 44,
                         iconSize: 20,
                       ),
@@ -155,7 +158,7 @@ class CredentialsCard extends StatelessWidget {
                       ),
                       KeyelIconHull(
                         icon: Icons.open_in_new_rounded,
-                        tooltip: 'Open website',
+                        tooltip: l10n.entryOpenWebsite,
                         onPressed: () => onOpenUrl(url),
                         foreground: scheme.primary,
                         size: 44,

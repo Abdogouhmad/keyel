@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// A destructive-action confirmation dialog (28 dp corners,
@@ -10,7 +11,7 @@ class KeyelConfirmDialog extends StatelessWidget {
     required this.title,
     required this.body,
     required this.confirmLabel,
-    this.cancelLabel = 'Cancel',
+    this.cancelLabel,
     this.destructive = false,
     super.key,
   });
@@ -24,8 +25,8 @@ class KeyelConfirmDialog extends StatelessWidget {
   /// Confirm button copy ("Delete forever").
   final String confirmLabel;
 
-  /// Cancel button copy.
-  final String cancelLabel;
+  /// Cancel button copy, or `null` for the localized default.
+  final String? cancelLabel;
 
   /// Whether confirm is destructive (danger colours).
   final bool destructive;
@@ -36,7 +37,7 @@ class KeyelConfirmDialog extends StatelessWidget {
     required String title,
     required String body,
     required String confirmLabel,
-    String cancelLabel = 'Cancel',
+    String? cancelLabel,
     bool destructive = false,
   }) async {
     final confirmed = await showDialog<bool>(
@@ -56,6 +57,7 @@ class KeyelConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return AlertDialog(
       backgroundColor: scheme.surfaceContainerHigh,
@@ -73,7 +75,7 @@ class KeyelConfirmDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(cancelLabel),
+          child: Text(cancelLabel ?? l10n.actionCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),

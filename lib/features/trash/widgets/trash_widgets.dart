@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A single trashed vault entry row.
 class TrashEntryTile extends StatelessWidget {
@@ -26,15 +27,16 @@ class TrashEntryTile extends StatelessWidget {
   /// Permanently deletes the entry.
   final VoidCallback onPurge;
 
-  String get _remainingLabel {
+  String _remainingLabel(BuildContext context) {
+    final l10n = l10nOf(context);
     final deletedAt = entry.deletedAt;
-    if (deletedAt == null) return 'Deleted';
+    if (deletedAt == null) return l10n.trashDeleted;
     final deleted = DateTime.fromMillisecondsSinceEpoch(
       deletedAt.toInt() * 1000,
     );
     final days = 30 - DateTime.now().difference(deleted).inDays;
     final remaining = days < 0 ? 0 : days;
-    return 'Auto-deletes in $remaining ${remaining == 1 ? "day" : "days"}';
+    return l10n.trashAutoDelete(remaining);
   }
 
   IconData get _kindIcon => switch (entry.kind) {
@@ -48,6 +50,7 @@ class TrashEntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
       showBorder: true,
@@ -77,7 +80,7 @@ class TrashEntryTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _remainingLabel,
+                  _remainingLabel(context),
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -87,7 +90,7 @@ class TrashEntryTile extends StatelessWidget {
           ),
           KeyelIconHull(
             icon: Icons.restore_rounded,
-            tooltip: 'Restore',
+            tooltip: l10n.actionRestore,
             foreground: scheme.primary,
             size: 40,
             iconSize: 20,
@@ -95,7 +98,7 @@ class TrashEntryTile extends StatelessWidget {
           ),
           KeyelIconHull(
             icon: Icons.delete_forever_rounded,
-            tooltip: 'Delete forever',
+            tooltip: l10n.trashDeleteForever,
             foreground: scheme.error,
             size: 40,
             iconSize: 20,
@@ -114,13 +117,13 @@ class TrashEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const KeyelStateMessage(
+    final l10n = l10nOf(context);
+
+    return KeyelStateMessage(
       kind: KeyelStateMessageKind.empty,
       icon: Icons.delete_outline_rounded,
-      title: 'Trash is empty',
-      message:
-          'Deleted entries appear here for 30 days before they are '
-          'removed permanently.',
+      title: l10n.trashEmpty,
+      message: l10n.trashEmptyMessage,
     );
   }
 }
@@ -152,8 +155,7 @@ class TrashInfoBanner extends StatelessWidget {
           const SizedBox(width: KeyelSpacing.sm),
           Expanded(
             child: Text(
-              'Deleted items stay here for 30 days, then disappear '
-              'automatically.',
+              l10nOf(context).trashBannerMessage,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),

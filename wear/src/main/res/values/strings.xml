@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_app_name">Keyel codes</string>
+    <string name="watch_title">Your codes</string>
+    <string name="watch_show">Show codes</string>
+    <string name="watch_hide">Hide codes</string>
+    <string name="watch_empty">No codes sent from your phone yet. Open Keyel → Settings → Watch codes to add one.</string>
+    <string name="watch_clear">Remove all from watch</string>
+    <string name="watch_clear_title">Remove all codes?</string>
+    <string name="watch_clear_message">The seeds are deleted from this watch. You can send them again from the phone.</string>
+    <string name="watch_remove">Remove</string>
+    <string name="watch_hidden">••••••</string>
+    <string name="watch_error">—</string>
+    <string name="watch_seconds">%1$ds</string>
+</resources>

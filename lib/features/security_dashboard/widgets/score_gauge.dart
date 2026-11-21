@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Circular health gauge showing the vault score out of 100.
 class ScoreGauge extends StatelessWidget {
@@ -11,7 +12,7 @@ class ScoreGauge extends StatelessWidget {
     required this.score,
     required this.accent,
     required this.track,
-    this.statusLabel = 'SECURE',
+    this.statusLabel,
     super.key,
   });
 
@@ -25,12 +26,15 @@ class ScoreGauge extends StatelessWidget {
   final Color track;
 
   /// Short uppercase status word under the score.
-  final String statusLabel;
+  ///
+  /// Falls back to the localized "secure" status when omitted.
+  final String? statusLabel;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return SizedBox(
       width: 176,
@@ -91,7 +95,7 @@ class ScoreGauge extends StatelessWidget {
                   Icon(Icons.verified_rounded, size: 15, color: accent),
                   const SizedBox(width: KeyelSpacing.xs),
                   Text(
-                    statusLabel,
+                    statusLabel ?? l10n.secStatusSecure,
                     style: textTheme.labelSmall?.copyWith(
                       color: accent,
                       fontWeight: FontWeight.w700,

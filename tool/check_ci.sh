@@ -34,6 +34,13 @@ cargo test --workspace
 step "tool/check_no_secret_logs.sh"
 ./tool/check_no_secret_logs.sh
 
+step "flutter gen-l10n (idempotency)"
+flutter gen-l10n
+git diff --exit-code -- lib/l10n/generated || {
+  echo "Generated localizations are out of date; commit the regenerated files."
+  exit 1
+}
+
 step "flutter analyze"
 flutter analyze
 

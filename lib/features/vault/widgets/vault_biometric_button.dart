@@ -11,6 +11,7 @@ import 'package:keyel/src/rust/api/error.dart';
 import 'package:keyel/ui/design_system/button_type.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Biometric unlock button for the locked-vault screen.
 ///
@@ -49,6 +50,7 @@ class _VaultBiometricButtonState extends ConsumerState<VaultBiometricButton> {
 
   Future<void> _unlock() async {
     if (_busy) return;
+    final l10n = l10nOf(context);
     setState(() => _busy = true);
     try {
       final auth = BiometricAuth.instance;
@@ -59,15 +61,13 @@ class _VaultBiometricButtonState extends ConsumerState<VaultBiometricButton> {
 
       final master = await auth.readMaster();
       if (master == null) {
-        await _reset('Quick unlock needs to be set up again.');
+        await _reset(l10n.vaultQuickUnlockSetupAgain);
         return;
       }
       await ref.read(vaultSessionProvider.notifier).unlockWithMaster(master);
     } on Object catch (error) {
       if (error is VaultApiError && error == VaultApiError.wrongPassword) {
-        await _reset(
-          'Your master password changed. Set up quick unlock again.',
-        );
+        await _reset(l10n.vaultMasterPasswordChanged);
       } else if (mounted) {
         showKeyelSnack(context, describeVaultError(error));
       }
@@ -88,7 +88,7 @@ class _VaultBiometricButtonState extends ConsumerState<VaultBiometricButton> {
     if (!_available) return const SizedBox.shrink();
 
     return KeyelButtonM3(
-      label: 'Unlock with biometrics',
+      label: l10nOf(context).vaultUnlockWithBiometrics,
       icon: Icons.fingerprint_rounded,
       type: ButtonType.secondary,
       isFullWidth: true,

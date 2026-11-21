@@ -5,10 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/autofill_target.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/autofill/widgets/autofill_picker_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// The credentials the picker hands back to the autofill service.
 ///
@@ -42,6 +44,7 @@ class AutofillPickerScreen extends ConsumerStatefulWidget {
     this.webDomain,
     this.onPicked,
     this.onCreateNew,
+    this.onNeverForSite,
     super.key,
   });
 
@@ -56,6 +59,10 @@ class AutofillPickerScreen extends ConsumerStatefulWidget {
 
   /// Called when the user chooses "Create new login".
   final VoidCallback? onCreateNew;
+
+  /// Called when the user chooses "Never for this site". The callback persists
+  /// the denial and cancels the autofill request.
+  final VoidCallback? onNeverForSite;
 
   @override
   ConsumerState<AutofillPickerScreen> createState() =>
@@ -106,15 +113,18 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
             package: widget.package,
             webDomain: widget.webDomain,
             query: _search.text,
+            requireVerified: AppPreferences.instance.autofillVerifiedOnly,
           );
       if (!mounted) return;
-      final strict = AppPreferences.instance.autofillMatchMode == 'exact';
+      final prefs = AppPreferences.instance;
+      final strict = prefs.autofillMatchMode == 'exact';
+      final verified = prefs.autofillVerifiedOnly;
       setState(() {
-        _matches = strict
-            ? matches
-                  .where((m) => m.quality != AutofillQualityDto.sameSite)
-                  .toList()
-            : matches;
+        _matches = matches.where((match) {
+          if (verified) return match.quality == AutofillQualityDto.exact;
+          if (strict) return match.quality != AutofillQualityDto.sameSite;
+          return true;
+        }).toList();
         _loading = false;
       });
     } on Object catch (error) {
@@ -169,13 +179,25 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
     if (domain != null && domain.isNotEmpty) return domain;
     final package = widget.package;
     if (package != null && package.isNotEmpty) return package;
-    return 'this app';
+    return l10nOf(context).autofillTargetThisApp;
+  }
+
+  String? get _denyKey => canonicalAutofillTarget(
+    package: widget.package,
+    webDomain: widget.webDomain,
+  );
+
+  bool get _isDenied {
+    final key = _denyKey;
+    return key != null &&
+        AppPreferences.instance.autofillNeverForSites.contains(key);
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final unlocked =
         ref.watch(vaultSessionProvider.select((state) => state.status)) ==
         VaultStatus.unlocked;
@@ -187,9 +209,9 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
           child: Column(
             children: [
               KeyelTopBar(
-                title: 'Fill from Keyel',
+                title: l10n.autofillFillTitle,
                 icon: Icons.close_rounded,
-                iconTooltip: 'Cancel',
+                iconTooltip: l10n.actionCancel,
                 onIconTap: () => _close(null),
               ),
               Padding(
@@ -209,7 +231,7 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
                     const SizedBox(width: KeyelSpacing.xs),
                     Expanded(
                       child: Text(
-                        'Filling $_targetLabel',
+                        l10n.autofillFilling(_targetLabel),
                         style: textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -224,46 +246,69 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
                 ),
                 child: KeyelSearchField(
                   controller: _search,
-                  hintText: 'Search vault',
+                  hintText: l10n.autofillSearchVault,
                 ),
               ),
-              if (_showMismatchWarning)
-                AutofillMismatchBanner(target: _targetLabel)
-              else
-                const SizedBox(height: KeyelSpacing.sm),
-              Expanded(
-                child: AutofillPickerBody(
-                  unlocked: unlocked,
-                  loading: _loading,
-                  error: _error,
-                  matches: _matches,
-                  onPick: _pick,
-                  onRetry: () => unawaited(_load()),
-                ),
-              ),
-              if (unlocked)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    KeyelSpacing.lg,
-                    KeyelSpacing.xs,
-                    KeyelSpacing.lg,
-                    KeyelSpacing.md,
+              if (_isDenied)
+                Expanded(
+                  child: AutofillCenteredNote(
+                    kind: KeyelStateMessageKind.empty,
+                    icon: Icons.block_rounded,
+                    title: l10n.autofillDisabledTitle,
+                    body: l10n.autofillDisabledBody,
                   ),
-                  child: KeyelPillButton(
-                    label: 'Create new login',
-                    icon: Icons.add_rounded,
-                    tone: KeyelButtonTone.tonal,
-                    height: 48,
-                    onPressed: () {
-                      final onCreateNew = widget.onCreateNew;
-                      if (onCreateNew != null) {
-                        onCreateNew();
-                      } else {
-                        _close(null);
-                      }
-                    },
+                )
+              else ...[
+                if (_showMismatchWarning)
+                  AutofillMismatchBanner(target: _targetLabel)
+                else
+                  const SizedBox(height: KeyelSpacing.sm),
+                Expanded(
+                  child: AutofillPickerBody(
+                    unlocked: unlocked,
+                    loading: _loading,
+                    error: _error,
+                    matches: _matches,
+                    onPick: _pick,
+                    onRetry: () => unawaited(_load()),
                   ),
                 ),
+                if (unlocked)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      KeyelSpacing.lg,
+                      KeyelSpacing.xs,
+                      KeyelSpacing.lg,
+                      KeyelSpacing.md,
+                    ),
+                    child: Column(
+                      children: [
+                        KeyelPillButton(
+                          label: l10n.autofillCreateNewLogin,
+                          icon: Icons.add_rounded,
+                          tone: KeyelButtonTone.tonal,
+                          height: 48,
+                          onPressed: () {
+                            final onCreateNew = widget.onCreateNew;
+                            if (onCreateNew != null) {
+                              onCreateNew();
+                            } else {
+                              _close(null);
+                            }
+                          },
+                        ),
+                        if (_denyKey != null)
+                          TextButton(
+                            onPressed: () {
+                              final onNever = widget.onNeverForSite;
+                              if (onNever != null) onNever();
+                            },
+                            child: Text(l10n.autofillNeverForSite),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
             ],
           ),
         ),

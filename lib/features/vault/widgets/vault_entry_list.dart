@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/vault/widgets/vault_row.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Typed callback invoked when a vault entry is opened.
 typedef OnVaultEntryOpen = void Function(
@@ -85,23 +86,24 @@ class VaultEntryList extends StatelessWidget {
         itemCount: entries.length,
         itemBuilder: (context, index) => Padding(
           padding: const EdgeInsets.only(bottom: KeyelSpacing.sm),
-          child: _buildSwipeableRow(entries[index]),
+          child: _buildSwipeableRow(context, entries[index]),
         ),
       ),
     );
   }
 
-  Widget _buildSwipeableRow(VaultEntry entry) {
+  Widget _buildSwipeableRow(BuildContext context, VaultEntry entry) {
+    final l10n = l10nOf(context);
     return Dismissible(
       key: ValueKey('vault-row-${entry.id}'),
-      background: const _SwipeBackdrop(
+      background: _SwipeBackdrop(
         icon: Icons.content_copy_rounded,
-        label: 'Copy',
+        label: l10n.actionCopy,
         alignEnd: false,
       ),
       secondaryBackground: _SwipeBackdrop(
         icon: entry.favorite ? Icons.star_outline_rounded : Icons.star_rounded,
-        label: entry.favorite ? 'Unfavorite' : 'Favorite',
+        label: entry.favorite ? l10n.vaultUnfavorite : l10n.vaultFavorite,
         alignEnd: true,
       ),
       direction: config.selectionActive

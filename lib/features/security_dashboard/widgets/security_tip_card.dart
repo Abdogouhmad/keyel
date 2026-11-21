@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Bordered tip card suggesting biometric vault unlocking.
 class SecurityTipCard extends StatelessWidget {
@@ -38,8 +39,7 @@ class SecurityTipCard extends StatelessWidget {
           const SizedBox(width: KeyelSpacing.sm + 4),
           Expanded(
             child: Text(
-              'Enable biometric lock for instantaneous vault '
-              'unmasking using your device secure enclave.',
+              l10nOf(context).secBiometricTip,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.4,

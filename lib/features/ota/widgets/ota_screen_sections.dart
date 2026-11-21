@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/data/file_transfer_service.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Banner summarizing current OTA status.
 class OtaStatusBanner extends StatelessWidget {
@@ -16,6 +17,7 @@ class OtaStatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     final (
       IconData icon,
@@ -28,61 +30,67 @@ class OtaStatusBanner extends StatelessWidget {
         Icons.sync_rounded,
         scheme.primary,
         scheme.primaryContainer.withValues(alpha: 0.5),
-        'Checking for updates...',
-        'Connecting to release server',
+        l10n.otaCheckingUpdates,
+        l10n.otaConnectingServer,
       ),
       OtaStep.upToDate => (
         Icons.verified_rounded,
         scheme.primary,
         scheme.primaryContainer.withValues(alpha: 0.5),
-        'Keyel is up to date',
+        l10n.otaUpToDate,
         state.channel == OtaChannel.beta
-            ? 'No beta release yet • Version ${state.currentVersion} installed'
-            : 'Version ${state.currentVersion} • Latest release installed',
+            ? l10n.otaNoBetaRelease(state.currentVersion)
+            : l10n.otaLatestInstalled(state.currentVersion),
       ),
       OtaStep.available => (
         Icons.system_update_rounded,
         scheme.onTertiaryContainer,
         scheme.tertiaryContainer,
-        'Update Available',
-        'Keyel v${state.availableRelease!.version} • ${state.channel.label} channel',
+        l10n.otaUpdateAvailableTitle,
+        l10n.otaAvailableSubtitle(
+          state.availableRelease!.version,
+          state.channel.label,
+        ),
       ),
       OtaStep.downloading => (
         Icons.downloading_rounded,
         scheme.onPrimaryContainer,
         scheme.primaryContainer,
-        'Downloading update...',
-        '${(state.downloadProgress * 100).toInt()}% • ${state.availableRelease!.formattedSize}',
+        l10n.otaDownloadingUpdate,
+        l10n.otaDownloadingDetail(
+          '${(state.downloadProgress * 100).toInt()}',
+          state.availableRelease!.formattedSize,
+        ),
       ),
       OtaStep.downloaded => (
         Icons.check_circle_rounded,
         scheme.onSecondaryContainer,
         scheme.secondaryContainer,
-        'Ready to Install',
-        'Keyel v${state.availableRelease!.version} downloaded & verified',
+        l10n.otaReadyToInstall,
+        l10n.otaDownloadedVerified(state.availableRelease!.version),
       ),
       OtaStep.installing => (
         Icons.install_mobile_rounded,
         scheme.primary,
         scheme.primaryContainer,
-        'Installing update...',
-        'Handing off to system installer',
+        l10n.otaInstallingUpdate,
+        l10n.otaHandingToInstaller,
       ),
       OtaStep.error => (
         Icons.warning_amber_rounded,
         scheme.onErrorContainer,
         scheme.errorContainer,
-        'Update check failed',
-        state.errorMessage ?? 'Could not connect to release server',
+        l10n.otaCheckFailedTitle,
+        state.errorMessage ?? l10n.otaCouldNotConnect,
       ),
       OtaStep.idle => (
         Icons.info_outline_rounded,
         scheme.onSurfaceVariant,
         scheme.surfaceContainerHighest,
-        'Installed Version: ${state.currentVersion}',
+        l10n.otaInstalledVersion(state.currentVersion),
         state.lastChecked != null
-            ? 'Last checked: ${_formatTime(state.lastChecked!)}'
-            : 'Tap "Check now" to look for new releases',
+            ? l10n.otaLastChecked(_formatTime(state.lastChecked!))
+            : l10n.otaTapCheckNow,
       ),
     };
 
@@ -149,6 +157,7 @@ class OtaDownloadProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
       child: Column(
@@ -158,13 +167,15 @@ class OtaDownloadProgressCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Downloading APK',
+                l10n.otaDownloadingApk,
                 style: textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
-                '${(state.downloadProgress * 100).toStringAsFixed(0)}%',
+                l10n.otaPercent(
+                  (state.downloadProgress * 100).toStringAsFixed(0),
+                ),
                 style: textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: scheme.primary,
@@ -190,7 +201,7 @@ class OtaDownloadProgressCard extends StatelessWidget {
                   color: scheme.onSurfaceVariant,
                 ),
               ),
-              TextButton(onPressed: onCancel, child: const Text('Cancel')),
+              TextButton(onPressed: onCancel, child: Text(l10n.actionCancel)),
             ],
           ),
         ],
@@ -224,6 +235,7 @@ class OtaPrimaryAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     if (state.isDownloading) {
       return const SizedBox.shrink();
     }
@@ -233,7 +245,7 @@ class OtaPrimaryAction extends StatelessWidget {
         width: double.infinity,
         child: FilledButton.icon(
           icon: const Icon(Icons.install_mobile_rounded),
-          label: const Text('Install Update Now'),
+          label: Text(l10n.otaInstallNow),
           onPressed: () async {
             await onInstall();
           },
@@ -247,7 +259,10 @@ class OtaPrimaryAction extends StatelessWidget {
         child: FilledButton.icon(
           icon: const Icon(Icons.download_rounded),
           label: Text(
-            'Download v${state.availableRelease!.version} (${state.availableRelease!.formattedSize})',
+            l10n.otaDownloadVersion(
+              state.availableRelease!.version,
+              state.availableRelease!.formattedSize,
+            ),
           ),
           onPressed: onDownload,
         ),
@@ -258,7 +273,9 @@ class OtaPrimaryAction extends StatelessWidget {
       width: double.infinity,
       child: FilledButton.icon(
         icon: const Icon(Icons.refresh_rounded),
-        label: Text(state.isChecking ? 'Checking...' : 'Check for Updates'),
+        label: Text(
+          state.isChecking ? l10n.otaChecking : l10n.otaCheckForUpdates,
+        ),
         onPressed: state.isChecking ? null : onCheck,
       ),
     );
@@ -277,6 +294,7 @@ class OtaReleaseNotesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
       child: Column(
@@ -287,7 +305,7 @@ class OtaReleaseNotesCard extends StatelessWidget {
               Icon(Icons.notes_rounded, size: 20, color: scheme.primary),
               const SizedBox(width: KeyelSpacing.xs),
               Text(
-                'What’s New in v${release.version}',
+                l10n.otaWhatsNew(release.version),
                 style: textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -317,7 +335,7 @@ class OtaReleaseNotesCard extends StatelessWidget {
           SelectableText(
             release.releaseNotes.isNotEmpty
                 ? release.releaseNotes
-                : 'No detailed release notes provided for this version.',
+                : l10n.otaNoReleaseNotes,
             style: textTheme.bodyMedium?.copyWith(height: 1.5),
           ),
         ],
@@ -353,13 +371,14 @@ class OtaPreferencesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Update Preferences',
+            l10n.otaPreferencesTitle,
             style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: KeyelSpacing.md),
@@ -369,7 +388,7 @@ class OtaPreferencesCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Release Channel', style: textTheme.bodyMedium),
+                    Text(l10n.otaReleaseChannel, style: textTheme.bodyMedium),
                     Text(
                       state.channel.description,
                       style: textTheme.bodySmall?.copyWith(
@@ -399,9 +418,9 @@ class OtaPreferencesCard extends StatelessWidget {
             color: Colors.transparent,
             child: SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Check for updates automatically'),
+              title: Text(l10n.otaAutoCheckTitle),
               subtitle: Text(
-                'Checks on launch and when you return, on the selected channel.',
+                l10n.otaAutoCheckSubtitle,
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -422,7 +441,7 @@ class OtaPreferencesCard extends StatelessWidget {
                   ),
                   const SizedBox(width: KeyelSpacing.xs),
                   Text(
-                    'Update notifications are on',
+                    l10n.otaNotificationsOn,
                     style: textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -434,7 +453,7 @@ class OtaPreferencesCard extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.notifications_none_rounded),
-                  label: const Text('Enable update notifications'),
+                  label: Text(l10n.otaEnableNotifications),
                   onPressed: onEnableNotifications,
                 ),
               ),
@@ -455,22 +474,23 @@ class OtaLocalInstallButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         icon: const Icon(Icons.folder_open_rounded),
-        label: const Text('Install update from local APK file'),
+        label: Text(l10n.otaInstallLocal),
         onPressed: () async {
           const service = PlatformFileTransferService();
           final picked = await service.pickFile(
-            dialogTitle: 'Select Keyel Update APK',
+            dialogTitle: l10n.otaSelectApkTitle,
           );
           if (picked != null) {
             final ok = await onInstallLocal(picked.path);
             if (!ok && context.mounted) {
               showKeyelSnack(
                 context,
-                'Please grant permission to install unknown apps when prompted.',
+                l10n.otaGrantInstallPermission,
                 icon: Icons.security_rounded,
               );
             }
@@ -490,6 +510,7 @@ class OtaPrivacyNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return Container(
       padding: const EdgeInsets.all(KeyelSpacing.md),
@@ -505,7 +526,7 @@ class OtaPrivacyNotice extends StatelessWidget {
           const SizedBox(width: KeyelSpacing.sm),
           Expanded(
             child: Text(
-              'Privacy guarantee: automatic checks read the public channel manifest only, on launch and while the app is open. Your vault database, passwords, keys, and biometrics never leave this device.',
+              l10n.otaPrivacyNotice,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
                 height: 1.4,

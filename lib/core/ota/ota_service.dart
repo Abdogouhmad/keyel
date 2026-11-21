@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/core/ota/ota_platform.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Progress callback reporting received bytes, total expected bytes, and fraction (0.0 to 1.0).
@@ -110,7 +111,7 @@ class OtaService {
 
     if (response.statusCode != 200) {
       throw HttpException(
-        'Failed to check for updates: HTTP ${response.statusCode}',
+        currentL10n.otaCheckFailedHttp('${response.statusCode}'),
         uri: uri,
       );
     }
@@ -255,9 +256,7 @@ class OtaService {
     // Second line of defence: callers may construct a release directly rather
     // than going through the parsers. Never fetch or install without a hash.
     if (!isValidOtaChecksum(release.sha256)) {
-      throw StateError(
-        'Refusing to download an update without a valid SHA-256 checksum',
-      );
+      throw StateError(currentL10n.otaRefuseUnverifiedDownload);
     }
 
     final tempDir = await getTemporaryDirectory();
@@ -276,7 +275,7 @@ class OtaService {
 
     if (streamedResponse.statusCode != 200) {
       throw HttpException(
-        'Download failed with HTTP ${streamedResponse.statusCode}',
+        currentL10n.otaDownloadFailedHttp('${streamedResponse.statusCode}'),
         uri: Uri.parse(release.downloadUrl),
       );
     }
@@ -291,7 +290,7 @@ class OtaService {
         if (cancelToken?.isCancelled == true) {
           await sink.close();
           if (saveFile.existsSync()) saveFile.deleteSync();
-          throw const CancellationException('Download cancelled by user');
+          throw CancellationException(currentL10n.otaDownloadCancelled);
         }
 
         sink.add(chunk);
@@ -325,9 +324,7 @@ class OtaService {
           saveFile.deleteSync();
         } on Object catch (_) {}
       }
-      throw StateError(
-        'Checksum mismatch: expected $expected but got $computed',
-      );
+      throw StateError(currentL10n.otaChecksumMismatch(expected, computed));
     }
 
     return saveFile;

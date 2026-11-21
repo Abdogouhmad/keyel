@@ -23,6 +23,7 @@ import 'package:keyel/features/entry/widgets/edit/website_section.dart';
 import 'package:keyel/features/folders/folder_picker_sheet.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Editor form body: every section between the edit bar and the save button.
 ///
@@ -91,11 +92,11 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
 
   String get _folderName {
     final id = widget.folderId;
-    if (id == null) return 'No folder';
+    if (id == null) return l10nOf(context).entryNoFolder;
     for (final folder in _folders) {
       if (folder.id == id) return folder.name;
     }
-    return 'Folder';
+    return l10nOf(context).entryFolder;
   }
 
   Future<void> _chooseFolder() async {
@@ -126,6 +127,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final twoColumns = WindowSizeClass.of(context).supportsListDetail;
 
     return KeyelContent(
@@ -144,27 +146,27 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
                 ? (_) {}
                 : widget.onKindChanged,
             options: widget.kind == VaultEntryKind.passkey
-                ? const [
+                ? [
                     KeyelSegmentOption(
                       value: VaultEntryKind.passkey,
-                      label: 'Passkey',
+                      label: l10n.entryKindPasskey,
                       icon: Icons.vpn_key_rounded,
                     ),
                   ]
-                : const [
+                : [
                     KeyelSegmentOption(
                       value: VaultEntryKind.login,
-                      label: 'Login',
+                      label: l10n.entryKindLogin,
                       icon: Icons.key_rounded,
                     ),
                     KeyelSegmentOption(
                       value: VaultEntryKind.card,
-                      label: 'Card',
+                      label: l10n.entryKindCard,
                       icon: Icons.credit_card_rounded,
                     ),
                     KeyelSegmentOption(
                       value: VaultEntryKind.note,
-                      label: 'Note',
+                      label: l10n.entryKindNote,
                       icon: Icons.description_rounded,
                     ),
                   ],
@@ -334,13 +336,13 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
   Widget _notesSection() => NotesSection(
     controller: widget.controller.notes,
     minLines: 3,
-    label: 'Secure notes',
+    label: l10nOf(context).entrySecureNotes,
   );
 
   Widget _noteContentSection() => NotesSection(
     controller: widget.controller.notes,
     minLines: 8,
-    label: 'Secure note',
+    label: l10nOf(context).entrySecureNote,
   );
 
   Widget _organizationSection() => OrganizationSection(
@@ -366,7 +368,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
 
   void _scanQr() => showKeyelSnack(
     context,
-    'Camera scanning arrives in a later update. Enter the key manually for now.',
+    l10nOf(context).entryQrScanUnavailable,
     icon: Icons.qr_code_scanner_rounded,
   );
 
@@ -379,7 +381,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
     setState(() => widget.controller.setTotpConfig(config));
     showKeyelSnack(
       context,
-      'Two-factor key ready. Save the entry to store it.',
+      l10nOf(context).entryTotpReady,
       icon: Icons.verified_user_rounded,
     );
   }
@@ -400,8 +402,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
           const SizedBox(width: KeyelSpacing.sm),
           Expanded(
             child: Text(
-              'Passkeys are created and used through secure sign-in prompts. '
-              "Credential details are managed automatically and can't be edited here yet.",
+              l10nOf(context).entryPasskeyInfo,
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),

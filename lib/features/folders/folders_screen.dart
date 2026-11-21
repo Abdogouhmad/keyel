@@ -10,6 +10,7 @@ import 'package:keyel/features/folders/folder_picker_sheet.dart';
 import 'package:keyel/features/folders/widgets/folders_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Create, rename and delete folders used to organise vault entries.
 class FoldersScreen extends ConsumerWidget {
@@ -17,7 +18,10 @@ class FoldersScreen extends ConsumerWidget {
   const new({super.key});
 
   Future<void> _addFolder(BuildContext context, WidgetRef ref) async {
-    final name = await promptFolderName(context, title: 'New folder');
+    final name = await promptFolderName(
+      context,
+      title: l10nOf(context).fldNewFolder,
+    );
     if (name == null) return;
     try {
       await ref.read(vaultRepositoryProvider).addFolder(name);
@@ -39,7 +43,7 @@ class FoldersScreen extends ConsumerWidget {
   ) async {
     final name = await promptFolderName(
       context,
-      title: 'Rename folder',
+      title: l10nOf(context).fldRenameFolder,
       initial: folder.name,
     );
     if (name == null || name == folder.name) return;
@@ -61,11 +65,12 @@ class FoldersScreen extends ConsumerWidget {
     WidgetRef ref,
     FolderDto folder,
   ) async {
+    final l10n = l10nOf(context);
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Delete "${folder.name}"?',
-      body: 'Entries in this folder are kept and move to "No folder".',
-      confirmLabel: 'Delete folder',
+      title: l10n.fldDeleteConfirmTitle(folder.name),
+      body: l10n.fldDeleteConfirmBody,
+      confirmLabel: l10n.fldDeleteFolder,
       destructive: true,
     );
     if (!confirmed) return;
@@ -75,7 +80,7 @@ class FoldersScreen extends ConsumerWidget {
       if (!context.mounted) return;
       showKeyelSnack(
         context,
-        'Folder deleted',
+        l10n.fldDeleted,
         icon: Icons.delete_outline_rounded,
       );
     } on Object catch (error) {
@@ -91,6 +96,7 @@ class FoldersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
     final folders = ref.watch(foldersProvider);
 
     return Scaffold(
@@ -100,27 +106,27 @@ class FoldersScreen extends ConsumerWidget {
         child: Column(
           children: [
             KeyelTopBar(
-              title: 'Folders',
+              title: l10n.foldersTitle,
               icon: Icons.arrow_back_rounded,
-              iconTooltip: 'Back',
+              iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
               trailing: KeyelIconHull(
                 icon: Icons.create_new_folder_rounded,
-                tooltip: 'New folder',
+                tooltip: l10n.fldNewFolder,
                 onPressed: () => unawaited(_addFolder(context, ref)),
               ),
             ),
             Expanded(
               child: KeyelContent(
                 child: folders.when(
-                  loading: () => const KeyelStateMessage(
+                  loading: () => KeyelStateMessage(
                     kind: KeyelStateMessageKind.loading,
-                    message: 'Loading folders…',
+                    message: l10n.fldLoading,
                   ),
                   error: (error, _) => KeyelStateMessage(
                     kind: KeyelStateMessageKind.error,
                     message: describeVaultError(error),
-                    actionLabel: 'Retry',
+                    actionLabel: l10n.actionRetry,
                     onAction: () => ref.invalidate(foldersProvider),
                   ),
                   data: (items) {
@@ -158,7 +164,7 @@ class FoldersScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => unawaited(_addFolder(context, ref)),
         icon: const Icon(Icons.create_new_folder_rounded),
-        label: const Text('New folder'),
+        label: Text(l10n.fldNewFolder),
       ),
     );
   }

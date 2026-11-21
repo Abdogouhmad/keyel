@@ -10,6 +10,7 @@ import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/features/sync/sync_folder_service.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Opt-in, manual, end-to-end encrypted sync across devices.
 ///
@@ -77,12 +78,13 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   }
 
   Future<String?> _pickFolder() async {
+    final l10n = l10nOf(context);
     final folder = await ref.read(syncFolderServiceProvider).pickFolder();
     if (folder == null || folder.isEmpty) {
       if (mounted) {
         showKeyelSnack(
           context,
-          'Choose a sync folder first.',
+          l10n.synChooseFolderFirst,
           icon: Icons.folder_off_outlined,
         );
       }
@@ -92,6 +94,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   }
 
   Future<void> _enable() async {
+    final l10n = l10nOf(context);
     final folder = await _pickFolder();
     if (folder == null) return;
     await _run(() async {
@@ -100,20 +103,18 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       if (!mounted) return;
       final saved = await _showPairingCode(code);
       if (saved == true && mounted) {
-        showKeyelSnack(
-          context,
-          'Sync enabled. Share the code with your other device only once.',
-        );
+        showKeyelSnack(context, l10n.synEnabledShareCode);
       }
     });
   }
 
   Future<void> _join() async {
+    final l10n = l10nOf(context);
     final code = _codeController.text.trim();
     if (code.isEmpty) {
       showKeyelSnack(
         context,
-        'Enter the pairing code first.',
+        l10n.synEnterCodeFirst,
         icon: Icons.key_off_outlined,
       );
       return;
@@ -122,28 +123,26 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     if (folder == null || !mounted) return;
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Join this sync group?',
-      body:
-          'Remote vault data will be merged with this vault on the next '
-          'manual sync. Conflicting items become separate copies; nothing is '
-          'silently overwritten or deleted.',
-      confirmLabel: 'Join group',
+      title: l10n.synJoinTitle,
+      body: l10n.synJoinBody,
+      confirmLabel: l10n.synJoinGroup,
     );
     if (!confirmed) return;
     await _run(() async {
       await ref.read(vaultRepositoryProvider).syncJoin(code, folder);
       _codeController.clear();
       await _load();
-      if (mounted) showKeyelSnack(context, 'Joined the sync group.');
+      if (mounted) showKeyelSnack(context, l10n.synJoined);
     });
   }
 
   Future<void> _syncNow() async {
+    final l10n = l10nOf(context);
     final folder = _status?.folderHint;
     if (folder == null || folder.isEmpty) {
       showKeyelSnack(
         context,
-        'Sync has no folder set. Disable and enable it again.',
+        l10n.synNoFolder,
         icon: Icons.folder_off_outlined,
       );
       return;
@@ -152,34 +151,30 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       final report = await ref.read(vaultRepositoryProvider).syncNow(folder);
       await _load();
       if (!mounted) return;
-      final conflicts = switch (report.conflictsCreated) {
-        0 => '',
-        1 => ', 1 conflict copy',
-        final count => ', $count conflict copies',
-      };
+      final conflicts = report.conflictsCreated == 0
+          ? ''
+          : l10n.synConflictCopies(report.conflictsCreated);
       showKeyelSnack(
         context,
-        'Sync complete: ${report.entriesAdded} added, '
-        '${report.entriesUpdated} updated$conflicts.',
+        l10n.synComplete(report.entriesAdded, report.entriesUpdated, conflicts),
       );
     });
   }
 
   Future<void> _disable() async {
+    final l10n = l10nOf(context);
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Disable sync?',
-      body:
-          'Local sync stops. Remote files are left untouched and can be '
-          'restored by joining again with the pairing code.',
-      confirmLabel: 'Disable sync',
+      title: l10n.synDisableTitle,
+      body: l10n.synDisableBody,
+      confirmLabel: l10n.synDisableConfirm,
       destructive: true,
     );
     if (!confirmed) return;
     await _run(() async {
       await ref.read(vaultRepositoryProvider).syncDisable();
       await _load();
-      if (mounted) showKeyelSnack(context, 'Sync disabled on this device.');
+      if (mounted) showKeyelSnack(context, l10n.synDisabled);
     });
   }
 
@@ -198,16 +193,12 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Save this pairing code'),
+          title: Text(l10nOf(context).synSaveCodeTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'This code is a bearer secret: anyone who has it can read the '
-                'synced vault. Store it offline and enter it on your other '
-                'device once. It will not be shown again after this dialog.',
-              ),
+              Text(l10nOf(context).synSaveCodeBody),
               const SizedBox(height: 16),
               SelectableText(
                 code,
@@ -223,19 +214,21 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                       if (context.mounted) {
                         showKeyelSnack(
                           context,
-                          'Pairing code copied${SensitiveClipboard.instance.clearHint}',
+                          l10nOf(context).synCodeCopied(
+                            SensitiveClipboard.instance.clearHint,
+                          ),
                         );
                       }
                     },
                     icon: const Icon(Icons.copy_all_outlined),
-                    label: const Text('Copy'),
+                    label: Text(l10nOf(context).actionCopy),
                   ),
                 ],
               ),
               CheckboxListTile(
                 value: saved,
                 onChanged: (value) => setState(() => saved = value ?? false),
-                title: const Text('I stored this code somewhere safe'),
+                title: Text(l10nOf(context).synCodeStoredCheckbox),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
@@ -244,7 +237,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
           actions: [
             FilledButton(
               onPressed: saved ? () => Navigator.of(context).pop(true) : null,
-              child: const Text('Done'),
+              child: Text(l10nOf(context).actionDone),
             ),
           ],
         ),
@@ -253,7 +246,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   }
 
   String _lastSyncLabel(SyncStatusDto status) {
-    if (status.lastSyncAt == BigInt.zero) return 'Never';
+    if (status.lastSyncAt == BigInt.zero) return currentL10n.synNever;
     final date = DateTime.fromMillisecondsSinceEpoch(
       status.lastSyncAt.toInt() * 1000,
       isUtc: true,
@@ -269,6 +262,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final status = _status;
     final enabled = status?.enabled ?? false;
 
@@ -281,9 +275,9 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: KeyelTopBar(
-                  title: 'Sync',
+                  title: l10n.syncTitle,
                   icon: Icons.arrow_back_rounded,
-                  iconTooltip: 'Back',
+                  iconTooltip: l10n.actionBack,
                   onIconTap: () => context.pop(),
                 ),
               ),
@@ -299,7 +293,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Sync across your devices',
+                        l10n.synHeadline,
                         style: textTheme.headlineSmall?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w800,
@@ -308,9 +302,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Optional, manual and end-to-end encrypted. Keyel '
-                        'never runs a sync server: your own sync tool moves '
-                        'the encrypted files between devices.',
+                        l10n.synSubtitle,
                         style: textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -325,8 +317,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 ),
                 sliver: SliverList.list(
                   children: [
-                    const KeyelSectionLabel(
-                      label: 'Status',
+                    KeyelSectionLabel(
+                      label: l10n.synStatusLabel,
                       icon: Icons.sync_rounded,
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
@@ -336,32 +328,36 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                           icon: enabled
                               ? Icons.cloud_done_outlined
                               : Icons.cloud_off_outlined,
-                          title: enabled ? 'Sync enabled' : 'Sync is off',
+                          title: enabled
+                              ? l10n.synEnabledStatus
+                              : l10n.synOffStatus,
                           subtitle: _loading
-                              ? 'Reading sync state…'
+                              ? l10n.synLoadingStatus
                               : enabled
-                              ? 'Last sync: ${_lastSyncLabel(status!)}'
-                              : 'Your vault stays on this device only.',
+                              ? l10n.synLastSync(_lastSyncLabel(status!))
+                              : l10n.synLocalOnlyStatus,
                         ),
                         if (enabled && status != null) ...[
                           SettingsRow(
                             icon: Icons.folder_open_outlined,
-                            title: 'Folder',
+                            title: l10n.synFolderLabel,
                             subtitle: status.folderHint.isEmpty
-                                ? 'Not set'
+                                ? l10n.synNotSet
                                 : status.folderHint,
                           ),
                           SettingsRow(
                             icon: Icons.devices_outlined,
-                            title: 'This device',
-                            subtitle: status.deviceId ?? 'Unknown',
+                            title: l10n.synThisDevice,
+                            subtitle: status.deviceId ?? l10n.synUnknown,
                           ),
                         ],
                       ],
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
                     KeyelSectionLabel(
-                      label: enabled ? 'Actions' : 'Get started',
+                      label: enabled
+                          ? l10n.synActionsLabel
+                          : l10n.synGetStartedLabel,
                       icon: Icons.tune_rounded,
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
@@ -370,8 +366,8 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                         if (!enabled) ...[
                           SettingsRow(
                             icon: Icons.add_link_rounded,
-                            title: 'Create a sync group',
-                            subtitle: 'Pick a folder and get a one-time pairing code.',
+                            title: l10n.synCreateGroupTitle,
+                            subtitle: l10n.synCreateGroupSubtitle,
                             onTap: _busy ? null : _enable,
                           ),
                           Padding(
@@ -384,14 +380,16 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Or join an existing group',
-                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                Text(
+                                  l10n.synOrJoin,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 KeyelPasswordField(
                                   controller: _codeController,
-                                  label: 'Pairing code',
+                                  label: l10n.synPairingCodeLabel,
                                   hint: 'KYSYNC1-…',
                                 ),
                                 const SizedBox(height: 8),
@@ -399,7 +397,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                                   alignment: Alignment.centerRight,
                                   child: FilledButton(
                                     onPressed: _busy ? null : _join,
-                                    child: const Text('Join group'),
+                                    child: Text(l10n.synJoinGroup),
                                   ),
                                 ),
                               ],
@@ -408,21 +406,20 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                         ] else ...[
                           SettingsRow(
                             icon: Icons.sync_rounded,
-                            title: 'Sync now',
-                            subtitle: 'Pull remote changes, merge and push this device.',
+                            title: l10n.synSyncNowTitle,
+                            subtitle: l10n.synSyncNowSubtitle,
                             onTap: _busy ? null : _syncNow,
                           ),
                           SettingsRow(
                             icon: Icons.key_outlined,
-                            title: 'Show pairing code',
-                            subtitle:
-                                'Pair another device with this sync group.',
+                            title: l10n.synShowCodeTitle,
+                            subtitle: l10n.synShowCodeSubtitle,
                             onTap: _busy ? null : _showCodeAgain,
                           ),
                           SettingsRow(
                             icon: Icons.link_off_outlined,
-                            title: 'Disable sync',
-                            subtitle: 'Stop syncing on this device; keep remote files.',
+                            title: l10n.synDisableConfirm,
+                            subtitle: l10n.synDisableSubtitle,
                             onTap: _busy ? null : _disable,
                           ),
                         ],
@@ -434,10 +431,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                         horizontal: KeyelSpacing.sm,
                       ),
                       child: Text(
-                        'Sync is foreground-only and requires an unlocked '
-                        'vault. Data is encrypted with a random key that never '
-                        'leaves Keyel; losing the pairing code means starting '
-                        'a new sync group. Keep an encrypted backup as well.',
+                        l10n.synFooterNote,
                         style: textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),

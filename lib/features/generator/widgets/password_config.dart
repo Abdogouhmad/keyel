@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/features/generator/widgets/config_card.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A configuration card specifically for password length.
 class PasswordConfig extends StatelessWidget {
@@ -23,15 +24,21 @@ class PasswordConfig extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
+
     return ConfigCard(
-      title: 'Password length',
-      subtitle: 'Recommended 16+ characters',
-      valueLabel: '$length characters',
+      title: l10n.genPasswordLength,
+      subtitle: l10n.genPasswordLengthSubtitle,
+      valueLabel: l10n.genLengthValue(length),
       value: length.toDouble(),
       min: 8,
       max: 64,
       divisions: 56,
-      trackLabels: const ['8 chars', '36 chars', '64 chars'],
+      trackLabels: [
+        l10n.genCharsShort(8),
+        l10n.genCharsShort(36),
+        l10n.genCharsShort(64),
+      ],
       onChanged: (value) => onChanged(value.round()),
       onChangeEnd: onChangeEnd,
     );

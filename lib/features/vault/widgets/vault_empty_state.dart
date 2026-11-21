@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Empty vault message shown when no entries match.
 class VaultEmptyState extends StatelessWidget {
@@ -22,6 +23,7 @@ class VaultEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final searching = query.trim().isNotEmpty;
@@ -47,7 +49,7 @@ class VaultEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: KeyelSpacing.lg),
             Text(
-              searching ? 'No matches found' : 'Your vault is empty',
+              searching ? l10n.vaultNoMatchesFound : l10n.vaultEmpty,
               style: textTheme.titleLarge?.copyWith(
                 color: scheme.onSurface,
                 fontWeight: FontWeight.w600,
@@ -55,11 +57,7 @@ class VaultEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: KeyelSpacing.sm),
             Text(
-              searching
-                  ? 'Try a different search term or filter.'
-                  : 'Start adding passwords, payment cards, or secure notes. '
-                        'Everything is stored locally with zero-knowledge '
-                        'encryption.',
+              searching ? l10n.vaultEmptySearchHint : l10n.vaultEmptyHint,
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -68,7 +66,7 @@ class VaultEmptyState extends StatelessWidget {
             const SizedBox(height: KeyelSpacing.lg),
             if (searching)
               KeyelPillButton(
-                label: 'Clear filters',
+                label: l10n.clearFilters,
                 icon: Icons.refresh_rounded,
                 tone: KeyelButtonTone.tonal,
                 height: 48,
@@ -79,7 +77,7 @@ class VaultEmptyState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onAddItem,
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Add your first item'),
+                label: Text(l10n.vaultAddFirstItem),
               ),
           ],
         ),

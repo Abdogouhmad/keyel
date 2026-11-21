@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// An informational tip widget explaining the benefits of passphrases.
 class PassphraseTip extends StatelessWidget {
@@ -24,8 +25,7 @@ class PassphraseTip extends StatelessWidget {
           const SizedBox(width: KeyelSpacing.sm + 4),
           Expanded(
             child: Text(
-              'Passphrases trade symbols for memorable words. Use at least '
-              'eight words for a vault master passphrase.',
+              l10nOf(context).genPassphraseTip,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSecondaryContainer,
                 height: 1.4,

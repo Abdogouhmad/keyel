@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Shown in the wide vault layout when no entry is selected.
 class VaultDetailPlaceholder extends StatelessWidget {
@@ -8,6 +9,7 @@ class VaultDetailPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -34,7 +36,7 @@ class VaultDetailPlaceholder extends StatelessWidget {
               ),
               const SizedBox(height: KeyelSpacing.md),
               Text(
-                'No item selected',
+                l10n.vaultNoItemSelected,
                 style: textTheme.titleMedium?.copyWith(
                   color: scheme.onSurface,
                   fontWeight: FontWeight.w600,
@@ -42,7 +44,7 @@ class VaultDetailPlaceholder extends StatelessWidget {
               ),
               const SizedBox(height: KeyelSpacing.xs),
               Text(
-                'Select an item from the list to view and manage its details.',
+                l10n.vaultSelectItemHint,
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),

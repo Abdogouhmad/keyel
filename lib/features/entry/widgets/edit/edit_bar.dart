@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Top bar of the entry editor with close and save actions.
 class EditBar extends StatelessWidget {
@@ -34,7 +35,7 @@ class EditBar extends StatelessWidget {
           children: [
             KeyelIconHull(
               icon: Icons.close_rounded,
-              tooltip: 'Close',
+              tooltip: l10nOf(context).actionClose,
               onPressed: onClose,
               foreground: scheme.onSurface,
             ),
@@ -66,7 +67,7 @@ class EditBar extends StatelessWidget {
             ),
             const Spacer(),
             KeyelPillButton(
-              label: 'Save',
+              label: l10nOf(context).actionSave,
               height: 40,
               expand: false,
               onPressed: onSave,

@@ -64,6 +64,23 @@
             </intent-filter>
         </service>
 
+        <!-- Home-screen quick actions widget. Only the system sends widget
+             broadcasts; the receiver is not externally launchable. Taps use
+             immutable PendingIntents into MainActivity, so the widget never
+             holds vault data or a Flutter engine. -->
+        <receiver
+            android:name=".quickaccess.KeyelQuickActionsWidget"
+            android:exported="false"
+            android:icon="@drawable/ic_quick_lock"
+            android:label="@string/quick_actions_widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_info" />
+        </receiver>
+
         <!-- Autofill service declaration.
              BIND_AUTOFILL_SERVICE restricts who can bind to us: only the
              system. exported=true is required so the system can bind. -->

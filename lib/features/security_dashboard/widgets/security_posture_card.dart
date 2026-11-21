@@ -9,6 +9,7 @@ import 'package:keyel/data/breach_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart'
     show autoLockLabel, clipboardLabel;
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// One protection shown as a seal on [SecurityPostureCard].
 ///
@@ -92,51 +93,49 @@ class SecurityPostureCardConnector extends ConsumerWidget {
     final optedIn = ref.watch(breachOptInProvider);
     final screenshotsBlocked = ref.watch(screenshotProtectionProvider);
 
+    final l10n = l10nOf(context);
     final lockLabel = autoLockLabel(prefs.autoLockDelay);
     final clipboardSeconds = prefs.clipboardClearSeconds;
     final clipboardActive = clipboardSeconds > 0;
     final clipboardValue = clipboardActive
         ? clipboardLabel(clipboardSeconds)
-        : 'On lock only';
+        : l10n.secOnLockOnly;
 
     return SecurityPostureCard(
       posture: SecurityPosture(
         autoLock: SecurityPostureSeal(
-          label: 'Auto-lock',
+          label: l10n.autoLockTitle,
           value: lockLabel,
           icon: Icons.lock_clock_rounded,
           active: true,
-          semanticsLabel: 'Auto-lock: $lockLabel. Always active.',
+          semanticsLabel: l10n.secAutoLockSemantics(lockLabel),
         ),
         clipboard: SecurityPostureSeal(
-          label: 'Clipboard wipe',
+          label: l10n.secClipboardWipe,
           value: clipboardValue,
           icon: Icons.content_paste_off_rounded,
           active: clipboardActive,
           semanticsLabel: clipboardActive
-              ? 'Clipboard wipe: $clipboardValue while the app is open. '
-                    'Locking always clears it.'
-              : 'Clipboard wipe: only on lock or when leaving the app.',
+              ? l10n.secClipboardActiveSemantics(clipboardValue)
+              : l10n.secClipboardInactiveSemantics,
         ),
         screenshot: SecurityPostureSeal(
-          label: 'Screenshot blocking',
-          value: screenshotsBlocked ? 'Enabled' : 'Off',
+          label: l10n.secScreenshotBlocking,
+          value: screenshotsBlocked ? l10n.secEnabled : l10n.secOff,
           icon: Icons.no_photography_rounded,
           active: screenshotsBlocked,
           semanticsLabel: screenshotsBlocked
-              ? 'Screenshot blocking: enabled while the vault is unlocked. '
-                    'Lock screens are always protected.'
-              : 'Screenshot blocking: off. Lock and unlock screens are still '
-                    'protected.',
+              ? l10n.secScreenshotActiveSemantics
+              : l10n.secScreenshotInactiveSemantics,
         ),
         breach: SecurityPostureSeal(
-          label: 'Breach check',
-          value: optedIn ? 'Enabled' : 'Off',
+          label: l10n.secBreachCheck,
+          value: optedIn ? l10n.secEnabled : l10n.secOff,
           icon: Icons.gpp_good_rounded,
           active: optedIn,
           semanticsLabel: optedIn
-              ? 'Breach check: enabled. Nothing is sent until you tap Check now.'
-              : 'Breach check: off. No password data is sent.',
+              ? l10n.secBreachActiveSemantics
+              : l10n.secBreachInactiveSemantics,
         ),
       ),
       // `settings` is a shell branch, so push() used to strand the user on a
@@ -209,6 +208,7 @@ class _SecurityPostureCardState extends State<SecurityPostureCard>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final posture = widget.posture;
     final allActive = posture.activeCount == posture.seals.length;
     final badgeColor = allActive ? scheme.strong : scheme.fair;
@@ -218,9 +218,10 @@ class _SecurityPostureCardState extends State<SecurityPostureCard>
 
     return Semantics(
       container: true,
-      label:
-          'Vault posture: ${posture.activeCount} of '
-          '${posture.seals.length} protections active.',
+      label: l10n.secVaultPostureSemantics(
+        '${posture.activeCount}',
+        '${posture.seals.length}',
+      ),
       child: Container(
         padding: const EdgeInsets.all(KeyelSpacing.lg - 4),
         decoration: BoxDecoration(
@@ -251,7 +252,7 @@ class _SecurityPostureCardState extends State<SecurityPostureCard>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Vault posture',
+                        l10n.secVaultPosture,
                         style: textTheme.titleMedium?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w700,
@@ -259,7 +260,7 @@ class _SecurityPostureCardState extends State<SecurityPostureCard>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'How Keyel protects this vault right now',
+                        l10n.secVaultPostureSubtitle,
                         style: textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -285,7 +286,7 @@ class _SecurityPostureCardState extends State<SecurityPostureCard>
               ),
             const SizedBox(height: KeyelSpacing.md),
             KeyelPillButton(
-              label: 'Review settings',
+              label: l10n.secReviewSettings,
               icon: Icons.tune_rounded,
               tone: KeyelButtonTone.neutral,
               height: 48,

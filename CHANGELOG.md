@@ -5,6 +5,58 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-11-21
+
+English/French localization with RTL-ready layouts, the three autofill gaps
+carried over from 0.10, and Android quick-access shortcuts. No vault schema
+change, no new permission, and no weakening of the offline, lock or autofill
+guarantees.
+
+### Added
+
+- **English/French localization.** System / English / Français can be chosen in
+  Settings → Appearance and takes effect without a restart. The ARB template
+  and its complete French translation are checked in with generated classes,
+  and both CI jobs fail on stale regeneration. RTL layout correctness is
+  smoke-tested at 200 % text scale even though Arabic translation is deferred.
+  All user-facing screens are migrated; debug-only copy, brand names and
+  technical identifiers stay literal. README/store copy remains English.
+- **"Never for this site".** The autofill picker and save sheet can permanently
+  decline a target. The choice is stored as a canonical, non-secret package or
+  host key in app-private settings and is checked natively before any unlock
+  prompt or save flow. Saved choices can be removed from Settings.
+- **Verified sites only.** An opt-in autofill setting narrows suggestions to
+  exact package/host matches — an offline substitute for Digital Asset Links
+  that never fetches a network statement and can only reduce what is offered.
+- **Android 11+ inline suggestions.** A static "Fill with Keyel" chip appears in
+  compatible keyboards and reuses the existing authentication flow; no
+  credential text is placed on the keyboard surface. Unsupported IMEs keep the
+  normal dropdown.
+- **Generator shortcut and widget.** Long-press the app icon for *Generate*, or
+  add the *Keyel quick actions* home-screen widget (Open / Generate / Lock).
+  These open existing screens; they never generate, copy or read a secret, and
+  only lock wipes the clipboard. No background service or new permission.
+- **Opt-in Wear OS TOTP companion.** A standalone watch app (separate APK)
+  shows one-time codes for entries you explicitly send from an unlocked phone. It
+  holds no vault, password or other credential, encrypts seeds at rest with a
+  Keystore-backed key, blocks screenshots, never uses the clipboard, and masks
+  codes when you leave the app. The phone can revoke one seed or all of them.
+  Codes are generated on the watch, so no phone connection is needed to read
+  them. A physically compromised unlocked watch remains a residual risk; see
+  `docs/threat-model.md`.
+
+### Changed
+
+- The Android autofill dropdown label is localized, with French strings in
+  `values-fr/strings.xml`.
+
+### Security
+
+- Autofill deny choices and verified-only matching only narrow the offered set;
+  both keep the unlock/auth gate. No domain is logged or exported.
+- Inline suggestions are unpinned and carry only static copy, so the
+  authenticated dataset still replaces them.
+
 ## [1.9.0] - 2026-11-21
 
 One-tap lock, a runnable Linux AppImage, and a consistency pass over everyday

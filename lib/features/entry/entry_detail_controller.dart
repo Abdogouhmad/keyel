@@ -10,6 +10,7 @@ import 'package:keyel/features/entry/entry_url.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/error.dart';
 import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Owns the loading, reveal and mutation logic behind the detail screen.
 class EntryDetailController {
@@ -238,7 +239,7 @@ class EntryDetailController {
     if (_revealedPassword != null) {
       callbacks.copy(
         _revealedPassword!,
-        'Password copied${SensitiveClipboard.instance.clearHint}',
+        currentL10n.entryPasswordCopied(SensitiveClipboard.instance.clearHint),
       );
       return;
     }
@@ -250,7 +251,7 @@ class EntryDetailController {
       );
       callbacks.copy(
         plain,
-        'Password copied${SensitiveClipboard.instance.clearHint}',
+        currentL10n.entryPasswordCopied(SensitiveClipboard.instance.clearHint),
       );
     } on Object catch (error) {
       callbacks.notifyError(error);
@@ -288,7 +289,10 @@ class EntryDetailController {
       if (revealed != null) {
         callbacks.copy(
           revealed,
-          '${_customFieldLabel(field)} copied${SensitiveClipboard.instance.clearHint}',
+          currentL10n.entryFieldCopied(
+            _customFieldLabel(field),
+            SensitiveClipboard.instance.clearHint,
+          ),
         );
         return;
       }
@@ -296,7 +300,10 @@ class EntryDetailController {
         final plain = await repository.revealCustomField(entryId, field.id);
         callbacks.copy(
           plain,
-          '${_customFieldLabel(field)} copied${SensitiveClipboard.instance.clearHint}',
+          currentL10n.entryFieldCopied(
+            _customFieldLabel(field),
+            SensitiveClipboard.instance.clearHint,
+          ),
         );
       } on Object catch (error) {
         callbacks.notifyError(error);
@@ -304,12 +311,15 @@ class EntryDetailController {
       return;
     }
 
-    callbacks.copy(field.value, '${_customFieldLabel(field)} copied');
+    callbacks.copy(
+      field.value,
+      currentL10n.entryFieldCopied(_customFieldLabel(field), ''),
+    );
   }
 
   String _customFieldLabel(CustomFieldDetailDto field) {
     final label = field.label.trim();
-    return label.isEmpty ? 'Field' : label;
+    return label.isEmpty ? currentL10n.entryField : label;
   }
 
   /// Opens a URL shown on the detail screen in the default external app.
@@ -319,12 +329,18 @@ class EntryDetailController {
   Future<void> openUrl(String rawUrl) async {
     final uri = normalizeEntryUrl(rawUrl);
     if (uri == null) {
-      callbacks.notify('Invalid website address', icon: Icons.link_off_rounded);
+      callbacks.notify(
+        currentL10n.entryInvalidWebsite,
+        icon: Icons.link_off_rounded,
+      );
       return;
     }
     final launched = await callbacks.launchUrl(uri);
     if (!launched) {
-      callbacks.notify('Could not open website', icon: Icons.link_off_rounded);
+      callbacks.notify(
+        currentL10n.entryWebsiteOpenFailed,
+        icon: Icons.link_off_rounded,
+      );
     }
   }
 
@@ -340,7 +356,9 @@ class EntryDetailController {
       await repository.setFavorite(detail.id, favorite: newFav);
       await load();
       callbacks.notify(
-        newFav ? '${detail.title} pinned to favorites' : 'Favorite removed',
+        newFav
+            ? currentL10n.entryPinned(detail.title)
+            : currentL10n.entryFavoriteRemoved,
         icon: newFav ? Icons.star_rounded : Icons.star_outline_rounded,
       );
     } on Object catch (error) {
@@ -358,7 +376,7 @@ class EntryDetailController {
     try {
       await repository.deleteEntry(detail.id);
       callbacks.notify(
-        '${detail.title} moved to trash',
+        currentL10n.entryMovedToTrash(detail.title),
         icon: Icons.delete_outline_rounded,
       );
       callbacks.onDeleted?.call();

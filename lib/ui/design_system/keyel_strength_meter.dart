@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/core/security/password_strength.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_colors.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -19,6 +20,7 @@ class KeyelStrengthMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     final (accent, container, onContainer, icon) = switch (strength.level) {
       PasswordStrengthLevel.strong => (
@@ -56,8 +58,11 @@ class KeyelStrengthMeter extends StatelessWidget {
               const SizedBox(width: KeyelSpacing.xs + 2),
               Expanded(
                 child: Text(
-                  '${strength.label} (${strength.bits} bits) - '
-                  '${strength.descriptor}',
+                  l10n.entryStrengthSummary(
+                    strength.label,
+                    strength.bits,
+                    strength.descriptor,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleSmall?.copyWith(
@@ -68,7 +73,7 @@ class KeyelStrengthMeter extends StatelessWidget {
               ),
               const SizedBox(width: KeyelSpacing.sm),
               Text(
-                'Entropy: ${strength.entropyLabel}',
+                l10n.entryStrengthEntropy(strength.entropyLabel),
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,

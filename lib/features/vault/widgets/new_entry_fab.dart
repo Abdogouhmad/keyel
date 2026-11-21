@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
+
 /// Extended floating action button that opens the new entry flow.
 class NewEntryFab extends StatelessWidget {
   /// Creates the floating action button.
@@ -18,9 +20,9 @@ class NewEntryFab extends StatelessWidget {
       backgroundColor: scheme.primary,
       foregroundColor: scheme.onPrimary,
       icon: const Icon(Icons.add_rounded),
-      label: const Text(
-        'New Item',
-        style: TextStyle(fontWeight: FontWeight.w600),
+      label: Text(
+        l10nOf(context).vaultNewItem,
+        style: const TextStyle(fontWeight: FontWeight.w600),
       ),
     );
   }

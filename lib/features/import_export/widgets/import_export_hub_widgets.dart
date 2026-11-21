@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Main content for the backup & import hub.
 class ImportExportHubBody extends StatelessWidget {
@@ -33,6 +34,7 @@ class ImportExportHubBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -45,15 +47,14 @@ class ImportExportHubBody extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: KeyelSpacing.md),
           child: Text(
-            'Move your vault in and out safely. Encrypted backups use '
-            'their own password; CSV exports are plain text.',
+            l10n.imexHubIntro,
             style: textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
           ),
         ),
-        const KeyelSectionLabel(
-          label: 'Encrypted backup',
+        KeyelSectionLabel(
+          label: l10n.imexEncryptedBackupSection,
           icon: Icons.shield_rounded,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -62,15 +63,15 @@ class ImportExportHubBody extends StatelessWidget {
             children: [
               ImportExportActionRow(
                 icon: Icons.file_download_outlined,
-                title: 'Export encrypted backup',
-                subtitle: 'Save an encrypted copy of your vault',
+                title: l10n.imexExportEncryptedTitle,
+                subtitle: l10n.imexExportEncryptedSubtitle,
                 enabled: !busy,
                 onTap: onExportBackup,
               ),
               ImportExportActionRow(
                 icon: Icons.restore_rounded,
-                title: 'Restore from backup',
-                subtitle: 'Merge or replace your vault from a backup',
+                title: l10n.imexRestoreFromBackupTitle,
+                subtitle: l10n.imexRestoreFromBackupSubtitle,
                 enabled: !busy,
                 onTap: onRestoreBackup,
               ),
@@ -78,8 +79,8 @@ class ImportExportHubBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: KeyelSpacing.lg),
-        const KeyelSectionLabel(
-          label: 'Import & export',
+        KeyelSectionLabel(
+          label: l10n.importExportTitle,
           icon: Icons.swap_vert_rounded,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -88,15 +89,15 @@ class ImportExportHubBody extends StatelessWidget {
             children: [
               ImportExportActionRow(
                 icon: Icons.upload_file_rounded,
-                title: 'Import from CSV',
-                subtitle: 'Bitwarden or Chrome password exports',
+                title: l10n.imexImportFromCsvTitle,
+                subtitle: l10n.imexCsvImportSubtitle,
                 enabled: !busy,
                 onTap: onImportCsv,
               ),
               ImportExportActionRow(
                 icon: Icons.file_upload_outlined,
-                title: 'Export as plain CSV',
-                subtitle: 'Unencrypted — for moving to another app',
+                title: l10n.imexExportPlainCsvTitle,
+                subtitle: l10n.imexExportPlainCsvSubtitle,
                 danger: true,
                 enabled: !busy,
                 onTap: onExportCsv,

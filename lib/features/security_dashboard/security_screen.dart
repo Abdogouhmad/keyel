@@ -16,6 +16,7 @@ import 'package:keyel/features/security_dashboard/widgets/vulnerability_audit_se
 import 'package:keyel/features/security_dashboard/widgets/vulnerability_summary.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Security dashboard screen — vault health at a glance.
 class SecurityScreen extends ConsumerWidget {
@@ -26,6 +27,7 @@ class SecurityScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final health = ref.watch(healthProvider);
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -34,16 +36,16 @@ class SecurityScreen extends ConsumerWidget {
         child: Column(
           children: [
             KeyelTopBar(
-              title: 'Security Health',
+              title: l10n.securityTitle,
               icon: Icons.shield_rounded,
               trailing: KeyelIconHull(
                 icon: Icons.lock_rounded,
-                tooltip: 'Lock vault',
+                tooltip: l10n.actionLockVault,
                 onPressed: () {
                   ref.read(vaultSessionProvider.notifier).lock();
                   showKeyelSnack(
                     context,
-                    'Vault locked',
+                    l10n.secVaultLocked,
                     icon: Icons.lock_rounded,
                   );
                 },
@@ -52,15 +54,15 @@ class SecurityScreen extends ConsumerWidget {
             Expanded(
               child: KeyelContent(
                 child: health.when(
-                  loading: () => const KeyelStateMessage(
+                  loading: () => KeyelStateMessage(
                     kind: KeyelStateMessageKind.loading,
-                    message: 'Checking your vault health…',
+                    message: l10n.healthLoading,
                   ),
                   error: (error, _) => KeyelStateMessage(
                     kind: KeyelStateMessageKind.error,
-                    title: 'Could not check vault health',
+                    title: l10n.healthErrorTitle,
                     message: describeVaultError(error),
-                    actionLabel: 'Retry',
+                    actionLabel: l10n.actionRetry,
                     onAction: () => ref.invalidate(healthProvider),
                   ),
                   data: (report) => _Dashboard(

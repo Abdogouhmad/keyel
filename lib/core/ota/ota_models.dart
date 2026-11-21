@@ -1,20 +1,26 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
+
 /// Update release channel.
 enum OtaChannel {
   /// Stable, production-ready releases only.
-  stable('Stable', 'Official verified releases'),
+  stable,
 
   /// Beta releases for testing upcoming features.
-  beta('Beta', 'Pre-release previews with latest features');
+  beta;
 
-  new(this.label, this.description);
+  /// Stable channel identifier, kept exactly as stored in preferences.
+  String get label => switch (this) {
+    OtaChannel.stable => 'Stable',
+    OtaChannel.beta => 'Beta',
+  };
 
-  /// Human-readable label.
-  final String label;
-
-  /// Channel description.
-  final String description;
+  /// Localized description shown under the channel selector.
+  String get description => switch (this) {
+    OtaChannel.stable => currentL10n.otaChannelStableDescription,
+    OtaChannel.beta => currentL10n.otaChannelBetaDescription,
+  };
 }
 
 /// Lifecycle step of the OTA updater.

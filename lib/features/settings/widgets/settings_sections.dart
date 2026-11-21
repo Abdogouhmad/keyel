@@ -10,6 +10,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Appearance section on the settings screen.
 class SettingsAppearanceSection extends StatelessWidget {
@@ -21,11 +22,12 @@ class SettingsAppearanceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const KeyelSectionLabel(
-          label: 'Appearance',
+        KeyelSectionLabel(
+          label: l10n.appearanceTitle,
           icon: Icons.palette_outlined,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -33,7 +35,7 @@ class SettingsAppearanceSection extends StatelessWidget {
           children: [
             SettingsRow(
               icon: Icons.color_lens_outlined,
-              title: 'Appearance & colors',
+              title: l10n.prefAppearanceColorsTitle,
               subtitle:
                   '${KeyelPaletteX.themeModeLabel(appearance.themeMode)} • ${appearance.palette.label}'
                   '${appearance.amoledBlack ? " • AMOLED" : ""}',
@@ -104,13 +106,14 @@ class SettingsSecuritySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
     final unlocked = status == VaultStatus.unlocked;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const KeyelSectionLabel(
-          label: 'Security & Access',
+        KeyelSectionLabel(
+          label: l10n.prefSecurityAccessSection,
           icon: Icons.shield_rounded,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -119,21 +122,21 @@ class SettingsSecuritySection extends StatelessWidget {
             if (unlocked)
               SettingsRow(
                 icon: Icons.lock_outline_rounded,
-                title: 'Lock vault now',
-                subtitle: 'Wipe decryption key from memory immediately',
+                title: l10n.prefLockVaultNow,
+                subtitle: l10n.prefLockVaultSubtitle,
                 onTap: onLockNow,
               ),
             if (unlocked)
               SettingsRow(
                 icon: Icons.password_rounded,
-                title: 'Change master password',
-                subtitle: 'Re-encrypt the vault keyslot with a new master',
+                title: l10n.prefChangeMasterPasswordRow,
+                subtitle: l10n.prefChangeMasterSubtitle,
                 onTap: onChangeMaster,
               ),
             SettingsRow(
               icon: Icons.timer_outlined,
-              title: 'Auto-lock',
-              subtitle: 'Lock the vault after time in the background',
+              title: l10n.autoLockTitle,
+              subtitle: l10n.prefAutoLockSubtitle,
               trailing: Text(
                 autoLockLabel(autoLockDelay),
                 style: TextStyle(
@@ -145,8 +148,8 @@ class SettingsSecuritySection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.fingerprint_rounded,
-              title: 'Biometric unlock',
-              subtitle: 'Fingerprint or face to open the vault',
+              title: l10n.prefBiometricUnlockTitle,
+              subtitle: l10n.prefBiometricUnlockSubtitle,
               trailing: biometricBusy
                   ? const SizedBox(
                       width: 20,
@@ -160,8 +163,8 @@ class SettingsSecuritySection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.content_paste_off_rounded,
-              title: 'Clear clipboard',
-              subtitle: 'Wipe copied secrets from the clipboard',
+              title: l10n.clipboardTitle,
+              subtitle: l10n.prefClipboardSubtitle,
               trailing: Text(
                 clipboardLabel(clipboardSeconds),
                 style: TextStyle(
@@ -173,10 +176,8 @@ class SettingsSecuritySection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.no_photography_rounded,
-              title: 'Screenshot protection',
-              subtitle:
-                  'Block screenshots and Recents previews while the vault '
-                  'is open. Lock screens stay protected either way.',
+              title: l10n.screenshotTitle,
+              subtitle: l10n.prefScreenshotSubtitle,
               trailing: Switch.adaptive(
                 value: screenshotProtection,
                 onChanged: onScreenshotProtectionChanged,
@@ -201,6 +202,10 @@ class SettingsAutofillSection extends StatelessWidget {
     required this.onOpenCredentialProviderSettings,
     required this.onAskToSaveChanged,
     required this.onToggleMatchMode,
+    required this.neverForSitesCount,
+    required this.onManageNeverSites,
+    required this.verifiedOnly,
+    required this.onVerifiedOnlyChanged,
     super.key,
   });
 
@@ -228,17 +233,30 @@ class SettingsAutofillSection extends StatelessWidget {
   /// Toggles between exact and domain match modes.
   final VoidCallback onToggleMatchMode;
 
+  /// Number of permanent "never" choices.
+  final int neverForSitesCount;
+
+  /// Opens the blocked-sites manager.
+  final VoidCallback onManageNeverSites;
+
+  /// Whether only exact package/host matches are offered.
+  final bool verifiedOnly;
+
+  /// Updates the offline verified-only mode.
+  final ValueChanged<bool> onVerifiedOnlyChanged;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
     final enabled = autofillEnabled;
     final passkeysSupported = passkeyProviderSupported;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const KeyelSectionLabel(
-          label: 'Autofill & Passkeys',
+        KeyelSectionLabel(
+          label: l10n.prefAutofillPasskeysSection,
           icon: Icons.auto_awesome_rounded,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -248,12 +266,12 @@ class SettingsAutofillSection extends StatelessWidget {
               icon: enabled == true
                   ? Icons.check_circle_outline_rounded
                   : Icons.app_registration_rounded,
-              title: 'Autofill service',
+              title: l10n.prefAutofillServiceTitle,
               subtitle: enabled == null
-                  ? 'Checking…'
+                  ? l10n.prefCheckingStatus
                   : enabled
-                  ? 'Keyel is your autofill provider'
-                  : 'Tap to enable Keyel as your autofill provider',
+                  ? l10n.prefAutofillEnabledSubtitle
+                  : l10n.prefAutofillDisabledSubtitle,
               trailing: enabled == true
                   ? Icon(Icons.check_circle_rounded, color: scheme.primary)
                   : null,
@@ -261,12 +279,12 @@ class SettingsAutofillSection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.key_rounded,
-              title: 'Passkey provider',
+              title: l10n.prefPasskeyProviderTitle,
               subtitle: passkeysSupported == null
-                  ? 'Checking device support…'
+                  ? l10n.prefCheckingDeviceSupport
                   : passkeysSupported
-                  ? 'Manage Keyel as a passkey provider in system settings'
-                  : 'Not supported on this device or Android version',
+                  ? l10n.prefPasskeySupportedSubtitle
+                  : l10n.prefPasskeyUnsupportedSubtitle,
               trailing: passkeysSupported == false
                   ? Icon(
                       Icons.info_outline_rounded,
@@ -279,8 +297,8 @@ class SettingsAutofillSection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.save_rounded,
-              title: 'Ask to save',
-              subtitle: 'Offer to save new credentials after a login',
+              title: l10n.prefAskToSaveTitle,
+              subtitle: l10n.prefAskToSaveSubtitle,
               trailing: Switch.adaptive(
                 value: askToSave,
                 onChanged: onAskToSaveChanged,
@@ -288,11 +306,29 @@ class SettingsAutofillSection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.language_rounded,
-              title: 'Match mode',
+              title: l10n.prefMatchModeTitle,
               subtitle: matchMode == 'exact'
-                  ? 'Exact host only'
-                  : 'Domain (includes subdomains)',
+                  ? l10n.prefMatchModeExact
+                  : l10n.prefMatchModeDomain,
               onTap: onToggleMatchMode,
+            ),
+            SettingsRow(
+              icon: Icons.verified_user_outlined,
+              title: l10n.autofillVerifiedTitle,
+              subtitle: l10n.autofillVerifiedSubtitle,
+              trailing: Switch.adaptive(
+                value: verifiedOnly,
+                onChanged: onVerifiedOnlyChanged,
+              ),
+            ),
+            SettingsRow(
+              icon: Icons.block_rounded,
+              title: l10n.autofillNeverTitle,
+              subtitle: neverForSitesCount == 0
+                  ? l10n.autofillNeverSubtitle
+                  : l10n.autofillNeverCount(neverForSitesCount),
+              trailing: Text(l10n.actionManage),
+              onTap: onManageNeverSites,
             ),
           ],
         ),
@@ -332,12 +368,13 @@ class SettingsStorageSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const KeyelSectionLabel(
-          label: 'Storage & Diagnostics',
+        KeyelSectionLabel(
+          label: l10n.prefStorageDiagnosticsSection,
           icon: Icons.storage_rounded,
         ),
         const SizedBox(height: KeyelSpacing.sm),
@@ -345,8 +382,8 @@ class SettingsStorageSection extends StatelessWidget {
           children: [
             SettingsRow(
               icon: Icons.cloud_off_rounded,
-              title: 'Offline vault mode',
-              subtitle: 'Zero telemetry, zero cloud synchronisation',
+              title: l10n.prefOfflineVaultTitle,
+              subtitle: l10n.prefOfflineVaultSubtitle,
               trailing: Switch.adaptive(
                 value: offlineOnly,
                 onChanged: onOfflineOnlyChanged,
@@ -354,32 +391,32 @@ class SettingsStorageSection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.cloud_sync_outlined,
-              title: 'Cross-device sync',
-              subtitle: 'Optional E2EE sync through a folder you choose',
+              title: l10n.prefCrossDeviceSyncTitle,
+              subtitle: l10n.prefCrossDeviceSyncSubtitle,
               onTap: () => unawaited(context.push(KeyelRoutes.sync)),
             ),
             SettingsRow(
               icon: Icons.folder_rounded,
-              title: 'Folders',
-              subtitle: 'Create, rename and delete vault folders',
+              title: l10n.foldersTitle,
+              subtitle: l10n.prefFoldersSubtitle,
               onTap: () => unawaited(context.push(KeyelRoutes.folders)),
             ),
             SettingsRow(
               icon: Icons.swap_vert_rounded,
-              title: 'Backup & import',
-              subtitle: 'Encrypted backups and CSV import or export',
+              title: l10n.prefBackupImportTitle,
+              subtitle: l10n.prefBackupImportSubtitle,
               onTap: () => unawaited(context.push(KeyelRoutes.importExport)),
             ),
             SettingsRow(
               icon: Icons.delete_outline_rounded,
-              title: 'Trash',
-              subtitle: 'Restore deleted entries or remove them forever',
+              title: l10n.trashTitle,
+              subtitle: l10n.prefTrashSubtitle,
               onTap: () => unawaited(context.push(KeyelRoutes.trash)),
             ),
             SettingsRow(
               icon: Icons.delete_forever_rounded,
-              title: 'Factory reset vault',
-              subtitle: 'Permanently delete vault file and reset app state',
+              title: l10n.prefFactoryResetVaultTitle,
+              subtitle: l10n.prefFactoryResetVaultSubtitle,
               trailing: const Icon(
                 Icons.chevron_right_rounded,
                 color: Colors.red,
@@ -388,22 +425,22 @@ class SettingsStorageSection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.bug_report_outlined,
-              title: 'Report a problem',
-              subtitle: 'Share a redacted diagnostics file (no secrets)',
+              title: l10n.reportProblem,
+              subtitle: l10n.prefReportProblemSubtitle,
               onTap: onReportProblem,
             ),
             SettingsRow(
               icon: Icons.construction_rounded,
-              title: 'Bridge diagnostics & test suite',
-              subtitle: 'Raw FRB bridge operations and diagnostics',
+              title: l10n.prefBridgeDiagnosticsTitle,
+              subtitle: l10n.prefBridgeDiagnosticsSubtitle,
               onTap: () => unawaited(context.push(KeyelRoutes.debug)),
             ),
             SettingsRow(
               icon: Icons.system_update_rounded,
-              title: 'Software update',
+              title: l10n.prefSoftwareUpdateRowTitle,
               subtitle: otaState.hasUpdate
-                  ? 'Update available (v${otaState.availableRelease!.version})'
-                  : 'Version ${AppInfo.version} • Up to date',
+                  ? l10n.prefUpdateAvailable(otaState.availableRelease!.version)
+                  : l10n.prefVersionUpToDate(AppInfo.version),
               trailing: otaState.hasUpdate
                   ? Container(
                       padding: const EdgeInsets.symmetric(
@@ -415,7 +452,7 @@ class SettingsStorageSection extends StatelessWidget {
                         borderRadius: BorderRadius.circular(KeyelRadii.pill),
                       ),
                       child: Text(
-                        'NEW',
+                        l10n.prefNewBadge,
                         style: textTheme.labelSmall?.copyWith(
                           color: scheme.onTertiaryContainer,
                           fontWeight: FontWeight.bold,
@@ -427,8 +464,8 @@ class SettingsStorageSection extends StatelessWidget {
             ),
             SettingsRow(
               icon: Icons.gavel_rounded,
-              title: 'Open source licenses',
-              subtitle: 'Libraries bundled with this build',
+              title: l10n.prefOpenSourceLicensesTitle,
+              subtitle: l10n.prefOpenSourceLicensesSubtitle,
               onTap: () {
                 showLicensePage(
                   context: context,
@@ -436,6 +473,35 @@ class SettingsStorageSection extends StatelessWidget {
                   applicationVersion: AppInfo.version,
                 );
               },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Opt-in Wear OS TOTP companion entry point.
+class SettingsWatchSection extends StatelessWidget {
+  /// Creates the watch section.
+  const new({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        KeyelSectionLabel(label: l10n.wearTitle, icon: Icons.watch_rounded),
+        const SizedBox(height: KeyelSpacing.sm),
+        SettingsCard(
+          children: [
+            SettingsRow(
+              icon: Icons.password_outlined,
+              title: l10n.wearTitle,
+              subtitle: l10n.wearInfo,
+              trailing: Text(l10n.actionOpen),
+              onTap: () => context.go(KeyelRoutes.watchCodes),
             ),
           ],
         ),

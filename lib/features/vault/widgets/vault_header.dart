@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Vault headline with the offline entry count and optional create button.
 class VaultHeader extends StatelessWidget {
@@ -22,6 +23,7 @@ class VaultHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -32,7 +34,7 @@ class VaultHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Vault',
+                l10n.vaultTitle,
                 style: textTheme.headlineLarge?.copyWith(
                   color: scheme.onSurface,
                   fontSize: 28,
@@ -53,8 +55,7 @@ class VaultHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: KeyelSpacing.sm),
                   Text(
-                    '$entryCount ${entryCount == 1 ? "entry" : "entries"} '
-                    'saved offline',
+                    l10n.vaultEntriesSavedOffline(entryCount),
                     style: textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -68,7 +69,7 @@ class VaultHeader extends StatelessWidget {
           FilledButton.icon(
             onPressed: onNewItem,
             icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('New Item'),
+            label: Text(l10n.vaultNewItem),
           ),
       ],
     );

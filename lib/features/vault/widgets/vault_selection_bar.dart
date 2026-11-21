@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Toolbar that replaces the vault top bar while rows are multi-selected.
 ///
@@ -42,6 +43,7 @@ class VaultSelectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -53,7 +55,7 @@ class VaultSelectionBar extends StatelessWidget {
           children: [
             KeyelIconHull(
               icon: Icons.close_rounded,
-              tooltip: 'Exit selection',
+              tooltip: l10n.vaultExitSelection,
               onPressed: onClose,
               background: scheme.secondaryContainer,
               foreground: scheme.primary,
@@ -62,8 +64,7 @@ class VaultSelectionBar extends StatelessWidget {
             const SizedBox(width: KeyelSpacing.sm + 4),
             Expanded(
               child: Text(
-                '$selectedCount ${selectedCount == 1 ? 'item' : 'items'} '
-                'selected',
+                l10n.vaultItemsSelected(selectedCount),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.headlineSmall?.copyWith(
@@ -76,28 +77,30 @@ class VaultSelectionBar extends StatelessWidget {
               icon: allSelected
                   ? Icons.deselect_rounded
                   : Icons.select_all_rounded,
-              tooltip: allSelected ? 'Clear selection' : 'Select all',
+              tooltip: allSelected
+                  ? l10n.vaultClearSelection
+                  : l10n.vaultSelectAll,
               onPressed: onSelectAll,
               size: 40,
               iconSize: 20,
             ),
             KeyelIconHull(
               icon: Icons.star_rounded,
-              tooltip: 'Toggle favorite',
+              tooltip: l10n.vaultToggleFavorite,
               onPressed: onToggleFavorite,
               size: 40,
               iconSize: 20,
             ),
             KeyelIconHull(
               icon: Icons.drive_file_move_rounded,
-              tooltip: 'Move to folder',
+              tooltip: l10n.vaultMoveToFolder,
               onPressed: onMove,
               size: 40,
               iconSize: 20,
             ),
             KeyelIconHull(
               icon: Icons.delete_outline_rounded,
-              tooltip: 'Delete',
+              tooltip: l10n.actionDelete,
               onPressed: onDelete,
               foreground: scheme.error,
               size: 40,

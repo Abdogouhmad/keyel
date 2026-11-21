@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/onboarding/widgets/step_badge.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// First onboarding frame: the brand hello and a single call to action.
 class WelcomeStep extends StatelessWidget {
@@ -14,6 +15,7 @@ class WelcomeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
@@ -23,7 +25,7 @@ class WelcomeStep extends StatelessWidget {
         OnboardingStepBadge(icon: Icons.key_rounded, color: scheme.primary),
         const SizedBox(height: KeyelSpacing.xl),
         Text(
-          'Welcome to Keyel',
+          l10n.vaultWelcomeToKeyel,
           textAlign: TextAlign.center,
           style: text.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
@@ -33,8 +35,7 @@ class WelcomeStep extends StatelessWidget {
         ),
         const SizedBox(height: KeyelSpacing.sm),
         Text(
-          'Your passwords stay encrypted on this device. There is no account, '
-          'no cloud, and no telemetry.',
+          l10n.vaultWelcomeSubtitle,
           textAlign: TextAlign.center,
           style: text.bodyLarge?.copyWith(
             color: scheme.onSurfaceVariant,
@@ -43,7 +44,7 @@ class WelcomeStep extends StatelessWidget {
         ),
         const SizedBox(height: KeyelSpacing.xl * 1.5),
         KeyelButtonM3(
-          label: 'Get Started',
+          label: l10n.vaultGetStarted,
           icon: Icons.arrow_forward_rounded,
           isFullWidth: true,
           onPressed: onGetStarted,

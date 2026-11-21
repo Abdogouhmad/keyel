@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A live, non-interactive preview of the selected palette, mode and dark
 /// surfaces.
@@ -18,6 +19,7 @@ class AppearancePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final platformBrightness = MediaQuery.platformBrightnessOf(context);
     final previewTheme = switch (appearance.themeMode) {
       ThemeMode.light => appearance.lightTheme,
@@ -31,7 +33,10 @@ class AppearancePreview extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: 'Theme preview: ${appearance.palette.label}, $modeLabel mode.',
+      label: l10n.prefThemePreviewSemantics(
+        appearance.palette.label,
+        modeLabel,
+      ),
       child: Theme(
         data: previewTheme,
         child: Builder(
@@ -58,7 +63,7 @@ class AppearancePreview extends StatelessWidget {
                       const SizedBox(width: KeyelSpacing.sm),
                       Expanded(
                         child: Text(
-                          'Live preview',
+                          l10n.prefLivePreview,
                           style: textTheme.titleSmall?.copyWith(
                             color: scheme.onSurface,
                             fontWeight: FontWeight.w700,
@@ -114,7 +119,7 @@ class AppearancePreview extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Example login',
+                                l10n.prefExampleLogin,
                                 style: textTheme.bodyMedium?.copyWith(
                                   color: scheme.onSurface,
                                   fontWeight: FontWeight.w600,
@@ -131,7 +136,7 @@ class AppearancePreview extends StatelessWidget {
                         ),
                         const SizedBox(width: KeyelSpacing.xs),
                         KeyelBadge(
-                          label: 'LOGIN',
+                          label: l10n.prefLoginBadge,
                           compact: true,
                           background: scheme.tertiaryContainer,
                           foreground: scheme.onTertiaryContainer,
@@ -142,15 +147,15 @@ class AppearancePreview extends StatelessWidget {
                   const SizedBox(height: KeyelSpacing.sm),
                   const KeyelRule(),
                   const SizedBox(height: KeyelSpacing.sm),
-                  const KeyelPillButton(
-                    label: 'Copy password',
+                  KeyelPillButton(
+                    label: l10n.prefCopyPasswordLabel,
                     icon: Icons.copy_rounded,
                     height: 40,
                     expand: false,
                   ),
                   const SizedBox(height: KeyelSpacing.sm),
                   Text(
-                    'Changes apply instantly across Keyel.',
+                    l10n.prefAppearanceChangesInstant,
                     style: textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),

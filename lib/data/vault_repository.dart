@@ -145,10 +145,12 @@ class VaultRepository {
     String? package,
     String? webDomain,
     String query = '',
+    bool requireVerified = false,
   }) => autofill_api.findAutofillMatches(
     package: package,
     webDomain: webDomain,
     query: query,
+    requireVerified: requireVerified,
   );
 
   /// Parse an import file and report its contents without changing anything.

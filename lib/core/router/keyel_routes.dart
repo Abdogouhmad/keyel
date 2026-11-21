@@ -18,6 +18,9 @@ abstract final class KeyelRoutes {
   /// Opt-in cross-device sync settings.
   static const sync = '/settings/sync';
 
+  /// Opt-in Wear OS TOTP seed transfer.
+  static const watchCodes = '/settings/watch';
+
   /// Over-the-air software update screen.
   static const softwareUpdate = '/settings/update';
 

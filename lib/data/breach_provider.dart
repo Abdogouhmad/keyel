@@ -7,6 +7,7 @@ import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/src/rust/api/error.dart';
 import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Lifecycle of one manual breach check.
 enum BreachCheckStatus {
@@ -144,8 +145,8 @@ class BreachCheckNotifier extends Notifier<BreachCheckState> {
         error: switch (error) {
           VaultApiError() => describeVaultError(error),
           ArgumentError() ||
-          HttpException() => 'Could not reach the breach service.',
-          _ => 'Breach check failed. Please try again.',
+          HttpException() => currentL10n.coreBreachUnreachable,
+          _ => currentL10n.coreBreachCheckFailed,
         },
       );
     }

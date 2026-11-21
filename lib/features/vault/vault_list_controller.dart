@@ -10,6 +10,7 @@ import 'package:keyel/features/vault/vault_list_callbacks.dart';
 import 'package:keyel/features/vault/widgets/vault_filter.dart';
 import 'package:keyel/features/vault/widgets/vault_folder_bar.dart';
 import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Owns the vault list loading, search/filter state and multi-row selection.
 class VaultListController extends ChangeNotifier {
@@ -270,8 +271,9 @@ class VaultListController extends ChangeNotifier {
       }
       await load();
       callbacks.notify(
-        '${targets.length} ${targets.length == 1 ? 'item' : 'items'} '
-        '${makeFavorite ? 'pinned to favorites' : 'removed from favorites'}',
+        makeFavorite
+            ? currentL10n.vaultItemsPinnedToFavorites(targets.length)
+            : currentL10n.vaultItemsRemovedFromFavorites(targets.length),
         icon: makeFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
       );
     } on Object catch (error) {
@@ -291,8 +293,10 @@ class VaultListController extends ChangeNotifier {
       clearSelection();
       await load();
       callbacks.notify(
-        'Moved ${ids.length} ${ids.length == 1 ? 'item' : 'items'} '
-        'to ${_folderLabel(selection.id)}',
+        currentL10n.vaultMovedItemsToFolder(
+          ids.length,
+          _folderLabel(selection.id),
+        ),
         icon: Icons.drive_file_move_rounded,
       );
     } on Object catch (error) {
@@ -317,8 +321,7 @@ class VaultListController extends ChangeNotifier {
       clearSelection();
       await load();
       callbacks.notify(
-        '${ids.length} ${ids.length == 1 ? 'item' : 'items'} '
-        'moved to trash',
+        currentL10n.vaultItemsMovedToTrash(ids.length),
         icon: Icons.delete_outline_rounded,
       );
     } on Object catch (error) {
@@ -340,13 +343,14 @@ class VaultListController extends ChangeNotifier {
             if (secret.isNotEmpty) {
               callbacks.copy(
                 secret,
-                'Password copied${SensitiveClipboard.instance.clearHint}',
+                '${currentL10n.vaultCopiedPassword}'
+                '${SensitiveClipboard.instance.clearHint}',
               );
               return;
             }
           }
           if (entry.username.isNotEmpty) {
-            callbacks.copy(entry.username, 'Username copied to clipboard');
+            callbacks.copy(entry.username, currentL10n.vaultCopiedUsername);
             return;
           }
         case VaultEntryKind.card:
@@ -357,7 +361,7 @@ class VaultListController extends ChangeNotifier {
               SecretFieldDto.cardNumber,
             );
             if (number.isNotEmpty) {
-              callbacks.copy(number, 'Card number copied to clipboard');
+              callbacks.copy(number, currentL10n.vaultCopiedCardNumber);
               return;
             }
           }
@@ -365,7 +369,10 @@ class VaultListController extends ChangeNotifier {
         case VaultEntryKind.passkey:
           break;
       }
-      callbacks.notify('Nothing to copy', icon: Icons.info_outline_rounded);
+      callbacks.notify(
+        currentL10n.vaultNothingToCopy,
+        icon: Icons.info_outline_rounded,
+      );
     } on Object catch (error) {
       callbacks.notifyError(error);
     }
@@ -379,10 +386,10 @@ class VaultListController extends ChangeNotifier {
       await load();
       callbacks.notify(
         makeFavorite
-            ? '${entry.title} pinned to favorites'
-            : '${entry.title} removed from favorites',
+            ? currentL10n.vaultEntryPinnedToFavorites(entry.title)
+            : currentL10n.vaultEntryRemovedFromFavorites(entry.title),
         icon: makeFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-        actionLabel: 'Undo',
+        actionLabel: currentL10n.vaultUndo,
         onAction: () {
           unawaited(
             repository
@@ -397,10 +404,10 @@ class VaultListController extends ChangeNotifier {
   }
 
   String _folderLabel(String? folderId) {
-    if (folderId == null) return 'No folder';
+    if (folderId == null) return currentL10n.vaultNoFolder;
     for (final folder in _folders) {
       if (folder.id == folderId) return folder.name;
     }
-    return 'folder';
+    return currentL10n.vaultFolder;
   }
 }

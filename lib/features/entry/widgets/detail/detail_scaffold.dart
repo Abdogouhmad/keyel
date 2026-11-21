@@ -5,6 +5,7 @@ import 'package:keyel/features/entry/widgets/detail/detail_bar.dart';
 import 'package:keyel/features/entry/widgets/detail/detail_content.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Scaffold chrome around the entry detail body.
 ///
@@ -154,6 +155,7 @@ class _DetailEditBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return SafeArea(
       top: false,
       child: Container(
@@ -166,10 +168,10 @@ class _DetailEditBar extends StatelessWidget {
         ),
         child: KeyelPillButton(
           label: switch (kind) {
-            VaultEntryKind.card => 'Edit card',
-            VaultEntryKind.note => 'Edit note',
-            VaultEntryKind.login => 'Edit login',
-            VaultEntryKind.passkey => 'Edit passkey',
+            VaultEntryKind.card => l10n.entryEditCard,
+            VaultEntryKind.note => l10n.entryEditNote,
+            VaultEntryKind.login => l10n.entryEditLogin,
+            VaultEntryKind.passkey => l10n.entryEditPasskey,
           },
           icon: Icons.edit_rounded,
           tone: KeyelButtonTone.tonal,

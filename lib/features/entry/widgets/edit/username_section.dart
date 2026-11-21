@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Username field with an example suggestion chip for login entries.
 class UsernameSection extends StatelessWidget {
@@ -18,6 +19,7 @@ class UsernameSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return EditSection(
       child: Column(
@@ -26,8 +28,8 @@ class UsernameSection extends StatelessWidget {
           TextField(
             controller: controller,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Username or email',
+            decoration: InputDecoration(
+              labelText: l10n.entryUsernameOrEmail,
               hintText: 'username@domain.com',
             ),
           ),
@@ -35,7 +37,7 @@ class UsernameSection extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Suggestion:',
+                l10n.entrySuggestion,
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -44,7 +46,7 @@ class UsernameSection extends StatelessWidget {
               PressableScale(
                 onTap: onSuggestion,
                 borderRadius: BorderRadius.circular(KeyelRadii.pill),
-                semanticLabel: 'Use suggested email',
+                semanticLabel: l10n.entryUseSuggestedEmail,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: KeyelSpacing.sm + 2,

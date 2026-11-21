@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
+
 /// Platform bridge for Android package installation and permissions.
 class OtaPlatform {
   /// Default constructor.
@@ -40,9 +42,9 @@ class OtaPlatform {
       });
       return res ?? false;
     } on PlatformException catch (e) {
-      throw StateError(e.message ?? 'Package installer could not be opened');
+      throw StateError(e.message ?? currentL10n.otaInstallerUnavailable);
     } on MissingPluginException {
-      throw UnsupportedError('Package installer is only supported on Android');
+      throw UnsupportedError(currentL10n.otaAndroidOnly);
     }
   }
 }

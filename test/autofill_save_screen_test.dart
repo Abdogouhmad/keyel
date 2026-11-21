@@ -38,6 +38,7 @@ Widget _host(
   String password = 'correct horse battery staple',
   VoidCallback? onSaved,
   VoidCallback? onDecline,
+  VoidCallback? onNeverForSite,
 }) => ProviderScope(
   overrides: [vaultRepositoryProvider.overrideWithValue(repository)],
   child: MaterialApp(
@@ -49,6 +50,7 @@ Widget _host(
       password: password,
       onSaved: onSaved,
       onDecline: onDecline,
+      onNeverForSite: onNeverForSite,
     ),
   ),
 );
@@ -168,5 +170,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('never-for-site declines without writing a login', (
+    tester,
+  ) async {
+    final repository = _FakeRepository();
+    var neverCalled = false;
+    await tester.pumpWidget(
+      _host(
+        repository,
+        webDomain: 'www.example.com',
+        onNeverForSite: () => neverCalled = true,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Never for this site'));
+    await tester.pumpAndSettle();
+
+    expect(neverCalled, isTrue);
+    expect(repository.lastDraft, isNull);
   });
 }

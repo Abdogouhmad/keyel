@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/ota/ota_provider.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// Global top banner announcing a newly discovered update.
@@ -23,6 +24,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(otaProvider);
+    final l10n = l10nOf(context);
     final release = state.availableRelease;
     final visible =
         state.hasUpdate &&
@@ -44,9 +46,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
                     child: Semantics(
                       container: true,
                       button: true,
-                      label:
-                          'Update available: Keyel ${release.version}. '
-                          'Open software update.',
+                      label: l10n.otaBannerSemantics(release.version),
                       child: InkWell(
                         onTap: onOpen,
                         child: Padding(
@@ -69,7 +69,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'Update available',
+                                      l10n.otaUpdateAvailableTitle,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: Theme.of(context)
@@ -83,8 +83,10 @@ class UpdateAvailableBanner extends ConsumerWidget {
                                           ),
                                     ),
                                     Text(
-                                      'Keyel v${release.version} • '
-                                      '${state.channel.label} channel',
+                                      l10n.otaAvailableSubtitle(
+                                        release.version,
+                                        state.channel.label,
+                                      ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: Theme.of(context)
@@ -103,7 +105,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
                                 // Dismissing is a separate action, so a screen
                                 // reader does not treat the whole banner as the
                                 // only way to act.
-                                tooltip: 'Dismiss update banner',
+                                tooltip: l10n.otaDismissBanner,
                                 icon: const Icon(Icons.close_rounded),
                                 color: Theme.of(context)
                                     .colorScheme

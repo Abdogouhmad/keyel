@@ -63,6 +63,13 @@ pub struct MatchTarget {
     pub package: Option<String>,
     /// Web domain reported by the autofill framework, if any.
     pub web_domain: Option<String>,
+    /// Only return exact package/host matches.
+    ///
+    /// This is the offline, fail-closed substitute for Digital Asset Links
+    /// verification: when enabled, same-site and text-search hits are dropped
+    /// because their identity cannot be proven locally. No network lookup is
+    /// performed, so the vault stays fully offline.
+    pub require_verified: bool,
 }
 
 impl MatchTarget {
@@ -152,6 +159,12 @@ pub fn find_matches(vault: &Vault, target: &MatchTarget, query: &str) -> Vec<Aut
                 MatchQuality::Search,
             );
         }
+    }
+
+    if target.require_verified {
+        // Offline DAL substitute: only identities that can be proven locally
+        // are allowed. Never fall back to heuristics in this mode.
+        return exact;
     }
 
     exact.extend(same_site);
@@ -371,6 +384,7 @@ mod tests {
         let target = MatchTarget {
             package: None,
             web_domain: Some("example.com".into()),
+            ..Default::default()
         };
         let matches = find_matches(&vault, &target, "");
         assert_eq!(matches.len(), 1);
@@ -384,6 +398,7 @@ mod tests {
         let target = MatchTarget {
             package: None,
             web_domain: Some("example.com".into()),
+            ..Default::default()
         };
         let matches = find_matches(&vault, &target, "");
         assert_eq!(matches.len(), 1);
@@ -400,6 +415,7 @@ mod tests {
         let target = MatchTarget {
             package: None,
             web_domain: Some("paypal.com".into()),
+            ..Default::default()
         };
         let matches = find_matches(&vault, &target, "");
         assert_eq!(matches.len(), 1);
@@ -412,6 +428,7 @@ mod tests {
         let target = MatchTarget {
             package: None,
             web_domain: Some("evil.co.uk".into()),
+            ..Default::default()
         };
         assert!(find_matches(&vault, &target, "").is_empty());
     }
@@ -425,6 +442,7 @@ mod tests {
         let target = MatchTarget {
             package: Some("com.example.app".into()),
             web_domain: None,
+            ..Default::default()
         };
         let matches = find_matches(&vault, &target, "");
         assert_eq!(matches.len(), 1);
@@ -438,6 +456,7 @@ mod tests {
         let target = MatchTarget {
             package: Some("com.example.app".into()),
             web_domain: None,
+            ..Default::default()
         };
         assert!(find_matches(&vault, &target, "").is_empty());
     }
@@ -448,6 +467,7 @@ mod tests {
         let target = MatchTarget {
             package: Some("com.evil".into()),
             web_domain: Some("victim.com".into()),
+            ..Default::default()
         };
         assert!(find_matches(&vault, &target, "").is_empty());
 
@@ -468,6 +488,7 @@ mod tests {
             let target = MatchTarget {
                 package: Some(package.into()),
                 web_domain: Some("victim.com".into()),
+                ..Default::default()
             };
             let matches = find_matches(&vault, &target, "");
             assert_eq!(matches.len(), 1, "package: {package}");
@@ -481,6 +502,7 @@ mod tests {
         let target = MatchTarget {
             package: Some("com.evil".into()),
             web_domain: Some("victim.com".into()),
+            ..Default::default()
         };
         let matches = find_matches(&vault, &target, "");
         assert_eq!(matches.len(), 1);
@@ -496,6 +518,7 @@ mod tests {
         let target = MatchTarget {
             package: None,
             web_domain: Some("example.com".into()),
+            ..Default::default()
         };
         let matches = find_matches(&vault, &target, "unrelated");
         assert_eq!(matches.len(), 2);
@@ -519,6 +542,24 @@ mod tests {
     }
 
     #[test]
+    fn verified_mode_drops_same_site_and_search_hits() {
+        let vault = vault_with(vec![
+            login("Exact", "ada", "https://login.example.com"),
+            login("Related", "bob", "https://other.example.com"),
+            login("Unrelated", " eve ", "https://unrelated.test"),
+        ]);
+        let target = MatchTarget {
+            package: None,
+            web_domain: Some("login.example.com".into()),
+            require_verified: true,
+        };
+        let matches = find_matches(&vault, &target, "unrelated");
+        assert_eq!(matches.len(), 1, "only the exact host is allowed");
+        assert_eq!(matches[0].summary.title, "Exact");
+        assert_eq!(matches[0].quality, MatchQuality::Exact);
+    }
+
+    #[test]
     fn trashed_and_non_login_entries_are_ignored() {
         let mut trashed = login("Gone", "ada", "https://example.com");
         trashed.deleted_at = Some(1);
@@ -529,6 +570,7 @@ mod tests {
         let target = MatchTarget {
             package: None,
             web_domain: Some("example.com".into()),
+            ..Default::default()
         };
         assert!(find_matches(&vault, &target, "note").is_empty());
     }

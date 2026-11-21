@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Fallback shown when an entry id does not resolve in the vault.
 class MissingEntry extends StatelessWidget {
@@ -13,6 +14,7 @@ class MissingEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
@@ -20,17 +22,17 @@ class MissingEntry extends StatelessWidget {
         child: Column(
           children: [
             KeyelTopBar(
-              title: 'Item not found',
+              title: l10n.entryItemNotFound,
               icon: Icons.arrow_back_rounded,
-              iconTooltip: 'Back',
+              iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
             ),
             const SizedBox(height: KeyelSpacing.lg),
             Expanded(
               child: KeyelStateMessage(
                 kind: KeyelStateMessageKind.empty,
-                message: 'No entry with ID "$entryId" exists.',
-                actionLabel: 'Go back',
+                message: l10n.entryMissingMessage(entryId),
+                actionLabel: l10n.entryGoBack,
                 actionIcon: Icons.arrow_back_rounded,
                 onAction: () => context.pop(),
               ),
