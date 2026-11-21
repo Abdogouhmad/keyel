@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 /// A secured text field for passwords, passphrases and recovery keys.
@@ -89,6 +90,7 @@ class _KeyelPasswordFieldState extends State<KeyelPasswordField> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
@@ -120,7 +122,7 @@ class _KeyelPasswordFieldState extends State<KeyelPasswordField> {
                   : Icons.visibility_outlined,
               size: 22,
             ),
-            tooltip: _obscure ? 'Show password' : 'Hide password',
+            tooltip: _obscure ? l10n.entryShowPassword : l10n.entryHidePassword,
           ),
         ),
       ),

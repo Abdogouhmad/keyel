@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Card number, expiry and cardholder fields for card entries.
 class CardSection extends StatelessWidget {
@@ -25,13 +26,14 @@ class CardSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return EditSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Card details',
+            l10n.entryCardDetails,
             style: Theme.of(context).textTheme.titleSmall
                 ?.copyWith(color: scheme.onSurface),
           ),
@@ -40,8 +42,8 @@ class CardSection extends StatelessWidget {
             controller: numberController,
             keyboardType: TextInputType.number,
             style: KeyelTheme.mono(context, fontSize: 16),
-            decoration: const InputDecoration(
-              labelText: 'Card number',
+            decoration: InputDecoration(
+              labelText: l10n.entryCardNumber,
               hintText: '0000 0000 0000 0000',
             ),
           ),
@@ -52,8 +54,8 @@ class CardSection extends StatelessWidget {
                 child: TextField(
                   controller: expiryController,
                   style: KeyelTheme.mono(context),
-                  decoration: const InputDecoration(
-                    labelText: 'Expiry',
+                  decoration: InputDecoration(
+                    labelText: l10n.entryExpiry,
                     hintText: 'MM/YY',
                   ),
                 ),
@@ -64,7 +66,7 @@ class CardSection extends StatelessWidget {
                 child: TextField(
                   controller: cardholderController,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(labelText: 'Cardholder'),
+                  decoration: InputDecoration(labelText: l10n.entryCardholder),
                 ),
               ),
             ],

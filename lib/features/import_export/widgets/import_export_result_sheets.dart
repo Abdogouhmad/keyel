@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/import_export/widgets/import_export_sheet_parts.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 // ---------------------------------------------------------------------------
 // Import report
@@ -23,6 +24,7 @@ class ImportReportSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -38,7 +40,7 @@ class ImportReportSheet extends StatelessWidget {
             SheetHeader(
               icon: Icons.check_circle_rounded,
               title: title,
-              subtitle: 'Here is what changed in your vault.',
+              subtitle: l10n.imexReportSubtitle,
             ),
             const SizedBox(height: KeyelSpacing.lg),
             KeyelSectionCard(
@@ -47,24 +49,24 @@ class ImportReportSheet extends StatelessWidget {
                 children: [
                   CountRow(
                     icon: Icons.add_circle_outline_rounded,
-                    label: 'Added',
+                    label: l10n.imexAddedLabel,
                     count: report.added,
                   ),
                   CountRow(
                     icon: Icons.skip_next_rounded,
-                    label: 'Already present',
+                    label: l10n.imexAlreadyPresentLabel,
                     count: report.skipped,
                   ),
                   if (report.foldersAdded > 0)
                     CountRow(
                       icon: Icons.folder_rounded,
-                      label: 'Folders created',
+                      label: l10n.imexFoldersCreatedLabel,
                       count: report.foldersAdded,
                     ),
                   if (report.failed > 0)
                     CountRow(
                       icon: Icons.error_outline_rounded,
-                      label: 'Failed rows',
+                      label: l10n.imexFailedRowsLabel,
                       count: report.failed,
                       danger: true,
                     ),
@@ -77,13 +79,13 @@ class ImportReportSheet extends StatelessWidget {
             ],
             const SizedBox(height: KeyelSpacing.lg),
             KeyelPillButton(
-              label: 'Done',
+              label: l10n.actionDone,
               tone: KeyelButtonTone.neutral,
               onPressed: () => Navigator.of(context).pop(),
             ),
             const SizedBox(height: KeyelSpacing.sm),
             Text(
-              'Your vault has been saved.',
+              l10n.imexVaultSaved,
               textAlign: TextAlign.center,
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -123,6 +125,7 @@ class ExportSuccessSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -157,8 +160,7 @@ class ExportSuccessSheet extends StatelessWidget {
                     const SizedBox(width: KeyelSpacing.sm),
                     Expanded(
                       child: Text(
-                        'This file is not encrypted. Delete it as soon as you '
-                        'are done.',
+                        l10n.imexUnencryptedWarning,
                         style: textTheme.bodySmall?.copyWith(
                           color: scheme.onErrorContainer,
                         ),
@@ -170,13 +172,13 @@ class ExportSuccessSheet extends StatelessWidget {
             ],
             const SizedBox(height: KeyelSpacing.lg),
             KeyelPillButton(
-              label: 'Share',
+              label: l10n.actionShare,
               icon: Icons.ios_share_rounded,
               onPressed: () => Navigator.of(context).pop(true),
             ),
             const SizedBox(height: KeyelSpacing.sm),
             KeyelPillButton(
-              label: 'Close',
+              label: l10n.actionClose,
               tone: KeyelButtonTone.neutral,
               height: 48,
               onPressed: () => Navigator.of(context).pop(false),

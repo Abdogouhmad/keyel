@@ -7,6 +7,7 @@ import 'package:keyel/data/breach_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/security_dashboard/widgets/audit_surface.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Audit row for the opt-in HIBP breach check.
 ///
@@ -21,6 +22,7 @@ class BreachCheckRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final enabled = ref.watch(breachOptInProvider);
     final check = ref.watch(breachCheckProvider);
     final unlocked =
@@ -69,13 +71,13 @@ class BreachCheckRow extends ConsumerWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          'Breach check',
+                          l10n.secBreachCheck,
                           style: textTheme.titleSmall?.copyWith(
                             color: scheme.onSurface,
                           ),
                         ),
                         KeyelBadge(
-                          label: _badge(enabled, check),
+                          label: _badge(context, enabled, check),
                           compact: true,
                           background: scheme.strongContainer,
                           foreground: scheme.onStrongContainer,
@@ -85,12 +87,8 @@ class BreachCheckRow extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       enabled
-                          ? 'Only the first 5 characters of a SHA-1 hash are '
-                                'sent over HTTPS when you tap Check now. '
-                                'Passwords and vault data never leave this device.'
-                          : 'Optional: check saved passwords against known '
-                                'breaches. Nothing is sent unless you turn this '
-                                'on and tap Check now.',
+                          ? l10n.secBreachEnabledNotice
+                          : l10n.secBreachDisabledNotice,
                       style: textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                         height: 1.35,
@@ -107,14 +105,14 @@ class BreachCheckRow extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Enable breach check',
+                    l10n.secEnableBreachCheck,
                     style: textTheme.labelLarge?.copyWith(
                       color: scheme.onSurface,
                     ),
                   ),
                 ),
                 Semantics(
-                  label: 'Enable breach check',
+                  label: l10n.secEnableBreachCheck,
                   child: Switch.adaptive(
                     value: false,
                     onChanged: (value) {
@@ -149,8 +147,8 @@ class BreachCheckRow extends ConsumerWidget {
                       : const Icon(Icons.search_rounded),
                   label: Text(
                     check.status == BreachCheckStatus.running
-                        ? 'Checking…'
-                        : 'Check now',
+                        ? l10n.secChecking
+                        : l10n.secCheckNow,
                   ),
                 ),
                 TextButton.icon(
@@ -158,7 +156,7 @@ class BreachCheckRow extends ConsumerWidget {
                     ref.read(breachOptInProvider.notifier).set(enabled: false),
                   ),
                   icon: const Icon(Icons.toggle_off_outlined),
-                  label: const Text('Turn off'),
+                  label: Text(l10n.secTurnOff),
                 ),
               ],
             ),
@@ -166,7 +164,7 @@ class BreachCheckRow extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: KeyelSpacing.xs),
               child: Text(
-                'Unlock the vault to check.',
+                l10n.secUnlockToCheck,
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -178,38 +176,36 @@ class BreachCheckRow extends ConsumerWidget {
     );
   }
 
-  String _badge(bool enabled, BreachCheckState check) {
-    if (!enabled) return 'Off';
+  String _badge(BuildContext context, bool enabled, BreachCheckState check) {
+    final l10n = l10nOf(context);
+    if (!enabled) return l10n.secOff;
     return switch (check.status) {
-      BreachCheckStatus.running => 'Checking',
-      BreachCheckStatus.failed => 'Error',
+      BreachCheckStatus.running => l10n.secBadgeChecking,
+      BreachCheckStatus.failed => l10n.secError,
       BreachCheckStatus.done when check.report?.matches.isEmpty ?? false =>
-        'Clear',
-      BreachCheckStatus.done when check.report != null =>
-        '${check.report!.matches.length} found',
-      _ => 'Ready',
+        l10n.actionClear,
+      BreachCheckStatus.done when check.report != null => l10n.secFoundCount(
+        check.report!.matches.length,
+      ),
+      _ => l10n.secReady,
     };
   }
 
   Future<void> _confirmEnable(BuildContext context, WidgetRef ref) async {
+    final l10n = l10nOf(context);
     final accepted = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Send hash prefixes to HIBP?'),
-        content: const Text(
-          'Keyel computes a SHA-1 hash of each saved password on this device '
-          'and sends only the first 5 characters to Have I Been Pwned over '
-          'HTTPS. Your passwords, usernames and vault are never sent. Checks '
-          'run only when you tap Check now, and you can turn this off anytime.',
-        ),
+        title: Text(l10n.secSendHashDialogTitle),
+        content: Text(l10n.secSendHashDialogBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Turn on'),
+            child: Text(l10n.secTurnOn),
           ),
         ],
       ),
@@ -229,6 +225,7 @@ class _Result extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     if (check.status == BreachCheckStatus.failed) {
       return Padding(
@@ -237,13 +234,13 @@ class _Result extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              check.error ?? 'Breach check failed.',
+              check.error ?? l10n.secBreachCheckFailed,
               style: textTheme.bodySmall?.copyWith(color: scheme.error),
             ),
             TextButton(
               onPressed: () =>
                   unawaited(ref.read(breachCheckProvider.notifier).run()),
-              child: const Text('Retry'),
+              child: Text(l10n.actionRetry),
             ),
           ],
         ),
@@ -263,16 +260,18 @@ class _Result extends ConsumerWidget {
         children: [
           Text(
             matches.isEmpty
-                ? 'No exposed passwords found.'
-                : '${matches.length} saved password'
-                      '${matches.length == 1 ? '' : 's'} found in breaches:',
+                ? l10n.secNoExposedPasswords
+                : l10n.secSavedPasswordsFound(matches.length),
             style: textTheme.bodyMedium?.copyWith(color: scheme.onSurface),
           ),
           for (final match in matches.take(3))
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                '${match.entryTitle} · ${match.count} exposures',
+                l10n.secExposures(
+                  match.entryTitle,
+                  l10n.secExposureCount(match.count),
+                ),
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -282,7 +281,7 @@ class _Result extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                '+ ${matches.length - 3} more',
+                l10n.secMoreMatches(matches.length - 3),
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -290,10 +289,10 @@ class _Result extends ConsumerWidget {
             ),
           const SizedBox(height: 4),
           Text(
-            'Checked ${report.checkedCount} '
-            '${report.checkedCount == 1 ? 'password' : 'passwords'} across '
-            '${report.queriedPrefixes} '
-            '${report.queriedPrefixes == 1 ? 'prefix' : 'prefixes'}.',
+            l10n.secCheckedSummary(
+              l10n.secPasswordCount(report.checkedCount),
+              l10n.secPrefixCount(report.queriedPrefixes),
+            ),
             style: textTheme.labelSmall?.copyWith(color: scheme.outline),
           ),
         ],

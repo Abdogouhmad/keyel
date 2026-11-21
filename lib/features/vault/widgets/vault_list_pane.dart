@@ -13,6 +13,7 @@ import 'package:keyel/features/vault/widgets/vault_header.dart';
 import 'package:keyel/features/vault/widgets/vault_search_bar.dart';
 import 'package:keyel/features/vault/widgets/vault_selection_bar.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// The scrollable vault list shown when the session is unlocked.
 class VaultListPane extends StatelessWidget {
@@ -47,6 +48,7 @@ class VaultListPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final entries = controller.entries;
     final isWide = _isWide(context);
     final favorites = entries.where((e) => e.favorite).toList();
@@ -82,11 +84,11 @@ class VaultListPane extends StatelessWidget {
                   onDelete: () => unawaited(controller.deleteSelection()),
                 )
               : KeyelTopBar(
-                  title: 'Keyel Vault',
+                  title: l10n.vaultTopBarTitle,
                   icon: Icons.shield_rounded,
                   trailing: KeyelIconHull(
                     icon: Icons.lock_rounded,
-                    tooltip: 'Lock vault',
+                    tooltip: l10n.actionLockVault,
                     onPressed: onLock,
                   ),
                 ),
@@ -136,11 +138,11 @@ class VaultListPane extends StatelessWidget {
         ),
         const SliverToBoxAdapter(child: SizedBox(height: KeyelSpacing.lg)),
         if (controller.loading)
-          const SliverFillRemaining(
+          SliverFillRemaining(
             hasScrollBody: false,
             child: KeyelStateMessage(
               kind: KeyelStateMessageKind.loading,
-              message: 'Loading your vault…',
+              message: l10n.vaultLoadingList,
             ),
           )
         else if (controller.loadError != null)
@@ -149,7 +151,7 @@ class VaultListPane extends StatelessWidget {
             child: KeyelStateMessage(
               kind: KeyelStateMessageKind.error,
               message: controller.loadError!,
-              actionLabel: 'Retry',
+              actionLabel: l10n.actionRetry,
               onAction: () => unawaited(controller.load()),
             ),
           )
@@ -165,7 +167,7 @@ class VaultListPane extends StatelessWidget {
         else if (controller.query.trim().isNotEmpty)
           VaultEntrySection(
             config: config,
-            title: 'Results',
+            title: l10n.vaultResults,
             count: entries.length,
             entries: entries,
           )
@@ -173,7 +175,7 @@ class VaultListPane extends StatelessWidget {
           if (favorites.isNotEmpty)
             VaultEntrySection(
               config: config,
-              title: 'Favorites',
+              title: l10n.vaultFilterFavorites,
               count: favorites.length,
               entries: favorites,
               icon: Icons.star_rounded,

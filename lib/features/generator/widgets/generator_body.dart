@@ -8,6 +8,7 @@ import 'package:keyel/features/generator/widgets/passphrase_rules.dart';
 import 'package:keyel/features/generator/widgets/passphrase_tip.dart';
 import 'package:keyel/features/generator/widgets/password_config.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Mode of generation: password or passphrase.
 enum GeneratorMode {
@@ -143,6 +144,8 @@ class GeneratorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
+
     return Expanded(
       child: KeyelContent(
         maxWidth: KeyelContentWidth.form,
@@ -157,14 +160,14 @@ class GeneratorBody extends StatelessWidget {
             KeyelSegmentedControl<GeneratorMode>(
               selected: mode,
               onChanged: onModeChanged,
-              options: const [
+              options: [
                 KeyelSegmentOption(
                   value: GeneratorMode.password,
-                  label: 'Password',
+                  label: l10n.genPassword,
                 ),
                 KeyelSegmentOption(
                   value: GeneratorMode.passphrase,
-                  label: 'Passphrase',
+                  label: l10n.genPassphrase,
                 ),
               ],
             ),
@@ -222,8 +225,8 @@ class GeneratorBody extends StatelessWidget {
             const SizedBox(height: KeyelSpacing.lg),
             KeyelPillButton(
               label: mode == GeneratorMode.password
-                  ? 'Use this password'
-                  : 'Use this passphrase',
+                  ? l10n.genUsePassword
+                  : l10n.genUsePassphrase,
               icon: Icons.check_rounded,
               onPressed: onCopy,
             ),

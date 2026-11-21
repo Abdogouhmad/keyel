@@ -4,6 +4,7 @@ import 'package:keyel/features/vault/widgets/vault_copy_button.dart';
 import 'package:keyel/features/vault/widgets/vault_favorite_button.dart';
 import 'package:keyel/features/vault/widgets/vault_row_details.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Interactive row representing a single vault entry.
 class VaultRow extends StatelessWidget {
@@ -46,6 +47,7 @@ class VaultRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final highlighted = isSelected || (selectionActive && isMarked);
 
@@ -61,8 +63,8 @@ class VaultRow extends StatelessWidget {
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(KeyelRadii.tile),
       semanticLabel: selectionActive
-          ? 'Select ${entry.title}'
-          : 'Open ${entry.title}',
+          ? l10n.vaultSelectEntry(entry.title)
+          : l10n.vaultOpenEntry(entry.title),
       child: Container(
         height: height,
         padding: const EdgeInsets.symmetric(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Top action bar of the entry detail view.
 class DetailBar extends StatelessWidget {
@@ -36,6 +37,7 @@ class DetailBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -47,7 +49,7 @@ class DetailBar extends StatelessWidget {
           if (!isEmbedded)
             KeyelIconHull(
               icon: Icons.arrow_back_rounded,
-              tooltip: 'Back',
+              tooltip: l10n.actionBack,
               onPressed: onBack,
             )
           else
@@ -55,20 +57,22 @@ class DetailBar extends StatelessWidget {
           const Spacer(),
           KeyelIconHull(
             icon: favorite ? Icons.star_rounded : Icons.star_outline_rounded,
-            tooltip: favorite ? 'Remove favorite' : 'Add to favorites',
+            tooltip: favorite
+                ? l10n.entryRemoveFavorite
+                : l10n.entryAddToFavorites,
             foreground: favorite ? scheme.primary : scheme.onSurfaceVariant,
             onPressed: onFavorite,
           ),
           const SizedBox(width: KeyelSpacing.xs),
           KeyelIconHull(
             icon: Icons.edit_rounded,
-            tooltip: 'Edit entry',
+            tooltip: l10n.entryEditEntry,
             onPressed: onEdit,
           ),
           const SizedBox(width: KeyelSpacing.xs),
           KeyelIconHull(
             icon: Icons.delete_outline_rounded,
-            tooltip: 'Delete entry',
+            tooltip: l10n.entryDeleteEntry,
             foreground: scheme.error,
             onPressed: onDelete,
           ),

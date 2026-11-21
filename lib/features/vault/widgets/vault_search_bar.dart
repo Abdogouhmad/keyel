@@ -5,6 +5,7 @@ import 'package:keyel/core/focus/keyel_search_focus.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/features/vault/widgets/vault_recent_search.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// The vault search field plus its recent-search chips.
 ///
@@ -91,7 +92,7 @@ class _VaultSearchBarState extends ConsumerState<VaultSearchBar> {
           child: KeyelSearchField(
             controller: _searchController,
             focusNode: focusNode,
-            hintText: 'Search items, tags or notes...',
+            hintText: l10nOf(context).vaultSearchHint,
             onChanged: _handleSearchChanged,
             trailing: Container(
               width: 36,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/onboarding/widgets/step_badge.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Final onboarding frame: lock-behaviour note and the vault entry action.
 class FinishStep extends StatelessWidget {
@@ -21,6 +22,7 @@ class FinishStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -29,7 +31,7 @@ class FinishStep extends StatelessWidget {
         OnboardingStepBadge(icon: Icons.lock_rounded, color: scheme.primary),
         const SizedBox(height: KeyelSpacing.xl),
         Text(
-          'Your vault is ready',
+          l10n.vaultReadyTitle,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
@@ -39,8 +41,7 @@ class FinishStep extends StatelessWidget {
         ),
         const SizedBox(height: KeyelSpacing.sm),
         Text(
-          'Keyel locks itself after one minute in the background. You can '
-          'change this in Settings later.',
+          l10n.vaultReadySubtitle,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge
               ?.copyWith(color: scheme.onSurfaceVariant, height: 1.5),
@@ -76,10 +77,8 @@ class FinishStep extends StatelessWidget {
               Expanded(
                 child: Text(
                   biometricEnabled
-                      ? 'Quick unlock is on. You can turn it off any time in '
-                            'Settings.'
-                      : 'You can enable biometric quick unlock later in '
-                            'Settings.',
+                      ? l10n.vaultQuickUnlockOn
+                      : l10n.vaultQuickUnlockLater,
                   style: TextStyle(color: scheme.onSurface, height: 1.4),
                 ),
               ),
@@ -88,7 +87,7 @@ class FinishStep extends StatelessWidget {
         ),
         const SizedBox(height: KeyelSpacing.xl * 1.5),
         KeyelButtonM3(
-          label: 'Open my vault',
+          label: l10n.vaultOpenMyVault,
           icon: Icons.shield_rounded,
           isFullWidth: true,
           onPressed: onOpenVault,

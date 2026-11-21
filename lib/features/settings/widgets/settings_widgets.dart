@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Displays the current vault status and storage location.
 class VaultProfileCard extends StatelessWidget {
@@ -18,6 +19,7 @@ class VaultProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     final statusName = status.toString();
     final unlocked = statusName.contains('unlocked');
@@ -25,20 +27,20 @@ class VaultProfileCard extends StatelessWidget {
 
     final (label, icon, color, foreground) = unlocked
         ? (
-            'Unlocked',
+            l10n.prefVaultUnlockedBadge,
             Icons.lock_open_rounded,
             scheme.primaryContainer,
             scheme.onPrimaryContainer,
           )
         : locked
         ? (
-            'Locked',
+            l10n.prefVaultLockedBadge,
             Icons.lock_rounded,
             scheme.surfaceContainerHigh,
             scheme.primary,
           )
         : (
-            'No Vault',
+            l10n.prefNoVaultBadge,
             Icons.help_outline_rounded,
             scheme.errorContainer,
             scheme.onErrorContainer,
@@ -67,7 +69,7 @@ class VaultProfileCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Local Encrypted Vault',
+                  l10n.prefLocalEncryptedVault,
                   style: textTheme.titleMedium?.copyWith(
                     color: scheme.onSurface,
                     fontWeight: FontWeight.w600,
@@ -75,7 +77,7 @@ class VaultProfileCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  vaultPath ?? 'Storage not initialized',
+                  vaultPath ?? l10n.prefStorageNotInitialized,
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                     fontFamily: KeyelTheme.monoFamily,

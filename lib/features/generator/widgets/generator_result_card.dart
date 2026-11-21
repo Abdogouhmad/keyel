@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/features/generator/widgets/secret_display.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A card displaying the generated secret with copy and regenerate actions.
 class GeneratorResultCard extends StatelessWidget {
@@ -29,6 +30,7 @@ class GeneratorResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final isLight = scheme.brightness == Brightness.light;
 
     return Container(
@@ -58,7 +60,7 @@ class GeneratorResultCard extends StatelessWidget {
                   Icon(Icons.lock_rounded, size: 15, color: scheme.primary),
                   const SizedBox(width: KeyelSpacing.xs + 2),
                   Text(
-                    'Generated locally on device',
+                    l10n.genGeneratedLocally,
                     style: textTheme.labelSmall?.copyWith(
                       color: scheme.onSurface,
                       fontWeight: FontWeight.w500,
@@ -78,7 +80,7 @@ class GeneratorResultCard extends StatelessWidget {
             children: [
               KeyelIconHull(
                 icon: Icons.refresh_rounded,
-                tooltip: 'Regenerate',
+                tooltip: l10n.genRegenerate,
                 onPressed: onRegenerate,
                 background: scheme.surfaceContainerLowest,
                 foreground: scheme.primary,
@@ -86,7 +88,7 @@ class GeneratorResultCard extends StatelessWidget {
               const SizedBox(width: KeyelSpacing.sm + 4),
               Expanded(
                 child: KeyelPillButton(
-                  label: 'Copy $modeName',
+                  label: l10n.genCopyMode(modeName),
                   icon: Icons.content_copy_rounded,
                   height: 48,
                   onPressed: onCopy,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Small, shared building blocks for the import/export bottom sheets.
 ///
@@ -83,20 +84,21 @@ class ModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return Column(
       children: [
         ModeOption(
           icon: Icons.merge_rounded,
-          title: 'Merge',
-          subtitle: 'Add what is missing, keep the rest',
+          title: l10n.imexMergeTitle,
+          subtitle: l10n.imexMergeSubtitle,
           selected: mode == ImportModeDto.merge,
           onTap: () => onChanged(ImportModeDto.merge),
         ),
         const SizedBox(height: KeyelSpacing.xs),
         ModeOption(
           icon: Icons.swap_horiz_rounded,
-          title: 'Replace',
-          subtitle: 'Delete the current vault and use only this file',
+          title: l10n.imexReplaceTitle,
+          subtitle: l10n.imexReplaceSubtitle,
           selected: mode == ImportModeDto.replace,
           onTap: () => onChanged(ImportModeDto.replace),
         ),
@@ -253,6 +255,7 @@ class FailureList extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return Container(
       padding: const EdgeInsets.all(KeyelSpacing.md),
@@ -264,7 +267,7 @@ class FailureList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Rows that could not be imported',
+            l10n.imexFailureListTitle,
             style: textTheme.labelLarge?.copyWith(
               color: scheme.onErrorContainer,
               fontWeight: FontWeight.w700,
@@ -275,7 +278,7 @@ class FailureList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                'Row ${failure.row}: ${failure.reason}',
+                l10n.imexRowFailure(failure.row, failure.reason),
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onErrorContainer,
                 ),
@@ -285,7 +288,7 @@ class FailureList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                '…and ${failures.length - 20} more',
+                l10n.imexMoreFailures(failures.length - 20),
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onErrorContainer,
                 ),

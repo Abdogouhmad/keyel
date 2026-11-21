@@ -1,5 +1,6 @@
 import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Turn system-biometric quick unlock on for [master].
 ///
@@ -11,7 +12,7 @@ Future<bool> enableBiometricUnlock(String master) async {
   final auth = BiometricAuth.instance;
 
   if (!await auth.isAvailable) return false;
-  if (!await auth.authenticate(reason: 'Confirm your identity to enable it')) {
+  if (!await auth.authenticate(reason: currentL10n.coreBiometricEnableReason)) {
     return false;
   }
   if (!await auth.storeMaster(master)) return false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/features/generator/widgets/character_rule.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A column of switches for configuring passphrase generation options.
 class PassphraseRules extends StatelessWidget {
@@ -36,44 +37,45 @@ class PassphraseRules extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         KeyelSectionLabel(
-          label: 'Passphrase options',
+          label: l10n.genPassphraseOptions,
           color: scheme.onSurfaceVariant,
         ),
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: 'Aa',
-          title: 'Capitalize first letter',
-          subtitle: 'e.g., Apple-Tree-House',
+          title: l10n.genCapitalizeFirst,
+          subtitle: l10n.genCapitalizeExample,
           switchValue: capitalizeFirst,
           onSwitchChanged: onCapitalizeFirstChanged,
         ),
         const SizedBox(height: KeyelSpacing.sm),
         CharacterRule(
           sample: '12',
-          title: 'Include a number',
-          subtitle: 'Adds two random digits at the end',
+          title: l10n.genIncludeNumber,
+          subtitle: l10n.genIncludeNumberSubtitle,
           switchValue: includeNumber,
           onSwitchChanged: onIncludeNumberChanged,
         ),
         const SizedBox(height: KeyelSpacing.md),
         KeyelSectionLabel(
-          label: 'Word separator',
+          label: l10n.genWordSeparator,
           color: scheme.onSurfaceVariant,
         ),
         const SizedBox(height: KeyelSpacing.sm),
         KeyelSegmentedControl<String>(
           selected: separator,
           onChanged: onSeparatorChanged,
-          options: const [
-            KeyelSegmentOption(value: '-', label: '-'),
-            KeyelSegmentOption(value: '.', label: '.'),
-            KeyelSegmentOption(value: '_', label: '_'),
-            KeyelSegmentOption(value: ' ', label: 'Space'),
+          options: [
+            const KeyelSegmentOption(value: '-', label: '-'),
+            const KeyelSegmentOption(value: '.', label: '.'),
+            const KeyelSegmentOption(value: '_', label: '_'),
+            KeyelSegmentOption(value: ' ', label: l10n.genSeparatorSpace),
           ],
         ),
       ],

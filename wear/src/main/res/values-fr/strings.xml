@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_app_name">Codes Keyel</string>
+    <string name="watch_title">Vos codes</string>
+    <string name="watch_show">Afficher les codes</string>
+    <string name="watch_hide">Masquer les codes</string>
+    <string name="watch_empty">Aucun code envoyé depuis votre téléphone. Ouvrez Keyel → Réglages → Codes montre pour en ajouter un.</string>
+    <string name="watch_clear">Tout supprimer de la montre</string>
+    <string name="watch_clear_title">Supprimer tous les codes ?</string>
+    <string name="watch_clear_message">Les secrets sont supprimés de cette montre. Vous pouvez les renvoyer depuis le téléphone.</string>
+    <string name="watch_remove">Supprimer</string>
+    <string name="watch_hidden">••••••</string>
+    <string name="watch_error">—</string>
+    <string name="watch_seconds">%1$ds</string>
+</resources>

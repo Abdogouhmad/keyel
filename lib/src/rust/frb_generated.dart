@@ -131,6 +131,7 @@ abstract class RustLibApi extends BaseApi {
     String? package,
     String? webDomain,
     required String query,
+    required bool requireVerified,
   });
 
   Future<BreachReportDto> crateApiBreachFinishBreachCheck({
@@ -658,6 +659,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     String? package,
     String? webDomain,
     required String query,
+    required bool requireVerified,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -666,6 +668,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_opt_String(package, serializer);
           sse_encode_opt_String(webDomain, serializer);
           sse_encode_String(query, serializer);
+          sse_encode_bool(requireVerified, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -678,7 +681,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_vault_api_error,
         ),
         constMeta: kCrateApiAutofillFindAutofillMatchesConstMeta,
-        argValues: [package, webDomain, query],
+        argValues: [package, webDomain, query, requireVerified],
         apiImpl: this,
       ),
     );
@@ -687,7 +690,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiAutofillFindAutofillMatchesConstMeta =>
       const TaskConstMeta(
         debugName: "find_autofill_matches",
-        argNames: ["package", "webDomain", "query"],
+        argNames: ["package", "webDomain", "query", "requireVerified"],
       );
 
   @override

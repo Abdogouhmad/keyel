@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// One entry in the local help sheet: a glyph, a heading and one-line copy.
 @immutable
@@ -18,43 +19,8 @@ class HelpTopic {
   final String body;
 }
 
-/// Topics shown in [showSettingsHelpSheet]. Kept as data so the sheet has no
-/// dependency on app state and can be widget-tested in isolation.
-const helpTopics = [
-  HelpTopic(
-    icon: Icons.lock_rounded,
-    title: 'Your vault stays local',
-    body:
-        'Entries are encrypted on this device. Keyel has no account and '
-        'sends nothing anywhere unless you explicitly turn on the opt-in '
-        'breach check or sync.',
-  ),
-  HelpTopic(
-    icon: Icons.lock_clock_rounded,
-    title: 'Auto-lock and clipboard',
-    body:
-        'The vault locks itself after the delay set in Security. Copied '
-        'secrets are wiped on lock and when you leave the app, even if the '
-        'timed clipboard wipe is set to “Never”.',
-  ),
-  HelpTopic(
-    icon: Icons.keyboard_rounded,
-    title: 'Keyboard shortcuts',
-    body:
-        'Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. '
-        'On Android, Back asks before discarding unsaved edits.',
-  ),
-  HelpTopic(
-    icon: Icons.restore_rounded,
-    title: 'Recovery',
-    body:
-        'Your one-time recovery key is the only way back in if you forget '
-        'the master password. Store it offline; Keyel cannot reset it.',
-  ),
-];
-
 /// Shows the local, offline help sheet. There is no remote documentation and
-/// therefore nothing to load — every topic above is accurate for this build.
+/// therefore nothing to load — every topic is accurate for this build.
 Future<void> showSettingsHelpSheet(BuildContext context) =>
     showKeyelAdaptiveSheet<void>(
       context: context,
@@ -68,6 +34,29 @@ class _HelpSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
+    final topics = [
+      HelpTopic(
+        icon: Icons.lock_rounded,
+        title: l10n.prefHelpVaultLocalTitle,
+        body: l10n.prefHelpVaultLocalBody,
+      ),
+      HelpTopic(
+        icon: Icons.lock_clock_rounded,
+        title: l10n.prefHelpAutoLockTitle,
+        body: l10n.prefHelpAutoLockBody,
+      ),
+      HelpTopic(
+        icon: Icons.keyboard_rounded,
+        title: l10n.prefHelpKeyboardTitle,
+        body: l10n.prefHelpKeyboardBody,
+      ),
+      HelpTopic(
+        icon: Icons.restore_rounded,
+        title: l10n.prefHelpRecoveryTitle,
+        body: l10n.prefHelpRecoveryBody,
+      ),
+    ];
 
     return SafeArea(
       child: ConstrainedBox(
@@ -89,7 +78,7 @@ class _HelpSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Keyel help',
+                      l10n.prefHelpSheetTitle,
                       style: textTheme.titleLarge?.copyWith(
                         color: scheme.onSurface,
                         fontWeight: FontWeight.w700,
@@ -98,7 +87,7 @@ class _HelpSheet extends StatelessWidget {
                   ),
                   KeyelIconHull(
                     icon: Icons.close_rounded,
-                    tooltip: 'Close',
+                    tooltip: l10n.actionClose,
                     size: 40,
                     iconSize: 20,
                     onPressed: () => Navigator.of(context).pop(),
@@ -116,7 +105,7 @@ class _HelpSheet extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    for (final topic in helpTopics)
+                    for (final topic in topics)
                       Padding(
                         padding: const EdgeInsets.only(bottom: KeyelSpacing.sm),
                         child: _HelpRow(topic: topic),

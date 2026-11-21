@@ -48,6 +48,7 @@ class _FakeRepository extends VaultRepository {
     String? package,
     String? webDomain,
     String query = '',
+    bool requireVerified = false,
   }) async {
     lastPackage = package;
     lastWebDomain = webDomain;
@@ -87,6 +88,7 @@ Widget _host(
   String? package = 'com.example.app',
   String? webDomain,
   ValueChanged<AutofillSelection>? onPicked,
+  VoidCallback? onNeverForSite,
 }) => ProviderScope(
   overrides: [vaultRepositoryProvider.overrideWithValue(repository)],
   child: MaterialApp(
@@ -95,14 +97,18 @@ Widget _host(
       package: package,
       webDomain: webDomain,
       onPicked: onPicked,
+      onNeverForSite: onNeverForSite,
     ),
   ),
 );
 
 void main() {
   setUp(() {
-    AppPreferences.instance.autofillMatchMode = 'domain';
-    AppPreferences.instance.autofillAskToSave = true;
+    AppPreferences.instance
+      ..autofillMatchMode = 'domain'
+      ..autofillAskToSave = true
+      ..autofillVerifiedOnly = false
+      ..autofillNeverForSites = <String>[];
   });
 
   testWidgets('renders exact, same-site and search matches', (tester) async {
@@ -253,5 +259,54 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('verified mode hides same-site and text matches', (tester) async {
+    AppPreferences.instance.autofillVerifiedOnly = true;
+    final repository = _FakeRepository(
+      matches: [
+        _match('a', 'Exact login', AutofillQualityDto.exact),
+        _match('b', 'Sub login', AutofillQualityDto.sameSite),
+        _match('c', 'Text login', AutofillQualityDto.search),
+      ],
+    );
+    await tester.pumpWidget(_host(repository));
+    await tester.pumpAndSettle();
+
+    expect(repository.lastPackage, 'com.example.app');
+    expect(find.text('Exact login'), findsOneWidget);
+    expect(find.text('Sub login'), findsNothing);
+    expect(find.text('Text login'), findsNothing);
+  });
+
+  testWidgets('never-for-site action is reported to the host', (tester) async {
+    final repository = _FakeRepository(
+      matches: [_match('a', 'Exact login', AutofillQualityDto.exact)],
+    );
+    var neverCalled = false;
+    await tester.pumpWidget(
+      _host(repository, onNeverForSite: () => neverCalled = true),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Never for this site'));
+    await tester.pumpAndSettle();
+
+    expect(neverCalled, isTrue);
+  });
+
+  testWidgets('a denied target shows no credentials', (tester) async {
+    AppPreferences.instance.autofillNeverForSites = const [
+      'package:com.example.app',
+    ];
+    final repository = _FakeRepository(
+      matches: [_match('a', 'Exact login', AutofillQualityDto.exact)],
+    );
+    await tester.pumpWidget(_host(repository));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Autofill is off for this site'), findsOneWidget);
+    expect(find.text('Exact login'), findsNothing);
+    expect(find.text('Never for this site'), findsNothing);
   });
 }

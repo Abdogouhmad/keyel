@@ -20,6 +20,7 @@ void _reset(AppPreferences prefs) {
     ..screenshotProtection = true
     ..unlockFailures = 0
     ..unlockLockedUntilMs = null
+    ..localeId = 'system'
     ..themeMode = 'system'
     ..paletteId = 'indigo'
     ..amoledBlack = false
@@ -77,7 +78,8 @@ void main() {
 
     prefs
       ..autofillAskToSave = false
-      ..autofillMatchMode = 'exact';
+      ..autofillMatchMode = 'exact'
+      ..autofillVerifiedOnly = true;
 
     await prefs.load(vaultPath);
     await prefs.save();
@@ -85,13 +87,46 @@ void main() {
     // Clobber the in-memory values, then read them back from disk.
     prefs
       ..autofillAskToSave = true
-      ..autofillMatchMode = 'domain';
+      ..autofillMatchMode = 'domain'
+      ..autofillVerifiedOnly = false;
 
     await prefs.load(vaultPath);
 
     expect(prefs.autofillAskToSave, isFalse);
     expect(prefs.autofillMatchMode, 'exact');
+    expect(prefs.autofillVerifiedOnly, isTrue);
   });
+
+  test(
+    'autofill deny list round-trips and rejects malformed entries',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('keyel_prefs_deny');
+      addTearDown(() => dir.delete(recursive: true));
+      final vaultPath = '${dir.path}/vault.keyel';
+
+      prefs.autofillNeverForSites = const [
+        'host:example.com',
+        'package:com.example.app',
+      ];
+      await prefs.load(vaultPath);
+      await prefs.save();
+
+      prefs.autofillNeverForSites = <String>[];
+      await prefs.load(vaultPath);
+      expect(prefs.autofillNeverForSites, [
+        'host:example.com',
+        'package:com.example.app',
+      ]);
+
+      await File('${dir.path}/settings.json').writeAsString(
+        '{"autofillNeverForSites":["host:ok.example","host:bad host", '
+        '"https://evil.example","not-a-key","host:ok.example"]}',
+      );
+      prefs.autofillNeverForSites = <String>[];
+      await prefs.load(vaultPath);
+      expect(prefs.autofillNeverForSites, ['host:ok.example']);
+    },
+  );
 
   test('unlock throttle state round-trips through settings.json', () async {
     final dir = await Directory.systemTemp.createTemp('keyel_prefs_unlock');
@@ -187,6 +222,25 @@ void main() {
     expect(prefs.amoledBlack, isTrue);
     expect(prefs.animationsEnabled, isFalse);
     expect(prefs.hapticsEnabled, isFalse);
+  });
+
+  test('language choice round-trips and rejects unknown ids', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_locale');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    prefs.localeId = 'fr';
+    await prefs.load(vaultPath);
+    await prefs.save();
+
+    _reset(prefs);
+    await prefs.load(vaultPath);
+    expect(prefs.localeId, 'fr');
+
+    await File('${dir.path}/settings.json').writeAsString('{"localeId":"zz"}');
+    prefs.localeId = 'system';
+    await prefs.load(vaultPath);
+    expect(prefs.localeId, 'system');
   });
 
   test('missing appearance settings keep defaults', () async {

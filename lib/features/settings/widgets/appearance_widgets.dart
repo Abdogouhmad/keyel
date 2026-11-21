@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Selectable color palette tile used on the appearance screen.
 class AppearancePaletteTile extends StatelessWidget {
@@ -110,10 +111,11 @@ class ThemeModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final platformBrightness = MediaQuery.platformBrightnessOf(context);
 
     return Semantics(
-      label: 'Theme mode',
+      label: l10n.prefThemeModeSemantics,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -155,22 +157,27 @@ class _ThemeModeOption extends StatelessWidget {
   String get _label => KeyelPaletteX.themeModeLabel(mode);
 
   String get _description => switch (mode) {
-    ThemeMode.system =>
-      'Follows your device appearance and changes along with it.',
-    ThemeMode.light => 'Stays light even when your device uses dark mode.',
-    ThemeMode.dark => 'Stays dark even when your device uses light mode.',
+    ThemeMode.system => currentL10n.prefThemeSystemDescription,
+    ThemeMode.light => currentL10n.prefThemeLightDescription,
+    ThemeMode.dark => currentL10n.prefThemeDarkDescription,
   };
 
   String get _semanticLabel {
-    if (mode != ThemeMode.system) return '$_label theme. $_description';
-    final current = platformBrightness == Brightness.dark ? 'dark' : 'light';
-    return '$_label theme. $_description Device is currently $current.';
+    final l10n = currentL10n;
+    if (mode != ThemeMode.system) {
+      return l10n.prefThemeSemanticLabel(_label, _description);
+    }
+    final current = platformBrightness == Brightness.dark
+        ? l10n.prefDeviceDarkValue
+        : l10n.prefDeviceLightValue;
+    return l10n.prefThemeSemanticWithDevice(_label, _description, current);
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final duration = KeyelMotion.resolve(context, KeyelMotion.fast);
     final foreground = selected
         ? scheme.onSecondaryContainer
@@ -239,9 +246,11 @@ class _ThemeModeOption extends StatelessWidget {
                     if (mode == ThemeMode.system) ...[
                       const SizedBox(height: KeyelSpacing.xs),
                       KeyelBadge(
-                        label:
-                            'Device is currently '
-                            '${platformBrightness == Brightness.dark ? 'dark' : 'light'}',
+                        label: l10n.prefDeviceCurrently(
+                          platformBrightness == Brightness.dark
+                              ? l10n.prefDeviceDarkValue
+                              : l10n.prefDeviceLightValue,
+                        ),
                         compact: true,
                         background: scheme.surfaceContainerHigh,
                         foreground: scheme.onSurfaceVariant,

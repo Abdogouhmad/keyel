@@ -13,6 +13,7 @@ import 'package:keyel/features/import_export/widgets/import_export_hub_widgets.d
 import 'package:keyel/features/import_export/widgets/import_export_sheets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Backup, restore and CSV import/export hub.
 class ImportExportScreen extends ConsumerStatefulWidget {
@@ -79,13 +80,14 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   // --- Export -------------------------------------------------------------
 
   Future<void> _exportBackup() async {
+    final l10n = l10nOf(context);
     final password = await showBackupPasswordSheet(context);
     if (password == null || !mounted) return;
 
     await _runExport(
       fileName: 'keyel-backup-$_stamp.keyel',
-      title: 'Backup created',
-      message: 'Your encrypted backup is ready to share.',
+      title: l10n.imexBackupCreated,
+      message: l10n.imexBackupReady,
       unencrypted: false,
       write: (path) => ref
           .read(vaultRepositoryProvider)
@@ -94,21 +96,20 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   }
 
   Future<void> _exportCsv() async {
+    final l10n = l10nOf(context);
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Export unencrypted CSV?',
-      body:
-          'Every password in your vault will be written to a plain text file '
-          'that anyone can read. Only do this if you know what you are doing.',
-      confirmLabel: 'Export unencrypted',
+      title: l10n.imexCsvExportTitle,
+      body: l10n.imexCsvExportBody,
+      confirmLabel: l10n.imexCsvExportConfirm,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
 
     await _runExport(
       fileName: 'keyel-export-$_stamp.csv',
-      title: 'CSV exported',
-      message: 'Your unencrypted export is ready to share.',
+      title: l10n.imexCsvExported,
+      message: l10n.imexCsvReady,
       unencrypted: true,
       write: (path) => ref.read(vaultRepositoryProvider).exportCsv(path),
     );
@@ -150,7 +151,8 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   // --- Import -------------------------------------------------------------
 
   Future<void> _importCsv() async {
-    final picked = await _pickFile('Choose a CSV export to import');
+    final l10n = l10nOf(context);
+    final picked = await _pickFile(l10n.imexPickCsv);
     if (picked == null || !mounted) return;
 
     final ImportPreviewDto preview;
@@ -172,7 +174,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
     if (request == null || !mounted) return;
 
     await _applyImport(
-      title: 'Import complete',
+      title: l10n.imexImportComplete,
       action: () => ref
           .read(vaultRepositoryProvider)
           .importCsv(picked.path, request.mode),
@@ -180,7 +182,8 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   }
 
   Future<void> _restoreBackup() async {
-    final picked = await _pickFile('Choose a backup file to restore');
+    final l10n = l10nOf(context);
+    final picked = await _pickFile(l10n.imexPickBackup);
     if (picked == null || !mounted) return;
 
     final request = await showRestoreBackupSheet(
@@ -190,7 +193,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
     if (request == null || !mounted) return;
 
     await _applyImport(
-      title: 'Restore complete',
+      title: l10n.imexRestoreComplete,
       action: () => ref
           .read(vaultRepositoryProvider)
           .importBackup(
@@ -222,6 +225,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -230,9 +234,9 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
         child: Column(
           children: [
             KeyelTopBar(
-              title: 'Backup & import',
+              title: l10n.prefBackupImportTitle,
               icon: Icons.arrow_back_rounded,
-              iconTooltip: 'Back',
+              iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
             ),
             if (_busy)

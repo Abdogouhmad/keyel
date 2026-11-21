@@ -20,7 +20,9 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
+import com.freesoftware.keyel.quickaccess.GenerateController
 import com.freesoftware.keyel.quicklock.LockController
+import com.freesoftware.keyel.wearbridge.WearTotpBridge
 
 // local_auth drives the system BiometricPrompt, which requires the host
 // activity to be a FragmentActivity, so this extends FlutterFragmentActivity
@@ -30,7 +32,7 @@ class MainActivity : FlutterFragmentActivity() {
     private val notificationChannelName = "keyel/notifications"
 
     private var pendingNotificationPermissionResult: MethodChannel.Result? = null
-    private var pendingLockAction = false
+    private var pendingAction: String? = null
 
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "keyel_updates"
@@ -40,30 +42,45 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (intent?.action == LockController.ACTION_LOCK) {
-            pendingLockAction = true
-            LockController.clearClipboard(this)
+        when (intent?.action) {
+            LockController.ACTION_LOCK -> {
+                pendingAction = LockController.ACTION_LOCK
+                LockController.clearClipboard(this)
+            }
+            GenerateController.ACTION_GENERATE -> {
+                pendingAction = GenerateController.ACTION_GENERATE
+            }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.action == LockController.ACTION_LOCK) {
-            LockController.clearClipboard(this)
-            pendingLockAction = true
-            LockController.notifyLockRequested()
+        when (intent.action) {
+            LockController.ACTION_LOCK -> {
+                LockController.clearClipboard(this)
+                pendingAction = LockController.ACTION_LOCK
+                LockController.notifyLockRequested()
+            }
+            GenerateController.ACTION_GENERATE -> {
+                pendingAction = GenerateController.ACTION_GENERATE
+                GenerateController.notifyGenerateRequested()
+            }
         }
     }
 
     override fun onDestroy() {
         LockController.detach()
+        GenerateController.detach()
+        WearTotpBridge.detach()
         super.onDestroy()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         LockController.attach(flutterEngine.dartExecutor.binaryMessenger)
+        GenerateController.attach(flutterEngine.dartExecutor.binaryMessenger)
+        WearTotpBridge.attach(flutterEngine.dartExecutor.binaryMessenger, applicationContext)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
@@ -109,13 +126,13 @@ class MainActivity : FlutterFragmentActivity() {
                     // One-tap lock on a cold start: read and consume the action
                     // so a later resume cannot lock the app again.
                     "getInitialAction" -> {
-                        val action = if (pendingLockAction) {
-                            pendingLockAction = false
-                            intent?.action = null
-                            "lock"
-                        } else {
-                            null
+                        val action = when (pendingAction) {
+                            LockController.ACTION_LOCK -> "lock"
+                            GenerateController.ACTION_GENERATE -> "generate"
+                            else -> null
                         }
+                        pendingAction = null
+                        intent?.action = null
                         result.success(action)
                     }
 

@@ -14,6 +14,7 @@ import 'package:keyel/features/entry/widgets/detail/detail_delete_dialog.dart';
 import 'package:keyel/features/entry/widgets/detail/detail_scaffold.dart';
 import 'package:keyel/features/entry/widgets/detail/missing_entry.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Detail screen for a single login, card or secure note.
 class EntryDetailScreen extends ConsumerStatefulWidget {
@@ -105,7 +106,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     if (value.isEmpty) {
       showKeyelSnack(
         context,
-        'Nothing to copy',
+        l10nOf(context).entryNothingToCopy,
         icon: Icons.info_outline_rounded,
       );
       return;
@@ -121,6 +122,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     // A revealed secret must never survive the vault locking or the app going
     // to the background, even if the 15 s timer has not fired yet.
     ref.listen(vaultSessionProvider.select((state) => state.status), (
@@ -135,10 +137,10 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     // Loading and error states need the same themed surface and safe area as
     // DetailScaffold; on compact screens KeyelSubShell passes us through bare.
     if (_controller.loading) {
-      return const _EntryStateScaffold(
+      return _EntryStateScaffold(
         child: KeyelStateMessage(
           kind: KeyelStateMessageKind.loading,
-          message: 'Loading entry…',
+          message: l10n.entryLoading,
         ),
       );
     }
@@ -147,7 +149,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
         child: KeyelStateMessage(
           kind: KeyelStateMessageKind.error,
           message: _controller.loadError!,
-          actionLabel: 'Retry',
+          actionLabel: l10n.actionRetry,
           onAction: () => unawaited(_controller.load()),
         ),
       );

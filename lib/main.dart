@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/core/ota/ota_check_host.dart';
 import 'package:keyel/core/platform/launch_action.dart';
 import 'package:keyel/core/platform/secure_screen.dart';
+import 'package:keyel/core/quickaccess/generate_request_host.dart';
 import 'package:keyel/core/router/app_router.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/security/auto_lock_host.dart';
@@ -16,8 +17,11 @@ import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/ota/widgets/update_available_banner.dart';
+import 'package:keyel/l10n/generated/app_localizations.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
+import 'package:keyel/ui/l10n/locale_provider.dart';
 import 'package:keyel/ui/theme/appearance_provider.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -46,17 +50,22 @@ Future<void> main() async {
     final vaultPath = await defaultVaultPath();
     vault_api.init(path: vaultPath);
     await AppPreferences.instance.load(vaultPath);
+    setCurrentLocaleId(AppPreferences.instance.localeId);
   } on Object catch (error) {
     // Never block startup on storage problems; the debug screen reports the
     // real error when the user tries to create or unlock a vault.
     debugPrint('Keyel: vault storage is unavailable: $error');
   }
 
-  // Consume a one-tap lock request that arrived before Flutter started, so no
-  // vault row can flash before the unlock screen is shown.
+  // Consume a launcher action that arrived before Flutter started, so no vault
+  // row can flash before the unlock screen is shown.
   final container = ProviderContainer();
-  if (await getInitialLaunchAction() == lockLaunchAction) {
+  final launchAction = await getInitialLaunchAction();
+  if (launchAction == lockLaunchAction) {
     container.read(vaultSessionProvider.notifier).lock();
+  } else if (launchAction == generateLaunchAction) {
+    container.read(initialRouteProvider.notifier).initialLocation =
+        KeyelRoutes.generator;
   }
 
   runApp(
@@ -65,7 +74,9 @@ Future<void> main() async {
       child: const AutoLockHost(
         child: OtaCheckHost(
           child: ScreenshotProtectionHost(
-            child: LockRequestHost(child: KeyelApp()),
+            child: GenerateRequestHost(
+              child: LockRequestHost(child: KeyelApp()),
+            ),
           ),
         ),
       ),
@@ -85,11 +96,15 @@ class KeyelApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appearance = ref.watch(appearanceProvider);
+    final locale = ref.watch(localeProvider);
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'Keyel',
+      title: l10nOf(context).appTitle,
       debugShowCheckedModeBanner: false,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       themeMode: appearance.themeMode,
       theme: appearance.lightTheme,
       darkTheme: appearance.darkTheme,

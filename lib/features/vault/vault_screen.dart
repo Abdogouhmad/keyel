@@ -17,6 +17,7 @@ import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
 import 'package:keyel/features/vault/widgets/vault_layout.dart';
 import 'package:keyel/features/vault/widgets/vault_list_pane.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Vault screen — the home tab showing saved credentials or unlock state.
 class VaultScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,10 @@ class VaultScreen extends ConsumerStatefulWidget {
 class _VaultScreenState extends ConsumerState<VaultScreen> {
   late final VaultListController _controller;
 
+  /// Resolved in [didChangeDependencies] because the callbacks are created in
+  /// [initState], where no localized copy may be looked up yet.
+  late String _nothingToCopy;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +45,12 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     if (ref.read(vaultSessionProvider).status == VaultStatus.unlocked) {
       unawaited(_controller.load());
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _nothingToCopy = l10nOf(context).vaultNothingToCopy;
   }
 
   @override
@@ -70,7 +81,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       if (value.isEmpty) {
         showKeyelSnack(
           context,
-          'Nothing to copy',
+          _nothingToCopy,
           icon: Icons.info_outline_rounded,
         );
         return;
@@ -99,7 +110,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
   void _lockVault() {
     ref.read(vaultSessionProvider.notifier).lock();
-    showKeyelSnack(context, 'Vault locked', icon: Icons.lock_rounded);
+    showKeyelSnack(
+      context,
+      l10nOf(context).vaultLocked,
+      icon: Icons.lock_rounded,
+    );
   }
 
   @override

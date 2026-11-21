@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Entry notes loaded on demand from the vault repository.
 class NotesCard extends ConsumerWidget {
@@ -29,7 +30,7 @@ class NotesCard extends ConsumerWidget {
         if (notes == null || notes.isEmpty) return const SizedBox.shrink();
 
         return KeyelSectionCard(
-          title: 'Notes',
+          title: l10nOf(context).entryNotes,
           icon: Icons.notes_rounded,
           showBorder: true,
           child: Container(

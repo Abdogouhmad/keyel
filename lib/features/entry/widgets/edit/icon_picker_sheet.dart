@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/models/entry_icon.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Modal bottom sheet allowing the user to select an icon for a vault entry.
 class IconPickerSheet extends StatefulWidget {
@@ -77,6 +78,7 @@ class _IconPickerSheetState extends State<IconPickerSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final media = MediaQuery.of(context);
     final maxHeight = media.size.height * 0.85;
 
@@ -122,13 +124,13 @@ class _IconPickerSheetState extends State<IconPickerSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Choose Icon',
+                          l10n.entryChooseIcon,
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
-                          'Select an icon for this entry',
+                          l10n.entryChooseIconSubtitle,
                           style: textTheme.bodySmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -140,7 +142,7 @@ class _IconPickerSheetState extends State<IconPickerSheet> {
                     TextButton.icon(
                       onPressed: () => Navigator.of(context).pop(''),
                       icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                      label: const Text('Reset'),
+                      label: Text(l10n.actionReset),
                       style: TextButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                       ),
@@ -148,7 +150,7 @@ class _IconPickerSheetState extends State<IconPickerSheet> {
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
-                    tooltip: 'Close',
+                    tooltip: l10n.actionClose,
                   ),
                 ],
               ),
@@ -162,7 +164,7 @@ class _IconPickerSheetState extends State<IconPickerSheet> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search icons (e.g. GitHub, Bank, Mail)...',
+                  hintText: l10n.entryIconSearchHint,
                   prefixIcon: const Icon(Icons.search_rounded, size: 20),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -233,7 +235,7 @@ class _IconPickerSheetState extends State<IconPickerSheet> {
                           ),
                           const SizedBox(height: KeyelSpacing.sm),
                           Text(
-                            'No matching icons',
+                            l10n.entryNoMatchingIcons,
                             style: textTheme.bodyMedium?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),

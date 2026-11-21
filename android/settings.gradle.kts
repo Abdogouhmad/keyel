@@ -24,3 +24,6 @@ plugins {
 }
 
 include(":app")
+// Standalone Wear OS TOTP companion, shipped as a separate watch APK.
+include(":wear")
+project(":wear").projectDir = file("../wear")

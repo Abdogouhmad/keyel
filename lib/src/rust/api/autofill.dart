@@ -19,8 +19,10 @@ Future<List<AutofillMatchDto>> findAutofillMatches({
   String? package,
   String? webDomain,
   required String query,
+  required bool requireVerified,
 }) => RustLib.instance.api.crateApiAutofillFindAutofillMatches(
   package: package,
   webDomain: webDomain,
   query: query,
+  requireVerified: requireVerified,
 );

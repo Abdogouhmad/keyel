@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/core/focus/keyel_search_focus.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A navigation destination descriptor used by [KeyelShell].
 class _Destination {
@@ -11,13 +12,11 @@ class _Destination {
     required this.path,
     required this.icon,
     required this.selectedIcon,
-    required this.label,
   });
 
   final String path;
   final IconData icon;
   final IconData selectedIcon;
-  final String label;
 }
 
 /// The ordered list of top-level destinations.
@@ -28,27 +27,35 @@ const _destinations = [
     path: KeyelRoutes.vault,
     icon: Icons.key_outlined,
     selectedIcon: Icons.key_rounded,
-    label: 'Vault',
   ),
   _Destination(
     path: KeyelRoutes.generator,
     icon: Icons.password_outlined,
     selectedIcon: Icons.password_rounded,
-    label: 'Generator',
   ),
   _Destination(
     path: KeyelRoutes.security,
     icon: Icons.verified_user_outlined,
     selectedIcon: Icons.verified_user_rounded,
-    label: 'Security',
   ),
   _Destination(
     path: KeyelRoutes.settings,
     icon: Icons.settings_outlined,
     selectedIcon: Icons.settings_rounded,
-    label: 'Settings',
   ),
 ];
+
+/// Localized label for a navigation destination, resolved during build so the
+/// rail, drawer and bottom bar all follow the current locale.
+String _destinationLabel(BuildContext context, String path) {
+  final l10n = l10nOf(context);
+  return switch (path) {
+    KeyelRoutes.generator => l10n.navGenerator,
+    KeyelRoutes.security => l10n.navSecurity,
+    KeyelRoutes.settings => l10n.navSettings,
+    _ => l10n.navVault,
+  };
+}
 
 /// Tab indices for [KeyelSubShell], matching [_destinations] and the branch
 /// order in the app router.
@@ -286,7 +293,7 @@ class _NavItem extends StatelessWidget {
       child: PressableScale(
         onTap: onTap,
         borderRadius: BorderRadius.circular(KeyelRadii.pill),
-        semanticLabel: destination.label,
+        semanticLabel: _destinationLabel(context, destination.path),
         child: AnimatedContainer(
           duration: KeyelMotion.resolve(context, KeyelMotion.fast),
           curve: Curves.easeOut,
@@ -308,7 +315,7 @@ class _NavItem extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                destination.label,
+                _destinationLabel(context, destination.path),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.labelSmall?.copyWith(
@@ -507,7 +514,7 @@ class _DrawerItem extends StatelessWidget {
     return PressableScale(
       onTap: onTap,
       borderRadius: BorderRadius.circular(KeyelRadii.pill),
-      semanticLabel: destination.label,
+      semanticLabel: _destinationLabel(context, destination.path),
       child: AnimatedContainer(
         duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
@@ -531,7 +538,7 @@ class _DrawerItem extends StatelessWidget {
             const SizedBox(width: KeyelSpacing.md),
             Expanded(
               child: Text(
-                destination.label,
+                _destinationLabel(context, destination.path),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.labelLarge?.copyWith(
@@ -573,7 +580,7 @@ class _RailItem extends StatelessWidget {
     return PressableScale(
       onTap: onTap,
       borderRadius: BorderRadius.circular(KeyelRadii.tile),
-      semanticLabel: destination.label,
+      semanticLabel: _destinationLabel(context, destination.path),
       child: AnimatedContainer(
         duration: KeyelMotion.resolve(context, KeyelMotion.fast),
         curve: Curves.easeOut,
@@ -593,7 +600,7 @@ class _RailItem extends StatelessWidget {
             if (showLabel) ...[
               const SizedBox(height: KeyelSpacing.xs),
               Text(
-                destination.label,
+                _destinationLabel(context, destination.path),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.labelSmall?.copyWith(

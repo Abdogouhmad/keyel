@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/core/security/password_strength.dart';
 import 'package:keyel/features/entry/widgets/edit/section.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Password field with reveal, generate and strength meter controls.
 class PasswordSection extends StatelessWidget {
@@ -39,6 +40,7 @@ class PasswordSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return EditSection(
       child: Column(
@@ -50,7 +52,7 @@ class PasswordSection extends StatelessWidget {
               const SizedBox(width: KeyelSpacing.xs + 2),
               Expanded(
                 child: Text(
-                  'Master credentials',
+                  l10n.entryMasterCredentials,
                   style: textTheme.titleSmall?.copyWith(
                     color: scheme.onSurface,
                   ),
@@ -59,7 +61,7 @@ class PasswordSection extends StatelessWidget {
               PressableScale(
                 onTap: () => showKeyelSnack(
                   context,
-                  'Password history arrives with encrypted storage.',
+                  l10n.entryPasswordHistorySoon,
                   icon: Icons.history_rounded,
                 ),
                 borderRadius: BorderRadius.circular(KeyelRadii.pill),
@@ -73,7 +75,7 @@ class PasswordSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'History',
+                      l10n.entryHistory,
                       style: textTheme.labelMedium?.copyWith(
                         color: scheme.primary,
                         fontWeight: FontWeight.w600,
@@ -91,8 +93,8 @@ class PasswordSection extends StatelessWidget {
             onChanged: onChanged,
             style: KeyelTheme.mono(context, fontSize: 16, letterSpacing: 0.6),
             decoration: InputDecoration(
-              labelText: 'Password',
-              hintText: 'Enter secure password',
+              labelText: l10n.fieldPassword,
+              hintText: l10n.entryEnterPassword,
               suffixIconConstraints: const BoxConstraints(
                 minWidth: 88,
                 minHeight: 48,
@@ -104,14 +106,16 @@ class PasswordSection extends StatelessWidget {
                     icon: obscure
                         ? Icons.visibility_rounded
                         : Icons.visibility_off_rounded,
-                    tooltip: obscure ? 'Reveal password' : 'Hide password',
+                    tooltip: obscure
+                        ? l10n.entryRevealPassword
+                        : l10n.entryHidePassword,
                     onPressed: onToggleObscure,
                     size: 44,
                     iconSize: 20,
                   ),
                   KeyelIconHull(
                     icon: Icons.shuffle_rounded,
-                    tooltip: 'Generate password',
+                    tooltip: l10n.entryGeneratePasswordTooltip,
                     onPressed: onGenerate,
                     foreground: scheme.primary,
                     size: 44,
@@ -125,7 +129,7 @@ class PasswordSection extends StatelessWidget {
           KeyelStrengthMeter(strength: strength, showHint: false),
           const SizedBox(height: KeyelSpacing.sm + 4),
           KeyelPillButton(
-            label: 'Generate secure password',
+            label: l10n.entryGenerateSecurePassword,
             icon: Icons.auto_awesome_rounded,
             tone: KeyelButtonTone.tonal,
             height: 48,

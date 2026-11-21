@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Large avatar, title and folder badges of the entry detail view.
 class DetailHero extends StatelessWidget {
@@ -54,7 +55,7 @@ class DetailHero extends StatelessWidget {
               ),
               if (entry.hasTotp)
                 KeyelBadge(
-                  label: '2FA enabled',
+                  label: l10nOf(context).entry2FaEnabled,
                   icon: Icons.verified_user_rounded,
                   background: scheme.surfaceContainerHigh,
                   foreground: scheme.primary,

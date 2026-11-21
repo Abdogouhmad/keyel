@@ -946,3 +946,70 @@ design (docs/roadmap.md header).
   `AppBar`). Existing `KeyelTheme` / `KeyelMotion` tokens are reused; no new
   colour literals, schema or data-model changes.
 
+
+## 2026-11-21 (1.10.0: EN/FR localization, autofill completeness, quick access)
+
+- **English is the template locale; French is a complete translation of the
+  checked-in ARB template.** `lib/l10n/app_en.arb` and `app_fr.arb` are the
+  source of truth, generated classes live in `lib/l10n/generated` and are
+  committed. Both CI jobs run `flutter gen-l10n` and fail on a diff, so no
+  local-only generation step is required to analyze or test. `l10n.yaml` no
+  longer sets `synthetic-package` (Flutter 3.50 ignores it). Arabic stays
+  deferred: the RTL smoke test forces `TextDirection.rtl` without shipping an
+  untranslated locale.
+
+- **A locale choice never touches crypto, storage or matching.** The language
+  id is a plain non-secret preference; `MaterialApp` receives the resolved
+  `Locale` and delegates. `l10nOf(context)` falls back to the English template
+  when no delegate is mounted, which keeps isolated widget tests resilient.
+  Rust matching and all secret handling remain locale-independent.
+
+- **"Never for this site" stores only canonical, non-secret identities.** The
+  Dart picker/save flow writes `host:<lower-host>` for trusted browsers (or no
+  package) and `package:<lower-package>` for arbitrary apps — the same trust
+  rule the Rust matcher uses. `NeverForSites.kt` reads that app-private JSON
+  from `filesDir/keyel/settings.json` and gates both fill and save *before* the
+  auth prompt. Malformed or wildcard entries are discarded on load; a parse
+  failure simply makes the choice unavailable, never widens matching. No
+  domain is logged or included in the diagnostics bundle.
+
+- **Digital Asset Links verification is intentionally offline.** Real DAL
+  checks need a network fetch, which conflicts with the offline-by-default
+  promise. Instead, an opt-in `Verified sites only` preference passes
+  `require_verified: true` to `find_matches`, which drops same-site and text
+  hits and returns only exact package/host matches. This can only *narrow* the
+  offered set; it never adds a match and never bypasses unlock/auth. Online
+  statement verification remains a tracked follow-up, not a hidden runtime
+  dependency.
+
+- **Android 11+ inline suggestions carry static copy only.** The service
+  advertises `supportsInlineSuggestions`, and `InlineSuggestionHelper` attaches
+  an unpinned `InlinePresentation` using the IME's V1 spec and the *same*
+  mutable auth `PendingIntent` as the dropdown dataset. If the IME has no
+  compatible spec or allows no suggestions, no chip is shown and the normal
+  dropdown still works. No credential text is ever placed on the keyboard
+  surface; tapping the chip still runs `AuthActivity`.
+
+- **The generator shortcut and widget reuse the lock plumbing.** A
+  `com.freesoftware.keyel.action.GENERATE` action reaches `MainActivity` from
+  a static launcher shortcut or an immutable widget `PendingIntent`. Cold
+  starts set `initialRouteProvider`; warm apps get a `keyel/generate`
+  `generateRequested` method call. The host only navigates to `/generator` —
+  it never generates, copies or reads a secret, and no clipboard wipe runs for
+  this action (only lock wipes). The widget has `updatePeriodMillis=0`, no
+  service, no new permission and no vault data in its `RemoteViews`.
+
+- **Verification uses the CI-pinned Flutter, not just the local default.** The
+  3.50.1 toolchain on this machine accepts a newer AGP and rewrites some
+  generated output, so a local green run was provisional. A detached worktree of
+  the Flutter SDK at tag `3.47.9` is used for format/analyze/test/gen-l10n and
+  both debug builds; all results match CI's pinned version. `pubspec.lock` is
+  kept at the 3.47.9 resolution (`test_api 0.7.12`) because that is what CI
+  installs.
+
+- **The Wear OS companion ships as a separate APK.** AGP 9 removed the
+  `wearApp(...)` bundling DSL, so `android/` still builds the handheld app
+  unchanged and `wear/` is built with `./gradlew :wear:assembleRelease`. CI
+  runs the watch unit tests and uploads `keyel-wear-apk` as a build artifact.
+  Publishing it as a release asset is a follow-up; the phone↔watch channel
+  works with either installation method.

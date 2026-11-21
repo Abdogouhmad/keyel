@@ -8,6 +8,7 @@ import 'package:keyel/core/security/unlock_throttle.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/src/rust/api/error.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// High-level state of the vault session.
 enum VaultStatus {
@@ -322,37 +323,34 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
 
 /// Turn a bridge error into a short, non-sensitive message.
 String describeVaultError(Object error) {
+  final l10n = currentL10n;
   if (error is UnlockThrottledException) {
     final seconds = error.remaining.inSeconds.clamp(1, 3600);
-    return 'Too many attempts. Try again in ${seconds}s.';
+    return l10n.coreThrottled('$seconds');
   }
   if (error is VaultApiError) {
     return switch (error) {
-      VaultApiError.notInitialized => 'Vault storage is not initialized.',
-      VaultApiError.invalidPath => 'The vault path is invalid.',
-      VaultApiError.vaultMissing => 'No vault file was found.',
-      VaultApiError.vaultExists => 'A vault already exists.',
-      VaultApiError.locked => 'Unlock the vault first.',
-      VaultApiError.wrongPassword => 'Wrong password or damaged vault.',
-      VaultApiError.corrupted => 'The vault file is damaged.',
-      VaultApiError.unsupportedVersion =>
-        'This vault was created by a newer Keyel version.',
-      VaultApiError.invalidKdfParams => 'Invalid key-derivation parameters.',
-      VaultApiError.invalidRecoveryKey => 'That recovery key is not valid.',
-      VaultApiError.notFound => 'Entry not found.',
-      VaultApiError.invalidId => 'Invalid entry id.',
-      VaultApiError.invalidField => 'Please fill in the required fields.',
-      VaultApiError.storage => 'Could not read or write the vault file.',
-      VaultApiError.emptyImport => 'That file has no entries to import.',
-      VaultApiError.unsupportedFormat =>
-        'That CSV format is not supported. Use a Bitwarden or Chrome export.',
-      VaultApiError.malformedImport => 'That file is not a valid CSV export.',
-      VaultApiError.breachCheckActive =>
-        'A breach check is already in progress.',
-      VaultApiError.breachInvalidToken => 'That breach check has expired.',
-      VaultApiError.breachInvalidResponse =>
-        'The breach service returned an unexpected response.',
-      VaultApiError.internal => 'Internal error.',
+      VaultApiError.notInitialized => l10n.coreVaultNotInitialized,
+      VaultApiError.invalidPath => l10n.coreVaultInvalidPath,
+      VaultApiError.vaultMissing => l10n.coreVaultMissing,
+      VaultApiError.vaultExists => l10n.coreVaultExists,
+      VaultApiError.locked => l10n.coreVaultLocked,
+      VaultApiError.wrongPassword => l10n.coreWrongPassword,
+      VaultApiError.corrupted => l10n.coreVaultCorrupted,
+      VaultApiError.unsupportedVersion => l10n.coreVaultUnsupportedVersion,
+      VaultApiError.invalidKdfParams => l10n.coreInvalidKdfParams,
+      VaultApiError.invalidRecoveryKey => l10n.coreInvalidRecoveryKey,
+      VaultApiError.notFound => l10n.coreEntryNotFound,
+      VaultApiError.invalidId => l10n.coreInvalidEntryId,
+      VaultApiError.invalidField => l10n.coreRequiredFields,
+      VaultApiError.storage => l10n.coreStorageError,
+      VaultApiError.emptyImport => l10n.coreEmptyImport,
+      VaultApiError.unsupportedFormat => l10n.coreUnsupportedCsvFormat,
+      VaultApiError.malformedImport => l10n.coreMalformedImport,
+      VaultApiError.breachCheckActive => l10n.coreBreachCheckActive,
+      VaultApiError.breachInvalidToken => l10n.coreBreachInvalidToken,
+      VaultApiError.breachInvalidResponse => l10n.coreBreachInvalidResponse,
+      VaultApiError.internal => l10n.coreInternalError,
     };
   }
   return error.toString();

@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:keyel/features/settings/widgets/appearance_preview.dart';
 import 'package:keyel/features/settings/widgets/appearance_widgets.dart';
+import 'package:keyel/features/settings/widgets/language_selector.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Appearance and interaction preferences.
 class AppearanceScreen extends ConsumerWidget {
@@ -18,6 +20,7 @@ class AppearanceScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final appearance = ref.watch(appearanceProvider);
     final notifier = ref.read(appearanceProvider.notifier);
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -28,9 +31,9 @@ class AppearanceScreen extends ConsumerWidget {
             slivers: [
               SliverToBoxAdapter(
                 child: KeyelTopBar(
-                  title: 'Appearance',
+                  title: l10n.appearanceTitle,
                   icon: Icons.arrow_back_rounded,
-                  iconTooltip: 'Back',
+                  iconTooltip: l10n.actionBack,
                   onIconTap: () => context.pop(),
                 ),
               ),
@@ -46,7 +49,7 @@ class AppearanceScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Personalize Keyel',
+                        l10n.appearanceHeadline,
                         style: textTheme.headlineSmall?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w800,
@@ -55,8 +58,7 @@ class AppearanceScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Choose your theme, accent palette, and interaction '
-                        'preferences. Security indicators stay consistent.',
+                        l10n.appearanceSubtitle,
                         style: textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -82,8 +84,8 @@ class AppearanceScreen extends ConsumerWidget {
                 ),
                 sliver: SliverList.list(
                   children: [
-                    const KeyelSectionLabel(
-                      label: 'Theme mode',
+                    KeyelSectionLabel(
+                      label: l10n.themeModeTitle,
                       icon: Icons.brightness_6_rounded,
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
@@ -95,10 +97,10 @@ class AppearanceScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
                     KeyelSectionLabel(
-                      label: 'Color palette',
+                      label: l10n.paletteTitle,
                       icon: Icons.palette_outlined,
                       trailing: KeyelBadge(
-                        label: '${KeyelPalette.values.length} colors',
+                        label: l10n.paletteColors(KeyelPalette.values.length),
                         compact: true,
                       ),
                     ),
@@ -132,8 +134,8 @@ class AppearanceScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
-                      label: 'Dark mode',
+                    KeyelSectionLabel(
+                      label: l10n.darkModeTitle,
                       icon: Icons.dark_mode_outlined,
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
@@ -141,10 +143,8 @@ class AppearanceScreen extends ConsumerWidget {
                       children: [
                         SettingsRow(
                           icon: Icons.contrast_rounded,
-                          title: 'Pure black (AMOLED)',
-                          subtitle:
-                              'Use true black backgrounds in dark mode to reduce '
-                              'OLED glow and save power on supported displays.',
+                          title: l10n.amoledTitle,
+                          subtitle: l10n.amoledSubtitle,
                           trailing: Switch.adaptive(
                             value: appearance.amoledBlack,
                             onChanged: (value) =>
@@ -154,8 +154,8 @@ class AppearanceScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
-                    const KeyelSectionLabel(
-                      label: 'Interaction',
+                    KeyelSectionLabel(
+                      label: l10n.interactionTitle,
                       icon: Icons.touch_app_outlined,
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
@@ -163,10 +163,8 @@ class AppearanceScreen extends ConsumerWidget {
                       children: [
                         SettingsRow(
                           icon: Icons.animation_rounded,
-                          title: 'Animations',
-                          subtitle:
-                              'Enable motion and transitions throughout the app. '
-                              'System reduced-motion settings are always respected.',
+                          title: l10n.animationsTitle,
+                          subtitle: l10n.animationsSubtitle,
                           trailing: Switch.adaptive(
                             value: appearance.animationsEnabled,
                             onChanged: (value) =>
@@ -175,10 +173,8 @@ class AppearanceScreen extends ConsumerWidget {
                         ),
                         SettingsRow(
                           icon: Icons.vibration_rounded,
-                          title: 'Haptics',
-                          subtitle:
-                              'Enable tactile feedback for taps and actions where '
-                              'supported by your device.',
+                          title: l10n.hapticsTitle,
+                          subtitle: l10n.hapticsSubtitle,
                           trailing: Switch.adaptive(
                             value: appearance.hapticsEnabled,
                             onChanged: (value) =>
@@ -187,6 +183,13 @@ class AppearanceScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    KeyelSectionLabel(
+                      label: l10n.settingsLanguageTitle,
+                      icon: Icons.language_rounded,
+                    ),
+                    const SizedBox(height: KeyelSpacing.sm),
+                    const SettingsCard(children: [LanguageSelector()]),
                     const SizedBox(height: KeyelSpacing.xxl),
                   ],
                 ),

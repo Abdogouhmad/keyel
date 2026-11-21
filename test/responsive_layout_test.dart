@@ -46,6 +46,7 @@ class _FakeRepository extends VaultRepository {
     String? package,
     String? webDomain,
     String query = '',
+    bool requireVerified = false,
   }) async => const [];
 }
 

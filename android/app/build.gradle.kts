@@ -93,6 +93,15 @@ flutter {
 dependencies {
     // Credential Manager provider APIs (passkeys). Gated at runtime to API 34+.
     implementation("androidx.credentials:credentials:1.6.0")
+    // Android 11+ inline autofill suggestion chips. The service only renders a
+    // static "Fill with Keyel" chip; credentials stay behind AuthActivity.
+    implementation("androidx.autofill:autofill:1.3.0")
+    // Opt-in Wear OS TOTP seeds. Transport is encrypted by Play Services and
+    // the phone never logs a payload; the watch stores seeds in Keystore-backed
+    // EncryptedSharedPreferences.
+    implementation("com.google.android.gms:play-services-wearable:19.0.0")
+    // The watch app is a separate APK (`:wear`), built and shipped alongside
+    // the handheld build rather than bundled: AGP 9 removed `wearApp`.
 }
 
 // ---------------------------------------------------------------------------

@@ -7,6 +7,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Star button that toggles the favorite flag of a vault entry.
 class VaultFavoriteButton extends ConsumerStatefulWidget {
@@ -62,11 +63,12 @@ class _VaultFavoriteButtonState extends ConsumerState<VaultFavoriteButton> {
 
       await widget.onRefresh();
       if (!mounted) return;
+      final l10n = l10nOf(context);
       showKeyelSnack(
         context,
         newFav
-            ? '${entry.title} pinned to favorites'
-            : '${entry.title} removed from favorites',
+            ? l10n.vaultEntryPinnedToFavorites(entry.title)
+            : l10n.vaultEntryRemovedFromFavorites(entry.title),
         icon: newFav ? Icons.star_rounded : Icons.star_outline_rounded,
       );
     } on Object catch (error) {
@@ -76,12 +78,15 @@ class _VaultFavoriteButtonState extends ConsumerState<VaultFavoriteButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final favorite = widget.entry.favorite;
 
     return KeyelIconHull(
       icon: favorite ? Icons.star_rounded : Icons.star_outline_rounded,
-      tooltip: favorite ? 'Remove from favorites' : 'Add to favorites',
+      tooltip: favorite
+          ? l10n.vaultRemoveFromFavorites
+          : l10n.vaultAddToFavorites,
       onPressed: () => unawaited(_toggle()),
       foreground: favorite ? scheme.primary : scheme.outline,
     );

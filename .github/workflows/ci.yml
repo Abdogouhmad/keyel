@@ -76,6 +76,11 @@ jobs:
           flutter_rust_bridge_codegen generate
           git diff --exit-code -- lib/src/rust rust/src/frb_generated.rs \
             || (echo "::error::Generated FRB bindings are out of date. Run 'flutter_rust_bridge_codegen generate' and commit the result." && exit 1)
+      - name: Verify checked-in localizations are up to date
+        run: |
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n/generated \
+            || (echo "::error::Generated localizations are out of date. Run 'flutter gen-l10n' and commit the result." && exit 1)
       - name: flutter analyze
         run: flutter analyze
       - name: flutter test
@@ -118,6 +123,20 @@ jobs:
             gradle-${{ runner.os }}-
       - name: Build debug APK (debug only, device matrix in roadmap 0.11)
         run: flutter build apk --debug --target-platform android-arm64
+      # Flutter passes -PskipDependencyChecks=true itself when it invokes
+      # Gradle; a direct ./gradlew call must do the same or Flutter's checker
+      # rejects this project's pinned AGP 9.1.0 (it wants >= 9.1.1).
+      - name: Wear OS RFC 6238 unit tests
+        working-directory: android
+        run: ./gradlew :wear:testDebugUnitTest -PskipDependencyChecks=true
+      - name: Build Wear OS watch APK
+        working-directory: android
+        run: ./gradlew :wear:assembleRelease -PskipDependencyChecks=true
+      - name: upload watch artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyel-wear-apk
+          path: build/wear/outputs/apk/release/*.apk
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:

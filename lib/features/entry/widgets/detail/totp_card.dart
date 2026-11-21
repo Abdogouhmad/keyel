@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/src/rust/api/totp.dart' as totp_api;
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Live two-factor code for an entry, refreshed once per period.
 ///
@@ -75,17 +76,18 @@ class _EntryTotpCardState extends State<EntryTotpCard> {
   void _copy() {
     final code = _code;
     if (code == null) return;
-    widget.onCopy(code.code, '2FA code copied to clipboard');
+    widget.onCopy(code.code, l10nOf(context).entry2FaCodeCopied);
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final code = _code;
 
     return KeyelSectionCard(
-      title: 'Two-factor code',
+      title: l10n.entryTwoFactorCode,
       icon: Icons.phonelink_lock_rounded,
       showBorder: true,
       child: code == null
@@ -101,7 +103,7 @@ class _EntryTotpCardState extends State<EntryTotpCard> {
                 ),
                 const SizedBox(width: KeyelSpacing.sm),
                 Text(
-                  'Loading code…',
+                  l10n.entryLoadingCode,
                   style: textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),

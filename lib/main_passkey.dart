@@ -22,8 +22,11 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/passkeys/passkey_create_screen.dart';
 import 'package:keyel/features/passkeys/passkey_get_screen.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
+import 'package:keyel/l10n/generated/app_localizations.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
+import 'package:keyel/ui/l10n/locale_provider.dart';
 import 'package:keyel/ui/theme/keyel_palettes.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -43,6 +46,7 @@ Future<void> mainPasskey() async {
     final vaultPath = await defaultVaultPath();
     vault_api.init(path: vaultPath);
     await AppPreferences.instance.load(vaultPath);
+    setCurrentLocaleId(AppPreferences.instance.localeId);
   } on Object catch (_) {
     // Same resilience as other entrypoints.
   }
@@ -111,8 +115,11 @@ class _PasskeyApp extends ConsumerWidget {
     final rpId = _nonEmpty(args['rpId']);
 
     return MaterialApp(
-      title: 'Keyel Passkeys',
+      title: l10nOf(context).corePasskeyAppTitle,
       debugShowCheckedModeBanner: false,
+      locale: localeFromId(prefs.localeId),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       themeMode: themeMode,
       theme: KeyelTheme.light(palette: palette),
       darkTheme: KeyelTheme.dark(
@@ -125,6 +132,7 @@ class _PasskeyApp extends ConsumerWidget {
       home: !isUnlocked
           ? const UnlockVaultView()
           : _buildScreen(
+              context: context,
               mode: mode,
               requestJson: requestJson,
               origin: origin,
@@ -134,15 +142,17 @@ class _PasskeyApp extends ConsumerWidget {
   }
 
   Widget _buildScreen({
+    required BuildContext context,
     required String mode,
     required String? requestJson,
     required String origin,
     required String? rpId,
   }) {
+    final l10n = l10nOf(context);
     if (requestJson == null) {
       return _ErrorScreen(
-        title: 'Passkey unavailable',
-        message: 'Could not read the passkey request. Try again.',
+        title: l10n.corePasskeyUnavailable,
+        message: l10n.corePasskeyRequestUnreadable,
         onClose: () => unawaited(_cancel()),
       );
     }
@@ -167,8 +177,8 @@ class _PasskeyApp extends ConsumerWidget {
         );
       default:
         return _ErrorScreen(
-          title: 'Passkey unavailable',
-          message: 'This passkey request is not supported.',
+          title: l10n.corePasskeyUnavailable,
+          message: l10n.corePasskeyRequestUnsupported,
           onClose: () => unawaited(_cancel()),
         );
     }
@@ -216,7 +226,10 @@ class _ErrorScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              FilledButton(onPressed: onClose, child: const Text('Close')),
+              FilledButton(
+                onPressed: onClose,
+                child: Text(l10nOf(context).actionClose),
+              ),
             ],
           ),
         ),

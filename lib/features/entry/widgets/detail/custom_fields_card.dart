@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Renders user-defined custom fields on the entry detail screen.
 class CustomFieldsCard extends StatelessWidget {
@@ -33,7 +34,7 @@ class CustomFieldsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return KeyelSectionCard(
-      title: 'Custom fields',
+      title: l10nOf(context).entryCustomFields,
       icon: Icons.tune_rounded,
       showBorder: true,
       child: Column(
@@ -74,7 +75,10 @@ class _CustomFieldRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final label = field.label.trim().isEmpty ? 'Field' : field.label.trim();
+    final l10n = l10nOf(context);
+    final label = field.label.trim().isEmpty
+        ? l10n.entryField
+        : field.label.trim();
 
     switch (field.kind) {
       case CustomFieldKindDto.hidden:
@@ -94,14 +98,16 @@ class _CustomFieldRow extends StatelessWidget {
                   icon: revealed
                       ? Icons.visibility_off_rounded
                       : Icons.visibility_rounded,
-                  tooltip: revealed ? 'Hide value' : 'Reveal value',
+                  tooltip: revealed
+                      ? l10n.entryHideValue
+                      : l10n.entryRevealValue,
                   onPressed: field.hasHiddenValue ? onToggleReveal : null,
                   size: 44,
                   iconSize: 20,
                 ),
                 KeyelIconHull(
                   icon: Icons.content_copy_rounded,
-                  tooltip: 'Copy value',
+                  tooltip: l10n.entryCopyValue,
                   onPressed: field.hasHiddenValue ? onCopy : null,
                   foreground: scheme.primary,
                   size: 44,
@@ -133,14 +139,14 @@ class _CustomFieldRow extends StatelessWidget {
             children: [
               KeyelIconHull(
                 icon: Icons.open_in_new_rounded,
-                tooltip: 'Open URL',
+                tooltip: l10n.entryOpenUrl,
                 onPressed: value.isEmpty ? null : () => onOpenUrl(value),
                 background: scheme.surfaceContainerHighest,
               ),
               const SizedBox(width: KeyelSpacing.xs),
               KeyelIconHull(
                 icon: Icons.content_copy_rounded,
-                tooltip: 'Copy URL',
+                tooltip: l10n.entryCopyUrl,
                 onPressed: value.isEmpty ? null : onCopy,
                 background: scheme.surfaceContainerHighest,
               ),
@@ -160,7 +166,7 @@ class _CustomFieldRow extends StatelessWidget {
           label: label,
           trailing: KeyelIconHull(
             icon: Icons.content_copy_rounded,
-            tooltip: 'Copy value',
+            tooltip: l10n.entryCopyValue,
             onPressed: value.isEmpty ? null : onCopy,
             background: scheme.surfaceContainerHighest,
           ),

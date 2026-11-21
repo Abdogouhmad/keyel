@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/vault/widgets/vault_entry_list.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A titled section of vault entries rendered as slivers.
 class VaultEntrySection extends StatelessWidget {
@@ -32,6 +33,7 @@ class VaultEntrySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -51,7 +53,7 @@ class VaultEntrySection extends StatelessWidget {
                 label: title,
                 icon: icon,
                 trailing: Text(
-                  '$count ${count == 1 ? 'item' : 'items'}',
+                  l10n.vaultItemCount(count),
                   style: textTheme.labelSmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),

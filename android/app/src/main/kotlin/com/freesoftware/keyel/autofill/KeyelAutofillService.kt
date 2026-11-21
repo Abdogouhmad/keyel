@@ -13,6 +13,7 @@ import android.service.autofill.SaveCallback
 import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
 import android.widget.RemoteViews
+import com.freesoftware.keyel.R
 
 /**
  * The Keyel autofill service.
@@ -37,6 +38,14 @@ class KeyelAutofillService : AutofillService() {
 
         // Nothing we can fill.
         if (parsed.fields.isEmpty()) {
+            callback.onSuccess(null)
+            return
+        }
+
+        // The user chose "Never for this site": do not even offer an unlock
+        // prompt. The deny choice is canonical and app-private; no vault data
+        // is involved.
+        if (NeverForSites.isDenied(this, parsed.packageName, parsed.webDomain)) {
             callback.onSuccess(null)
             return
         }
@@ -73,7 +82,7 @@ class KeyelAutofillService : AutofillService() {
 
         // A presentation shown in the autofill dropdown before the user taps.
         val presentation = RemoteViews(packageName, android.R.layout.simple_list_item_1).apply {
-            setTextViewText(android.R.id.text1, "Fill with Keyel")
+            setTextViewText(android.R.id.text1, getString(R.string.autofill_inline_title))
         }
 
         // Authentication-gated dataset: per-field values are intentionally
@@ -86,6 +95,14 @@ class KeyelAutofillService : AutofillService() {
             datasetBuilder.setValue(field.autofillId, null)
         }
         datasetBuilder.setAuthentication(pendingIntent.intentSender)
+
+        // Android 11+ keyboard suggestions. The chip carries only static copy
+        // and reuses the same auth PendingIntent, so credentials stay behind
+        // AuthActivity. Fail-closed: if the IME has no compatible spec, no chip
+        // is shown and the normal dropdown still works.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            InlineSuggestionHelper.attach(datasetBuilder, request, pendingIntent, this)
+        }
 
         val responseBuilder = FillResponse.Builder()
             .addDataset(datasetBuilder.build())
@@ -110,6 +127,11 @@ class KeyelAutofillService : AutofillService() {
         }
 
         val parsed = FieldParser.parse(structures)
+
+        if (NeverForSites.isDenied(this, parsed.packageName, parsed.webDomain)) {
+            callback.onSuccess()
+            return
+        }
 
         // Hand the captured credentials to our own UI, which asks the user to
         // confirm before anything is written to the vault. We own the save

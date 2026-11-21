@@ -5,6 +5,7 @@ import 'package:keyel/features/entry/entry_edit_callbacks.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/generator.dart' as generator_api;
 import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Kind and favorite flags restored from an existing entry.
 class LoadedEntry {
@@ -252,7 +253,7 @@ class EntryEditController {
       );
     } on Object catch (_) {
       callbacks.notify(
-        'Could not generate a password right now.',
+        currentL10n.entryPasswordGenerationFailed,
         icon: Icons.error_rounded,
       );
       return null;
@@ -276,7 +277,7 @@ class EntryEditController {
     final entryTitle = title.text.trim();
     if (entryTitle.isEmpty) {
       callbacks.notify(
-        'Give this entry a title first.',
+        currentL10n.entryTitleRequired,
         icon: Icons.error_rounded,
       );
       return;
@@ -319,7 +320,7 @@ class EntryEditController {
     try {
       await repository.upsertEntry(draft);
       callbacks.notify(
-        entryId == null ? 'Entry created in vault.' : 'Entry updated.',
+        entryId == null ? currentL10n.entryCreated : currentL10n.entryUpdated,
       );
       callbacks.close();
     } on Object catch (error) {

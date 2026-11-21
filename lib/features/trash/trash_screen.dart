@@ -8,6 +8,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/trash/widgets/trash_widgets.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Soft-deleted entries with restore, delete-forever and empty-trash actions.
 class TrashScreen extends ConsumerStatefulWidget {
@@ -65,7 +66,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
       if (!mounted) return;
       showKeyelSnack(
         context,
-        '"${entry.title}" restored',
+        l10nOf(context).trashRestored(entry.title),
         icon: Icons.restore_rounded,
       );
       await _load();
@@ -82,11 +83,12 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
   }
 
   Future<void> _purge(EntrySummaryDto entry) async {
+    final l10n = l10nOf(context);
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Delete forever?',
-      body: '"${entry.title}" cannot be recovered after this.',
-      confirmLabel: 'Delete forever',
+      title: l10n.trashDeleteForeverTitle,
+      body: l10n.trashDeleteForeverBody(entry.title),
+      confirmLabel: l10n.trashDeleteForever,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -97,7 +99,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
       if (!mounted) return;
       showKeyelSnack(
         context,
-        'Entry permanently deleted',
+        l10n.trashPermanentlyDeleted,
         icon: Icons.delete_forever_rounded,
       );
       await _load();
@@ -115,14 +117,12 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
 
   Future<void> _emptyTrash() async {
     if (_deleted.isEmpty) return;
+    final l10n = l10nOf(context);
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Empty trash?',
-      body:
-          'All ${_deleted.length} trashed '
-          '${_deleted.length == 1 ? "entry" : "entries"} will be deleted '
-          'forever.',
-      confirmLabel: 'Empty trash',
+      title: l10n.trashEmptyConfirmTitle,
+      body: l10n.trashEmptyConfirmBody(_deleted.length),
+      confirmLabel: l10n.trashEmptyAction,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -136,7 +136,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
       if (!mounted) return;
       showKeyelSnack(
         context,
-        'Trash emptied',
+        l10n.trashEmptied,
         icon: Icons.delete_sweep_rounded,
       );
       await _load();
@@ -155,6 +155,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -163,13 +164,13 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
         child: Column(
           children: [
             KeyelTopBar(
-              title: 'Trash',
+              title: l10n.trashTitle,
               icon: Icons.arrow_back_rounded,
-              iconTooltip: 'Back',
+              iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
               trailing: KeyelIconHull(
                 icon: Icons.delete_sweep_rounded,
-                tooltip: 'Empty trash',
+                tooltip: l10n.trashEmptyAction,
                 foreground: _deleted.isEmpty ? null : scheme.error,
                 onPressed: _deleted.isEmpty || _busy
                     ? null
@@ -185,17 +186,18 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
   }
 
   Widget _buildBody(BuildContext context) {
+    final l10n = l10nOf(context);
     if (_loading) {
-      return const KeyelStateMessage(
+      return KeyelStateMessage(
         kind: KeyelStateMessageKind.loading,
-        message: 'Loading deleted items…',
+        message: l10n.trashLoading,
       );
     }
     if (_loadError != null) {
       return KeyelStateMessage(
         kind: KeyelStateMessageKind.error,
         message: _loadError!,
-        actionLabel: 'Retry',
+        actionLabel: l10n.actionRetry,
         onAction: () => unawaited(_load()),
       );
     }

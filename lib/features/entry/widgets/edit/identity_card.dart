@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Avatar and title field block at the top of the editor.
 class IdentityCard extends StatelessWidget {
@@ -24,6 +25,7 @@ class IdentityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
       color: scheme.surfaceContainerLow,
@@ -38,7 +40,7 @@ class IdentityCard extends StatelessWidget {
                 PressableScale(
                   onTap: onIconTap,
                   borderRadius: BorderRadius.circular(KeyelRadii.field),
-                  semanticLabel: 'Change icon',
+                  semanticLabel: l10n.entryChangeIcon,
                   child: KeyelAvatar(
                     icon: icon,
                     tone: KeyelAvatarTone.slate,
@@ -51,7 +53,7 @@ class IdentityCard extends StatelessWidget {
                   child: PressableScale(
                     onTap: onIconTap,
                     borderRadius: BorderRadius.circular(KeyelRadii.pill),
-                    semanticLabel: 'Change icon',
+                    semanticLabel: l10n.entryChangeIcon,
                     child: Container(
                       width: 28,
                       height: 28,
@@ -76,9 +78,9 @@ class IdentityCard extends StatelessWidget {
             child: TextField(
               controller: titleController,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Service or app name',
+              decoration: InputDecoration(
+                labelText: l10n.entryTitleFieldLabel,
+                hintText: l10n.entryTitleFieldHint,
               ),
             ),
           ),

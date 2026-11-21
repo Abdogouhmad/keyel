@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Resolves the user-chosen folder that holds encrypted sync blobs.
@@ -20,7 +21,7 @@ class PlatformSyncFolderService implements SyncFolderService {
 
   @override
   Future<String?> pickFolder() =>
-      FilePicker.getDirectoryPath(dialogTitle: 'Choose a sync folder');
+      FilePicker.getDirectoryPath(dialogTitle: currentL10n.synChooseFolder);
 
   @override
   Future<String> appSyncFolder() async {

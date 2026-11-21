@@ -1,42 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Categories grouping available entry icons.
 enum EntryIconCategory {
   /// All icons.
-  all('All'),
+  all,
 
   /// Popular web services and brands.
-  brands('Brands'),
+  brands,
 
   /// Tech, coding, infrastructure and hardware.
-  tech('Tech & Dev'),
+  tech,
 
   /// Banking, payments, wallets and shopping.
-  finance('Finance'),
+  finance,
 
   /// Email, documents, office and organization.
-  work('Work'),
+  work,
 
   /// Security, keys, locks and protection.
-  security('Security'),
+  security,
 
   /// Audio, video, camera and gaming.
-  media('Media'),
+  media,
 
   /// Chat, messaging and social platforms.
-  social('Social'),
+  social,
 
   /// Cryptocurrency, exchanges, trading and web3.
-  crypto('Crypto'),
+  crypto,
 
   /// Travel, daily life, home and utilities.
-  life('Life & Utilities');
-
-  new(this.label);
+  life;
 
   /// Human-readable label for filter chips.
-  final String label;
+  String get label => switch (this) {
+    EntryIconCategory.all => currentL10n.entryIconCategoryAll,
+    EntryIconCategory.brands => currentL10n.entryIconCategoryBrands,
+    EntryIconCategory.tech => currentL10n.entryIconCategoryTech,
+    EntryIconCategory.finance => currentL10n.entryIconCategoryFinance,
+    EntryIconCategory.work => currentL10n.entryIconCategoryWork,
+    EntryIconCategory.security => currentL10n.entryIconCategorySecurity,
+    EntryIconCategory.media => currentL10n.entryIconCategoryMedia,
+    EntryIconCategory.social => currentL10n.entryIconCategorySocial,
+    EntryIconCategory.crypto => currentL10n.entryIconCategoryCrypto,
+    EntryIconCategory.life => currentL10n.entryIconCategoryLife,
+  };
 }
 
 /// A selectable icon definition with a unique key, icon glyph, and search tags.

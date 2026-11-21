@@ -21,6 +21,7 @@ import 'package:keyel/features/sync/sync_screen.dart';
 import 'package:keyel/features/trash/trash_screen.dart';
 import 'package:keyel/features/vault/vault_screen.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
+import 'package:keyel/features/wear/watch_codes_screen.dart';
 import 'package:keyel/ui/adaptive/keyel_shell.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -29,13 +30,30 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 Page<void> _tab(GoRouterState state, Widget child) =>
     NoTransitionPage<void>(key: state.pageKey, child: child);
 
+/// Initial tab, adjustable before `runApp` for launcher actions.
+final initialRouteProvider = NotifierProvider<InitialRouteNotifier, String>(
+  InitialRouteNotifier.new,
+);
+
+/// Holds the route selected by a cold-start launcher action until `runApp`.
+class InitialRouteNotifier extends Notifier<String> {
+  @override
+  String build() => KeyelRoutes.vault;
+
+  /// Route shown on the first frame.
+  String get initialLocation => state;
+
+  /// Selects the route to show on first frame.
+  set initialLocation(String route) => state = route;
+}
+
 /// Injectable router so the guard can read the Riverpod container.
 final appRouterProvider = Provider<GoRouter>((ref) {
   final session = VaultSessionListenable(ref.container);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: KeyelRoutes.vault,
+    initialLocation: ref.read(initialRouteProvider),
     refreshListenable: session,
     // Lifecycle guard: no vault → /onboarding, locked → /unlock.
     // Redirects only once the session state has resolved.
@@ -116,6 +134,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const KeyelSubShell(
           tabIndex: KeyelTab.settings,
           child: AppearanceScreen(),
+        ),
+      ),
+      GoRoute(
+        path: KeyelRoutes.watchCodes,
+        builder: (context, state) => const KeyelSubShell(
+          tabIndex: KeyelTab.settings,
+          child: WatchCodesScreen(),
         ),
       ),
       GoRoute(

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:keyel/data/autofill_target.dart';
+
 /// Small, non-secret preference store kept next to the vault file.
 ///
 /// The vault itself is the only source of truth for secrets; this file only
@@ -65,6 +67,20 @@ class AppPreferences {
   /// `exact` requires the same host or Android package.
   String autofillMatchMode = 'domain';
 
+  /// Require exact package/host identity when matching logins for autofill.
+  ///
+  /// This is the offline substitute for Digital Asset Links verification:
+  /// same-site and text-search hits are suppressed because they cannot be
+  /// proven locally. No network request is ever made.
+  bool autofillVerifiedOnly = false;
+
+  /// Sites/apps the user chose "Never for this site" on.
+  ///
+  /// Canonical `host:<host>` or `package:<package>` keys only: never usernames,
+  /// passwords or vault contents. Capped on load so a corrupted file cannot
+  /// grow without bound. Not a secret.
+  List<String> autofillNeverForSites = <String>[];
+
   /// How long copied secrets stay on the clipboard, in seconds. Zero means
   /// never clear them. Not a secret.
   int clipboardClearSeconds = 30;
@@ -88,6 +104,12 @@ class AppPreferences {
   /// Epoch milliseconds before which unlock attempts are refused, or `null`.
   /// Persisted alongside [unlockFailures]; not a secret.
   int? unlockLockedUntilMs;
+
+  /// Preferred app language: `system`, `en`, or `fr`.
+  ///
+  /// Not a secret. Only these three values are accepted on load; anything else
+  /// falls back to the system locale.
+  String localeId = 'system';
 
   /// Preferred app theme mode: `system`, `light`, or `dark`.
   String themeMode = 'system';
@@ -170,6 +192,17 @@ class AppPreferences {
       autofillMatchMode = decoded['autofillMatchMode'] == 'exact'
           ? 'exact'
           : 'domain';
+      autofillVerifiedOnly = decoded['autofillVerifiedOnly'] == true;
+      final denied = decoded['autofillNeverForSites'];
+      if (denied is List) {
+        autofillNeverForSites = denied
+            .whereType<String>()
+            .map((value) => value.trim())
+            .where(isValidAutofillTarget)
+            .toSet()
+            .take(100)
+            .toList();
+      }
       final clipboard = decoded['clipboardClearSeconds'];
       if (clipboard is int && clipboard >= 0) {
         clipboardClearSeconds = clipboard;
@@ -193,6 +226,10 @@ class AppPreferences {
             .toList();
       }
 
+      final localeId = decoded['localeId'];
+      if (localeId == 'system' || localeId == 'en' || localeId == 'fr') {
+        this.localeId = localeId as String;
+      }
       final mode = decoded['themeMode'];
       if (mode == 'light' || mode == 'dark' || mode == 'system') {
         themeMode = mode as String;
@@ -261,10 +298,13 @@ class AppPreferences {
           'biometricEnabled': biometricEnabled,
           'autofillAskToSave': autofillAskToSave,
           'autofillMatchMode': autofillMatchMode,
+          'autofillVerifiedOnly': autofillVerifiedOnly,
+          'autofillNeverForSites': autofillNeverForSites,
           'clipboardClearSeconds': clipboardClearSeconds,
           'screenshotProtection': screenshotProtection,
           'unlockFailures': unlockFailures,
           'unlockLockedUntilMs': unlockLockedUntilMs,
+          'localeId': localeId,
           'themeMode': themeMode,
           'paletteId': paletteId,
           'amoledBlack': amoledBlack,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Warning banner shown when only text-matched logins are available.
 class AutofillMismatchBanner extends StatelessWidget {
@@ -17,6 +18,7 @@ class AutofillMismatchBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(
@@ -36,8 +38,7 @@ class AutofillMismatchBanner extends StatelessWidget {
           const SizedBox(width: KeyelSpacing.sm),
           Expanded(
             child: Text(
-              'Some results are text matches only. Check that the login '
-              'really belongs to $target before filling.',
+              l10n.autofillMismatchBody(target),
               style: textTheme.bodySmall?.copyWith(
                 color: scheme.onErrorContainer,
               ),
@@ -83,7 +84,7 @@ class AutofillCenteredNote extends StatelessWidget {
       icon: icon,
       title: title,
       message: body,
-      actionLabel: onRetry == null ? null : 'Retry',
+      actionLabel: onRetry == null ? null : l10nOf(context).actionRetry,
       onAction: onRetry,
     );
   }
@@ -122,35 +123,36 @@ class AutofillPickerBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     if (!unlocked) {
-      return const AutofillCenteredNote(
+      return AutofillCenteredNote(
         kind: KeyelStateMessageKind.empty,
         icon: Icons.lock_rounded,
-        title: 'Vault locked',
-        body: 'Unlock Keyel to fill this form.',
+        title: l10n.autofillVaultLocked,
+        body: l10n.autofillUnlockToFill,
       );
     }
     if (error != null) {
       return AutofillCenteredNote(
         kind: KeyelStateMessageKind.error,
         icon: Icons.error_outline_rounded,
-        title: 'Could not load matches',
+        title: l10n.autofillLoadError,
         body: error!,
         onRetry: onRetry,
       );
     }
     if (loading) {
-      return const KeyelStateMessage(
+      return KeyelStateMessage(
         kind: KeyelStateMessageKind.loading,
-        message: 'Finding matching logins…',
+        message: l10n.autofillFindingMatches,
       );
     }
     if (matches.isEmpty) {
-      return const AutofillCenteredNote(
+      return AutofillCenteredNote(
         kind: KeyelStateMessageKind.empty,
         icon: Icons.search_off_rounded,
-        title: 'No matching logins',
-        body: 'Create a new login for this app or site.',
+        title: l10n.autofillNoMatches,
+        body: l10n.autofillNoMatchesBody,
       );
     }
     return ListView.builder(

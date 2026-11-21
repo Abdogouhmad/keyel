@@ -223,6 +223,25 @@ and no credential is offered (`crates/keyel_core/src/autofill.rs`).
 *Residual:* without a PSL, `foo.co.uk` and `bar.co.uk` are not recognised as
 siblings; the conservative rule errs toward not matching.
 
+Since 1.10.0 two additional controls can only *narrow* what is offered:
+
+- The persisted **"Never for this site"** list is keyed by the same canonical
+  identity the matcher uses (`host:` for trusted browsers/no package,
+  `package:` for arbitrary apps). `KeyelAutofillService` checks it before
+  creating an auth prompt, so a denied target gets no dropdown and no save
+  flow. Entries are app-private, non-secret identifiers, are validated on
+  load (no wildcards, no schemes, lowercase only), and are never logged.
+- The opt-in **Verified sites only** mode passes `require_verified` to
+  `find_matches`, dropping same-site and text-search hits so only exact
+  package/host matches remain. This is the offline substitute for Digital
+  Asset Links: there is no network lookup, and the flag cannot add a match or
+  skip `AuthActivity`. Real online statement verification is out of scope.
+
+Android 11+ inline suggestions use a static "Fill with Keyel" chip with the
+same auth `PendingIntent` as the dropdown dataset. The chip contains no
+credential material and is unpinned, so the authenticated dataset replaces it
+normally. There is no IME-side secret rendering.
+
 ### T8 — Malicious Autofill caller (A2)
 
 `KeyelAutofillService` is bound with `BIND_AUTOFILL_SERVICE` (system only) and
@@ -370,6 +389,43 @@ malicious service can return wrong counts for that prefix, but cannot read the
 vault, learn a password, or change vault data. Correctness depends on trusting
 HIBP's data; privacy does not.
 
+### T16 — Watch-side TOTP seed exposure (A1, A2, A5, since 1.10.0)
+
+The Wear OS companion is **opt-in and standalone**. It holds TOTP seeds for
+entries the user explicitly pushes from an unlocked phone; it never holds a
+vault, a master password or any other credential, and it never opens a network
+connection of its own.
+
+- **No vault schema change.** The "which entries live on the watch" decision is
+  not stored in the vault at all. The phone reveals a seed through the normal
+  `VaultRepository.revealField` gate at the moment of the push and keeps no copy
+  afterwards. Removing a code from the watch never mutates vault data.
+- **Transport.** Seeds travel over the Google Play Services Wearable message
+  channel to a connected node only; the phone fails closed when Play Services
+  or a paired watch is unavailable. Payloads are size-bounded, never logged,
+  and the native byte buffers are zero-filled after the send. There is no
+  retry, queue or background service.
+- **Storage on the watch.** The watch validates every incoming field, then
+  stores the seed in `EncryptedSharedPreferences` behind a StrongBox-backed
+  AES-256-GCM master key. No plaintext seed appears in preferences, backups
+  (`allowBackup=false`), logs or the UI tree. Unknown message paths and
+  malformed payloads are ignored.
+- **Display.** The app is foreground-only, blocks screenshots with
+  `FLAG_SECURE`, never writes to the clipboard, and masks all codes again on
+  pause. Revealing codes is an explicit local tap on the watch. Codes are
+  generated on-device from RFC 6238; the watch does not ask the phone for a
+  code, so losing phone connectivity does not block them.
+- **Revocation.** The phone can remove one entry or all entries at any time
+  without unlocking the vault; the watch clears its store immediately.
+
+*Residual:* a physically compromised **unlocked** watch while a code is
+revealed can be read by whoever holds it. TOTP codes are short-lived and this
+companion never contains the password or the vault, but a user who considers
+that unacceptable should not push seeds to a watch. Play Services transports
+through Google infrastructure; the app-level secret is encrypted at both ends,
+but the companion is deliberately not an offline-airgapped device. The watch
+app has no remote-wipe path other than the paired phone's remove command.
+
 ## 6. Verification map
 
 | Threat | How it is checked |
@@ -386,6 +442,7 @@ HIBP's data; privacy does not.
 | T14 | `crates/keyel_core/tests/sync.rs` + `sync`/`pairing` unit tests (envelope tamper/wrong-key/truncation, pairing typo rejection, merge idempotency/convergence, corrupt blob leaves vault untouched, folder atomic I/O); `test/sync_screen_test.dart` (pairing-code acknowledgement, status, manual sync) |
 | T15 | `crates/keyel_core/src/breach.rs` known-answer/parser tests; `test/breach_test.dart` (HTTPS endpoint and prefix validation, opt-in disclosure, unlocked gating, error/cleanup, title/count-only results); secret-free DTO shape in `rust/src/api/breach.rs` |
 | T11 | `rust/src/api/import_export.rs` private-file test (`0600`, no overwrite) |
+| T16 | `wear/src/test/.../TotpGeneratorTest.kt` (RFC 6238 vectors for SHA-1/256/512, input validation); source review of `TotpStore`/`WearTotpBridge`; `tool/check_no_secret_logs.sh`; on-device watch smoke pending |
 
 ## 7. Open items
 
@@ -397,6 +454,5 @@ HIBP's data; privacy does not.
 5. Device smoke for 1.7.0: opt-in flow, offline failure, locked vault, relock
    mid-check, and a known-breached password against the live HIBP endpoint.
 
-_Last updated: 2026-11-20 (1.8.0 hardening: secret-log guard, reveal hygiene,
-sensitive clipboard flag, WebView-spoofing fix, fail-closed OTA, zeroization,
-private CSV)._
+_Last updated: 2026-11-21 (1.10.0: autofill deny/verified-only, inline suggestions,
+opt-in Wear OS TOTP companion)._

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Screen for selecting and asserting a passkey during a WebAuthn get ceremony.
 ///
@@ -93,7 +94,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
     if (rpId.isEmpty) {
       setState(() {
         _loading = false;
-        _error = 'Missing relying party information for this request.';
+        _error = currentL10n.passMissingRp;
       });
       return;
     }
@@ -106,7 +107,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
         _matches = matches;
         _loading = false;
         if (matches.isEmpty) {
-          _error = 'No passkeys found for $rpId.';
+          _error = currentL10n.passNoMatchesForRp(rpId);
         }
       });
     } on Object catch (e) {
@@ -152,7 +153,8 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final rpId = _effectiveRpId.isEmpty ? 'this site' : _effectiveRpId;
+    final l10n = l10nOf(context);
+    final rpId = _effectiveRpId.isEmpty ? l10n.passThisSite : _effectiveRpId;
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -162,9 +164,9 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
           child: Column(
             children: [
               KeyelTopBar(
-                title: 'Use passkey',
+                title: l10n.passUsePasskey,
                 icon: Icons.close_rounded,
-                iconTooltip: 'Cancel',
+                iconTooltip: l10n.actionCancel,
                 onIconTap: widget.onCancel,
               ),
               Padding(
@@ -177,7 +179,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Sign in to $rpId',
+                    l10n.passSignInTo(rpId),
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: scheme.onSurface,
@@ -186,10 +188,10 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
                 ),
               ),
               if (_loading)
-                const Expanded(
+                Expanded(
                   child: KeyelStateMessage(
                     kind: KeyelStateMessageKind.loading,
-                    message: 'Finding passkeys…',
+                    message: l10n.passFindingPasskeys,
                   ),
                 )
               else if (_error != null)
@@ -197,7 +199,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
                   child: KeyelStateMessage(
                     kind: KeyelStateMessageKind.error,
                     message: _error!,
-                    actionLabel: 'Retry',
+                    actionLabel: l10n.actionRetry,
                     onAction: () => unawaited(_load()),
                   ),
                 )
@@ -206,8 +208,8 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
                   child: _matches.isEmpty
                       ? KeyelStateMessage(
                           kind: KeyelStateMessageKind.empty,
-                          title: 'No passkeys available',
-                          message: 'No passkeys are saved for $rpId.',
+                          title: l10n.passNoMatches,
+                          message: l10n.passNoMatchesAvailable(rpId),
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(KeyelSpacing.md),
@@ -295,7 +297,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
               Padding(
                 padding: const EdgeInsets.all(KeyelSpacing.lg),
                 child: KeyelPillButton(
-                  label: 'Cancel',
+                  label: l10n.actionCancel,
                   tone: KeyelButtonTone.tonal,
                   onPressed: _asserting ? null : widget.onCancel,
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_colors.dart';
 
 /// Supported accent palettes.
@@ -48,28 +49,34 @@ extension KeyelPaletteX on KeyelPalette {
   };
 
   /// Human-readable label for the appearance picker.
-  String get label => switch (this) {
-    KeyelPalette.indigo => 'Indigo',
-    KeyelPalette.ocean => 'Ocean',
-    KeyelPalette.forest => 'Forest',
-    KeyelPalette.teal => 'Teal',
-    KeyelPalette.amber => 'Amber',
-    KeyelPalette.rose => 'Rose',
-    KeyelPalette.violet => 'Violet',
-    KeyelPalette.graphite => 'Graphite',
-  };
+  String get label {
+    final l10n = currentL10n;
+    return switch (this) {
+      KeyelPalette.indigo => l10n.corePaletteIndigo,
+      KeyelPalette.ocean => l10n.corePaletteOcean,
+      KeyelPalette.forest => l10n.corePaletteForest,
+      KeyelPalette.teal => l10n.corePaletteTeal,
+      KeyelPalette.amber => l10n.corePaletteAmber,
+      KeyelPalette.rose => l10n.corePaletteRose,
+      KeyelPalette.violet => l10n.corePaletteViolet,
+      KeyelPalette.graphite => l10n.corePaletteGraphite,
+    };
+  }
 
   /// Short description shown in the appearance picker.
-  String get description => switch (this) {
-    KeyelPalette.indigo => 'Classic Keyel brand colors',
-    KeyelPalette.ocean => 'Calm blue tones',
-    KeyelPalette.forest => 'Deep green tones',
-    KeyelPalette.teal => 'Balanced blue-green tones',
-    KeyelPalette.amber => 'Warm golden tones',
-    KeyelPalette.rose => 'Soft red and pink tones',
-    KeyelPalette.violet => 'Rich purple tones',
-    KeyelPalette.graphite => 'Neutral monochrome tones',
-  };
+  String get description {
+    final l10n = currentL10n;
+    return switch (this) {
+      KeyelPalette.indigo => l10n.corePaletteIndigoDesc,
+      KeyelPalette.ocean => l10n.corePaletteOceanDesc,
+      KeyelPalette.forest => l10n.corePaletteForestDesc,
+      KeyelPalette.teal => l10n.corePaletteTealDesc,
+      KeyelPalette.amber => l10n.corePaletteAmberDesc,
+      KeyelPalette.rose => l10n.corePaletteRoseDesc,
+      KeyelPalette.violet => l10n.corePaletteVioletDesc,
+      KeyelPalette.graphite => l10n.corePaletteGraphiteDesc,
+    };
+  }
 
   /// Seed color used to generate non-classic schemes and previews.
   Color get seed => switch (this) {
@@ -121,9 +128,12 @@ extension KeyelPaletteX on KeyelPalette {
   };
 
   /// Human-readable label for a [ThemeMode].
-  static String themeModeLabel(ThemeMode mode) => switch (mode) {
-    ThemeMode.light => 'Light',
-    ThemeMode.dark => 'Dark',
-    ThemeMode.system => 'System',
-  };
+  static String themeModeLabel(ThemeMode mode) {
+    final l10n = currentL10n;
+    return switch (mode) {
+      ThemeMode.light => l10n.coreThemeLight,
+      ThemeMode.dark => l10n.coreThemeDark,
+      ThemeMode.system => l10n.coreThemeSystem,
+    };
+  }
 }

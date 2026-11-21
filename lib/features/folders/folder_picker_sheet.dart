@@ -7,6 +7,7 @@ import 'package:keyel/data/folders_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Result of the folder picker. A `null` result means the sheet was dismissed.
 class FolderSelection {
@@ -46,7 +47,10 @@ class _FolderPickerSheetState extends ConsumerState<FolderPickerSheet> {
   bool _busy = false;
 
   Future<void> _createFolder() async {
-    final name = await _promptFolderName(context, title: 'New folder');
+    final name = await _promptFolderName(
+      context,
+      title: l10nOf(context).fldNewFolder,
+    );
     if (name == null || !mounted) return;
 
     setState(() => _busy = true);
@@ -70,6 +74,7 @@ class _FolderPickerSheetState extends ConsumerState<FolderPickerSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return SafeArea(
       child: Padding(
@@ -89,7 +94,7 @@ class _FolderPickerSheetState extends ConsumerState<FolderPickerSheet> {
                 const SizedBox(width: KeyelSpacing.sm),
                 Expanded(
                   child: Text(
-                    'Move to folder',
+                    l10n.fldMoveToFolder,
                     style: textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -103,7 +108,7 @@ class _FolderPickerSheetState extends ConsumerState<FolderPickerSheet> {
                 child: Column(
                   children: [
                     _FolderOption(
-                      label: 'No folder',
+                      label: l10n.fldNoFolder,
                       icon: Icons.folder_off_rounded,
                       selected: widget.selectedId == null,
                       onTap: () =>
@@ -125,7 +130,7 @@ class _FolderPickerSheetState extends ConsumerState<FolderPickerSheet> {
             ),
             const SizedBox(height: KeyelSpacing.md),
             KeyelPillButton(
-              label: _busy ? 'Creating…' : 'New folder',
+              label: _busy ? l10n.fldCreating : l10n.fldNewFolder,
               icon: _busy ? null : Icons.create_new_folder_rounded,
               tone: KeyelButtonTone.neutral,
               height: 48,
@@ -144,6 +149,7 @@ Future<String?> _promptFolderName(
   required String title,
   String initial = '',
 }) async {
+  final l10n = l10nOf(context);
   final controller = TextEditingController(text: initial);
   final result = await showDialog<String>(
     context: context,
@@ -153,7 +159,7 @@ Future<String?> _promptFolderName(
         controller: controller,
         autofocus: true,
         textCapitalization: TextCapitalization.sentences,
-        decoration: const InputDecoration(labelText: 'Folder name'),
+        decoration: InputDecoration(labelText: l10n.fldFolderNameLabel),
         onSubmitted: (value) {
           final name = value.trim();
           if (name.isNotEmpty) Navigator.of(dialogContext).pop(name);
@@ -162,14 +168,14 @@ Future<String?> _promptFolderName(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.actionCancel),
         ),
         FilledButton(
           onPressed: () {
             final name = controller.text.trim();
             if (name.isNotEmpty) Navigator.of(dialogContext).pop(name);
           },
-          child: const Text('Save'),
+          child: Text(l10n.actionSave),
         ),
       ],
     ),

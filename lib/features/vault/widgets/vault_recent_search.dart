@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Chips for the most recent vault searches, with a "Clear" action.
 ///
@@ -21,6 +22,7 @@ class VaultRecentSearches extends StatefulWidget {
 class _VaultRecentSearchesState extends State<VaultRecentSearches> {
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final searches = AppPreferences.instance.recentSearches;
     if (searches.isEmpty) return const SizedBox.shrink();
 
@@ -40,7 +42,7 @@ class _VaultRecentSearchesState extends State<VaultRecentSearches> {
           Row(
             children: [
               Text(
-                'Recent searches',
+                l10n.vaultRecentSearches,
                 style: textTheme.labelMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -51,7 +53,7 @@ class _VaultRecentSearchesState extends State<VaultRecentSearches> {
                   AppPreferences.instance.clearRecentSearches();
                   setState(() {});
                 },
-                child: const Text('Clear'),
+                child: Text(l10n.actionClear),
               ),
             ],
           ),

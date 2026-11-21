@@ -14,6 +14,7 @@ import 'package:keyel/features/entry/widgets/edit/edit_form_layout.dart';
 import 'package:keyel/features/entry/widgets/edit/edit_kind.dart';
 import 'package:keyel/src/rust/api/models.dart' show CustomFieldDraft;
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Create or edit a vault entry.
 class EntryEditScreen extends ConsumerStatefulWidget {
@@ -128,11 +129,12 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
   }
 
   Future<void> _confirmDiscard() async {
+    final l10n = l10nOf(context);
     final confirmed = await KeyelConfirmDialog.show(
       context,
-      title: 'Discard changes?',
-      body: 'Your edits to this entry will be lost.',
-      confirmLabel: 'Discard',
+      title: l10n.entryDiscardTitle,
+      body: l10n.entryDiscardBody,
+      confirmLabel: l10n.entryDiscardConfirm,
       destructive: true,
     );
     if (confirmed && mounted) context.pop();
@@ -141,6 +143,7 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
 
     // canPop stays false so the decision is made at pop time: text controllers
     // mutate without rebuilding this widget, so a build-time canPop would go
@@ -163,8 +166,8 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
             children: [
               EditBar(
                 title: widget.entryId == null
-                    ? 'New ${editKindLabel(_kind)}'
-                    : 'Edit ${editKindLabel(_kind)}',
+                    ? l10n.entryNewTitle(editKindLabel(_kind))
+                    : l10n.entryEditTitle(editKindLabel(_kind)),
                 onClose: () => Navigator.of(context).maybePop(),
                 onSave: _save,
               ),
@@ -194,7 +197,7 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
               KeyelSpacing.md,
             ),
             child: KeyelPillButton(
-              label: 'Save entry',
+              label: l10n.entrySaveEntry,
               icon: Icons.check_rounded,
               onPressed: _save,
             ),

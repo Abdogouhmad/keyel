@@ -1,3 +1,5 @@
+import 'package:keyel/ui/l10n/l10n.dart';
+
 /// Filter families available in the vault.
 enum VaultFilter {
   /// Shows every saved entry.
@@ -20,11 +22,11 @@ enum VaultFilter {
 
   /// Label displayed on the filter chip.
   String get label => switch (this) {
-    VaultFilter.all => 'All',
-    VaultFilter.logins => 'Logins',
-    VaultFilter.cards => 'Cards',
-    VaultFilter.notes => 'Notes',
-    VaultFilter.favorites => 'Favorites',
-    VaultFilter.twoFactor => '2FA',
+    VaultFilter.all => currentL10n.vaultFilterAll,
+    VaultFilter.logins => currentL10n.vaultFilterLogins,
+    VaultFilter.cards => currentL10n.vaultFilterCards,
+    VaultFilter.notes => currentL10n.vaultFilterNotes,
+    VaultFilter.favorites => currentL10n.vaultFilterFavorites,
+    VaultFilter.twoFactor => currentL10n.vaultFilterTwoFactor,
   };
 }

@@ -6,6 +6,7 @@ import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/features/onboarding/widgets/step_header.dart';
 import 'package:keyel/ui/design_system/keyel_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -37,7 +38,7 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
     setState(() => _copied = true);
     showKeyelSnack(
       context,
-      'Recovery key copied to clipboard'
+      '${l10nOf(context).vaultCopiedRecoveryKey}'
       '${SensitiveClipboard.instance.clearHint}',
       icon: Icons.content_copy_rounded,
     );
@@ -50,52 +51,34 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
   /// the platform share sheet, which offers saving and sharing targets.
   Future<void> _shareKeyFile() async {
     FocusManager.instance.primaryFocus?.unfocus();
+    final l10n = l10nOf(context);
     try {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/keyel-recovery-key.txt');
-      await file.writeAsString(_recoveryFileText(widget.recoveryKey));
+      await file.writeAsString(l10n.vaultRecoveryFileText(widget.recoveryKey));
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } on Object catch (error) {
       if (!mounted) return;
       showKeyelSnack(
         context,
-        'Could not export the recovery key ($error).',
+        l10n.vaultRecoveryExportError(error.toString()),
         icon: Icons.error_outline_rounded,
       );
     }
   }
 
-  /// Plain-text document handed to the share sheet.
-  String _recoveryFileText(String key) {
-    return 'Keyel vault recovery key\n'
-        '==========================\n'
-        '\n'
-        'This file contains the recovery key for your Keyel vault.\n'
-        '\n'
-        'WARNING: anyone who has this key can unlock your vault. Keep it\n'
-        'offline and private, and treat it like the master password itself.\n'
-        '\n'
-        'If you forget your master password, this key is the only way back\n'
-        'into your vault. Keyel has no accounts and no cloud backup.\n'
-        '\n'
-        'Your recovery key:\n'
-        '\n'
-        '$key\n';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final key = widget.recoveryKey;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const OnboardingStepHeader(
-          title: 'Save your recovery key',
-          subtitle:
-              'If you forget the master password, this key is the only way '
-              'back into your vault. It is shown once.',
+        OnboardingStepHeader(
+          title: l10n.vaultSaveRecoveryKeyTitle,
+          subtitle: l10n.vaultSaveRecoveryKeySubtitle,
         ),
         const SizedBox(height: KeyelSpacing.xl),
 
@@ -167,7 +150,7 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
                         color: _copied ? Colors.greenAccent : scheme.primary,
                       ),
                       label: Text(
-                        _copied ? 'Copied!' : 'Copy key',
+                        _copied ? l10n.vaultCopied : l10n.vaultCopyRecoveryKey,
                         style: TextStyle(
                           color: _copied ? Colors.greenAccent : scheme.primary,
                           fontWeight: FontWeight.w600,
@@ -177,12 +160,12 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
                     TextButton.icon(
                       onPressed: () => unawaited(_shareKeyFile()),
                       icon: const Icon(Icons.save_rounded, size: 18),
-                      label: const Text('Save file'),
+                      label: Text(l10n.vaultSaveFile),
                     ),
                     TextButton.icon(
                       onPressed: () => unawaited(_shareKeyFile()),
                       icon: const Icon(Icons.share_rounded, size: 18),
-                      label: const Text('Share'),
+                      label: Text(l10n.actionShare),
                     ),
                   ],
                 ),
@@ -243,7 +226,7 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
                   const SizedBox(width: KeyelSpacing.md),
                   Expanded(
                     child: Text(
-                      'I stored this key somewhere safe',
+                      l10n.vaultStoredKeyConfirmation,
                       style: TextStyle(
                         color: scheme.onSurface,
                         fontWeight: FontWeight.w500,
@@ -258,7 +241,7 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
 
         const SizedBox(height: KeyelSpacing.xl),
         KeyelButtonM3(
-          label: 'Continue',
+          label: l10n.actionContinue,
           icon: Icons.arrow_forward_rounded,
           isFullWidth: true,
           onPressed: _savedRecovery ? widget.onContinue : null,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Revealable secure-note content block.
 class NoteDetails extends StatelessWidget {
@@ -35,9 +36,10 @@ class NoteDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
-      title: 'Secure note content',
+      title: l10n.entrySecureNoteContent,
       icon: Icons.description_rounded,
       showBorder: true,
       child: Column(
@@ -47,15 +49,17 @@ class NoteDetails extends StatelessWidget {
             children: [
               Text(
                 revealedContent != null
-                    ? 'Decrypted note:'
-                    : 'Encrypted content',
+                    ? l10n.entryDecryptedNote
+                    : l10n.entryEncryptedContent,
                 style: textTheme.labelMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
               ),
               const Spacer(),
               KeyelPillButton(
-                label: revealedContent != null ? 'Hide content' : 'Reveal note',
+                label: revealedContent != null
+                    ? l10n.entryHideContent
+                    : l10n.entryRevealNote,
                 icon: revealedContent != null
                     ? Icons.visibility_off_rounded
                     : Icons.visibility_rounded,
@@ -85,9 +89,9 @@ class NoteDetails extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                onPressed: () => onCopy(revealedContent!, 'Note copied'),
+                onPressed: () => onCopy(revealedContent!, l10n.entryNoteCopied),
                 icon: const Icon(Icons.content_copy_rounded, size: 16),
-                label: const Text('Copy full note'),
+                label: Text(l10n.entryCopyFullNote),
               ),
             ),
           ],

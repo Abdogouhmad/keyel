@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:keyel/features/entry/widgets/edit/section.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Multi-line secure notes field.
 class NotesSection extends StatelessWidget {
@@ -35,7 +36,7 @@ class NotesSection extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           alignLabelWithHint: true,
-          hintText: 'Recovery questions, PIN codes, backup seeds...',
+          hintText: l10nOf(context).entryNotesHint,
           suffixIcon: Icon(
             Icons.lock_rounded,
             size: 18,

@@ -6,6 +6,7 @@ import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/core/ota/ota_service.dart';
 import 'package:keyel/core/platform/update_notifications.dart';
 import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Provider exposing the singleton [OtaService].
 final otaServiceProvider = Provider<OtaService>((ref) {
@@ -186,7 +187,7 @@ class OtaNotifier extends Notifier<OtaState> {
       if (!ref.mounted) return;
       state = state.copyWith(
         step: OtaStep.error,
-        errorMessage: () => 'Download failed: $e',
+        errorMessage: () => currentL10n.otaDownloadFailed('$e'),
       );
     } finally {
       _cancelToken = null;
@@ -204,14 +205,14 @@ class OtaNotifier extends Notifier<OtaState> {
     if (path == null || !File(path).existsSync()) {
       state = state.copyWith(
         step: OtaStep.error,
-        errorMessage: () => 'Update file not found on device',
+        errorMessage: () => currentL10n.otaUpdateFileNotFound,
       );
       return false;
     }
     if (!state.isChecksumVerified) {
       state = state.copyWith(
         step: OtaStep.error,
-        errorMessage: () => 'Update checksum could not be verified',
+        errorMessage: () => currentL10n.otaChecksumNotVerified,
       );
       return false;
     }
@@ -233,7 +234,7 @@ class OtaNotifier extends Notifier<OtaState> {
       if (!ref.mounted) return false;
       state = state.copyWith(
         step: OtaStep.error,
-        errorMessage: () => 'Installation error: $e',
+        errorMessage: () => currentL10n.otaInstallationError('$e'),
       );
       return false;
     }
@@ -253,7 +254,7 @@ class OtaNotifier extends Notifier<OtaState> {
       if (!ref.mounted) return false;
       state = state.copyWith(
         step: OtaStep.error,
-        errorMessage: () => 'Could not install APK: $e',
+        errorMessage: () => currentL10n.otaCouldNotInstallApk('$e'),
       );
       return false;
     }

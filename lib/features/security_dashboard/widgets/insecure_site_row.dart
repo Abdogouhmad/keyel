@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:keyel/features/security_dashboard/widgets/audit_surface.dart';
 import 'package:keyel/features/security_dashboard/widgets/mini_button.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Audit row listing insecure HTTP websites found in the vault.
 class InsecureSiteRow extends StatelessWidget {
@@ -19,6 +20,7 @@ class InsecureSiteRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final clean = count == 0;
 
     return AuditSurface(
@@ -46,7 +48,7 @@ class InsecureSiteRow extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        'Insecure websites (HTTP)',
+                        l10n.secInsecureSitesHttp,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.titleSmall?.copyWith(
@@ -69,9 +71,7 @@ class InsecureSiteRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  clean
-                      ? 'All sites use HTTPS'
-                      : 'Credentials sent in plain text',
+                  clean ? l10n.secAllSitesHttps : l10n.secCredentialsPlainText,
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -82,7 +82,7 @@ class InsecureSiteRow extends StatelessWidget {
           if (!clean) ...[
             const SizedBox(width: KeyelSpacing.sm),
             MiniButton(
-              label: 'Fix',
+              label: l10n.secFix,
               background: scheme.surfaceContainer,
               foreground: scheme.primary,
               onTap: onFix,

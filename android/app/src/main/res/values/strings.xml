@@ -3,4 +3,13 @@
     <string name="quick_lock_tile_label">Lock vault</string>
     <string name="lock_shortcut_short_label">Lock</string>
     <string name="lock_shortcut_long_label">Lock vault now</string>
+    <string name="generate_shortcut_short_label">Generate</string>
+    <string name="generate_shortcut_long_label">Generate a password</string>
+    <string name="quick_actions_widget_label">Keyel quick actions</string>
+    <string name="quick_actions_widget_description">Open the vault, generate a password, or lock the vault.</string>
+    <string name="widget_open_vault">Open Keyel</string>
+    <string name="widget_generate">Generate</string>
+    <string name="widget_lock_vault">Lock vault</string>
+    <string name="autofill_inline_title">Fill with Keyel</string>
+    <string name="autofill_inline_subtitle">Choose a login</string>
 </resources>

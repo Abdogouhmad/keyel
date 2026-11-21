@@ -11,6 +11,7 @@ import 'package:keyel/features/entry/widgets/detail/notes_card.dart';
 import 'package:keyel/features/entry/widgets/detail/totp_card.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Scrollable detail body: hero, kind-specific blocks and health cards.
 class DetailContent extends StatelessWidget {
@@ -163,6 +164,7 @@ class _PasskeyDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final passkey = detail.passkey;
     if (passkey == null) return const SizedBox.shrink();
     String algLabel(int alg) => switch (alg) {
@@ -191,8 +193,8 @@ class _PasskeyDetails extends StatelessWidget {
             if (copy)
               IconButton(
                 icon: const Icon(Icons.copy_rounded, size: 18),
-                tooltip: 'Copy',
-                onPressed: () => onCopy(value, '$label copied'),
+                tooltip: l10n.actionCopy,
+                onPressed: () => onCopy(value, l10n.entryValueCopied(label)),
               ),
           ],
         ),
@@ -200,30 +202,33 @@ class _PasskeyDetails extends StatelessWidget {
     }
 
     return KeyelSectionCard(
-      title: 'Passkey',
+      title: l10n.entryKindPasskey,
       icon: Icons.vpn_key_rounded,
       showBorder: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           row(
-            'Relying party',
+            l10n.entryRelyingParty,
             passkey.rpName.isNotEmpty ? passkey.rpName : passkey.rpId,
           ),
           row('RP ID', passkey.rpId, copy: true),
           row(
-            'User',
+            l10n.entryPasskeyUser,
             passkey.userDisplayName.isNotEmpty
                 ? passkey.userDisplayName
                 : passkey.userName,
           ),
-          row('Username', passkey.userName, copy: true),
-          row('Credential ID', passkey.credentialId, copy: true),
-          row('Algorithm', algLabel(passkey.algorithm)),
-          row('Sign count', passkey.signCount.toString()),
-          row('Discoverable', passkey.discoverable ? 'Yes' : 'No'),
+          row(l10n.fieldUsername, passkey.userName, copy: true),
+          row(l10n.entryCredentialId, passkey.credentialId, copy: true),
+          row(l10n.entryAlgorithm, algLabel(passkey.algorithm)),
+          row(l10n.entrySignCount, passkey.signCount.toString()),
+          row(
+            l10n.entryDiscoverable,
+            passkey.discoverable ? l10n.entryYes : l10n.entryNo,
+          ),
           if (passkey.transports.isNotEmpty)
-            row('Transports', passkey.transports.join(', ')),
+            row(l10n.entryTransports, passkey.transports.join(', ')),
         ],
       ),
     );

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quick_lock_tile_label">Verrouiller le coffre</string>
+    <string name="lock_shortcut_short_label">Verrouiller</string>
+    <string name="lock_shortcut_long_label">Verrouiller le coffre maintenant</string>
+    <string name="generate_shortcut_short_label">Générer</string>
+    <string name="generate_shortcut_long_label">Générer un mot de passe</string>
+    <string name="quick_actions_widget_label">Actions rapides Keyel</string>
+    <string name="quick_actions_widget_description">Ouvrir le coffre, générer un mot de passe ou verrouiller le coffre.</string>
+    <string name="widget_open_vault">Ouvrir Keyel</string>
+    <string name="widget_generate">Générer</string>
+    <string name="widget_lock_vault">Verrouiller</string>
+    <string name="autofill_inline_title">Remplir avec Keyel</string>
+    <string name="autofill_inline_subtitle">Choisir un identifiant</string>
+</resources>

@@ -20,6 +20,7 @@ import 'package:keyel/features/settings/widgets/settings_help_sheet.dart';
 import 'package:keyel/features/settings/widgets/settings_sections.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Settings screen — security, appearance and vault preferences.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -56,6 +57,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await _checkAutofillStatus();
   }
 
+  Future<void> _manageNeverSites() async {
+    final prefs = AppPreferences.instance;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final dialogL10n = l10nOf(dialogContext);
+        final sites = List<String>.from(prefs.autofillNeverForSites);
+        return SimpleDialog(
+          title: Text(dialogL10n.autofillNeverTitle),
+          children: [
+            if (sites.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(KeyelSpacing.lg),
+                child: Text(dialogL10n.autofillNeverEmpty),
+              )
+            else
+              for (final site in sites)
+                SimpleDialogOption(
+                  onPressed: () async {
+                    prefs.autofillNeverForSites = prefs.autofillNeverForSites
+                        .where((value) => value != site)
+                        .toList();
+                    await prefs.save();
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                    if (mounted) setState(() {});
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Icons.block_rounded, size: 20),
+                      const SizedBox(width: KeyelSpacing.sm),
+                      Expanded(child: Text(site)),
+                      Text(dialogL10n.actionRemove),
+                    ],
+                  ),
+                ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(dialogL10n.actionClose),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _checkPasskeySupport() async {
     final supported = await isPasskeyProviderSupported();
     if (mounted) setState(() => _passkeyProviderSupported = supported);
@@ -67,6 +115,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _toggleBiometric({required bool enable}) async {
     if (_biometricBusy) return;
+    final l10n = l10nOf(context);
     setState(() => _biometricBusy = true);
 
     try {
@@ -76,7 +125,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           setState(() => _biometricEnabled = true);
           showKeyelSnack(
             context,
-            'Biometric unlock enabled',
+            l10n.prefBiometricEnabledSnack,
             icon: Icons.fingerprint_rounded,
           );
         }
@@ -86,24 +135,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           setState(() => _biometricEnabled = false);
           showKeyelSnack(
             context,
-            'Biometric unlock disabled.',
+            l10n.prefBiometricDisabledSnack,
             icon: Icons.fingerprint_rounded,
           );
         }
       }
     } on Object catch (error) {
       if (!mounted) return;
-      showKeyelSnack(context, 'Could not update biometric settings: $error');
+      showKeyelSnack(context, l10n.prefBiometricUpdateError(error.toString()));
     } finally {
       if (mounted) setState(() => _biometricBusy = false);
     }
   }
 
   Future<bool> _enableBiometric() async {
+    final l10n = l10nOf(context);
     final available = await BiometricAuth.instance.isAvailable;
     if (!mounted) return false;
     if (!available) {
-      showKeyelSnack(context, 'Biometrics are not available on this device.');
+      showKeyelSnack(context, l10n.prefBiometricsUnavailable);
       return false;
     }
     final master = await confirmMasterPassword(context, ref);
@@ -112,6 +162,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _factoryReset() async {
+    final l10n = l10nOf(context);
     final confirm = await confirmFactoryReset(context);
     if (!confirm || !mounted) return;
 
@@ -123,38 +174,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ref.read(vaultSessionProvider.notifier).lock();
 
       if (!mounted) return;
-      showKeyelSnack(context, 'Vault permanently deleted. Resetting...');
+      showKeyelSnack(context, l10n.prefFactoryResetSnack);
     } on Object catch (error) {
       if (!mounted) return;
-      showKeyelSnack(context, 'Factory reset failed: $error');
+      showKeyelSnack(context, l10n.prefFactoryResetError(error.toString()));
     }
   }
 
   Future<void> _reportProblem() async {
+    final l10n = l10nOf(context);
     final files = ref.read(fileTransferServiceProvider);
     try {
       final path = await files.temporaryFilePath('keyel-diagnostics.txt');
       await files.writeTextFile(path, collectDebugBundle());
       await files.shareFile(
         path,
-        subject: 'Keyel diagnostics (${AppInfo.version})',
+        subject: l10n.prefDiagnosticsSubject(AppInfo.version),
       );
     } on Object catch (error) {
       if (!mounted) return;
-      showKeyelSnack(context, 'Could not prepare the report: $error');
+      showKeyelSnack(context, l10n.prefReportProblemError(error.toString()));
     }
   }
 
   Future<void> _setScreenshotProtection(bool enabled) async {
+    final l10n = l10nOf(context);
     if (!enabled) {
       final confirmed = await KeyelConfirmDialog.show(
         context,
-        title: 'Allow screenshots?',
-        body:
-            'Anything on screen, including a revealed secret, could be '
-            'captured or appear in your Recents preview. The lock and unlock '
-            'screens stay protected.',
-        confirmLabel: 'Allow screenshots',
+        title: l10n.prefAllowScreenshotsTitle,
+        body: l10n.prefAllowScreenshotsBody,
+        confirmLabel: l10n.prefAllowScreenshotsConfirm,
         destructive: true,
       );
       if (!confirmed || !mounted) return;
@@ -165,9 +215,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     showKeyelSnack(
       context,
-      enabled
-          ? 'Screenshot protection on'
-          : 'Screenshots allowed while unlocked',
+      enabled ? l10n.prefScreenshotOnSnack : l10n.prefScreenshotOffSnack,
       icon: Icons.no_photography_rounded,
     );
   }
@@ -176,6 +224,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     // Both settings cards below only render the lifecycle, so ignore session
     // `busy`/`error` churn that would otherwise rebuild the whole list.
     final sessionStatus = ref.watch(
@@ -200,17 +249,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: KeyelTopBar(
-                  title: 'Settings',
+                  title: l10n.settingsTitle,
                   icon: returnToSecurity
                       ? Icons.arrow_back_rounded
                       : Icons.tune_rounded,
-                  iconTooltip: returnToSecurity ? 'Back to Security' : null,
+                  iconTooltip: returnToSecurity
+                      ? l10n.prefBackToSecurity
+                      : null,
                   onIconTap: returnToSecurity
                       ? () => context.go(KeyelRoutes.security)
                       : null,
                   trailing: KeyelIconHull(
                     icon: Icons.help_outline_rounded,
-                    tooltip: 'Help & support',
+                    tooltip: l10n.prefHelpSupportTooltip,
                     onPressed: () => showSettingsHelpSheet(context),
                   ),
                 ),
@@ -227,7 +278,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Your vault',
+                        l10n.prefYourVault,
                         style: textTheme.headlineLarge?.copyWith(
                           color: scheme.onSurface,
                           fontSize: 28,
@@ -238,7 +289,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Security tuned for this device, kept local.',
+                        l10n.prefSecuritySubtitle,
                         style: textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -283,7 +334,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ref.read(vaultSessionProvider.notifier).lock();
                         showKeyelSnack(
                           context,
-                          'Vault locked',
+                          l10n.prefVaultLockedSnack,
                           icon: Icons.lock_rounded,
                         );
                       },
@@ -311,6 +362,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onOpenSettings: () => unawaited(_openAutofillSettings()),
                       onOpenCredentialProviderSettings: () =>
                           unawaited(_openCredentialProviderSettings()),
+                      verifiedOnly:
+                          AppPreferences.instance.autofillVerifiedOnly,
+                      onVerifiedOnlyChanged: (value) {
+                        setState(() {
+                          AppPreferences.instance.autofillVerifiedOnly = value;
+                        });
+                        unawaited(AppPreferences.instance.save());
+                      },
+                      neverForSitesCount:
+                          AppPreferences.instance.autofillNeverForSites.length,
+                      onManageNeverSites: _manageNeverSites,
                       onAskToSaveChanged: (value) {
                         setState(() {
                           AppPreferences.instance.autofillAskToSave = value;
@@ -327,6 +389,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         unawaited(AppPreferences.instance.save());
                       },
                     ),
+                    const SizedBox(height: KeyelSpacing.lg),
+                    const SettingsWatchSection(),
                     const SizedBox(height: KeyelSpacing.lg),
                     SettingsStorageSection(
                       offlineOnly: _offlineOnly,

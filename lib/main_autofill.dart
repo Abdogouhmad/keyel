@@ -14,13 +14,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/security/auto_lock_host.dart';
 import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/autofill_target.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/autofill/autofill_picker_screen.dart';
 import 'package:keyel/features/autofill/autofill_save_screen.dart';
 import 'package:keyel/features/vault/widgets/unlock_vault_view.dart';
+import 'package:keyel/l10n/generated/app_localizations.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
+import 'package:keyel/ui/l10n/locale_provider.dart';
 import 'package:keyel/ui/theme/keyel_palettes.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -40,6 +44,7 @@ Future<void> mainAutofill() async {
     final vaultPath = await defaultVaultPath();
     vault_api.init(path: vaultPath);
     await AppPreferences.instance.load(vaultPath);
+    setCurrentLocaleId(AppPreferences.instance.localeId);
   } on Object catch (_) {
     // Same resilience as the main entrypoint.
   }
@@ -57,6 +62,18 @@ Future<void> mainAutofill() async {
   final mode = args?['mode'] as String? ?? 'fill';
   final package = _nonEmpty(args?['package'] as String?);
   final webDomain = _nonEmpty(args?['webDomain'] as String?);
+
+  // Defence in depth: the native service also gates denied targets, but the
+  // preference may have changed while this activity was starting.
+  final denyKey = canonicalAutofillTarget(
+    package: package,
+    webDomain: webDomain,
+  );
+  if (denyKey != null &&
+      AppPreferences.instance.autofillNeverForSites.contains(denyKey)) {
+    await _invoke('cancel');
+    return;
+  }
 
   if (mode == 'save') {
     // Respect the user's "Ask to save" preference: finish silently instead of
@@ -105,6 +122,21 @@ String? _nonEmpty(String? s) {
   return s;
 }
 
+/// Persists a "Never for this site" choice, then cancels the request.
+///
+/// The write completes before the cancel so the native service sees the denial
+/// on the next fill request. No credential data is stored with the choice.
+Future<void> _neverForSite(String? package, String? webDomain) async {
+  final key = canonicalAutofillTarget(package: package, webDomain: webDomain);
+  if (key == null) return;
+  final prefs = AppPreferences.instance;
+  if (!prefs.autofillNeverForSites.contains(key)) {
+    prefs.autofillNeverForSites = [...prefs.autofillNeverForSites, key];
+  }
+  await prefs.save();
+  await _invoke('cancel');
+}
+
 class _AutofillApp extends ConsumerWidget {
   const new({
     this.package,
@@ -130,8 +162,11 @@ class _AutofillApp extends ConsumerWidget {
     final themeMode = KeyelPaletteX.themeModeFromId(prefs.themeMode);
 
     return MaterialApp(
-      title: 'Keyel Autofill',
+      title: l10nOf(context).coreAutofillAppTitle,
       debugShowCheckedModeBanner: false,
+      locale: localeFromId(prefs.localeId),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       themeMode: themeMode,
       theme: KeyelTheme.light(palette: palette),
       darkTheme: KeyelTheme.dark(
@@ -159,6 +194,7 @@ class _AutofillApp extends ConsumerWidget {
         password: password,
         onSaved: () => unawaited(_invoke('saveCompleted')),
         onDecline: () => unawaited(_invoke('cancel')),
+        onNeverForSite: () => unawaited(_neverForSite(package, webDomain)),
       );
     }
     return AutofillPickerScreen(
@@ -171,6 +207,7 @@ class _AutofillApp extends ConsumerWidget {
         }),
       ),
       onCreateNew: () => unawaited(_invoke('cancel')),
+      onNeverForSite: () => unawaited(_neverForSite(package, webDomain)),
     );
   }
 }

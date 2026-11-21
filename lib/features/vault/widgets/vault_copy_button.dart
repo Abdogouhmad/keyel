@@ -10,6 +10,7 @@ import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Copy button shown on a vault entry row.
 /// Copies the primary secret of a vault entry to the clipboard.
@@ -26,6 +27,7 @@ class VaultCopyButton extends ConsumerStatefulWidget {
 
 class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
   Future<void> _copy() async {
+    final l10n = l10nOf(context);
     final entry = widget.entry;
     unawaited(Haptics.light());
     if (entry.kind == VaultEntryKind.login) {
@@ -33,7 +35,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
         unawaited(SensitiveClipboard.instance.copy(entry.username));
         showKeyelSnack(
           context,
-          'Username copied to clipboard',
+          l10n.vaultCopiedUsername,
           icon: Icons.content_copy_rounded,
         );
       } else {
@@ -45,7 +47,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
           if (pass.isEmpty) {
             showKeyelSnack(
               context,
-              'Nothing to copy',
+              l10n.vaultNothingToCopy,
               icon: Icons.info_outline_rounded,
             );
             return;
@@ -53,7 +55,8 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
           unawaited(SensitiveClipboard.instance.copy(pass));
           showKeyelSnack(
             context,
-            'Password copied${SensitiveClipboard.instance.clearHint}',
+            '${l10n.vaultCopiedPassword}'
+            '${SensitiveClipboard.instance.clearHint}',
             icon: Icons.content_copy_rounded,
           );
         } on Object catch (error) {
@@ -69,7 +72,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
         if (cardNum.isEmpty) {
           showKeyelSnack(
             context,
-            'Nothing to copy',
+            l10n.vaultNothingToCopy,
             icon: Icons.info_outline_rounded,
           );
           return;
@@ -77,7 +80,7 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
         unawaited(SensitiveClipboard.instance.copy(cardNum));
         showKeyelSnack(
           context,
-          'Card number copied to clipboard',
+          l10n.vaultCopiedCardNumber,
           icon: Icons.content_copy_rounded,
         );
       } on Object catch (_) {
@@ -93,14 +96,15 @@ class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
+    final l10n = l10nOf(context);
 
     return KeyelIconHull(
       icon: Icons.content_copy_rounded,
       tooltip: switch (entry.kind) {
-        VaultEntryKind.card => 'Copy card',
-        VaultEntryKind.login => 'Copy credential',
-        VaultEntryKind.note => 'View note',
-        VaultEntryKind.passkey => 'View passkey',
+        VaultEntryKind.card => l10n.vaultCopyCard,
+        VaultEntryKind.login => l10n.vaultCopyCredential,
+        VaultEntryKind.note => l10n.vaultViewNote,
+        VaultEntryKind.passkey => l10n.vaultViewPasskey,
       },
       onPressed: () => unawaited(_copy()),
     );

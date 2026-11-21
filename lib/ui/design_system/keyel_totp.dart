@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:keyel/ui/design_system/keyel_buttons.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/theme/keyel_colors.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -64,6 +65,7 @@ class _KeyelTotpDisplayState extends State<KeyelTotpDisplay> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
     final urgent = _remaining <= 5;
     final accent = urgent ? scheme.weak : scheme.primary;
 
@@ -112,7 +114,7 @@ class _KeyelTotpDisplayState extends State<KeyelTotpDisplay> {
               ),
               const SizedBox(height: 2),
               Text(
-                'Refreshes automatically',
+                l10n.entryRefreshesAutomatically,
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -136,7 +138,7 @@ class _KeyelTotpDisplayState extends State<KeyelTotpDisplay> {
                 ),
               ),
               Text(
-                '${_remaining}s',
+                l10n.entrySecondsRemaining(_remaining),
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.onSurface,
                   fontWeight: FontWeight.w700,
@@ -149,7 +151,7 @@ class _KeyelTotpDisplayState extends State<KeyelTotpDisplay> {
         const SizedBox(width: KeyelSpacing.sm),
         KeyelIconHull(
           icon: Icons.content_copy_rounded,
-          tooltip: 'Copy 2FA code',
+          tooltip: l10n.entryCopy2FaCode,
           onPressed: widget.onCopy,
           background: scheme.primary,
           foreground: scheme.onPrimary,

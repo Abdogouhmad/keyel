@@ -1,0 +1,4077 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Keyel",
+  "@appTitle": {
+    "description": "User-facing copy: appTitle (fr template)."
+  },
+  "navVault": "Coffre",
+  "@navVault": {
+    "description": "User-facing copy: navVault (fr template)."
+  },
+  "navGenerator": "Générateur",
+  "@navGenerator": {
+    "description": "User-facing copy: navGenerator (fr template)."
+  },
+  "navSecurity": "Sécurité",
+  "@navSecurity": {
+    "description": "User-facing copy: navSecurity (fr template)."
+  },
+  "navSettings": "Réglages",
+  "@navSettings": {
+    "description": "User-facing copy: navSettings (fr template)."
+  },
+  "actionBack": "Retour",
+  "@actionBack": {
+    "description": "User-facing copy: actionBack (fr template)."
+  },
+  "actionClose": "Fermer",
+  "@actionClose": {
+    "description": "User-facing copy: actionClose (fr template)."
+  },
+  "actionCancel": "Annuler",
+  "@actionCancel": {
+    "description": "User-facing copy: actionCancel (fr template)."
+  },
+  "actionSave": "Enregistrer",
+  "@actionSave": {
+    "description": "User-facing copy: actionSave (fr template)."
+  },
+  "actionRetry": "Réessayer",
+  "@actionRetry": {
+    "description": "User-facing copy: actionRetry (fr template)."
+  },
+  "actionDelete": "Supprimer",
+  "@actionDelete": {
+    "description": "User-facing copy: actionDelete (fr template)."
+  },
+  "actionEdit": "Modifier",
+  "@actionEdit": {
+    "description": "User-facing copy: actionEdit (fr template)."
+  },
+  "actionCopy": "Copier",
+  "@actionCopy": {
+    "description": "User-facing copy: actionCopy (fr template)."
+  },
+  "actionShare": "Partager",
+  "@actionShare": {
+    "description": "User-facing copy: actionShare (fr template)."
+  },
+  "actionDone": "Terminé",
+  "@actionDone": {
+    "description": "User-facing copy: actionDone (fr template)."
+  },
+  "actionAdd": "Ajouter",
+  "@actionAdd": {
+    "description": "User-facing copy: actionAdd (fr template)."
+  },
+  "actionOpen": "Ouvrir",
+  "@actionOpen": {
+    "description": "User-facing copy: actionOpen (fr template)."
+  },
+  "actionRefresh": "Actualiser",
+  "@actionRefresh": {
+    "description": "User-facing copy: actionRefresh (fr template)."
+  },
+  "actionLockVault": "Verrouiller le coffre",
+  "@actionLockVault": {
+    "description": "User-facing copy: actionLockVault (fr template)."
+  },
+  "actionUnlock": "Déverrouiller",
+  "@actionUnlock": {
+    "description": "User-facing copy: actionUnlock (fr template)."
+  },
+  "actionClear": "Effacer",
+  "@actionClear": {
+    "description": "User-facing copy: actionClear (fr template)."
+  },
+  "actionRemove": "Retirer",
+  "@actionRemove": {
+    "description": "User-facing copy: actionRemove (fr template)."
+  },
+  "actionRestore": "Restaurer",
+  "@actionRestore": {
+    "description": "User-facing copy: actionRestore (fr template)."
+  },
+  "actionContinue": "Continuer",
+  "@actionContinue": {
+    "description": "User-facing copy: actionContinue (fr template)."
+  },
+  "languageSystem": "Système",
+  "@languageSystem": {
+    "description": "User-facing copy: languageSystem (fr template)."
+  },
+  "languageEnglish": "Anglais",
+  "@languageEnglish": {
+    "description": "User-facing copy: languageEnglish (fr template)."
+  },
+  "languageFrench": "Français",
+  "@languageFrench": {
+    "description": "User-facing copy: languageFrench (fr template)."
+  },
+  "settingsLanguageTitle": "Langue",
+  "@settingsLanguageTitle": {
+    "description": "User-facing copy: settingsLanguageTitle (fr template)."
+  },
+  "settingsLanguageSubtitle": "Choisissez la langue utilisée par Keyel",
+  "@settingsLanguageSubtitle": {
+    "description": "User-facing copy: settingsLanguageSubtitle (fr template)."
+  },
+  "appearanceTitle": "Apparence",
+  "@appearanceTitle": {
+    "description": "User-facing copy: appearanceTitle (fr template)."
+  },
+  "settingsTitle": "Réglages",
+  "@settingsTitle": {
+    "description": "User-facing copy: settingsTitle (fr template)."
+  },
+  "securityTitle": "Santé de la sécurité",
+  "@securityTitle": {
+    "description": "User-facing copy: securityTitle (fr template)."
+  },
+  "generatorTitle": "Générateur",
+  "@generatorTitle": {
+    "description": "User-facing copy: generatorTitle (fr template)."
+  },
+  "vaultTitle": "Coffre",
+  "@vaultTitle": {
+    "description": "User-facing copy: vaultTitle (fr template)."
+  },
+  "softwareUpdate": "Mise à jour logicielle",
+  "@softwareUpdate": {
+    "description": "User-facing copy: softwareUpdate (fr template)."
+  },
+  "foldersTitle": "Dossiers",
+  "@foldersTitle": {
+    "description": "User-facing copy: foldersTitle (fr template)."
+  },
+  "trashTitle": "Corbeille",
+  "@trashTitle": {
+    "description": "User-facing copy: trashTitle (fr template)."
+  },
+  "passkeysTitle": "Clés d'accès",
+  "@passkeysTitle": {
+    "description": "User-facing copy: passkeysTitle (fr template)."
+  },
+  "autofillTitle": "Saisie automatique",
+  "@autofillTitle": {
+    "description": "User-facing copy: autofillTitle (fr template)."
+  },
+  "importExportTitle": "Importer et exporter",
+  "@importExportTitle": {
+    "description": "User-facing copy: importExportTitle (fr template)."
+  },
+  "syncTitle": "Synchronisation",
+  "@syncTitle": {
+    "description": "User-facing copy: syncTitle (fr template)."
+  },
+  "helpTitle": "Aide",
+  "@helpTitle": {
+    "description": "User-facing copy: helpTitle (fr template)."
+  },
+  "reportProblem": "Signaler un problème",
+  "@reportProblem": {
+    "description": "User-facing copy: reportProblem (fr template)."
+  },
+  "commonLoading": "Chargement…",
+  "@commonLoading": {
+    "description": "User-facing copy: commonLoading (fr template)."
+  },
+  "commonErrorTitle": "Une erreur est survenue",
+  "@commonErrorTitle": {
+    "description": "User-facing copy: commonErrorTitle (fr template)."
+  },
+  "commonEmpty": "Rien ici pour l'instant",
+  "@commonEmpty": {
+    "description": "User-facing copy: commonEmpty (fr template)."
+  },
+  "searchHint": "Rechercher",
+  "@searchHint": {
+    "description": "User-facing copy: searchHint (fr template)."
+  },
+  "stateMissingTitle": "Introuvable",
+  "@stateMissingTitle": {
+    "description": "User-facing copy: stateMissingTitle (fr template)."
+  },
+  "stateMissingMessage": "Cet élément n'existe plus.",
+  "@stateMissingMessage": {
+    "description": "User-facing copy: stateMissingMessage (fr template)."
+  },
+  "checkForUpdates": "Rechercher des mises à jour",
+  "@checkForUpdates": {
+    "description": "User-facing copy: checkForUpdates (fr template)."
+  },
+  "aboutGeneration": "À propos de la génération",
+  "@aboutGeneration": {
+    "description": "User-facing copy: aboutGeneration (fr template)."
+  },
+  "generationHistory": "Historique de génération",
+  "@generationHistory": {
+    "description": "User-facing copy: generationHistory (fr template)."
+  },
+  "aboutGenerationMessage": "Keyel génère toujours les mots de passe localement sur votre appareil.",
+  "@aboutGenerationMessage": {
+    "description": "User-facing copy: aboutGenerationMessage (fr template)."
+  },
+  "clearFilters": "Effacer les filtres",
+  "@clearFilters": {
+    "description": "User-facing copy: clearFilters (fr template)."
+  },
+  "addItem": "Ajouter un élément",
+  "@addItem": {
+    "description": "User-facing copy: addItem (fr template)."
+  },
+  "themeModeTitle": "Thème",
+  "@themeModeTitle": {
+    "description": "User-facing copy: themeModeTitle (fr template)."
+  },
+  "paletteTitle": "Couleur d'accent",
+  "@paletteTitle": {
+    "description": "User-facing copy: paletteTitle (fr template)."
+  },
+  "amoledTitle": "Noir pur (AMOLED)",
+  "@amoledTitle": {
+    "description": "User-facing copy: amoledTitle (fr template)."
+  },
+  "animationsTitle": "Animations",
+  "@animationsTitle": {
+    "description": "User-facing copy: animationsTitle (fr template)."
+  },
+  "hapticsTitle": "Retours tactiles",
+  "@hapticsTitle": {
+    "description": "User-facing copy: hapticsTitle (fr template)."
+  },
+  "screenshotTitle": "Protection contre les captures",
+  "@screenshotTitle": {
+    "description": "User-facing copy: screenshotTitle (fr template)."
+  },
+  "clipboardTitle": "Effacer le presse-papiers",
+  "@clipboardTitle": {
+    "description": "User-facing copy: clipboardTitle (fr template)."
+  },
+  "autoLockTitle": "Verrouillage automatique",
+  "@autoLockTitle": {
+    "description": "User-facing copy: autoLockTitle (fr template)."
+  },
+  "breachTitle": "Surveillance des fuites",
+  "@breachTitle": {
+    "description": "User-facing copy: breachTitle (fr template)."
+  },
+  "otaTitle": "Mises à jour",
+  "@otaTitle": {
+    "description": "User-facing copy: otaTitle (fr template)."
+  },
+  "healthLoading": "Vérification de la santé de votre coffre…",
+  "@healthLoading": {
+    "description": "User-facing copy: healthLoading (fr template)."
+  },
+  "healthErrorTitle": "Impossible de vérifier la santé du coffre",
+  "@healthErrorTitle": {
+    "description": "User-facing copy: healthErrorTitle (fr template)."
+  },
+  "vaultLoading": "Ouverture de votre coffre…",
+  "@vaultLoading": {
+    "description": "User-facing copy: vaultLoading (fr template)."
+  },
+  "vaultErrorTitle": "Impossible d'ouvrir votre coffre",
+  "@vaultErrorTitle": {
+    "description": "User-facing copy: vaultErrorTitle (fr template)."
+  },
+  "folderEmpty": "Aucun dossier pour l'instant",
+  "@folderEmpty": {
+    "description": "User-facing copy: folderEmpty (fr template)."
+  },
+  "trashEmpty": "La corbeille est vide",
+  "@trashEmpty": {
+    "description": "User-facing copy: trashEmpty (fr template)."
+  },
+  "folderErrorTitle": "Impossible de charger les dossiers",
+  "@folderErrorTitle": {
+    "description": "User-facing copy: folderErrorTitle (fr template)."
+  },
+  "trashErrorTitle": "Impossible de charger la corbeille",
+  "@trashErrorTitle": {
+    "description": "User-facing copy: trashErrorTitle (fr template)."
+  },
+  "versionLabel": "Version",
+  "@versionLabel": {
+    "description": "User-facing copy: versionLabel (fr template)."
+  },
+  "currentVersion": "Version actuelle",
+  "@currentVersion": {
+    "description": "User-facing copy: currentVersion (fr template)."
+  },
+  "installedVersion": "Installée",
+  "@installedVersion": {
+    "description": "User-facing copy: installedVersion (fr template)."
+  },
+  "appearanceHeadline": "Personnalisez Keyel",
+  "@appearanceHeadline": {
+    "description": "User-facing copy: appearanceHeadline (fr template)."
+  },
+  "appearanceSubtitle": "Choisissez votre thème, votre palette de couleurs et vos préférences d'interaction. Les indicateurs de sécurité restent cohérents.",
+  "@appearanceSubtitle": {
+    "description": "User-facing copy: appearanceSubtitle (fr template)."
+  },
+  "paletteColors": "{count, plural, =1{{count} couleur} other{{count} couleurs}}",
+  "@paletteColors": {
+    "description": "User-facing copy: paletteColors (fr template)."
+  },
+  "darkModeTitle": "Mode sombre",
+  "@darkModeTitle": {
+    "description": "User-facing copy: darkModeTitle (fr template)."
+  },
+  "interactionTitle": "Interaction",
+  "@interactionTitle": {
+    "description": "User-facing copy: interactionTitle (fr template)."
+  },
+  "amoledSubtitle": "Utilisez un noir pur en mode sombre pour réduire la luminosité OLED et économiser l'énergie sur les écrans compatibles.",
+  "@amoledSubtitle": {
+    "description": "User-facing copy: amoledSubtitle (fr template)."
+  },
+  "animationsSubtitle": "Activez les animations et les transitions dans l'application. Les réglages système de réduction des animations sont toujours respectés.",
+  "@animationsSubtitle": {
+    "description": "User-facing copy: animationsSubtitle (fr template)."
+  },
+  "hapticsSubtitle": "Activez les retours tactiles lors des interactions pris en charge par votre appareil.",
+  "@hapticsSubtitle": {
+    "description": "User-facing copy: hapticsSubtitle (fr template)."
+  },
+  "languageFollowSystem": "Suivre le système",
+  "@languageFollowSystem": {
+    "description": "User-facing copy: languageFollowSystem (fr template)."
+  },
+  "autofillFillTitle": "Remplir avec Keyel",
+  "@autofillFillTitle": {
+    "description": "User-facing copy: autofillFillTitle (fr template)."
+  },
+  "autofillFilling": "Remplissage de {target}",
+  "@autofillFilling": {
+    "description": "User-facing copy: autofillFilling (fr template).",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "autofillTargetThisApp": "cette application",
+  "@autofillTargetThisApp": {
+    "description": "User-facing copy: autofillTargetThisApp (fr template)."
+  },
+  "autofillSearchVault": "Rechercher dans le coffre",
+  "@autofillSearchVault": {
+    "description": "User-facing copy: autofillSearchVault (fr template)."
+  },
+  "autofillCreateNewLogin": "Créer un nouvel identifiant",
+  "@autofillCreateNewLogin": {
+    "description": "User-facing copy: autofillCreateNewLogin (fr template)."
+  },
+  "autofillNeverForSite": "Jamais pour ce site",
+  "@autofillNeverForSite": {
+    "description": "User-facing copy: autofillNeverForSite (fr template)."
+  },
+  "autofillSaveTitle": "Enregistrer l'identifiant ?",
+  "@autofillSaveTitle": {
+    "description": "User-facing copy: autofillSaveTitle (fr template)."
+  },
+  "autofillSaveLogin": "Enregistrer l'identifiant",
+  "@autofillSaveLogin": {
+    "description": "User-facing copy: autofillSaveLogin (fr template)."
+  },
+  "autofillNotNow": "Pas maintenant",
+  "@autofillNotNow": {
+    "description": "User-facing copy: autofillNotNow (fr template)."
+  },
+  "autofillNewLogin": "Nouvel identifiant",
+  "@autofillNewLogin": {
+    "description": "User-facing copy: autofillNewLogin (fr template)."
+  },
+  "autofillNameRequired": "Donnez d'abord un nom à cet identifiant.",
+  "@autofillNameRequired": {
+    "description": "User-facing copy: autofillNameRequired (fr template)."
+  },
+  "autofillFindingMatches": "Recherche des identifiants correspondants…",
+  "@autofillFindingMatches": {
+    "description": "User-facing copy: autofillFindingMatches (fr template)."
+  },
+  "autofillNoMatches": "Aucun identifiant correspondant",
+  "@autofillNoMatches": {
+    "description": "User-facing copy: autofillNoMatches (fr template)."
+  },
+  "autofillNoMatchesBody": "Créez un identifiant pour cette application ou ce site.",
+  "@autofillNoMatchesBody": {
+    "description": "User-facing copy: autofillNoMatchesBody (fr template)."
+  },
+  "autofillDisabledTitle": "La saisie automatique est désactivée pour ce site",
+  "@autofillDisabledTitle": {
+    "description": "User-facing copy: autofillDisabledTitle (fr template)."
+  },
+  "autofillDisabledBody": "Vous avez choisi de ne jamais remplir ici. Retirez ce choix des réglages de saisie automatique de Keyel pour la réactiver.",
+  "@autofillDisabledBody": {
+    "description": "User-facing copy: autofillDisabledBody (fr template)."
+  },
+  "autofillStoreCredentials": "Enregistrer ces identifiants pour {target}",
+  "@autofillStoreCredentials": {
+    "description": "User-facing copy: autofillStoreCredentials (fr template).",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldName": "Nom",
+  "@fieldName": {
+    "description": "User-facing copy: fieldName (fr template)."
+  },
+  "fieldUsername": "Nom d'utilisateur",
+  "@fieldUsername": {
+    "description": "User-facing copy: fieldUsername (fr template)."
+  },
+  "fieldPassword": "Mot de passe",
+  "@fieldPassword": {
+    "description": "User-facing copy: fieldPassword (fr template)."
+  },
+  "autofillMismatchBody": "Certains résultats sont uniquement des correspondances de texte. Vérifiez que l'identifiant appartient vraiment à {target} avant de remplir.",
+  "@autofillMismatchBody": {
+    "description": "User-facing copy: autofillMismatchBody.",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "autofillVaultLocked": "Coffre verrouillé",
+  "@autofillVaultLocked": {
+    "description": "User-facing copy: autofillVaultLocked (fr template)."
+  },
+  "autofillUnlockToFill": "Déverrouillez Keyel pour remplir ce formulaire.",
+  "@autofillUnlockToFill": {
+    "description": "User-facing copy: autofillUnlockToFill (fr template)."
+  },
+  "autofillLoadError": "Impossible de charger les correspondances",
+  "@autofillLoadError": {
+    "description": "User-facing copy: autofillLoadError (fr template)."
+  },
+  "autofillNeverTitle": "Jamais pour ces sites",
+  "@autofillNeverTitle": {
+    "description": "User-facing copy: autofillNeverTitle (fr template)."
+  },
+  "autofillNeverSubtitle": "Emplacements où Keyel ne proposera ni remplissage ni enregistrement",
+  "@autofillNeverSubtitle": {
+    "description": "User-facing copy: autofillNeverSubtitle (fr template)."
+  },
+  "autofillNeverEmpty": "Aucun site bloqué",
+  "@autofillNeverEmpty": {
+    "description": "User-facing copy: autofillNeverEmpty (fr template)."
+  },
+  "autofillNeverCount": "{count, plural, =1{{count} site bloqué} other{{count} sites bloqués}}",
+  "@autofillNeverCount": {
+    "description": "User-facing copy: autofillNeverCount (fr template)."
+  },
+  "actionManage": "Gérer",
+  "@actionManage": {
+    "description": "User-facing copy: actionManage."
+  },
+  "autofillVerifiedTitle": "Sites vérifiés uniquement",
+  "@autofillVerifiedTitle": {
+    "description": "User-facing copy: autofillVerifiedTitle (fr template)."
+  },
+  "autofillVerifiedSubtitle": "Uniquement les correspondances exactes de paquet ou d'hôte (substitut hors ligne des Digital Asset Links)",
+  "@autofillVerifiedSubtitle": {
+    "description": "User-facing copy: autofillVerifiedSubtitle (fr template)."
+  },
+  "coreAutofillAppTitle": "Saisie automatique Keyel",
+  "@coreAutofillAppTitle": {
+    "description": "MaterialApp title for the autofill entrypoint."
+  },
+  "coreBiometricEnableReason": "Confirmez votre identité pour l'activer",
+  "@coreBiometricEnableReason": {
+    "description": "Reason shown by the OS biometric prompt when enabling quick unlock."
+  },
+  "coreBreachCheckActive": "Une vérification des fuites est déjà en cours.",
+  "@coreBreachCheckActive": {
+    "description": "Vault error: a breach check is already running."
+  },
+  "coreBreachCheckFailed": "La vérification des fuites a échoué. Veuillez réessayer.",
+  "@coreBreachCheckFailed": {
+    "description": "Generic breach-check failure message."
+  },
+  "coreBreachInvalidResponse": "Le service de vérification des fuites a renvoyé une réponse inattendue.",
+  "@coreBreachInvalidResponse": {
+    "description": "Vault error: breach service returned an unexpected response."
+  },
+  "coreBreachInvalidToken": "Cette vérification des fuites a expiré.",
+  "@coreBreachInvalidToken": {
+    "description": "Vault error: breach-check token expired."
+  },
+  "coreBreachUnreachable": "Impossible de contacter le service de vérification des fuites.",
+  "@coreBreachUnreachable": {
+    "description": "Error shown when the breach-check network request fails."
+  },
+  "coreEmptyImport": "Ce fichier ne contient aucune entrée à importer.",
+  "@coreEmptyImport": {
+    "description": "Vault error: import file has no entries."
+  },
+  "coreEntryNotFound": "Entrée introuvable.",
+  "@coreEntryNotFound": {
+    "description": "Vault error: entry does not exist."
+  },
+  "coreInternalError": "Erreur interne.",
+  "@coreInternalError": {
+    "description": "Vault error: generic internal failure."
+  },
+  "coreInvalidEntryId": "Identifiant d'entrée non valide.",
+  "@coreInvalidEntryId": {
+    "description": "Vault error: malformed entry id."
+  },
+  "coreInvalidKdfParams": "Paramètres de dérivation de clé non valides.",
+  "@coreInvalidKdfParams": {
+    "description": "Vault error: invalid key-derivation parameters."
+  },
+  "coreInvalidRecoveryKey": "Cette clé de récupération n'est pas valide.",
+  "@coreInvalidRecoveryKey": {
+    "description": "Vault error: recovery key rejected."
+  },
+  "coreMalformedImport": "Ce fichier n'est pas un export CSV valide.",
+  "@coreMalformedImport": {
+    "description": "Vault error: malformed CSV export."
+  },
+  "corePaletteAmber": "Ambre",
+  "@corePaletteAmber": {
+    "description": "Accent palette label: amber."
+  },
+  "corePaletteAmberDesc": "Tons dorés chaleureux",
+  "@corePaletteAmberDesc": {
+    "description": "Accent palette description: amber."
+  },
+  "corePaletteForest": "Forêt",
+  "@corePaletteForest": {
+    "description": "Accent palette label: forest green."
+  },
+  "corePaletteForestDesc": "Tons verts profonds",
+  "@corePaletteForestDesc": {
+    "description": "Accent palette description: forest green."
+  },
+  "corePaletteGraphite": "Graphite",
+  "@corePaletteGraphite": {
+    "description": "Accent palette label: graphite."
+  },
+  "corePaletteGraphiteDesc": "Tons monochrome neutres",
+  "@corePaletteGraphiteDesc": {
+    "description": "Accent palette description: graphite."
+  },
+  "corePaletteIndigo": "Indigo",
+  "@corePaletteIndigo": {
+    "description": "Accent palette label: classic indigo."
+  },
+  "corePaletteIndigoDesc": "Couleurs classiques de la marque Keyel",
+  "@corePaletteIndigoDesc": {
+    "description": "Accent palette description: classic indigo."
+  },
+  "corePaletteOcean": "Océan",
+  "@corePaletteOcean": {
+    "description": "Accent palette label: ocean blue."
+  },
+  "corePaletteOceanDesc": "Tons bleus apaisants",
+  "@corePaletteOceanDesc": {
+    "description": "Accent palette description: ocean blue."
+  },
+  "corePaletteRose": "Rose",
+  "@corePaletteRose": {
+    "description": "Accent palette label: rose."
+  },
+  "corePaletteRoseDesc": "Tons doux de rouge et de rose",
+  "@corePaletteRoseDesc": {
+    "description": "Accent palette description: rose."
+  },
+  "corePaletteTeal": "Bleu-vert",
+  "@corePaletteTeal": {
+    "description": "Accent palette label: teal."
+  },
+  "corePaletteTealDesc": "Tons bleu-vert équilibrés",
+  "@corePaletteTealDesc": {
+    "description": "Accent palette description: teal."
+  },
+  "corePaletteViolet": "Violet",
+  "@corePaletteViolet": {
+    "description": "Accent palette label: violet."
+  },
+  "corePaletteVioletDesc": "Tons violets intenses",
+  "@corePaletteVioletDesc": {
+    "description": "Accent palette description: violet."
+  },
+  "corePasskeyAppTitle": "Clés d'accès Keyel",
+  "@corePasskeyAppTitle": {
+    "description": "MaterialApp title for the passkey entrypoint."
+  },
+  "corePasskeyRequestUnreadable": "Impossible de lire la demande de clé d'accès. Veuillez réessayer.",
+  "@corePasskeyRequestUnreadable": {
+    "description": "Passkey error: the incoming request could not be read."
+  },
+  "corePasskeyRequestUnsupported": "Cette demande de clé d'accès n'est pas prise en charge.",
+  "@corePasskeyRequestUnsupported": {
+    "description": "Passkey error: unsupported request mode."
+  },
+  "corePasskeyUnavailable": "Clé d'accès indisponible",
+  "@corePasskeyUnavailable": {
+    "description": "Title of the passkey error screen."
+  },
+  "coreRequiredFields": "Veuillez remplir les champs obligatoires.",
+  "@coreRequiredFields": {
+    "description": "Vault error: required fields are empty."
+  },
+  "coreStorageError": "Impossible de lire ou d'écrire le fichier du coffre.",
+  "@coreStorageError": {
+    "description": "Vault error: file I/O failed."
+  },
+  "coreThemeDark": "Sombre",
+  "@coreThemeDark": {
+    "description": "Theme mode label: dark."
+  },
+  "coreThemeLight": "Clair",
+  "@coreThemeLight": {
+    "description": "Theme mode label: light."
+  },
+  "coreThemeSystem": "Système",
+  "@coreThemeSystem": {
+    "description": "Theme mode label: follow system."
+  },
+  "coreThrottled": "Trop de tentatives. Réessayez dans {seconds} s.",
+  "@coreThrottled": {
+    "description": "Unlock throttle error shown after too many master-password attempts.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "coreUnsupportedCsvFormat": "Ce format CSV n'est pas pris en charge. Utilisez un export Bitwarden ou Chrome.",
+  "@coreUnsupportedCsvFormat": {
+    "description": "Vault error: unsupported CSV layout."
+  },
+  "coreVaultCorrupted": "Le fichier du coffre est endommagé.",
+  "@coreVaultCorrupted": {
+    "description": "Vault error: vault file is damaged."
+  },
+  "coreVaultExists": "Un coffre existe déjà.",
+  "@coreVaultExists": {
+    "description": "Vault error: a vault already exists."
+  },
+  "coreVaultInvalidPath": "Le chemin du coffre n'est pas valide.",
+  "@coreVaultInvalidPath": {
+    "description": "Vault error: configured path is invalid."
+  },
+  "coreVaultLocked": "Déverrouillez d'abord le coffre.",
+  "@coreVaultLocked": {
+    "description": "Vault error: operation requires an unlocked vault."
+  },
+  "coreVaultMissing": "Aucun fichier de coffre n'a été trouvé.",
+  "@coreVaultMissing": {
+    "description": "Vault error: no vault file found."
+  },
+  "coreVaultNotInitialized": "Le stockage du coffre n'est pas initialisé.",
+  "@coreVaultNotInitialized": {
+    "description": "Vault error: storage is not initialized."
+  },
+  "coreVaultUnsupportedVersion": "Ce coffre a été créé par une version plus récente de Keyel.",
+  "@coreVaultUnsupportedVersion": {
+    "description": "Vault error: vault format is too new."
+  },
+  "coreWrongPassword": "Mot de passe incorrect ou coffre endommagé.",
+  "@coreWrongPassword": {
+    "description": "Vault error: master password rejected or vault damaged."
+  },
+  "entry2FaCodeCopied": "Code 2FA copié dans le presse-papiers",
+  "@entry2FaCodeCopied": {
+    "description": "User-facing copy: \"2FA code copied to clipboard\"."
+  },
+  "entry2FaEnabled": "2FA activée",
+  "@entry2FaEnabled": {
+    "description": "User-facing copy: \"2FA enabled\"."
+  },
+  "entryAddCustomField": "Ajouter un champ personnalisé",
+  "@entryAddCustomField": {
+    "description": "User-facing copy: \"Add custom field\"."
+  },
+  "entryAddToFavorites": "Ajouter aux favoris",
+  "@entryAddToFavorites": {
+    "description": "User-facing copy: \"Add to favorites\"."
+  },
+  "entryAlgorithm": "Algorithme",
+  "@entryAlgorithm": {
+    "description": "User-facing copy: \"Algorithm\"."
+  },
+  "entryCardDetails": "Détails de la carte",
+  "@entryCardDetails": {
+    "description": "User-facing copy: \"Card details\"."
+  },
+  "entryCardNumber": "Numéro de carte",
+  "@entryCardNumber": {
+    "description": "User-facing copy: \"Card number\"."
+  },
+  "entryCardNumberCopied": "Numéro de carte copié dans le presse-papiers",
+  "@entryCardNumberCopied": {
+    "description": "User-facing copy: \"Card number copied to clipboard\"."
+  },
+  "entryCardholder": "Titulaire",
+  "@entryCardholder": {
+    "description": "User-facing copy: \"Cardholder\"."
+  },
+  "entryCardholderName": "Nom du titulaire",
+  "@entryCardholderName": {
+    "description": "User-facing copy: \"Cardholder name\"."
+  },
+  "entryCardholderNameCopied": "Nom du titulaire copié",
+  "@entryCardholderNameCopied": {
+    "description": "User-facing copy: \"Cardholder name copied\"."
+  },
+  "entryChangeIcon": "Changer l'icône",
+  "@entryChangeIcon": {
+    "description": "User-facing copy: \"Change icon\"."
+  },
+  "entryChooseIcon": "Choisir une icône",
+  "@entryChooseIcon": {
+    "description": "User-facing copy: \"Choose Icon\"."
+  },
+  "entryChooseIconSubtitle": "Sélectionnez une icône pour cette entrée",
+  "@entryChooseIconSubtitle": {
+    "description": "User-facing copy: \"Select an icon for this entry\"."
+  },
+  "entryConfigured": "Configuré",
+  "@entryConfigured": {
+    "description": "User-facing copy: \"Configured\"."
+  },
+  "entryCopy2FaCode": "Copier le code 2FA",
+  "@entryCopy2FaCode": {
+    "description": "User-facing copy: \"Copy 2FA code\"."
+  },
+  "entryCopyCardNumber": "Copier le numéro de carte",
+  "@entryCopyCardNumber": {
+    "description": "User-facing copy: \"Copy card number\"."
+  },
+  "entryCopyCardholder": "Copier le nom du titulaire",
+  "@entryCopyCardholder": {
+    "description": "User-facing copy: \"Copy cardholder\"."
+  },
+  "entryCopyFullNote": "Copier la note complète",
+  "@entryCopyFullNote": {
+    "description": "User-facing copy: \"Copy full note\"."
+  },
+  "entryCopyPassword": "Copier le mot de passe",
+  "@entryCopyPassword": {
+    "description": "User-facing copy: \"Copy password\"."
+  },
+  "entryCopyUrl": "Copier l'URL",
+  "@entryCopyUrl": {
+    "description": "User-facing copy: \"Copy URL\"."
+  },
+  "entryCopyUsername": "Copier le nom d'utilisateur",
+  "@entryCopyUsername": {
+    "description": "User-facing copy: \"Copy username\"."
+  },
+  "entryCopyValue": "Copier la valeur",
+  "@entryCopyValue": {
+    "description": "User-facing copy: \"Copy value\"."
+  },
+  "entryCopyWebsiteUrl": "Copier l'URL du site",
+  "@entryCopyWebsiteUrl": {
+    "description": "User-facing copy: \"Copy website URL\"."
+  },
+  "entryCreated": "Entrée créée dans le coffre.",
+  "@entryCreated": {
+    "description": "User-facing copy: \"Entry created in vault.\"."
+  },
+  "entryCredentialId": "ID d'identification",
+  "@entryCredentialId": {
+    "description": "User-facing copy: \"Credential ID\"."
+  },
+  "entryCredentials": "Identifiants",
+  "@entryCredentials": {
+    "description": "User-facing copy: \"Credentials\"."
+  },
+  "entryCustomFields": "Champs personnalisés",
+  "@entryCustomFields": {
+    "description": "User-facing copy: \"Custom fields\"."
+  },
+  "entryCustomFieldsHint": "Ajoutez des champs texte, masqués ou URL à cette entrée.",
+  "@entryCustomFieldsHint": {
+    "description": "User-facing copy: \"Add extra text, hidden, or URL fields to this entry.\"."
+  },
+  "entryDecryptedNote": "Note déchiffrée :",
+  "@entryDecryptedNote": {
+    "description": "User-facing copy: \"Decrypted note:\"."
+  },
+  "entryDeleteBody": "Cet élément sera déplacé dans la corbeille.",
+  "@entryDeleteBody": {
+    "description": "User-facing copy: \"This item will be moved to the trash.\"."
+  },
+  "entryDeleteEntry": "Supprimer l'entrée",
+  "@entryDeleteEntry": {
+    "description": "User-facing copy: \"Delete entry\"."
+  },
+  "entryDeleteTitle": "Supprimer {title} ?",
+  "@entryDeleteTitle": {
+    "description": "User-facing copy: \"Delete {title}?\".",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "Entry title used in the message."
+      }
+    }
+  },
+  "entryDiscardBody": "Vos modifications de cette entrée seront perdues.",
+  "@entryDiscardBody": {
+    "description": "User-facing copy: \"Your edits to this entry will be lost.\"."
+  },
+  "entryDiscardConfirm": "Abandonner",
+  "@entryDiscardConfirm": {
+    "description": "User-facing copy: \"Discard\"."
+  },
+  "entryDiscardTitle": "Abandonner les modifications ?",
+  "@entryDiscardTitle": {
+    "description": "User-facing copy: \"Discard changes?\"."
+  },
+  "entryDiscoverable": "Découvrable",
+  "@entryDiscoverable": {
+    "description": "User-facing copy: \"Discoverable\"."
+  },
+  "entryEditCard": "Modifier la carte",
+  "@entryEditCard": {
+    "description": "User-facing copy: \"Edit card\"."
+  },
+  "entryEditEntry": "Modifier l'entrée",
+  "@entryEditEntry": {
+    "description": "User-facing copy: \"Edit entry\"."
+  },
+  "entryEditLogin": "Modifier la connexion",
+  "@entryEditLogin": {
+    "description": "User-facing copy: \"Edit login\"."
+  },
+  "entryEditNote": "Modifier la note",
+  "@entryEditNote": {
+    "description": "User-facing copy: \"Edit note\"."
+  },
+  "entryEditPasskey": "Modifier la clé d'accès",
+  "@entryEditPasskey": {
+    "description": "User-facing copy: \"Edit passkey\"."
+  },
+  "entryEditTitle": "Modifier {kind}",
+  "@entryEditTitle": {
+    "description": "User-facing copy: \"Edit {kind}\".",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "description": "Localized entry kind label."
+      }
+    }
+  },
+  "entryEncryptedContent": "Contenu chiffré",
+  "@entryEncryptedContent": {
+    "description": "User-facing copy: \"Encrypted content\"."
+  },
+  "entryEncryptedHint": "Les secrets restent chiffrés avec Argon2id et ChaCha20-Poly1305.",
+  "@entryEncryptedHint": {
+    "description": "User-facing copy: \"Secrets stay encrypted with Argon2id & ChaCha20-Poly1305.\"."
+  },
+  "entryEncryptedProtected": "Chiffré et protégé",
+  "@entryEncryptedProtected": {
+    "description": "User-facing copy: \"Encrypted & Protected\"."
+  },
+  "entryEnterManually": "Saisir manuellement",
+  "@entryEnterManually": {
+    "description": "User-facing copy: \"Enter Manually\"."
+  },
+  "entryEnterPassword": "Saisir un mot de passe sécurisé",
+  "@entryEnterPassword": {
+    "description": "User-facing copy: \"Enter secure password\"."
+  },
+  "entryExpires": "Expiration",
+  "@entryExpires": {
+    "description": "User-facing copy: \"Expires\"."
+  },
+  "entryExpiry": "Expiration",
+  "@entryExpiry": {
+    "description": "User-facing copy: \"Expiry\"."
+  },
+  "entryFavoriteRemoved": "Favori supprimé",
+  "@entryFavoriteRemoved": {
+    "description": "User-facing copy: \"Favorite removed\"."
+  },
+  "entryField": "Champ",
+  "@entryField": {
+    "description": "User-facing copy: \"Field\"."
+  },
+  "entryFieldActions": "Actions du champ",
+  "@entryFieldActions": {
+    "description": "User-facing copy: \"Field actions\"."
+  },
+  "entryFieldCopied": "{label} copié{hint}",
+  "@entryFieldCopied": {
+    "description": "User-facing copy: \"{label} copied{hint}\".",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "description": "Field or custom-field label."
+      },
+      "hint": {
+        "type": "String",
+        "description": "Optional clipboard-clear hint suffix."
+      }
+    }
+  },
+  "entryFieldLabel": "Libellé",
+  "@entryFieldLabel": {
+    "description": "User-facing copy: \"Label\"."
+  },
+  "entryFieldTypeHidden": "Champ masqué",
+  "@entryFieldTypeHidden": {
+    "description": "User-facing copy: \"Hidden field\"."
+  },
+  "entryFieldTypeHiddenShort": "Masqué",
+  "@entryFieldTypeHiddenShort": {
+    "description": "User-facing copy: \"Hidden\"."
+  },
+  "entryFieldTypeText": "Champ texte",
+  "@entryFieldTypeText": {
+    "description": "User-facing copy: \"Text field\"."
+  },
+  "entryFieldTypeTextShort": "Texte",
+  "@entryFieldTypeTextShort": {
+    "description": "User-facing copy: \"Text\"."
+  },
+  "entryFieldTypeUrl": "Champ URL",
+  "@entryFieldTypeUrl": {
+    "description": "User-facing copy: \"URL field\"."
+  },
+  "entryFieldTypeUrlShort": "URL",
+  "@entryFieldTypeUrlShort": {
+    "description": "User-facing copy: \"URL\"."
+  },
+  "entryFolder": "Dossier",
+  "@entryFolder": {
+    "description": "User-facing copy: \"Folder\"."
+  },
+  "entryGeneratePasswordTooltip": "Générer un mot de passe",
+  "@entryGeneratePasswordTooltip": {
+    "description": "User-facing copy: \"Generate password\"."
+  },
+  "entryGenerateSecurePassword": "Générer un mot de passe sécurisé",
+  "@entryGenerateSecurePassword": {
+    "description": "User-facing copy: \"Generate secure password\"."
+  },
+  "entryGoBack": "Retour",
+  "@entryGoBack": {
+    "description": "User-facing copy: \"Go back\"."
+  },
+  "entryHiddenValueKept": "La valeur masquée existante sera conservée, sauf si vous en saisissez une nouvelle.",
+  "@entryHiddenValueKept": {
+    "description": "User-facing copy: \"Existing hidden value will be kept unless you enter a new one.\"."
+  },
+  "entryHideContent": "Masquer le contenu",
+  "@entryHideContent": {
+    "description": "User-facing copy: \"Hide content\"."
+  },
+  "entryHideNumber": "Masquer le numéro",
+  "@entryHideNumber": {
+    "description": "User-facing copy: \"Hide number\"."
+  },
+  "entryHidePassword": "Masquer le mot de passe",
+  "@entryHidePassword": {
+    "description": "User-facing copy: \"Hide password\"."
+  },
+  "entryHideValue": "Masquer la valeur",
+  "@entryHideValue": {
+    "description": "User-facing copy: \"Hide value\"."
+  },
+  "entryHistory": "Historique",
+  "@entryHistory": {
+    "description": "User-facing copy: \"History\"."
+  },
+  "entryIconCategoryAll": "Tous",
+  "@entryIconCategoryAll": {
+    "description": "User-facing copy: \"All\"."
+  },
+  "entryIconCategoryBrands": "Marques",
+  "@entryIconCategoryBrands": {
+    "description": "User-facing copy: \"Brands\"."
+  },
+  "entryIconCategoryCrypto": "Crypto",
+  "@entryIconCategoryCrypto": {
+    "description": "User-facing copy: \"Crypto\"."
+  },
+  "entryIconCategoryFinance": "Finance",
+  "@entryIconCategoryFinance": {
+    "description": "User-facing copy: \"Finance\"."
+  },
+  "entryIconCategoryLife": "Vie et utilitaires",
+  "@entryIconCategoryLife": {
+    "description": "User-facing copy: \"Life & Utilities\"."
+  },
+  "entryIconCategoryMedia": "Médias",
+  "@entryIconCategoryMedia": {
+    "description": "User-facing copy: \"Media\"."
+  },
+  "entryIconCategorySecurity": "Sécurité",
+  "@entryIconCategorySecurity": {
+    "description": "User-facing copy: \"Security\"."
+  },
+  "entryIconCategorySocial": "Réseaux sociaux",
+  "@entryIconCategorySocial": {
+    "description": "User-facing copy: \"Social\"."
+  },
+  "entryIconCategoryTech": "Tech et dev",
+  "@entryIconCategoryTech": {
+    "description": "User-facing copy: \"Tech & Dev\"."
+  },
+  "entryIconCategoryWork": "Travail",
+  "@entryIconCategoryWork": {
+    "description": "User-facing copy: \"Work\"."
+  },
+  "entryIconSearchHint": "Rechercher des icônes (ex. GitHub, Banque, Mail)...",
+  "@entryIconSearchHint": {
+    "description": "User-facing copy: \"Search icons (e.g. GitHub, Bank, Mail)...\"."
+  },
+  "entryInvalidTotpSecret": "Cette clé ou ce lien n'est pas un secret TOTP valide.",
+  "@entryInvalidTotpSecret": {
+    "description": "User-facing copy: \"That key or link is not a valid TOTP secret.\"."
+  },
+  "entryInvalidWebsite": "Adresse du site invalide",
+  "@entryInvalidWebsite": {
+    "description": "User-facing copy: \"Invalid website address\"."
+  },
+  "entryItemNotFound": "Élément introuvable",
+  "@entryItemNotFound": {
+    "description": "User-facing copy: \"Item not found\"."
+  },
+  "entryKindCard": "Carte",
+  "@entryKindCard": {
+    "description": "User-facing copy: \"Card\"."
+  },
+  "entryKindLogin": "Connexion",
+  "@entryKindLogin": {
+    "description": "User-facing copy: \"Login\"."
+  },
+  "entryKindNote": "Note",
+  "@entryKindNote": {
+    "description": "User-facing copy: \"Note\"."
+  },
+  "entryKindPasskey": "Clé d'accès",
+  "@entryKindPasskey": {
+    "description": "User-facing copy: \"Passkey\"."
+  },
+  "entryLoading": "Chargement de l'entrée…",
+  "@entryLoading": {
+    "description": "User-facing copy: \"Loading entry…\"."
+  },
+  "entryLoadingCode": "Chargement du code…",
+  "@entryLoadingCode": {
+    "description": "User-facing copy: \"Loading code…\"."
+  },
+  "entryMasterCredentials": "Identifiants principaux",
+  "@entryMasterCredentials": {
+    "description": "User-facing copy: \"Master credentials\"."
+  },
+  "entryMissingMessage": "Aucune entrée avec l'ID « {entryId} » n'existe.",
+  "@entryMissingMessage": {
+    "description": "User-facing copy: \"No entry with ID \"{entryId}\" exists.\".",
+    "placeholders": {
+      "entryId": {
+        "type": "String",
+        "description": "Identifier of the missing entry."
+      }
+    }
+  },
+  "entryMoveDown": "Déplacer vers le bas",
+  "@entryMoveDown": {
+    "description": "User-facing copy: \"Move down\"."
+  },
+  "entryMoveUp": "Déplacer vers le haut",
+  "@entryMoveUp": {
+    "description": "User-facing copy: \"Move up\"."
+  },
+  "entryMovedToTrash": "{title} déplacé dans la corbeille",
+  "@entryMovedToTrash": {
+    "description": "User-facing copy: \"{title} moved to trash\".",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "Entry title used in the message."
+      }
+    }
+  },
+  "entryNewTitle": "Nouvelle {kind}",
+  "@entryNewTitle": {
+    "description": "User-facing copy: \"New {kind}\".",
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "description": "Localized entry kind label."
+      }
+    }
+  },
+  "entryNo": "Non",
+  "@entryNo": {
+    "description": "User-facing copy: \"No\"."
+  },
+  "entryNoFolder": "Aucun dossier",
+  "@entryNoFolder": {
+    "description": "User-facing copy: \"No folder\"."
+  },
+  "entryNoMatchingIcons": "Aucune icône correspondante",
+  "@entryNoMatchingIcons": {
+    "description": "User-facing copy: \"No matching icons\"."
+  },
+  "entryNoteCopied": "Note copiée",
+  "@entryNoteCopied": {
+    "description": "User-facing copy: \"Note copied\"."
+  },
+  "entryNotes": "Notes",
+  "@entryNotes": {
+    "description": "User-facing copy: \"Notes\"."
+  },
+  "entryNotesHint": "Questions de récupération, codes PIN, phrases de récupération...",
+  "@entryNotesHint": {
+    "description": "User-facing copy: \"Recovery questions, PIN codes, backup seeds...\"."
+  },
+  "entryNothingToCopy": "Rien à copier",
+  "@entryNothingToCopy": {
+    "description": "User-facing copy: \"Nothing to copy\"."
+  },
+  "entryOpenUrl": "Ouvrir l'URL",
+  "@entryOpenUrl": {
+    "description": "User-facing copy: \"Open URL\"."
+  },
+  "entryOpenWebsite": "Ouvrir le site",
+  "@entryOpenWebsite": {
+    "description": "User-facing copy: \"Open website\"."
+  },
+  "entryPasskeyInfo": "Les clés d'accès sont créées et utilisées via des invites de connexion sécurisées. Les détails des identifiants sont gérés automatiquement et ne peuvent pas encore être modifiés ici.",
+  "@entryPasskeyInfo": {
+    "description": "User-facing copy: \"Passkeys are created and used through secure sign-in prompts. Credential details are managed automatically and can't be edited here yet.\"."
+  },
+  "entryPasskeyUser": "Utilisateur",
+  "@entryPasskeyUser": {
+    "description": "User-facing copy: \"User\"."
+  },
+  "entryPasswordCopied": "Mot de passe copié{hint}",
+  "@entryPasswordCopied": {
+    "description": "User-facing copy: \"Password copied{hint}\".",
+    "placeholders": {
+      "hint": {
+        "type": "String",
+        "description": "Optional clipboard-clear hint suffix."
+      }
+    }
+  },
+  "entryPasswordGenerationFailed": "Impossible de générer un mot de passe pour le moment.",
+  "@entryPasswordGenerationFailed": {
+    "description": "User-facing copy: \"Could not generate a password right now.\"."
+  },
+  "entryPasswordHealth": "Mot de passe {label} ({count} caractères)",
+  "@entryPasswordHealth": {
+    "description": "User-facing copy: \"{label} password ({count} chars)\".",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "description": "Field or custom-field label."
+      },
+      "count": {
+        "type": "num",
+        "description": "Number of characters in the password."
+      }
+    }
+  },
+  "entryPasswordHistorySoon": "L'historique des mots de passe arrivera avec le stockage chiffré.",
+  "@entryPasswordHistorySoon": {
+    "description": "User-facing copy: \"Password history arrives with encrypted storage.\"."
+  },
+  "entryPasswordScore": "Score : {score} %",
+  "@entryPasswordScore": {
+    "description": "User-facing copy: \"Score: {score}%\".",
+    "placeholders": {
+      "score": {
+        "type": "num",
+        "description": "Password score percentage."
+      }
+    }
+  },
+  "entryPinToQuickAccess": "Épingler cette entrée à l'accès rapide",
+  "@entryPinToQuickAccess": {
+    "description": "User-facing copy: \"Pin this entry to quick access\"."
+  },
+  "entryPinned": "{title} épinglé aux favoris",
+  "@entryPinned": {
+    "description": "User-facing copy: \"{title} pinned to favorites\".",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "description": "Entry title used in the message."
+      }
+    }
+  },
+  "entryQrScanUnavailable": "La numérisation par caméra arrivera dans une prochaine mise à jour. Saisissez la clé manuellement pour l'instant.",
+  "@entryQrScanUnavailable": {
+    "description": "User-facing copy: \"Camera scanning arrives in a later update. Enter the key manually for now.\"."
+  },
+  "entryRefreshesAutomatically": "Actualisation automatique",
+  "@entryRefreshesAutomatically": {
+    "description": "User-facing copy: \"Refreshes automatically\"."
+  },
+  "entryRelyingParty": "Partie de confiance",
+  "@entryRelyingParty": {
+    "description": "User-facing copy: \"Relying party\"."
+  },
+  "entryRemoveFavorite": "Retirer des favoris",
+  "@entryRemoveFavorite": {
+    "description": "User-facing copy: \"Remove favorite\"."
+  },
+  "entryReplaceKey": "Remplacer la clé",
+  "@entryReplaceKey": {
+    "description": "User-facing copy: \"Replace Key\"."
+  },
+  "entryRevealNote": "Afficher la note",
+  "@entryRevealNote": {
+    "description": "User-facing copy: \"Reveal note\"."
+  },
+  "entryRevealNumber": "Afficher le numéro",
+  "@entryRevealNumber": {
+    "description": "User-facing copy: \"Reveal number\"."
+  },
+  "entryRevealPassword": "Afficher le mot de passe",
+  "@entryRevealPassword": {
+    "description": "User-facing copy: \"Reveal password\"."
+  },
+  "entryRevealValue": "Afficher la valeur",
+  "@entryRevealValue": {
+    "description": "User-facing copy: \"Reveal value\"."
+  },
+  "entrySaveEntry": "Enregistrer l'entrée",
+  "@entrySaveEntry": {
+    "description": "User-facing copy: \"Save entry\"."
+  },
+  "entrySavedSecurelyHint": "Enregistré de façon sécurisée (laissez vide pour conserver)",
+  "@entrySavedSecurelyHint": {
+    "description": "User-facing copy: \"Saved securely (leave blank to keep)\"."
+  },
+  "entryScanQrCode": "Scanner le code QR",
+  "@entryScanQrCode": {
+    "description": "User-facing copy: \"Scan QR Code\"."
+  },
+  "entrySecondsRemaining": "{seconds}s",
+  "@entrySecondsRemaining": {
+    "description": "User-facing copy: \"{seconds}s\".",
+    "placeholders": {
+      "seconds": {
+        "type": "num",
+        "description": "Remaining countdown seconds."
+      }
+    }
+  },
+  "entrySecureNote": "Note sécurisée",
+  "@entrySecureNote": {
+    "description": "User-facing copy: \"Secure note\"."
+  },
+  "entrySecureNoteContent": "Contenu de la note sécurisée",
+  "@entrySecureNoteContent": {
+    "description": "User-facing copy: \"Secure note content\"."
+  },
+  "entrySecureNotes": "Notes sécurisées",
+  "@entrySecureNotes": {
+    "description": "User-facing copy: \"Secure notes\"."
+  },
+  "entrySecurityCodeCvv": "Code de sécurité (CVV)",
+  "@entrySecurityCodeCvv": {
+    "description": "User-facing copy: \"Security code (CVV)\"."
+  },
+  "entrySetupKeyOrLink": "Clé de configuration ou lien",
+  "@entrySetupKeyOrLink": {
+    "description": "User-facing copy: \"Setup key or link\"."
+  },
+  "entrySheetBarrier": "Feuille",
+  "@entrySheetBarrier": {
+    "description": "User-facing copy: \"Sheet\"."
+  },
+  "entryShowPassword": "Afficher le mot de passe",
+  "@entryShowPassword": {
+    "description": "User-facing copy: \"Show password\"."
+  },
+  "entrySignCount": "Nombre de signatures",
+  "@entrySignCount": {
+    "description": "User-facing copy: \"Sign count\"."
+  },
+  "entryStrengthEntropy": "Entropie : {entropyLabel}",
+  "@entryStrengthEntropy": {
+    "description": "User-facing copy: \"Entropy: {entropyLabel}\".",
+    "placeholders": {
+      "entropyLabel": {
+        "type": "String",
+        "description": "Localized entropy band label."
+      }
+    }
+  },
+  "entryStrengthSummary": "{label} ({bits} bits) - {descriptor}",
+  "@entryStrengthSummary": {
+    "description": "User-facing copy: \"{label} ({bits} bits) - {descriptor}\".",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "description": "Field or custom-field label."
+      },
+      "bits": {
+        "type": "num",
+        "description": "Password entropy in bits."
+      },
+      "descriptor": {
+        "type": "String",
+        "description": "Localized password-strength descriptor."
+      }
+    }
+  },
+  "entrySuggestion": "Suggestion :",
+  "@entrySuggestion": {
+    "description": "User-facing copy: \"Suggestion:\"."
+  },
+  "entryTitleFieldHint": "Nom du service ou de l'application",
+  "@entryTitleFieldHint": {
+    "description": "User-facing copy: \"Service or app name\"."
+  },
+  "entryTitleFieldLabel": "Titre",
+  "@entryTitleFieldLabel": {
+    "description": "User-facing copy: \"Title\"."
+  },
+  "entryTitleRequired": "Donnez d'abord un titre à cette entrée.",
+  "@entryTitleRequired": {
+    "description": "User-facing copy: \"Give this entry a title first.\"."
+  },
+  "entryTotpConfiguredHint": "Un code rotatif est enregistré pour cette entrée. Saisissez une nouvelle clé pour le remplacer.",
+  "@entryTotpConfiguredHint": {
+    "description": "User-facing copy: \"A rotating code is stored for this entry. Enter a new key to replace it.\"."
+  },
+  "entryTotpHint": "Générez des codes de sécurité rotatifs de 30 secondes directement dans Keyel.",
+  "@entryTotpHint": {
+    "description": "User-facing copy: \"Generate integrated 30-second rotating security codes directly inside Keyel.\"."
+  },
+  "entryTotpKeyRequired": "Saisissez la clé de configuration fournie par votre service.",
+  "@entryTotpKeyRequired": {
+    "description": "User-facing copy: \"Enter the setup key from your provider.\"."
+  },
+  "entryTotpReady": "Clé 2FA prête. Enregistrez l'entrée pour la stocker.",
+  "@entryTotpReady": {
+    "description": "User-facing copy: \"Two-factor key ready. Save the entry to store it.\"."
+  },
+  "entryTotpSetupBody": "Collez la clé de configuration (base32) ou le lien otpauth:// fourni par votre service.",
+  "@entryTotpSetupBody": {
+    "description": "User-facing copy: \"Paste the setup key (base32) or the otpauth:// link from your provider.\"."
+  },
+  "entryTotpSetupTitle": "Configurer la double authentification",
+  "@entryTotpSetupTitle": {
+    "description": "User-facing copy: \"Set up two-factor\"."
+  },
+  "entryTransports": "Transports",
+  "@entryTransports": {
+    "description": "User-facing copy: \"Transports\"."
+  },
+  "entryTwoFactorAuth": "Authentification à deux facteurs",
+  "@entryTwoFactorAuth": {
+    "description": "User-facing copy: \"Two-factor authentication\"."
+  },
+  "entryTwoFactorCode": "Code à deux facteurs",
+  "@entryTwoFactorCode": {
+    "description": "User-facing copy: \"Two-factor code\"."
+  },
+  "entryUpdated": "Entrée mise à jour.",
+  "@entryUpdated": {
+    "description": "User-facing copy: \"Entry updated.\"."
+  },
+  "entryUseSuggestedEmail": "Utiliser l'e-mail suggéré",
+  "@entryUseSuggestedEmail": {
+    "description": "User-facing copy: \"Use suggested email\"."
+  },
+  "entryUsernameCopied": "Nom d'utilisateur copié dans le presse-papiers",
+  "@entryUsernameCopied": {
+    "description": "User-facing copy: \"Username copied to clipboard\"."
+  },
+  "entryUsernameOrEmail": "Nom d'utilisateur ou e-mail",
+  "@entryUsernameOrEmail": {
+    "description": "User-facing copy: \"Username or email\"."
+  },
+  "entryValue": "Valeur",
+  "@entryValue": {
+    "description": "User-facing copy: \"Value\"."
+  },
+  "entryValueCopied": "{label} copié",
+  "@entryValueCopied": {
+    "description": "User-facing copy: \"{label} copied\".",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "description": "Field or custom-field label."
+      }
+    }
+  },
+  "entryValueSecret": "Valeur (secrète)",
+  "@entryValueSecret": {
+    "description": "User-facing copy: \"Value (secret)\"."
+  },
+  "entryWebVaultMatcher": "Correspondance avec le coffre Web",
+  "@entryWebVaultMatcher": {
+    "description": "User-facing copy: \"Web Vault Matcher\"."
+  },
+  "entryWebsiteOpenFailed": "Impossible d'ouvrir le site",
+  "@entryWebsiteOpenFailed": {
+    "description": "User-facing copy: \"Could not open website\"."
+  },
+  "entryWebsiteUrl": "URL du site",
+  "@entryWebsiteUrl": {
+    "description": "User-facing copy: \"Website URL\"."
+  },
+  "entryWebsiteUrlCopied": "URL du site copiée dans le presse-papiers",
+  "@entryWebsiteUrlCopied": {
+    "description": "User-facing copy: \"Website URL copied to clipboard\"."
+  },
+  "entryYes": "Oui",
+  "@entryYes": {
+    "description": "User-facing copy: \"Yes\"."
+  },
+  "fldCreating": "Création…",
+  "@fldCreating": {
+    "description": "Busy label of the new folder button in the picker."
+  },
+  "fldDeleteConfirmBody": "Les entrées de ce dossier sont conservées et déplacées dans « Aucun dossier ».",
+  "@fldDeleteConfirmBody": {
+    "description": "Confirmation dialog body explaining what happens to entries."
+  },
+  "fldDeleteConfirmTitle": "Supprimer « {name} » ?",
+  "@fldDeleteConfirmTitle": {
+    "description": "Confirmation dialog title for deleting a folder.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "fldDeleteFolder": "Supprimer le dossier",
+  "@fldDeleteFolder": {
+    "description": "Confirm label and tile tooltip for deleting a folder."
+  },
+  "fldDeleted": "Dossier supprimé",
+  "@fldDeleted": {
+    "description": "Snackbar after a folder is deleted."
+  },
+  "fldEmptyMessage": "Les dossiers regroupent vos identifiants, cartes et notes. Utilisez le bouton ci-dessous pour créer le premier.",
+  "@fldEmptyMessage": {
+    "description": "Empty state body on the folders screen."
+  },
+  "fldFolderNameLabel": "Nom du dossier",
+  "@fldFolderNameLabel": {
+    "description": "Text field label in the folder name dialog."
+  },
+  "fldLoading": "Chargement des dossiers…",
+  "@fldLoading": {
+    "description": "Loading state message on the folders screen."
+  },
+  "fldMoveToFolder": "Déplacer vers un dossier",
+  "@fldMoveToFolder": {
+    "description": "Title of the folder picker sheet."
+  },
+  "fldNewFolder": "Nouveau dossier",
+  "@fldNewFolder": {
+    "description": "New folder action label and dialog title."
+  },
+  "fldNoFolder": "Aucun dossier",
+  "@fldNoFolder": {
+    "description": "Picker option for an unfiled entry."
+  },
+  "fldRenameFolder": "Renommer le dossier",
+  "@fldRenameFolder": {
+    "description": "Rename folder action label and dialog title."
+  },
+  "genCapitalizeExample": "p. ex. Apple-Tree-House",
+  "@genCapitalizeExample": {
+    "description": "Example subtitle for capitalized passphrases."
+  },
+  "genCapitalizeFirst": "Mettre la première lettre en majuscule",
+  "@genCapitalizeFirst": {
+    "description": "Title of the capitalize switch."
+  },
+  "genCharacterTypeError": "Gardez au moins un type de caractère activé.",
+  "@genCharacterTypeError": {
+    "description": "Snackbar when the user tries to disable every character type."
+  },
+  "genCharacterTypes": "Types de caractères",
+  "@genCharacterTypes": {
+    "description": "Section label above character type switches."
+  },
+  "genCharsShort": "{count} car.",
+  "@genCharsShort": {
+    "description": "Abbreviated password length slider track labels.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "genCopied": "Copié dans le presse-papiers : {mode}{clearHint}",
+  "@genCopied": {
+    "description": "Snackbar after copying a generated secret; clearHint is the clipboard wipe suffix.",
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      },
+      "clearHint": {
+        "type": "String"
+      }
+    }
+  },
+  "genCopyMode": "Copier {mode}",
+  "@genCopyMode": {
+    "description": "Copy button label including the current mode name.",
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "genError": "Erreur",
+  "@genError": {
+    "description": "Fallback placeholder shown when generation fails."
+  },
+  "genExcludeAmbiguous": "Exclure les caractères ambigus",
+  "@genExcludeAmbiguous": {
+    "description": "Title of the ambiguous-character switch."
+  },
+  "genExcludeAmbiguousSubtitle": "Évite la confusion entre 0, O, 1, l et I",
+  "@genExcludeAmbiguousSubtitle": {
+    "description": "Subtitle explaining ambiguous character exclusion."
+  },
+  "genGeneratedLocally": "Généré localement sur l'appareil",
+  "@genGeneratedLocally": {
+    "description": "Badge on the generated secret card."
+  },
+  "genHistoryMessage": "L'historique de génération sera disponible avec le stockage chiffré.",
+  "@genHistoryMessage": {
+    "description": "Snackbar shown from the generation history icon."
+  },
+  "genIncludeNumber": "Inclure un chiffre",
+  "@genIncludeNumber": {
+    "description": "Title of the include-number switch."
+  },
+  "genIncludeNumberSubtitle": "Ajoute deux chiffres aléatoires à la fin",
+  "@genIncludeNumberSubtitle": {
+    "description": "Subtitle of the include-number switch."
+  },
+  "genLengthValue": "{count, plural, =1{{count} caractère} other{{count} caractères}}",
+  "@genLengthValue": {
+    "description": "Password length value label."
+  },
+  "genLowercase": "Lettres minuscules",
+  "@genLowercase": {
+    "description": "Title of the lowercase letters switch."
+  },
+  "genNumbers": "Chiffres",
+  "@genNumbers": {
+    "description": "Title of the numbers switch."
+  },
+  "genPassphrase": "Phrase secrète",
+  "@genPassphrase": {
+    "description": "Generator mode label for word-based passphrases."
+  },
+  "genPassphraseError": "Impossible de générer la phrase secrète.",
+  "@genPassphraseError": {
+    "description": "Snackbar shown when passphrase generation fails."
+  },
+  "genPassphraseOptions": "Options de la phrase secrète",
+  "@genPassphraseOptions": {
+    "description": "Section label above passphrase switches."
+  },
+  "genPassphraseTip": "Les phrases secrètes remplacent les symboles par des mots mémorables. Utilisez au moins huit mots pour la phrase secrète maîtresse du coffre.",
+  "@genPassphraseTip": {
+    "description": "Informational tip about passphrase length."
+  },
+  "genPassword": "Mot de passe",
+  "@genPassword": {
+    "description": "Generator mode label for character passwords."
+  },
+  "genPasswordError": "Impossible de générer le mot de passe. Vérifiez les contraintes.",
+  "@genPasswordError": {
+    "description": "Snackbar shown when password generation fails."
+  },
+  "genPasswordLength": "Longueur du mot de passe",
+  "@genPasswordLength": {
+    "description": "Title of the password length slider card."
+  },
+  "genPasswordLengthSubtitle": "16 caractères ou plus recommandés",
+  "@genPasswordLengthSubtitle": {
+    "description": "Subtitle of the password length slider card."
+  },
+  "genRegenerate": "Régénérer",
+  "@genRegenerate": {
+    "description": "Tooltip of the regenerate button."
+  },
+  "genSeparatorSpace": "Espace",
+  "@genSeparatorSpace": {
+    "description": "Label for the space separator option."
+  },
+  "genSymbols": "Symboles",
+  "@genSymbols": {
+    "description": "Title of the symbols switch."
+  },
+  "genUppercase": "Lettres majuscules",
+  "@genUppercase": {
+    "description": "Title of the uppercase letters switch."
+  },
+  "genUsePassphrase": "Utiliser cette phrase secrète",
+  "@genUsePassphrase": {
+    "description": "Primary button label in passphrase mode."
+  },
+  "genUsePassword": "Utiliser ce mot de passe",
+  "@genUsePassword": {
+    "description": "Primary button label in password mode."
+  },
+  "genWordCount": "Nombre de mots",
+  "@genWordCount": {
+    "description": "Title of the passphrase word-count slider card."
+  },
+  "genWordCountSubtitle": "Chaque mot ajoute environ 10 bits d'entropie",
+  "@genWordCountSubtitle": {
+    "description": "Subtitle of the word-count slider card."
+  },
+  "genWordCountValue": "{count, plural, =1{{count} mot} other{{count} mots}}",
+  "@genWordCountValue": {
+    "description": "Word count value label and slider track labels."
+  },
+  "genWordSeparator": "Séparateur de mots",
+  "@genWordSeparator": {
+    "description": "Section label above separator options."
+  },
+  "imexAddedLabel": "Ajoutés",
+  "@imexAddedLabel": {
+    "description": "Import/export UI copy: added label."
+  },
+  "imexAlreadyPresentLabel": "Déjà présents",
+  "@imexAlreadyPresentLabel": {
+    "description": "Import/export UI copy: already present label."
+  },
+  "imexBackupCreated": "Sauvegarde créée",
+  "@imexBackupCreated": {
+    "description": "Import/export UI copy: backup created."
+  },
+  "imexBackupHint": "La sauvegarde est une copie complète et chiffrée de votre coffre. Conservez-la en lieu sûr.",
+  "@imexBackupHint": {
+    "description": "Import/export UI copy: backup hint."
+  },
+  "imexBackupPasswordLabel": "Mot de passe de la sauvegarde",
+  "@imexBackupPasswordLabel": {
+    "description": "Import/export UI copy: backup password label."
+  },
+  "imexBackupReady": "Votre sauvegarde chiffrée est prête à être partagée.",
+  "@imexBackupReady": {
+    "description": "Import/export UI copy: backup ready."
+  },
+  "imexCardsLabel": "Cartes",
+  "@imexCardsLabel": {
+    "description": "Import/export UI copy: cards label."
+  },
+  "imexConfirmPasswordLabel": "Confirmer le mot de passe",
+  "@imexConfirmPasswordLabel": {
+    "description": "Import/export UI copy: confirm password label."
+  },
+  "imexCsvExportBody": "Tous les mots de passe de votre coffre seront écrits dans un fichier texte brut que tout le monde peut lire. Ne faites ceci que si vous savez ce que vous faites.",
+  "@imexCsvExportBody": {
+    "description": "Import/export UI copy: csv export body."
+  },
+  "imexCsvExportConfirm": "Exporter sans chiffrement",
+  "@imexCsvExportConfirm": {
+    "description": "Import/export UI copy: csv export confirm."
+  },
+  "imexCsvExportTitle": "Exporter un CSV non chiffré ?",
+  "@imexCsvExportTitle": {
+    "description": "Import/export UI copy: csv export title."
+  },
+  "imexCsvExported": "CSV exporté",
+  "@imexCsvExported": {
+    "description": "Import/export UI copy: csv exported."
+  },
+  "imexCsvImportSheetTitle": "Importer un CSV {format}",
+  "@imexCsvImportSheetTitle": {
+    "description": "Import/export UI copy: csv import sheet title.",
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "imexCsvImportSubtitle": "Exports de mots de passe Bitwarden ou Chrome",
+  "@imexCsvImportSubtitle": {
+    "description": "Import/export UI copy: csv import subtitle."
+  },
+  "imexCsvMergeHint": "Les entrées qui semblent identiques à celles que vous possédez déjà sont ignorées.",
+  "@imexCsvMergeHint": {
+    "description": "Import/export UI copy: csv merge hint."
+  },
+  "imexCsvReady": "Votre export non chiffré est prêt à être partagé.",
+  "@imexCsvReady": {
+    "description": "Import/export UI copy: csv ready."
+  },
+  "imexEncryptBackupSubtitle": "Choisissez un mot de passe pour ce fichier de sauvegarde. Il peut être différent de votre mot de passe maître et n'est jamais enregistré.",
+  "@imexEncryptBackupSubtitle": {
+    "description": "Import/export UI copy: encrypt backup subtitle."
+  },
+  "imexEncryptBackupTitle": "Chiffrer la sauvegarde",
+  "@imexEncryptBackupTitle": {
+    "description": "Import/export UI copy: encrypt backup title."
+  },
+  "imexEncryptedBackupSection": "Sauvegarde chiffrée",
+  "@imexEncryptedBackupSection": {
+    "description": "Import/export UI copy: encrypted backup section."
+  },
+  "imexExportBackupAction": "Exporter la sauvegarde",
+  "@imexExportBackupAction": {
+    "description": "Import/export UI copy: export backup action."
+  },
+  "imexExportEncryptedSubtitle": "Enregistrer une copie chiffrée de votre coffre",
+  "@imexExportEncryptedSubtitle": {
+    "description": "Import/export UI copy: export encrypted subtitle."
+  },
+  "imexExportEncryptedTitle": "Exporter la sauvegarde chiffrée",
+  "@imexExportEncryptedTitle": {
+    "description": "Import/export UI copy: export encrypted title."
+  },
+  "imexExportPlainCsvSubtitle": "Non chiffré — pour migrer vers une autre application",
+  "@imexExportPlainCsvSubtitle": {
+    "description": "Import/export UI copy: export plain csv subtitle."
+  },
+  "imexExportPlainCsvTitle": "Exporter en CSV brut",
+  "@imexExportPlainCsvTitle": {
+    "description": "Import/export UI copy: export plain csv title."
+  },
+  "imexFailedRowsLabel": "Lignes en échec",
+  "@imexFailedRowsLabel": {
+    "description": "Import/export UI copy: failed rows label."
+  },
+  "imexFailureListTitle": "Lignes qui n'ont pas pu être importées",
+  "@imexFailureListTitle": {
+    "description": "Import/export UI copy: failure list title."
+  },
+  "imexFoldersCreatedLabel": "Dossiers créés",
+  "@imexFoldersCreatedLabel": {
+    "description": "Import/export UI copy: folders created label."
+  },
+  "imexHidePassword": "Masquer le mot de passe",
+  "@imexHidePassword": {
+    "description": "Import/export UI copy: hide password."
+  },
+  "imexHubIntro": "Déplacez votre coffre en toute sécurité. Les sauvegardes chiffrées utilisent leur propre mot de passe ; les exports CSV sont en texte brut.",
+  "@imexHubIntro": {
+    "description": "Import/export UI copy: hub intro."
+  },
+  "imexImportComplete": "Import terminé",
+  "@imexImportComplete": {
+    "description": "Import/export UI copy: import complete."
+  },
+  "imexImportCount": "Importer {count, plural, =1{{count} entrée} other{{count} entrées}}",
+  "@imexImportCount": {
+    "description": "Import/export UI copy: import count.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "imexImportFromCsvTitle": "Importer depuis un CSV",
+  "@imexImportFromCsvTitle": {
+    "description": "Import/export UI copy: import from csv title."
+  },
+  "imexLoginsLabel": "Connexions",
+  "@imexLoginsLabel": {
+    "description": "Import/export UI copy: logins label."
+  },
+  "imexMergeHint": "Les entrées déjà présentes dans votre coffre sont conservées.",
+  "@imexMergeHint": {
+    "description": "Import/export UI copy: merge hint."
+  },
+  "imexMergeSubtitle": "Ajouter ce qui manque, conserver le reste",
+  "@imexMergeSubtitle": {
+    "description": "Import/export UI copy: merge subtitle."
+  },
+  "imexMergeTitle": "Fusionner",
+  "@imexMergeTitle": {
+    "description": "Import/export UI copy: merge title."
+  },
+  "imexMoreFailures": "…et {count} de plus",
+  "@imexMoreFailures": {
+    "description": "Import/export UI copy: more failures.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "imexPasswordsMismatch": "Les mots de passe ne correspondent pas",
+  "@imexPasswordsMismatch": {
+    "description": "Import/export UI copy: passwords mismatch."
+  },
+  "imexPickBackup": "Choisir une sauvegarde à restaurer",
+  "@imexPickBackup": {
+    "description": "Import/export UI copy: pick backup."
+  },
+  "imexPickCsv": "Choisir un export CSV à importer",
+  "@imexPickCsv": {
+    "description": "Import/export UI copy: pick csv."
+  },
+  "imexReplaceHint": "Tout le contenu actuel de votre coffre est remplacé.",
+  "@imexReplaceHint": {
+    "description": "Import/export UI copy: replace hint."
+  },
+  "imexReplaceSubtitle": "Supprimer le coffre actuel et n'utiliser que ce fichier",
+  "@imexReplaceSubtitle": {
+    "description": "Import/export UI copy: replace subtitle."
+  },
+  "imexReplaceTitle": "Remplacer",
+  "@imexReplaceTitle": {
+    "description": "Import/export UI copy: replace title."
+  },
+  "imexReportSubtitle": "Voici ce qui a changé dans votre coffre.",
+  "@imexReportSubtitle": {
+    "description": "Import/export UI copy: report subtitle."
+  },
+  "imexRestoreAction": "Restaurer",
+  "@imexRestoreAction": {
+    "description": "Import/export UI copy: restore action."
+  },
+  "imexRestoreBackupTitle": "Restaurer la sauvegarde",
+  "@imexRestoreBackupTitle": {
+    "description": "Import/export UI copy: restore backup title."
+  },
+  "imexRestoreComplete": "Restauration terminée",
+  "@imexRestoreComplete": {
+    "description": "Import/export UI copy: restore complete."
+  },
+  "imexRestoreFromBackupSubtitle": "Fusionner ou remplacer votre coffre à partir d'une sauvegarde",
+  "@imexRestoreFromBackupSubtitle": {
+    "description": "Import/export UI copy: restore from backup subtitle."
+  },
+  "imexRestoreFromBackupTitle": "Restaurer depuis une sauvegarde",
+  "@imexRestoreFromBackupTitle": {
+    "description": "Import/export UI copy: restore from backup title."
+  },
+  "imexRowFailure": "Ligne {row} : {reason}",
+  "@imexRowFailure": {
+    "description": "Import/export UI copy: row failure.",
+    "placeholders": {
+      "row": {
+        "type": "num"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "imexSecureNotesLabel": "Notes sécurisées",
+  "@imexSecureNotesLabel": {
+    "description": "Import/export UI copy: secure notes label."
+  },
+  "imexShowPassword": "Afficher le mot de passe",
+  "@imexShowPassword": {
+    "description": "Import/export UI copy: show password."
+  },
+  "imexSkippedRowsLabel": "Lignes ignorées",
+  "@imexSkippedRowsLabel": {
+    "description": "Import/export UI copy: skipped rows label."
+  },
+  "imexUnencryptedWarning": "Ce fichier n'est pas chiffré. Supprimez-le dès que vous avez terminé.",
+  "@imexUnencryptedWarning": {
+    "description": "Import/export UI copy: unencrypted warning."
+  },
+  "imexVaultSaved": "Votre coffre a été enregistré.",
+  "@imexVaultSaved": {
+    "description": "Import/export UI copy: vault saved."
+  },
+  "otaAndroidOnly": "Le programme d'installation de paquets n'est pris en charge que sur Android",
+  "@otaAndroidOnly": {
+    "description": "Platform error on unsupported platforms."
+  },
+  "otaAutoCheckSubtitle": "Vérification au lancement et à votre retour, sur le canal sélectionné.",
+  "@otaAutoCheckSubtitle": {
+    "description": "Subtitle of the automatic-check switch."
+  },
+  "otaAutoCheckTitle": "Vérifier les mises à jour automatiquement",
+  "@otaAutoCheckTitle": {
+    "description": "Title of the automatic-check switch."
+  },
+  "otaAvailableSubtitle": "Keyel v{version} • canal {channel}",
+  "@otaAvailableSubtitle": {
+    "description": "Subtitle naming the offered version and channel.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "otaBannerSemantics": "Mise à jour disponible : Keyel {version}. Ouvrir la mise à jour logicielle.",
+  "@otaBannerSemantics": {
+    "description": "Screen-reader label of the global update banner.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "otaChannelBetaDescription": "Aperçus des préversions avec les dernières fonctionnalités",
+  "@otaChannelBetaDescription": {
+    "description": "Description of the beta release channel."
+  },
+  "otaChannelStableDescription": "Versions officielles vérifiées",
+  "@otaChannelStableDescription": {
+    "description": "Description of the stable release channel."
+  },
+  "otaCheckFailedHttp": "Échec de la vérification des mises à jour : HTTP {status}",
+  "@otaCheckFailedHttp": {
+    "description": "Service error when the manifest request returns a non-200 status.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "otaCheckFailedTitle": "Échec de la vérification des mises à jour",
+  "@otaCheckFailedTitle": {
+    "description": "Status banner title after a failed check."
+  },
+  "otaCheckForUpdates": "Vérifier les mises à jour",
+  "@otaCheckForUpdates": {
+    "description": "Primary action label in the idle state."
+  },
+  "otaChecking": "Vérification...",
+  "@otaChecking": {
+    "description": "Primary action label while checking."
+  },
+  "otaCheckingUpdates": "Vérification des mises à jour...",
+  "@otaCheckingUpdates": {
+    "description": "Status banner title while checking."
+  },
+  "otaChecksumMismatch": "Somme de contrôle incohérente : attendu {expected}, obtenu {computed}",
+  "@otaChecksumMismatch": {
+    "description": "Service error when the downloaded APK hash differs.",
+    "placeholders": {
+      "expected": {
+        "type": "String"
+      },
+      "computed": {
+        "type": "String"
+      }
+    }
+  },
+  "otaChecksumNotVerified": "La somme de contrôle de la mise à jour n'a pas pu être vérifiée",
+  "@otaChecksumNotVerified": {
+    "description": "Provider error before installing an unverified update."
+  },
+  "otaConnectingServer": "Connexion au serveur de versions",
+  "@otaConnectingServer": {
+    "description": "Status banner subtitle while checking."
+  },
+  "otaCouldNotConnect": "Impossible de se connecter au serveur de versions",
+  "@otaCouldNotConnect": {
+    "description": "Fallback error subtitle on the status banner."
+  },
+  "otaCouldNotInstallApk": "Impossible d'installer l'APK : {error}",
+  "@otaCouldNotInstallApk": {
+    "description": "Provider error when installing a local APK fails.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "otaDismissBanner": "Masquer la bannière de mise à jour",
+  "@otaDismissBanner": {
+    "description": "Tooltip of the banner dismiss button."
+  },
+  "otaDownloadCancelled": "Téléchargement annulé par l'utilisateur",
+  "@otaDownloadCancelled": {
+    "description": "Cancellation exception message for an aborted download."
+  },
+  "otaDownloadFailed": "Échec du téléchargement : {error}",
+  "@otaDownloadFailed": {
+    "description": "Provider error when an update download fails.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "otaDownloadFailedHttp": "Échec du téléchargement : HTTP {status}",
+  "@otaDownloadFailedHttp": {
+    "description": "Service error when the APK download returns a non-200 status.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "otaDownloadVersion": "Télécharger la v{version} ({size})",
+  "@otaDownloadVersion": {
+    "description": "Primary action when an update is available.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "otaDownloadedVerified": "Keyel v{version} téléchargé et vérifié",
+  "@otaDownloadedVerified": {
+    "description": "Status banner subtitle after verification.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "otaDownloadingApk": "Téléchargement de l'APK",
+  "@otaDownloadingApk": {
+    "description": "Title of the download progress card."
+  },
+  "otaDownloadingDetail": "{percent} % • {size}",
+  "@otaDownloadingDetail": {
+    "description": "Status banner subtitle with progress and size.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "otaDownloadingUpdate": "Téléchargement de la mise à jour...",
+  "@otaDownloadingUpdate": {
+    "description": "Status banner title while downloading."
+  },
+  "otaEnableNotifications": "Activer les notifications de mise à jour",
+  "@otaEnableNotifications": {
+    "description": "Button requesting notification permission."
+  },
+  "otaGrantInstallPermission": "Veuillez autoriser l'installation d'applications inconnues lorsque le système vous le demandera.",
+  "@otaGrantInstallPermission": {
+    "description": "Snack bar asking for install-unknown-apps permission."
+  },
+  "otaHandingToInstaller": "Transfert vers le programme d'installation système",
+  "@otaHandingToInstaller": {
+    "description": "Status banner subtitle while installing."
+  },
+  "otaInstallLocal": "Installer une mise à jour depuis un fichier APK local",
+  "@otaInstallLocal": {
+    "description": "Button installing a locally selected APK."
+  },
+  "otaInstallNow": "Installer la mise à jour maintenant",
+  "@otaInstallNow": {
+    "description": "Primary action once the update is verified."
+  },
+  "otaInstallationError": "Erreur d'installation : {error}",
+  "@otaInstallationError": {
+    "description": "Provider error when installation fails.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "otaInstalledVersion": "Version installée : {version}",
+  "@otaInstalledVersion": {
+    "description": "Idle status banner title.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "otaInstallerUnavailable": "Impossible d'ouvrir le programme d'installation de paquets",
+  "@otaInstallerUnavailable": {
+    "description": "Platform error when the Android installer cannot be opened."
+  },
+  "otaInstallingUpdate": "Installation de la mise à jour...",
+  "@otaInstallingUpdate": {
+    "description": "Status banner title while installing."
+  },
+  "otaLastChecked": "Dernière vérification : {time}",
+  "@otaLastChecked": {
+    "description": "Idle status banner subtitle with the last check time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "otaLatestInstalled": "Version {version} • Dernière version installée",
+  "@otaLatestInstalled": {
+    "description": "Status banner subtitle when the latest release is installed.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "otaNoBetaRelease": "Aucune version bêta pour le moment • Version {version} installée",
+  "@otaNoBetaRelease": {
+    "description": "Status banner subtitle on the beta channel with no new release.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "otaNoReleaseNotes": "Aucune note de version détaillée fournie pour cette version.",
+  "@otaNoReleaseNotes": {
+    "description": "Fallback text in the release notes card."
+  },
+  "otaNotificationsOn": "Les notifications de mise à jour sont activées",
+  "@otaNotificationsOn": {
+    "description": "Label shown when update notifications are enabled."
+  },
+  "otaPercent": "{percent} %",
+  "@otaPercent": {
+    "description": "Percentage label for download progress.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "otaPreferencesTitle": "Préférences de mise à jour",
+  "@otaPreferencesTitle": {
+    "description": "Title of the update preferences card."
+  },
+  "otaPrivacyNotice": "Garantie de confidentialité : les vérifications automatiques lisent uniquement le manifeste public du canal, au lancement et pendant que l'application est ouverte. Votre base de données du coffre, vos mots de passe, vos clés et vos données biométriques ne quittent jamais cet appareil.",
+  "@otaPrivacyNotice": {
+    "description": "Privacy notice at the bottom of the OTA screen."
+  },
+  "otaReadyToInstall": "Prêt à installer",
+  "@otaReadyToInstall": {
+    "description": "Status banner title when the APK is verified."
+  },
+  "otaRefuseUnverifiedDownload": "Refus de télécharger une mise à jour sans somme de contrôle SHA-256 valide",
+  "@otaRefuseUnverifiedDownload": {
+    "description": "Service error refusing an update without a checksum."
+  },
+  "otaReleaseChannel": "Canal de version",
+  "@otaReleaseChannel": {
+    "description": "Label of the release channel selector."
+  },
+  "otaSelectApkTitle": "Sélectionner l'APK de mise à jour Keyel",
+  "@otaSelectApkTitle": {
+    "description": "Title of the local APK file picker."
+  },
+  "otaTapCheckNow": "Appuyez sur « Vérifier maintenant » pour rechercher de nouvelles versions",
+  "@otaTapCheckNow": {
+    "description": "Idle status banner subtitle before the first check."
+  },
+  "otaUpToDate": "Keyel est à jour",
+  "@otaUpToDate": {
+    "description": "Status banner title when already current."
+  },
+  "otaUpdateAvailableTitle": "Mise à jour disponible",
+  "@otaUpdateAvailableTitle": {
+    "description": "Status banner and global banner title for an available update."
+  },
+  "otaUpdateFileNotFound": "Fichier de mise à jour introuvable sur l'appareil",
+  "@otaUpdateFileNotFound": {
+    "description": "Provider error when the downloaded file is missing."
+  },
+  "otaWhatsNew": "Nouveautés de la v{version}",
+  "@otaWhatsNew": {
+    "description": "Release notes card title.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "passCreateBody": "La clé d'accès sera chiffrée et stockée dans votre coffre Keyel local. Votre clé privée ne quitte jamais cet appareil.",
+  "@passCreateBody": {
+    "description": "Explanation below the passkey creation headline."
+  },
+  "passCreateQuestion": "Créer une clé d'accès pour ce compte ?",
+  "@passCreateQuestion": {
+    "description": "Headline asking for passkey creation confirmation."
+  },
+  "passFindingPasskeys": "Recherche de clés d'accès…",
+  "@passFindingPasskeys": {
+    "description": "Loading state message on the passkey selection screen."
+  },
+  "passLabelAccount": "Compte",
+  "@passLabelAccount": {
+    "description": "Info row label for the account name."
+  },
+  "passLabelDisplayName": "Nom affiché",
+  "@passLabelDisplayName": {
+    "description": "Info row label for the account display name."
+  },
+  "passLabelDomain": "Domaine",
+  "@passLabelDomain": {
+    "description": "Info row label for the relying party id."
+  },
+  "passLabelSite": "Site",
+  "@passLabelSite": {
+    "description": "Info row label for the relying party name."
+  },
+  "passMissingRp": "Informations sur la partie de confiance manquantes pour cette requête.",
+  "@passMissingRp": {
+    "description": "Error when a passkey request has no relying party."
+  },
+  "passNoMatches": "Aucune clé d'accès disponible",
+  "@passNoMatches": {
+    "description": "Empty state title on the passkey selection screen."
+  },
+  "passNoMatchesAvailable": "Aucune clé d'accès n'est enregistrée pour {rpId}.",
+  "@passNoMatchesAvailable": {
+    "description": "Empty state body on the passkey selection screen.",
+    "placeholders": {
+      "rpId": {
+        "type": "String"
+      }
+    }
+  },
+  "passNoMatchesForRp": "Aucune clé d'accès trouvée pour {rpId}.",
+  "@passNoMatchesForRp": {
+    "description": "Error when no passkeys exist for a relying party.",
+    "placeholders": {
+      "rpId": {
+        "type": "String"
+      }
+    }
+  },
+  "passOrigin": "Origine : {origin}",
+  "@passOrigin": {
+    "description": "Line showing the requesting origin.",
+    "placeholders": {
+      "origin": {
+        "type": "String"
+      }
+    }
+  },
+  "passSavePasskey": "Enregistrer la clé d'accès",
+  "@passSavePasskey": {
+    "description": "Title and primary button label on the passkey creation screen."
+  },
+  "passSaving": "Enregistrement…",
+  "@passSaving": {
+    "description": "Busy label of the save passkey button."
+  },
+  "passSignInTo": "Se connecter à {rpId}",
+  "@passSignInTo": {
+    "description": "Headline naming the site to sign in to.",
+    "placeholders": {
+      "rpId": {
+        "type": "String"
+      }
+    }
+  },
+  "passThisSite": "ce site",
+  "@passThisSite": {
+    "description": "Fallback site name in the sign-in headline."
+  },
+  "passUnknownAccount": "Compte inconnu",
+  "@passUnknownAccount": {
+    "description": "Fallback account name in passkey creation."
+  },
+  "passUnknownSite": "Site inconnu",
+  "@passUnknownSite": {
+    "description": "Fallback relying party name in passkey creation."
+  },
+  "passUsePasskey": "Utiliser une clé d'accès",
+  "@passUsePasskey": {
+    "description": "Title of the passkey selection screen."
+  },
+  "prefAllowScreenshotsBody": "Tout ce qui s'affiche à l'écran, y compris un secret révélé, peut être capturé ou apparaître dans l'aperçu des applications récentes. Les écrans de verrouillage et de déverrouillage restent protégés.",
+  "@prefAllowScreenshotsBody": {
+    "description": "Settings UI copy: allow screenshots body."
+  },
+  "prefAllowScreenshotsConfirm": "Autoriser les captures d'écran",
+  "@prefAllowScreenshotsConfirm": {
+    "description": "Settings UI copy: allow screenshots confirm."
+  },
+  "prefAllowScreenshotsTitle": "Autoriser les captures d'écran ?",
+  "@prefAllowScreenshotsTitle": {
+    "description": "Settings UI copy: allow screenshots title."
+  },
+  "prefAppearanceChangesInstant": "Les modifications s'appliquent immédiatement dans Keyel.",
+  "@prefAppearanceChangesInstant": {
+    "description": "Settings UI copy: appearance changes instant."
+  },
+  "prefAppearanceColorsTitle": "Apparence et couleurs",
+  "@prefAppearanceColorsTitle": {
+    "description": "Settings UI copy: appearance colors title."
+  },
+  "prefAskToSaveSubtitle": "Proposer d'enregistrer de nouveaux identifiants après une connexion",
+  "@prefAskToSaveSubtitle": {
+    "description": "Settings UI copy: ask to save subtitle."
+  },
+  "prefAskToSaveTitle": "Demander l'enregistrement",
+  "@prefAskToSaveTitle": {
+    "description": "Settings UI copy: ask to save title."
+  },
+  "prefAutoLockAfterMinutes": "Après {count, plural, =1{{count} minute} other{{count} minutes}}",
+  "@prefAutoLockAfterMinutes": {
+    "description": "Settings UI copy: auto lock after minutes.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "prefAutoLockAfterSeconds": "Après {count} secondes",
+  "@prefAutoLockAfterSeconds": {
+    "description": "Settings UI copy: auto lock after seconds.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "prefAutoLockDialogTitle": "Verrouillage automatique après",
+  "@prefAutoLockDialogTitle": {
+    "description": "Title of the auto-lock delay selection dialog."
+  },
+  "prefAutoLockImmediately": "Immédiatement",
+  "@prefAutoLockImmediately": {
+    "description": "Settings UI copy: auto lock immediately."
+  },
+  "prefAutoLockSubtitle": "Verrouiller le coffre après un certain temps en arrière-plan",
+  "@prefAutoLockSubtitle": {
+    "description": "Settings UI copy: auto lock subtitle."
+  },
+  "prefAutofillDisabledSubtitle": "Appuyez pour activer Keyel comme fournisseur de saisie automatique",
+  "@prefAutofillDisabledSubtitle": {
+    "description": "Settings UI copy: autofill disabled subtitle."
+  },
+  "prefAutofillEnabledSubtitle": "Keyel est votre fournisseur de saisie automatique",
+  "@prefAutofillEnabledSubtitle": {
+    "description": "Settings UI copy: autofill enabled subtitle."
+  },
+  "prefAutofillPasskeysSection": "Saisie automatique et clés d'accès",
+  "@prefAutofillPasskeysSection": {
+    "description": "Settings UI copy: autofill passkeys section."
+  },
+  "prefAutofillServiceTitle": "Service de saisie automatique",
+  "@prefAutofillServiceTitle": {
+    "description": "Settings UI copy: autofill service title."
+  },
+  "prefBackToSecurity": "Retour à Sécurité",
+  "@prefBackToSecurity": {
+    "description": "Settings UI copy: back to security."
+  },
+  "prefBackupImportSubtitle": "Sauvegardes chiffrées et import/export CSV",
+  "@prefBackupImportSubtitle": {
+    "description": "Settings UI copy: backup import subtitle."
+  },
+  "prefBackupImportTitle": "Sauvegarde et import",
+  "@prefBackupImportTitle": {
+    "description": "Settings UI copy: backup import title."
+  },
+  "prefBiometricDisabledSnack": "Déverrouillage biométrique désactivé.",
+  "@prefBiometricDisabledSnack": {
+    "description": "Settings UI copy: biometric disabled snack."
+  },
+  "prefBiometricEnabledSnack": "Déverrouillage biométrique activé",
+  "@prefBiometricEnabledSnack": {
+    "description": "Settings UI copy: biometric enabled snack."
+  },
+  "prefBiometricUnlockSubtitle": "Empreinte ou visage pour ouvrir le coffre",
+  "@prefBiometricUnlockSubtitle": {
+    "description": "Settings UI copy: biometric unlock subtitle."
+  },
+  "prefBiometricUnlockTitle": "Déverrouillage biométrique",
+  "@prefBiometricUnlockTitle": {
+    "description": "Settings UI copy: biometric unlock title."
+  },
+  "prefBiometricUpdateError": "Impossible de mettre à jour les paramètres biométriques : {error}",
+  "@prefBiometricUpdateError": {
+    "description": "Settings UI copy: biometric update error.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "prefBiometricsUnavailable": "La biométrie n'est pas disponible sur cet appareil.",
+  "@prefBiometricsUnavailable": {
+    "description": "Settings UI copy: biometrics unavailable."
+  },
+  "prefBridgeDiagnosticsSubtitle": "Opérations et diagnostics bruts du pont FRB",
+  "@prefBridgeDiagnosticsSubtitle": {
+    "description": "Settings UI copy: bridge diagnostics subtitle."
+  },
+  "prefBridgeDiagnosticsTitle": "Diagnostics du pont et suite de tests",
+  "@prefBridgeDiagnosticsTitle": {
+    "description": "Settings UI copy: bridge diagnostics title."
+  },
+  "prefChangeMasterPasswordRow": "Modifier le mot de passe maître",
+  "@prefChangeMasterPasswordRow": {
+    "description": "Settings UI copy: change master password row."
+  },
+  "prefChangeMasterSubtitle": "Rechiffrer l'emplacement de clé du coffre avec un nouveau mot de passe maître",
+  "@prefChangeMasterSubtitle": {
+    "description": "Settings UI copy: change master subtitle."
+  },
+  "prefChangeMasterTitle": "Modifier le mot de passe maître",
+  "@prefChangeMasterTitle": {
+    "description": "Settings UI copy: change master title."
+  },
+  "prefChangePasswordAction": "Modifier le mot de passe",
+  "@prefChangePasswordAction": {
+    "description": "Settings UI copy: change password action."
+  },
+  "prefCheckingDeviceSupport": "Vérification de la prise en charge par l'appareil…",
+  "@prefCheckingDeviceSupport": {
+    "description": "Settings UI copy: checking device support."
+  },
+  "prefCheckingStatus": "Vérification…",
+  "@prefCheckingStatus": {
+    "description": "Settings UI copy: checking status."
+  },
+  "prefClipboardDialogBody": "Le verrouillage du coffre ou la fermeture de l’application efface toujours le presse-papiers immédiatement. Ce réglage contrôle le délai pendant lequel Keyel reste ouvert.",
+  "@prefClipboardDialogBody": {
+    "description": "Explains that locking or leaving always clears immediately and that this timer applies only while Keyel stays open."
+  },
+  "prefClipboardDialogTitle": "Effacer le presse-papiers après",
+  "@prefClipboardDialogTitle": {
+    "description": "Title of the clipboard clear delay selection dialog."
+  },
+  "prefClipboardMinutes": "{count, plural, =1{{count} minute} other{{count} minutes}}",
+  "@prefClipboardMinutes": {
+    "description": "Settings UI copy: clipboard minutes.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "prefClipboardNever": "Jamais",
+  "@prefClipboardNever": {
+    "description": "Settings UI copy: clipboard never."
+  },
+  "prefClipboardSeconds": "{count} secondes",
+  "@prefClipboardSeconds": {
+    "description": "Settings UI copy: clipboard seconds.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "prefClipboardSubtitle": "Effacer les secrets copiés du presse-papiers",
+  "@prefClipboardSubtitle": {
+    "description": "Settings UI copy: clipboard subtitle."
+  },
+  "prefConfirmMasterTitle": "Confirmer le mot de passe maître",
+  "@prefConfirmMasterTitle": {
+    "description": "Settings UI copy: confirm master title."
+  },
+  "prefConfirmNewMasterPassword": "Confirmer le nouveau mot de passe maître",
+  "@prefConfirmNewMasterPassword": {
+    "description": "Settings UI copy: confirm new master password."
+  },
+  "prefCopyPasswordLabel": "Copier le mot de passe",
+  "@prefCopyPasswordLabel": {
+    "description": "Settings UI copy: copy password label."
+  },
+  "prefCrossDeviceSyncSubtitle": "Synchronisation E2EE facultative via un dossier de votre choix",
+  "@prefCrossDeviceSyncSubtitle": {
+    "description": "Settings UI copy: cross device sync subtitle."
+  },
+  "prefCrossDeviceSyncTitle": "Synchronisation entre appareils",
+  "@prefCrossDeviceSyncTitle": {
+    "description": "Settings UI copy: cross device sync title."
+  },
+  "prefCurrentMasterPassword": "Mot de passe maître actuel",
+  "@prefCurrentMasterPassword": {
+    "description": "Settings UI copy: current master password."
+  },
+  "prefDeviceCurrently": "L'appareil est actuellement en mode {device}",
+  "@prefDeviceCurrently": {
+    "description": "Settings UI copy: device currently.",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "prefDeviceDarkValue": "sombre",
+  "@prefDeviceDarkValue": {
+    "description": "Settings UI copy: device dark value."
+  },
+  "prefDeviceLightValue": "clair",
+  "@prefDeviceLightValue": {
+    "description": "Settings UI copy: device light value."
+  },
+  "prefDiagnosticsSubject": "Diagnostics Keyel ({version})",
+  "@prefDiagnosticsSubject": {
+    "description": "Settings UI copy: diagnostics subject.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "prefExampleLogin": "Exemple de connexion",
+  "@prefExampleLogin": {
+    "description": "Settings UI copy: example login."
+  },
+  "prefFactoryResetBody": "Cela supprimera définitivement le fichier du coffre et tous les identifiants enregistrés. Cette action est irréversible.",
+  "@prefFactoryResetBody": {
+    "description": "Settings UI copy: factory reset body."
+  },
+  "prefFactoryResetConfirm": "Tout supprimer",
+  "@prefFactoryResetConfirm": {
+    "description": "Settings UI copy: factory reset confirm."
+  },
+  "prefFactoryResetError": "Échec de la réinitialisation : {error}",
+  "@prefFactoryResetError": {
+    "description": "Settings UI copy: factory reset error.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "prefFactoryResetSnack": "Coffre supprimé définitivement. Réinitialisation...",
+  "@prefFactoryResetSnack": {
+    "description": "Settings UI copy: factory reset snack."
+  },
+  "prefFactoryResetTitle": "Réinitialisation complète ?",
+  "@prefFactoryResetTitle": {
+    "description": "Settings UI copy: factory reset title."
+  },
+  "prefFactoryResetVaultSubtitle": "Supprimer définitivement le fichier du coffre et réinitialiser l'application",
+  "@prefFactoryResetVaultSubtitle": {
+    "description": "Settings UI copy: factory reset vault subtitle."
+  },
+  "prefFactoryResetVaultTitle": "Réinitialiser le coffre",
+  "@prefFactoryResetVaultTitle": {
+    "description": "Settings UI copy: factory reset vault title."
+  },
+  "prefFoldersSubtitle": "Créer, renommer et supprimer des dossiers du coffre",
+  "@prefFoldersSubtitle": {
+    "description": "Settings UI copy: folders subtitle."
+  },
+  "prefHelpAutoLockBody": "Le coffre se verrouille après le délai défini dans Sécurité. Les secrets copiés sont effacés lors du verrouillage et à la fermeture de l'application, même si l'effacement temporisé du presse-papiers est réglé sur « Jamais ».",
+  "@prefHelpAutoLockBody": {
+    "description": "Settings UI copy: help auto lock body."
+  },
+  "prefHelpAutoLockTitle": "Verrouillage automatique et presse-papiers",
+  "@prefHelpAutoLockTitle": {
+    "description": "Settings UI copy: help auto lock title."
+  },
+  "prefHelpKeyboardBody": "Ctrl/⌘ + F ouvre la recherche du coffre. Ctrl/⌘ + N crée une nouvelle entrée. Sur Android, le bouton Retour demande confirmation avant d'ignorer les modifications non enregistrées.",
+  "@prefHelpKeyboardBody": {
+    "description": "Settings UI copy: help keyboard body."
+  },
+  "prefHelpKeyboardTitle": "Raccourcis clavier",
+  "@prefHelpKeyboardTitle": {
+    "description": "Settings UI copy: help keyboard title."
+  },
+  "prefHelpRecoveryBody": "Votre clé de récupération à usage unique est le seul moyen de retrouver l'accès si vous oubliez le mot de passe maître. Conservez-la hors ligne ; Keyel ne peut pas la réinitialiser.",
+  "@prefHelpRecoveryBody": {
+    "description": "Settings UI copy: help recovery body."
+  },
+  "prefHelpRecoveryTitle": "Récupération",
+  "@prefHelpRecoveryTitle": {
+    "description": "Settings UI copy: help recovery title."
+  },
+  "prefHelpSheetTitle": "Aide Keyel",
+  "@prefHelpSheetTitle": {
+    "description": "Settings UI copy: help sheet title."
+  },
+  "prefHelpSupportTooltip": "Aide et assistance",
+  "@prefHelpSupportTooltip": {
+    "description": "Settings UI copy: help support tooltip."
+  },
+  "prefHelpVaultLocalBody": "Les entrées sont chiffrées sur cet appareil. Keyel n'utilise aucun compte et n'envoie rien nulle part, sauf si vous activez explicitement la vérification des fuites ou la synchronisation.",
+  "@prefHelpVaultLocalBody": {
+    "description": "Settings UI copy: help vault local body."
+  },
+  "prefHelpVaultLocalTitle": "Votre coffre reste local",
+  "@prefHelpVaultLocalTitle": {
+    "description": "Settings UI copy: help vault local title."
+  },
+  "prefIncorrectPassword": "Mot de passe incorrect",
+  "@prefIncorrectPassword": {
+    "description": "Settings UI copy: incorrect password."
+  },
+  "prefLivePreview": "Aperçu en direct",
+  "@prefLivePreview": {
+    "description": "Settings UI copy: live preview."
+  },
+  "prefLocalEncryptedVault": "Coffre chiffré local",
+  "@prefLocalEncryptedVault": {
+    "description": "Settings UI copy: local encrypted vault."
+  },
+  "prefLockVaultNow": "Verrouiller le coffre maintenant",
+  "@prefLockVaultNow": {
+    "description": "Settings UI copy: lock vault now."
+  },
+  "prefLockVaultSubtitle": "Effacer immédiatement la clé de déchiffrement de la mémoire",
+  "@prefLockVaultSubtitle": {
+    "description": "Settings UI copy: lock vault subtitle."
+  },
+  "prefLoginBadge": "CONNEXION",
+  "@prefLoginBadge": {
+    "description": "Settings UI copy: login badge."
+  },
+  "prefMasterChangedSuccess": "Mot de passe maître modifié avec succès",
+  "@prefMasterChangedSuccess": {
+    "description": "Settings UI copy: master changed success."
+  },
+  "prefMasterPasswordLabel": "Mot de passe maître",
+  "@prefMasterPasswordLabel": {
+    "description": "Settings UI copy: master password label."
+  },
+  "prefMatchModeDomain": "Domaine (y compris les sous-domaines)",
+  "@prefMatchModeDomain": {
+    "description": "Settings UI copy: match mode domain."
+  },
+  "prefMatchModeExact": "Hôte exact uniquement",
+  "@prefMatchModeExact": {
+    "description": "Settings UI copy: match mode exact."
+  },
+  "prefMatchModeTitle": "Mode de correspondance",
+  "@prefMatchModeTitle": {
+    "description": "Settings UI copy: match mode title."
+  },
+  "prefNewBadge": "NOUVEAU",
+  "@prefNewBadge": {
+    "description": "Settings UI copy: new badge."
+  },
+  "prefNewMasterPassword": "Nouveau mot de passe maître",
+  "@prefNewMasterPassword": {
+    "description": "Settings UI copy: new master password."
+  },
+  "prefNewPasswordEmpty": "Le nouveau mot de passe ne peut pas être vide.",
+  "@prefNewPasswordEmpty": {
+    "description": "Settings UI copy: new password empty."
+  },
+  "prefNewPasswordsMismatch": "Les nouveaux mots de passe ne correspondent pas.",
+  "@prefNewPasswordsMismatch": {
+    "description": "Settings UI copy: new passwords mismatch."
+  },
+  "prefNoVaultBadge": "Aucun coffre",
+  "@prefNoVaultBadge": {
+    "description": "Settings UI copy: no vault badge."
+  },
+  "prefOfflineVaultSubtitle": "Aucune télémétrie, aucune synchronisation cloud",
+  "@prefOfflineVaultSubtitle": {
+    "description": "Settings UI copy: offline vault subtitle."
+  },
+  "prefOfflineVaultTitle": "Mode coffre hors ligne",
+  "@prefOfflineVaultTitle": {
+    "description": "Settings UI copy: offline vault title."
+  },
+  "prefOpenSourceLicensesSubtitle": "Bibliothèques incluses dans cette version",
+  "@prefOpenSourceLicensesSubtitle": {
+    "description": "Settings UI copy: open source licenses subtitle."
+  },
+  "prefOpenSourceLicensesTitle": "Licences open source",
+  "@prefOpenSourceLicensesTitle": {
+    "description": "Settings UI copy: open source licenses title."
+  },
+  "prefPasskeyProviderTitle": "Fournisseur de clés d'accès",
+  "@prefPasskeyProviderTitle": {
+    "description": "Settings UI copy: passkey provider title."
+  },
+  "prefPasskeySupportedSubtitle": "Gérer Keyel comme fournisseur de clés d'accès dans les paramètres système",
+  "@prefPasskeySupportedSubtitle": {
+    "description": "Settings UI copy: passkey supported subtitle."
+  },
+  "prefPasskeyUnsupportedSubtitle": "Non pris en charge sur cet appareil ou cette version d'Android",
+  "@prefPasskeyUnsupportedSubtitle": {
+    "description": "Settings UI copy: passkey unsupported subtitle."
+  },
+  "prefPasswordRequired": "Mot de passe requis",
+  "@prefPasswordRequired": {
+    "description": "Settings UI copy: password required."
+  },
+  "prefReportProblemError": "Impossible de préparer le rapport : {error}",
+  "@prefReportProblemError": {
+    "description": "Settings UI copy: report problem error.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "prefReportProblemSubtitle": "Partager un fichier de diagnostic anonymisé (sans secrets)",
+  "@prefReportProblemSubtitle": {
+    "description": "Settings UI copy: report problem subtitle."
+  },
+  "prefScreenshotOffSnack": "Captures d'écran autorisées pendant le déverrouillage",
+  "@prefScreenshotOffSnack": {
+    "description": "Settings UI copy: screenshot off snack."
+  },
+  "prefScreenshotOnSnack": "Protection contre les captures d'écran activée",
+  "@prefScreenshotOnSnack": {
+    "description": "Settings UI copy: screenshot on snack."
+  },
+  "prefScreenshotSubtitle": "Bloquer les captures d'écran et les aperçus des applications récentes lorsque le coffre est ouvert. Les écrans de verrouillage restent protégés dans tous les cas.",
+  "@prefScreenshotSubtitle": {
+    "description": "Settings UI copy: screenshot subtitle."
+  },
+  "prefSecurityAccessSection": "Sécurité et accès",
+  "@prefSecurityAccessSection": {
+    "description": "Settings UI copy: security access section."
+  },
+  "prefSecuritySubtitle": "Sécurité adaptée à cet appareil, conservée localement.",
+  "@prefSecuritySubtitle": {
+    "description": "Settings UI copy: security subtitle."
+  },
+  "prefSoftwareUpdateRowTitle": "Mise à jour logicielle",
+  "@prefSoftwareUpdateRowTitle": {
+    "description": "Settings UI copy: software update row title."
+  },
+  "prefStorageDiagnosticsSection": "Stockage et diagnostics",
+  "@prefStorageDiagnosticsSection": {
+    "description": "Settings UI copy: storage diagnostics section."
+  },
+  "prefStorageNotInitialized": "Stockage non initialisé",
+  "@prefStorageNotInitialized": {
+    "description": "Settings UI copy: storage not initialized."
+  },
+  "prefThemeDarkDescription": "Reste sombre même lorsque votre appareil utilise le mode clair.",
+  "@prefThemeDarkDescription": {
+    "description": "Settings UI copy: theme dark description."
+  },
+  "prefThemeLightDescription": "Reste clair même lorsque votre appareil utilise le mode sombre.",
+  "@prefThemeLightDescription": {
+    "description": "Settings UI copy: theme light description."
+  },
+  "prefThemeModeSemantics": "Mode de thème",
+  "@prefThemeModeSemantics": {
+    "description": "Settings UI copy: theme mode semantics."
+  },
+  "prefThemePreviewSemantics": "Aperçu du thème : {palette}, mode {mode}.",
+  "@prefThemePreviewSemantics": {
+    "description": "Settings UI copy: theme preview semantics.",
+    "placeholders": {
+      "palette": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "prefThemeSemanticLabel": "Thème {label}. {description}",
+  "@prefThemeSemanticLabel": {
+    "description": "Settings UI copy: theme semantic label.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "prefThemeSemanticWithDevice": "Thème {label}. {description} L'appareil est actuellement en mode {device}.",
+  "@prefThemeSemanticWithDevice": {
+    "description": "Settings UI copy: theme semantic with device.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      },
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "prefThemeSystemDescription": "Suit l'apparence de votre appareil et change avec elle.",
+  "@prefThemeSystemDescription": {
+    "description": "Settings UI copy: theme system description."
+  },
+  "prefTrashSubtitle": "Restaurer les entrées supprimées ou les supprimer définitivement",
+  "@prefTrashSubtitle": {
+    "description": "Settings UI copy: trash subtitle."
+  },
+  "prefUpdateAvailable": "Mise à jour disponible (v{version})",
+  "@prefUpdateAvailable": {
+    "description": "Settings UI copy: update available.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "prefVaultLockedBadge": "Verrouillé",
+  "@prefVaultLockedBadge": {
+    "description": "Settings UI copy: vault locked badge."
+  },
+  "prefVaultLockedSnack": "Coffre verrouillé",
+  "@prefVaultLockedSnack": {
+    "description": "Settings UI copy: vault locked snack."
+  },
+  "prefVaultUnlockedBadge": "Déverrouillé",
+  "@prefVaultUnlockedBadge": {
+    "description": "Settings UI copy: vault unlocked badge."
+  },
+  "prefVerificationFailed": "Échec de la vérification",
+  "@prefVerificationFailed": {
+    "description": "Settings UI copy: verification failed."
+  },
+  "prefVersionUpToDate": "Version {version} • À jour",
+  "@prefVersionUpToDate": {
+    "description": "Settings UI copy: version up to date.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "prefYourVault": "Votre coffre",
+  "@prefYourVault": {
+    "description": "Settings UI copy: your vault."
+  },
+  "secAddCodes": "Ajouter des codes",
+  "@secAddCodes": {
+    "description": "Action on missing-2FA tiles."
+  },
+  "secAllClear": "Tout est clair",
+  "@secAllClear": {
+    "description": "Summary label when no issues remain."
+  },
+  "secAllHealthyDetail": "Aucun mot de passe faible, réutilisé ou ancien, et chaque connexion dispose d'une 2FA.",
+  "@secAllHealthyDetail": {
+    "description": "Detail of the all-clear card."
+  },
+  "secAllSitesHttps": "Tous les sites utilisent HTTPS",
+  "@secAllSitesHttps": {
+    "description": "Insecure sites row detail when clean."
+  },
+  "secAutoLockSemantics": "Verrouillage automatique : {label}. Toujours actif.",
+  "@secAutoLockSemantics": {
+    "description": "Screen-reader description of the auto-lock seal.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "secBadgeChecking": "Vérification",
+  "@secBadgeChecking": {
+    "description": "Breach-check status badge while running."
+  },
+  "secBiometricTip": "Activez le verrouillage biométrique pour déverrouiller instantanément le coffre à l'aide de l'enclave sécurisée de votre appareil.",
+  "@secBiometricTip": {
+    "description": "Tip about biometric unlocking."
+  },
+  "secBreachActiveSemantics": "Vérification des fuites : activée. Rien n'est envoyé avant que vous appuyiez sur « Vérifier maintenant ».",
+  "@secBreachActiveSemantics": {
+    "description": "Screen-reader description when breach checking is on."
+  },
+  "secBreachCheck": "Vérification des fuites",
+  "@secBreachCheck": {
+    "description": "Label of the breach-check posture seal and audit row."
+  },
+  "secBreachCheckFailed": "La vérification des fuites a échoué.",
+  "@secBreachCheckFailed": {
+    "description": "Fallback error shown when the breach check failed."
+  },
+  "secBreachDisabledNotice": "Facultatif : vérifiez les mots de passe enregistrés par rapport aux fuites connues. Rien n'est envoyé, sauf si vous activez cette option et appuyez sur Vérifier maintenant.",
+  "@secBreachDisabledNotice": {
+    "description": "Explanation shown while breach checking is off."
+  },
+  "secBreachEnabledNotice": "Seuls les 5 premiers caractères d'un hachage SHA-1 sont envoyés par HTTPS lorsque vous appuyez sur Vérifier maintenant. Les mots de passe et les données du coffre ne quittent jamais cet appareil.",
+  "@secBreachEnabledNotice": {
+    "description": "Disclosure shown while breach checking is enabled."
+  },
+  "secBreachInactiveSemantics": "Vérification des fuites : désactivée. Aucune donnée de mot de passe n'est envoyée.",
+  "@secBreachInactiveSemantics": {
+    "description": "Screen-reader description when breach checking is off."
+  },
+  "secCheckNow": "Vérifier maintenant",
+  "@secCheckNow": {
+    "description": "Button starting a breach check."
+  },
+  "secCheckedSummary": "Vérification de {passwords} sur {prefixes}.",
+  "@secCheckedSummary": {
+    "description": "Summary of checked passwords and queried prefixes.",
+    "placeholders": {
+      "passwords": {
+        "type": "String"
+      },
+      "prefixes": {
+        "type": "String"
+      }
+    }
+  },
+  "secChecking": "Vérification…",
+  "@secChecking": {
+    "description": "Breach-check button label while running."
+  },
+  "secClipboardActiveSemantics": "Effacement du presse-papiers : {value} tant que l'application est ouverte. Le verrouillage l'efface toujours.",
+  "@secClipboardActiveSemantics": {
+    "description": "Screen-reader description of the timed clipboard wipe.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "secClipboardInactiveSemantics": "Effacement du presse-papiers : uniquement au verrouillage ou à la fermeture de l'application.",
+  "@secClipboardInactiveSemantics": {
+    "description": "Screen-reader description of the lock-only clipboard wipe."
+  },
+  "secClipboardWipe": "Effacement du presse-papiers",
+  "@secClipboardWipe": {
+    "description": "Label of the clipboard-wipe posture seal."
+  },
+  "secCredentialsPlainText": "Identifiants envoyés en texte brut",
+  "@secCredentialsPlainText": {
+    "description": "Insecure sites row detail when issues exist."
+  },
+  "secEnableBreachCheck": "Activer la vérification des fuites",
+  "@secEnableBreachCheck": {
+    "description": "Label of the breach-check opt-in switch."
+  },
+  "secEnabled": "Activé",
+  "@secEnabled": {
+    "description": "Enabled value shared by posture seals."
+  },
+  "secError": "Erreur",
+  "@secError": {
+    "description": "Breach-check status badge on failure."
+  },
+  "secEverythingHealthy": "Tout semble sain",
+  "@secEverythingHealthy": {
+    "description": "Title of the all-clear card."
+  },
+  "secExposureCount": "{count, plural, =1{{count} exposition} other{{count} expositions}}",
+  "@secExposureCount": {
+    "description": "Exposure count inserted in a matched-entry row.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secExposures": "{title} · {exposures}",
+  "@secExposures": {
+    "description": "One matched entry with its exposure count.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "exposures": {
+        "type": "String"
+      }
+    }
+  },
+  "secFix": "Corriger",
+  "@secFix": {
+    "description": "Generic fix action on issue tiles and rows."
+  },
+  "secFixNow": "Corriger maintenant",
+  "@secFixNow": {
+    "description": "Action on weak-password tiles."
+  },
+  "secFoundCount": "{count, plural, =1{{count} trouvé} other{{count} trouvés}}",
+  "@secFoundCount": {
+    "description": "Breach-check status badge with match count.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secHighCompromiseRisk": "Risque de compromission élevé",
+  "@secHighCompromiseRisk": {
+    "description": "Subtitle of the weak-password health category."
+  },
+  "secInsecureSitesHttp": "Sites non sécurisés (HTTP)",
+  "@secInsecureSitesHttp": {
+    "description": "Title of the insecure sites audit row."
+  },
+  "secInsecureWebsites": "Sites non sécurisés",
+  "@secInsecureWebsites": {
+    "description": "Title of the insecure-website health category."
+  },
+  "secIssuesCount": "{count, plural, =1{{count} problème} other{{count} problèmes}}",
+  "@secIssuesCount": {
+    "description": "Summary label with the total issue count.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secIssuesNeedAttention": "{count, plural, =1{{count} élément nécessite} other{{count} éléments nécessitent}} votre attention",
+  "@secIssuesNeedAttention": {
+    "description": "Score card message with the number of affected items.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secMissingTwoFactor": "2FA absente",
+  "@secMissingTwoFactor": {
+    "description": "Title of the missing-2FA health category."
+  },
+  "secMoreMatches": "+ {count, plural, =1{{count} autre} other{{count} autres}}",
+  "@secMoreMatches": {
+    "description": "Count of additional breach matches not shown.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secMoreThanOneYearOld": "Plus d'un an",
+  "@secMoreThanOneYearOld": {
+    "description": "Subtitle of the old-password health category."
+  },
+  "secNoExposedPasswords": "Aucun mot de passe exposé trouvé.",
+  "@secNoExposedPasswords": {
+    "description": "Breach-check result when nothing was found."
+  },
+  "secNoIssuesFound": "Aucun problème trouvé. Votre coffre est en excellent état.",
+  "@secNoIssuesFound": {
+    "description": "Score card message when there are no issues."
+  },
+  "secNothingToFix": "Rien à corriger ici.",
+  "@secNothingToFix": {
+    "description": "Empty state of the health issue sheet."
+  },
+  "secOff": "Désactivé",
+  "@secOff": {
+    "description": "Disabled value shared by posture seals and badges."
+  },
+  "secOldPasswords": "Anciens mots de passe",
+  "@secOldPasswords": {
+    "description": "Title of the old-password health category."
+  },
+  "secOnLockOnly": "Uniquement au verrouillage",
+  "@secOnLockOnly": {
+    "description": "Clipboard-wipe value when no timer is set."
+  },
+  "secPasswordCount": "{count, plural, =1{{count} mot de passe} other{{count} mots de passe}}",
+  "@secPasswordCount": {
+    "description": "Pluralized password count used in the check summary.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secPrefixCount": "{count, plural, =1{{count} préfixe} other{{count} préfixes}}",
+  "@secPrefixCount": {
+    "description": "Pluralized prefix count used in the check summary.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secReady": "Prêt",
+  "@secReady": {
+    "description": "Breach-check status badge before a check."
+  },
+  "secReusedPasswords": "Mots de passe réutilisés",
+  "@secReusedPasswords": {
+    "description": "Title of the reused-password health category."
+  },
+  "secReview": "Examiner",
+  "@secReview": {
+    "description": "Action on reused-password tiles."
+  },
+  "secReviewIssues": "Examiner les problèmes",
+  "@secReviewIssues": {
+    "description": "Score card action opening the issue list."
+  },
+  "secReviewSettings": "Vérifier les réglages",
+  "@secReviewSettings": {
+    "description": "Button opening the security settings."
+  },
+  "secSavedPasswordsFound": "{count, plural, =1{{count} mot de passe enregistré trouvé dans des fuites :} other{{count} mots de passe enregistrés trouvés dans des fuites :}}",
+  "@secSavedPasswordsFound": {
+    "description": "Breach-check result header with match count.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "secScoreAtRisk": "À risque",
+  "@secScoreAtRisk": {
+    "description": "Vault health label for a low score."
+  },
+  "secScoreExcellent": "Excellent",
+  "@secScoreExcellent": {
+    "description": "Vault health label for the highest score range."
+  },
+  "secScoreFair": "Moyen",
+  "@secScoreFair": {
+    "description": "Vault health label for a medium score."
+  },
+  "secScoreGood": "Bon",
+  "@secScoreGood": {
+    "description": "Vault health label for a high score."
+  },
+  "secScreenshotActiveSemantics": "Blocage des captures d'écran : activé tant que le coffre est déverrouillé. Les écrans de verrouillage sont toujours protégés.",
+  "@secScreenshotActiveSemantics": {
+    "description": "Screen-reader description when screenshot blocking is on."
+  },
+  "secScreenshotBlocking": "Blocage des captures d'écran",
+  "@secScreenshotBlocking": {
+    "description": "Label of the screenshot-blocking posture seal."
+  },
+  "secScreenshotInactiveSemantics": "Blocage des captures d'écran : désactivé. Les écrans de verrouillage et de déverrouillage restent protégés.",
+  "@secScreenshotInactiveSemantics": {
+    "description": "Screen-reader description when screenshot blocking is off."
+  },
+  "secSendHashDialogBody": "Keyel calcule un hachage SHA-1 de chaque mot de passe enregistré sur cet appareil et n'envoie que les 5 premiers caractères à Have I Been Pwned via HTTPS. Vos mots de passe, identifiants et votre coffre ne sont jamais envoyés. Les vérifications ont lieu uniquement lorsque vous appuyez sur Vérifier maintenant, et vous pouvez désactiver cette option à tout moment.",
+  "@secSendHashDialogBody": {
+    "description": "Body of the breach-check opt-in disclosure dialog."
+  },
+  "secSendHashDialogTitle": "Envoyer les préfixes de hachage à HIBP ?",
+  "@secSendHashDialogTitle": {
+    "description": "Title of the breach-check opt-in disclosure dialog."
+  },
+  "secSentOverPlainHttp": "Envoyés en HTTP simple",
+  "@secSentOverPlainHttp": {
+    "description": "Subtitle of the insecure-website health category."
+  },
+  "secSharedAcrossServices": "Partagés entre plusieurs services",
+  "@secSharedAcrossServices": {
+    "description": "Subtitle of the reused-password health category."
+  },
+  "secStatusAtRisk": "EN DANGER",
+  "@secStatusAtRisk": {
+    "description": "Uppercase status word for a low score."
+  },
+  "secStatusReview": "À VÉRIFIER",
+  "@secStatusReview": {
+    "description": "Uppercase status word for a medium score."
+  },
+  "secStatusSecure": "SÉCURISÉ",
+  "@secStatusSecure": {
+    "description": "Uppercase status word on the score gauge."
+  },
+  "secTotpSupported": "TOTP pris en charge",
+  "@secTotpSupported": {
+    "description": "Subtitle of the missing-2FA health category."
+  },
+  "secTurnOff": "Désactiver",
+  "@secTurnOff": {
+    "description": "Button turning breach checking off."
+  },
+  "secTurnOn": "Activer",
+  "@secTurnOn": {
+    "description": "Confirmation button of the breach-check disclosure dialog."
+  },
+  "secUnlockToCheck": "Déverrouillez le coffre pour vérifier.",
+  "@secUnlockToCheck": {
+    "description": "Hint shown when breach checking needs an unlocked vault."
+  },
+  "secUpdate": "Mettre à jour",
+  "@secUpdate": {
+    "description": "Action on old-password tiles."
+  },
+  "secVaultHealthLabel": "Santé du coffre : {label}",
+  "@secVaultHealthLabel": {
+    "description": "Vault health label row under the score gauge.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "secVaultLocked": "Coffre verrouillé",
+  "@secVaultLocked": {
+    "description": "Confirmation after locking the vault."
+  },
+  "secVaultPosture": "Protection du coffre",
+  "@secVaultPosture": {
+    "description": "Title of the security-posture card."
+  },
+  "secVaultPostureSemantics": "Protection du coffre : {active} protections actives sur {total}.",
+  "@secVaultPostureSemantics": {
+    "description": "Screen-reader summary of active protections.",
+    "placeholders": {
+      "active": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "secVaultPostureSubtitle": "Comment Keyel protège ce coffre en ce moment",
+  "@secVaultPostureSubtitle": {
+    "description": "Subtitle of the security-posture card."
+  },
+  "secVulnerabilityAudit": "Audit des vulnérabilités",
+  "@secVulnerabilityAudit": {
+    "description": "Header of the vulnerability audit section."
+  },
+  "secVulnerabilitySummary": "Résumé des vulnérabilités",
+  "@secVulnerabilitySummary": {
+    "description": "Header of the vulnerability summary section."
+  },
+  "secWeakPasswords": "Mots de passe faibles",
+  "@secWeakPasswords": {
+    "description": "Title of the weak-password health category."
+  },
+  "synActionsLabel": "Actions",
+  "@synActionsLabel": {
+    "description": "Sync UI copy: actions label."
+  },
+  "synChooseFolder": "Choisir un dossier de synchronisation",
+  "@synChooseFolder": {
+    "description": "Sync UI copy: choose folder."
+  },
+  "synChooseFolderFirst": "Choisissez d'abord un dossier de synchronisation.",
+  "@synChooseFolderFirst": {
+    "description": "Sync UI copy: choose folder first."
+  },
+  "synCodeCopied": "Code d'appariement copié{hint}",
+  "@synCodeCopied": {
+    "description": "Sync UI copy: code copied.",
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "synCodeStoredCheckbox": "J’ai enregistré ce code en lieu sûr",
+  "@synCodeStoredCheckbox": {
+    "description": "Confirmation checkbox required before closing the pairing-code dialog."
+  },
+  "synComplete": "Synchronisation terminée : {added} ajoutées, {updated} mises à jour{conflicts}.",
+  "@synComplete": {
+    "description": "Sync UI copy: complete.",
+    "placeholders": {
+      "added": {
+        "type": "num"
+      },
+      "updated": {
+        "type": "num"
+      },
+      "conflicts": {
+        "type": "String"
+      }
+    }
+  },
+  "synConflictCopies": ", {count, plural, =1{{count} copie de conflit} other{{count} copies de conflit}}",
+  "@synConflictCopies": {
+    "description": "Sync UI copy: conflict copies.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "synCreateGroupSubtitle": "Choisissez un dossier et obtenez un code d'appariement à usage unique.",
+  "@synCreateGroupSubtitle": {
+    "description": "Sync UI copy: create group subtitle."
+  },
+  "synCreateGroupTitle": "Créer un groupe de synchronisation",
+  "@synCreateGroupTitle": {
+    "description": "Sync UI copy: create group title."
+  },
+  "synDisableBody": "La synchronisation locale s'arrête. Les fichiers distants ne sont pas modifiés et peuvent être restaurés en rejoignant à nouveau le groupe avec le code d'appariement.",
+  "@synDisableBody": {
+    "description": "Sync UI copy: disable body."
+  },
+  "synDisableConfirm": "Désactiver la synchronisation",
+  "@synDisableConfirm": {
+    "description": "Sync UI copy: disable confirm."
+  },
+  "synDisableSubtitle": "Arrêter la synchronisation sur cet appareil ; conserver les fichiers distants.",
+  "@synDisableSubtitle": {
+    "description": "Sync UI copy: disable subtitle."
+  },
+  "synDisableTitle": "Désactiver la synchronisation ?",
+  "@synDisableTitle": {
+    "description": "Sync UI copy: disable title."
+  },
+  "synDisabled": "Synchronisation désactivée sur cet appareil.",
+  "@synDisabled": {
+    "description": "Sync UI copy: disabled."
+  },
+  "synEnabledShareCode": "Synchronisation activée. Ne partagez le code qu'une seule fois avec votre autre appareil.",
+  "@synEnabledShareCode": {
+    "description": "Sync UI copy: enabled share code."
+  },
+  "synEnabledStatus": "Synchronisation activée",
+  "@synEnabledStatus": {
+    "description": "Sync UI copy: enabled status."
+  },
+  "synEnterCodeFirst": "Saisissez d'abord le code d'appariement.",
+  "@synEnterCodeFirst": {
+    "description": "Sync UI copy: enter code first."
+  },
+  "synFolderLabel": "Dossier",
+  "@synFolderLabel": {
+    "description": "Sync UI copy: folder label."
+  },
+  "synFooterNote": "La synchronisation fonctionne uniquement au premier plan et nécessite un coffre déverrouillé. Les données sont chiffrées avec une clé aléatoire qui ne quitte jamais Keyel ; perdre le code d'appariement implique de créer un nouveau groupe de synchronisation. Conservez également une sauvegarde chiffrée.",
+  "@synFooterNote": {
+    "description": "Sync UI copy: footer note."
+  },
+  "synGetStartedLabel": "Commencer",
+  "@synGetStartedLabel": {
+    "description": "Sync UI copy: get started label."
+  },
+  "synHeadline": "Synchronisez vos appareils",
+  "@synHeadline": {
+    "description": "Sync UI copy: headline."
+  },
+  "synJoinBody": "Les données distantes du coffre seront fusionnées avec ce coffre lors de la prochaine synchronisation manuelle. Les éléments conflictuels deviennent des copies distinctes ; rien n'est écrasé ni supprimé silencieusement.",
+  "@synJoinBody": {
+    "description": "Sync UI copy: join body."
+  },
+  "synJoinGroup": "Rejoindre le groupe",
+  "@synJoinGroup": {
+    "description": "Sync UI copy: join group."
+  },
+  "synJoinTitle": "Rejoindre ce groupe de synchronisation ?",
+  "@synJoinTitle": {
+    "description": "Sync UI copy: join title."
+  },
+  "synJoined": "Vous avez rejoint le groupe de synchronisation.",
+  "@synJoined": {
+    "description": "Sync UI copy: joined."
+  },
+  "synLastSync": "Dernière synchronisation : {date}",
+  "@synLastSync": {
+    "description": "Sync UI copy: last sync.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "synLoadingStatus": "Lecture de l'état de synchronisation…",
+  "@synLoadingStatus": {
+    "description": "Sync UI copy: loading status."
+  },
+  "synLocalOnlyStatus": "Votre coffre reste uniquement sur cet appareil.",
+  "@synLocalOnlyStatus": {
+    "description": "Sync UI copy: local only status."
+  },
+  "synNever": "Jamais",
+  "@synNever": {
+    "description": "Sync UI copy: never."
+  },
+  "synNoFolder": "Aucun dossier n'est défini pour la synchronisation. Désactivez-la puis réactivez-la.",
+  "@synNoFolder": {
+    "description": "Sync UI copy: no folder."
+  },
+  "synNotSet": "Non défini",
+  "@synNotSet": {
+    "description": "Sync UI copy: not set."
+  },
+  "synOffStatus": "Synchronisation désactivée",
+  "@synOffStatus": {
+    "description": "Sync UI copy: off status."
+  },
+  "synOrJoin": "Ou rejoignez un groupe existant",
+  "@synOrJoin": {
+    "description": "Sync UI copy: or join."
+  },
+  "synPairingCodeLabel": "Code d'appariement",
+  "@synPairingCodeLabel": {
+    "description": "Sync UI copy: pairing code label."
+  },
+  "synSaveCodeBody": "Ce code est un secret au porteur : toute personne le connaissant peut lire le coffre synchronisé. Conservez-le hors ligne et saisissez-le une seule fois sur votre autre appareil. Il ne sera plus affiché après cette fenêtre.",
+  "@synSaveCodeBody": {
+    "description": "Explains that the pairing code is a bearer secret and will not be shown again."
+  },
+  "synSaveCodeTitle": "Enregistrez ce code d’appariement",
+  "@synSaveCodeTitle": {
+    "description": "Title of the one-time pairing-code dialog."
+  },
+  "synShowCodeSubtitle": "Appairez un autre appareil avec ce groupe de synchronisation.",
+  "@synShowCodeSubtitle": {
+    "description": "Sync UI copy: show code subtitle."
+  },
+  "synShowCodeTitle": "Afficher le code d'appariement",
+  "@synShowCodeTitle": {
+    "description": "Sync UI copy: show code title."
+  },
+  "synStatusLabel": "État",
+  "@synStatusLabel": {
+    "description": "Sync UI copy: status label."
+  },
+  "synSubtitle": "Facultative, manuelle et chiffrée de bout en bout. Keyel n'héberge aucun serveur de synchronisation : votre propre outil déplace les fichiers chiffrés entre les appareils.",
+  "@synSubtitle": {
+    "description": "Sync UI copy: subtitle."
+  },
+  "synSyncNowSubtitle": "Récupérer les modifications distantes, fusionner et envoyer celles de cet appareil.",
+  "@synSyncNowSubtitle": {
+    "description": "Sync UI copy: sync now subtitle."
+  },
+  "synSyncNowTitle": "Synchroniser maintenant",
+  "@synSyncNowTitle": {
+    "description": "Sync UI copy: sync now title."
+  },
+  "synThisDevice": "Cet appareil",
+  "@synThisDevice": {
+    "description": "Sync UI copy: this device."
+  },
+  "synUnknown": "Inconnu",
+  "@synUnknown": {
+    "description": "Sync UI copy: unknown."
+  },
+  "trashAutoDelete": "Suppression automatique dans {count, plural, =1{{count} jour} other{{count} jours}}",
+  "@trashAutoDelete": {
+    "description": "Label showing days until automatic deletion."
+  },
+  "trashBannerMessage": "Les éléments supprimés restent ici pendant 30 jours, puis disparaissent automatiquement.",
+  "@trashBannerMessage": {
+    "description": "Informational banner above the trash list."
+  },
+  "trashDeleteForever": "Supprimer définitivement",
+  "@trashDeleteForever": {
+    "description": "Confirm label and tile tooltip for permanent deletion."
+  },
+  "trashDeleteForeverBody": "« {title} » ne pourra pas être récupéré après cette action.",
+  "@trashDeleteForeverBody": {
+    "description": "Confirmation dialog body for permanent deletion.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "trashDeleteForeverTitle": "Supprimer définitivement ?",
+  "@trashDeleteForeverTitle": {
+    "description": "Confirmation dialog title for permanent deletion."
+  },
+  "trashDeleted": "Supprimé",
+  "@trashDeleted": {
+    "description": "Fallback label when an entry has no deletion date."
+  },
+  "trashEmptied": "Corbeille vidée",
+  "@trashEmptied": {
+    "description": "Snackbar after the trash is emptied."
+  },
+  "trashEmptyAction": "Vider la corbeille",
+  "@trashEmptyAction": {
+    "description": "Confirm label and icon tooltip for emptying the trash."
+  },
+  "trashEmptyConfirmBody": "{count, plural, =1{{count} entrée de la corbeille sera supprimée définitivement.} other{{count} entrées de la corbeille seront supprimées définitivement.}}",
+  "@trashEmptyConfirmBody": {
+    "description": "Confirmation dialog body naming the number of entries."
+  },
+  "trashEmptyConfirmTitle": "Vider la corbeille ?",
+  "@trashEmptyConfirmTitle": {
+    "description": "Confirmation dialog title for emptying the trash."
+  },
+  "trashEmptyMessage": "Les entrées supprimées apparaissent ici pendant 30 jours avant d'être définitivement effacées.",
+  "@trashEmptyMessage": {
+    "description": "Empty state body on the trash screen."
+  },
+  "trashLoading": "Chargement des éléments supprimés…",
+  "@trashLoading": {
+    "description": "Loading state message on the trash screen."
+  },
+  "trashPermanentlyDeleted": "Entrée supprimée définitivement",
+  "@trashPermanentlyDeleted": {
+    "description": "Snackbar after an entry is purged."
+  },
+  "trashRestored": "« {title} » restauré",
+  "@trashRestored": {
+    "description": "Snackbar after restoring an entry.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultAddFirstItem": "Ajouter votre premier élément",
+  "@vaultAddFirstItem": {
+    "description": "Action in the empty-vault state."
+  },
+  "vaultAddToFavorites": "Ajouter aux favoris",
+  "@vaultAddToFavorites": {
+    "description": "Tooltip for pinning a single row."
+  },
+  "vaultAllFolders": "Tous les dossiers",
+  "@vaultAllFolders": {
+    "description": "Folder filter chip for all folders."
+  },
+  "vaultAlreadyHaveVault": "J'ai déjà un coffre",
+  "@vaultAlreadyHaveVault": {
+    "description": "Button for opening an existing vault."
+  },
+  "vaultBackToUnlock": "Retour au déverrouillage",
+  "@vaultBackToUnlock": {
+    "description": "Button returning to the unlock form."
+  },
+  "vaultBiometricOptionalHint": "Facultatif — ouvrez le coffre avec votre empreinte ou votre visage.",
+  "@vaultBiometricOptionalHint": {
+    "description": "Subtitle of the optional biometric switch."
+  },
+  "vaultChooseMasterPassword": "Veuillez choisir un mot de passe principal.",
+  "@vaultChooseMasterPassword": {
+    "description": "Validation message for an empty master password."
+  },
+  "vaultClearSelection": "Effacer la sélection",
+  "@vaultClearSelection": {
+    "description": "Tooltip for clearing all marked rows."
+  },
+  "vaultConfirmMasterPassword": "Confirmer le mot de passe principal",
+  "@vaultConfirmMasterPassword": {
+    "description": "Confirmation field label on the create-vault screen."
+  },
+  "vaultConfirmNewPassword": "Confirmer le nouveau mot de passe",
+  "@vaultConfirmNewPassword": {
+    "description": "Confirmation field label in the reset view."
+  },
+  "vaultConfirmPassword": "Confirmer le mot de passe",
+  "@vaultConfirmPassword": {
+    "description": "Confirmation field label in onboarding."
+  },
+  "vaultCopied": "Copié !",
+  "@vaultCopied": {
+    "description": "Temporary copy-button label after copying the recovery key."
+  },
+  "vaultCopiedCardNumber": "Numéro de carte copié dans le presse-papiers",
+  "@vaultCopiedCardNumber": {
+    "description": "Copy confirmation for a card number."
+  },
+  "vaultCopiedPassword": "Mot de passe copié",
+  "@vaultCopiedPassword": {
+    "description": "Copy confirmation prefix; the clipboard clear hint is appended."
+  },
+  "vaultCopiedRecoveryKey": "Clé de récupération copiée dans le presse-papiers",
+  "@vaultCopiedRecoveryKey": {
+    "description": "Copy confirmation for the recovery key; the clear hint is appended."
+  },
+  "vaultCopiedUsername": "Nom d'utilisateur copié dans le presse-papiers",
+  "@vaultCopiedUsername": {
+    "description": "Copy confirmation for a username."
+  },
+  "vaultCopyCard": "Copier la carte",
+  "@vaultCopyCard": {
+    "description": "Tooltip for copying a card number."
+  },
+  "vaultCopyCredential": "Copier l'identifiant",
+  "@vaultCopyCredential": {
+    "description": "Tooltip for copying a login credential."
+  },
+  "vaultCopyKey": "Copier la clé",
+  "@vaultCopyKey": {
+    "description": "Copy button in the recovery-key dialog."
+  },
+  "vaultCopyRecoveryKey": "Copier la clé",
+  "@vaultCopyRecoveryKey": {
+    "description": "Copy-button label on the onboarding recovery-key step."
+  },
+  "vaultCreateEncryptedVault": "Créer le coffre chiffré",
+  "@vaultCreateEncryptedVault": {
+    "description": "Create-vault button label."
+  },
+  "vaultCreateIntro": "Créez votre coffre chiffré hors ligne. Vous seul détenez la clé de vos identifiants.",
+  "@vaultCreateIntro": {
+    "description": "Subtitle of the create-vault screen."
+  },
+  "vaultCreateMasterPasswordSubtitle": "C'est la seule clé de votre coffre. Nous ne pouvons pas la réinitialiser pour vous.",
+  "@vaultCreateMasterPasswordSubtitle": {
+    "description": "Subtitle of the onboarding master-password step."
+  },
+  "vaultCreateMasterPasswordTitle": "Créez votre mot de passe principal",
+  "@vaultCreateMasterPasswordTitle": {
+    "description": "Title of the onboarding master-password step."
+  },
+  "vaultCreatingVault": "Création du coffre…",
+  "@vaultCreatingVault": {
+    "description": "Busy label of the onboarding create button."
+  },
+  "vaultDeleteItemsTitle": "Supprimer {count, plural, =1{{count} élément} other{{count} éléments}} ?",
+  "@vaultDeleteItemsTitle": {
+    "description": "Title of the bulk-delete confirmation dialog.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultDeleteManyItemsBody": "Ces éléments seront déplacés dans la corbeille.",
+  "@vaultDeleteManyItemsBody": {
+    "description": "Body of the bulk-delete dialog for several items."
+  },
+  "vaultDeleteOneItemBody": "Cet élément sera déplacé dans la corbeille.",
+  "@vaultDeleteOneItemBody": {
+    "description": "Body of the bulk-delete dialog for one item."
+  },
+  "vaultEmpty": "Votre coffre est vide",
+  "@vaultEmpty": {
+    "description": "Empty-state title for an empty vault."
+  },
+  "vaultEmptyHint": "Commencez à ajouter des mots de passe, des cartes bancaires ou des notes sécurisées. Tout est stocké localement avec un chiffrement à connaissance nulle.",
+  "@vaultEmptyHint": {
+    "description": "Empty-state body for an empty vault."
+  },
+  "vaultEmptySearchHint": "Essayez un autre terme de recherche ou un autre filtre.",
+  "@vaultEmptySearchHint": {
+    "description": "Empty-state body for a search with no results."
+  },
+  "vaultEntriesSavedOffline": "{count, plural, =1{{count} élément enregistré} other{{count} éléments enregistrés}} hors ligne",
+  "@vaultEntriesSavedOffline": {
+    "description": "Offline entry count under the vault headline.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultEntryPinnedToFavorites": "{title} ajouté aux favoris",
+  "@vaultEntryPinnedToFavorites": {
+    "description": "Snack-bar confirmation for pinning one entry.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultEntryRemovedFromFavorites": "{title} retiré des favoris",
+  "@vaultEntryRemovedFromFavorites": {
+    "description": "Snack-bar confirmation for unpinning one entry.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultExitSelection": "Quitter la sélection",
+  "@vaultExitSelection": {
+    "description": "Tooltip for leaving selection mode."
+  },
+  "vaultFavorite": "Ajouter aux favoris",
+  "@vaultFavorite": {
+    "description": "Label revealed when swiping a row to favorite it."
+  },
+  "vaultFilterAll": "Tout",
+  "@vaultFilterAll": {
+    "description": "Filter chip label for all entries."
+  },
+  "vaultFilterCards": "Cartes",
+  "@vaultFilterCards": {
+    "description": "Filter chip label for payment cards."
+  },
+  "vaultFilterFavorites": "Favoris",
+  "@vaultFilterFavorites": {
+    "description": "Filter chip label and section title for favorites."
+  },
+  "vaultFilterLogins": "Connexions",
+  "@vaultFilterLogins": {
+    "description": "Filter chip label for login entries."
+  },
+  "vaultFilterNotes": "Notes",
+  "@vaultFilterNotes": {
+    "description": "Filter chip label for secure notes."
+  },
+  "vaultFilterTwoFactor": "2FA",
+  "@vaultFilterTwoFactor": {
+    "description": "Filter chip label and row badge for two-factor entries."
+  },
+  "vaultFolder": "dossier",
+  "@vaultFolder": {
+    "description": "Snack-bar fallback when a folder id cannot be resolved."
+  },
+  "vaultForgotPassword": "Mot de passe oublié ?",
+  "@vaultForgotPassword": {
+    "description": "Link to the recovery-key reset flow."
+  },
+  "vaultGetStarted": "Commencer",
+  "@vaultGetStarted": {
+    "description": "Call to action on the onboarding welcome step."
+  },
+  "vaultHidePassword": "Masquer le mot de passe",
+  "@vaultHidePassword": {
+    "description": "Tooltip for obscuring a password field."
+  },
+  "vaultItemCount": "{count, plural, =1{{count} élément} other{{count} éléments}}",
+  "@vaultItemCount": {
+    "description": "Item count shown next to a section title.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultItemsMovedToTrash": "{count, plural, =1{{count} élément déplacé} other{{count} éléments déplacés}} dans la corbeille",
+  "@vaultItemsMovedToTrash": {
+    "description": "Snack-bar confirmation for bulk deletion.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultItemsPinnedToFavorites": "{count, plural, =1{{count} élément ajouté aux favoris} other{{count} éléments ajoutés aux favoris}}",
+  "@vaultItemsPinnedToFavorites": {
+    "description": "Snack-bar confirmation for bulk pinning.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultItemsRemovedFromFavorites": "{count, plural, =1{{count} élément retiré des favoris} other{{count} éléments retirés des favoris}}",
+  "@vaultItemsRemovedFromFavorites": {
+    "description": "Snack-bar confirmation for bulk unpinning.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultItemsSelected": "{count, plural, =1{{count} élément sélectionné} other{{count} éléments sélectionnés}}",
+  "@vaultItemsSelected": {
+    "description": "Selection toolbar count.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultKindCard": "Carte bancaire",
+  "@vaultKindCard": {
+    "description": "Fallback subtitle for payment-card rows."
+  },
+  "vaultKindLogin": "Connexion",
+  "@vaultKindLogin": {
+    "description": "Fallback subtitle for login rows."
+  },
+  "vaultKindNote": "Note sécurisée",
+  "@vaultKindNote": {
+    "description": "Fallback subtitle for secure-note rows."
+  },
+  "vaultKindPasskey": "Clé d'accès",
+  "@vaultKindPasskey": {
+    "description": "Fallback subtitle for passkey rows."
+  },
+  "vaultLoadingList": "Ouverture de votre coffre…",
+  "@vaultLoadingList": {
+    "description": "Message shown while the vault list loads."
+  },
+  "vaultLocked": "Coffre verrouillé",
+  "@vaultLocked": {
+    "description": "Snack-bar confirmation after locking the vault."
+  },
+  "vaultMasterPasswordCapitalized": "Mot de passe principal",
+  "@vaultMasterPasswordCapitalized": {
+    "description": "Master-password field label on the create-vault screen."
+  },
+  "vaultMasterPasswordChanged": "Votre mot de passe principal a changé. Reconfigurez le déverrouillage rapide.",
+  "@vaultMasterPasswordChanged": {
+    "description": "Biometric reset message after a password change."
+  },
+  "vaultMasterPasswordLabel": "Mot de passe principal",
+  "@vaultMasterPasswordLabel": {
+    "description": "Master-password field label on unlock and onboarding forms."
+  },
+  "vaultMoveToFolder": "Déplacer vers un dossier",
+  "@vaultMoveToFolder": {
+    "description": "Tooltip for the bulk move action."
+  },
+  "vaultMovedItemsToFolder": "{count, plural, =1{{count} élément déplacé} other{{count} éléments déplacés}} vers {folder}",
+  "@vaultMovedItemsToFolder": {
+    "description": "Snack-bar confirmation for moving entries to a folder.",
+    "placeholders": {
+      "count": {
+        "type": "num"
+      },
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultNewItem": "Nouvel élément",
+  "@vaultNewItem": {
+    "description": "Label of the new-item button and FAB."
+  },
+  "vaultNewMasterPassword": "Nouveau mot de passe principal",
+  "@vaultNewMasterPassword": {
+    "description": "New-password field label in the reset view."
+  },
+  "vaultNoExistingVault": "Aucun coffre existant n'a été trouvé sur cet appareil.",
+  "@vaultNoExistingVault": {
+    "description": "Message shown when no vault file exists."
+  },
+  "vaultNoFolder": "Aucun dossier",
+  "@vaultNoFolder": {
+    "description": "Folder filter chip and snack-bar fallback for unfiled entries."
+  },
+  "vaultNoItemSelected": "Aucun élément sélectionné",
+  "@vaultNoItemSelected": {
+    "description": "Title of the wide-layout detail placeholder."
+  },
+  "vaultNoMatchesFound": "Aucun résultat",
+  "@vaultNoMatchesFound": {
+    "description": "Empty-state title for a search with no results."
+  },
+  "vaultNothingToCopy": "Rien à copier",
+  "@vaultNothingToCopy": {
+    "description": "Feedback when an entry has no secret to copy."
+  },
+  "vaultOpenEntry": "Ouvrir {title}",
+  "@vaultOpenEntry": {
+    "description": "Semantics label for opening a row.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultOpenMyVault": "Ouvrir mon coffre",
+  "@vaultOpenMyVault": {
+    "description": "Final onboarding button."
+  },
+  "vaultOr": "OU",
+  "@vaultOr": {
+    "description": "Separator between unlock methods."
+  },
+  "vaultPasswordsMismatch": "Les mots de passe ne correspondent pas.",
+  "@vaultPasswordsMismatch": {
+    "description": "Validation message for mismatched passwords."
+  },
+  "vaultQuickUnlockLater": "Vous pouvez activer le déverrouillage rapide biométrique plus tard dans les paramètres.",
+  "@vaultQuickUnlockLater": {
+    "description": "Info card copy when biometric quick unlock is disabled."
+  },
+  "vaultQuickUnlockOn": "Le déverrouillage rapide est activé. Vous pouvez le désactiver à tout moment dans les paramètres.",
+  "@vaultQuickUnlockOn": {
+    "description": "Info card copy when biometric quick unlock is enabled."
+  },
+  "vaultQuickUnlockSetupAgain": "Le déverrouillage rapide doit être reconfiguré.",
+  "@vaultQuickUnlockSetupAgain": {
+    "description": "Biometric reset message when credentials are missing."
+  },
+  "vaultReadySubtitle": "Keyel se verrouille automatiquement après une minute en arrière-plan. Vous pouvez modifier ce réglage plus tard dans les paramètres.",
+  "@vaultReadySubtitle": {
+    "description": "Subtitle of the final onboarding step."
+  },
+  "vaultReadyTitle": "Votre coffre est prêt",
+  "@vaultReadyTitle": {
+    "description": "Headline of the final onboarding step."
+  },
+  "vaultRecentSearches": "Recherches récentes",
+  "@vaultRecentSearches": {
+    "description": "Heading above remembered search chips."
+  },
+  "vaultRecoveryExportError": "Impossible d'exporter la clé de récupération ({error}).",
+  "@vaultRecoveryExportError": {
+    "description": "Error message when exporting the recovery key fails.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultRecoveryFileText": "Clé de récupération du coffre Keyel\n==========================\n\nCe fichier contient la clé de récupération de votre coffre Keyel.\n\nATTENTION : toute personne disposant de cette clé peut ouvrir votre coffre. Conservez-la\nhors ligne et privée, et traitez-la comme le mot de passe principal lui-même.\n\nSi vous oubliez votre mot de passe principal, cette clé est le seul moyen de\nretrouver l'accès à votre coffre. Keyel n'a pas de compte et pas de sauvegarde cloud.\n\nVotre clé de récupération :\n\n{key}\n",
+  "@vaultRecoveryFileText": {
+    "description": "Plain-text recovery-key document written to the share sheet.",
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultRecoveryKeyLabel": "Clé de récupération",
+  "@vaultRecoveryKeyLabel": {
+    "description": "Recovery-key field label in the reset view."
+  },
+  "vaultRecoveryKeyTitle": "Clé de récupération",
+  "@vaultRecoveryKeyTitle": {
+    "description": "Title of the recovery-key dialog."
+  },
+  "vaultRecoveryKeyWarning": "Notez ou conservez cette clé de récupération hors ligne en toute sécurité. Si vous oubliez votre mot de passe principal, c'est la SEULE façon de retrouver l'accès à votre coffre.",
+  "@vaultRecoveryKeyWarning": {
+    "description": "Warning body of the recovery-key dialog."
+  },
+  "vaultRemoveFromFavorites": "Retirer des favoris",
+  "@vaultRemoveFromFavorites": {
+    "description": "Tooltip for unpinning a single row."
+  },
+  "vaultResetMasterPasswordHint": "Saisissez votre clé de récupération pour définir un nouveau mot de passe principal et ouvrir votre coffre.",
+  "@vaultResetMasterPasswordHint": {
+    "description": "Subtitle of the recovery reset view."
+  },
+  "vaultResetMasterPasswordTitle": "Réinitialisez votre mot de passe principal",
+  "@vaultResetMasterPasswordTitle": {
+    "description": "Headline of the recovery reset view."
+  },
+  "vaultResetPassword": "Réinitialiser le mot de passe",
+  "@vaultResetPassword": {
+    "description": "Label of the reset-password button."
+  },
+  "vaultResetting": "Réinitialisation…",
+  "@vaultResetting": {
+    "description": "Busy label of the reset-password button."
+  },
+  "vaultResults": "Résultats",
+  "@vaultResults": {
+    "description": "Section title for search results."
+  },
+  "vaultSaveFile": "Enregistrer le fichier",
+  "@vaultSaveFile": {
+    "description": "Button for saving the recovery key as a file."
+  },
+  "vaultSaveRecoveryKeySubtitle": "Si vous oubliez le mot de passe principal, cette clé est le seul moyen de retrouver l'accès à votre coffre. Elle n'est affichée qu'une seule fois.",
+  "@vaultSaveRecoveryKeySubtitle": {
+    "description": "Subtitle of the onboarding recovery-key step."
+  },
+  "vaultSaveRecoveryKeyTitle": "Enregistrez votre clé de récupération",
+  "@vaultSaveRecoveryKeyTitle": {
+    "description": "Title of the onboarding recovery-key step."
+  },
+  "vaultSavedRecoveryKey": "Je l'ai enregistrée",
+  "@vaultSavedRecoveryKey": {
+    "description": "Dismiss button in the recovery-key dialog."
+  },
+  "vaultSearchHint": "Rechercher des éléments, des étiquettes ou des notes...",
+  "@vaultSearchHint": {
+    "description": "Hint text of the vault search field."
+  },
+  "vaultSelectAll": "Tout sélectionner",
+  "@vaultSelectAll": {
+    "description": "Tooltip for selecting all visible rows."
+  },
+  "vaultSelectEntry": "Sélectionner {title}",
+  "@vaultSelectEntry": {
+    "description": "Semantics label for a row in selection mode.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "vaultSelectItemHint": "Sélectionnez un élément dans la liste pour voir et gérer ses détails.",
+  "@vaultSelectItemHint": {
+    "description": "Body of the wide-layout detail placeholder."
+  },
+  "vaultShowPassword": "Afficher le mot de passe",
+  "@vaultShowPassword": {
+    "description": "Tooltip for revealing a password field."
+  },
+  "vaultStoredKeyConfirmation": "J'ai enregistré cette clé en lieu sûr",
+  "@vaultStoredKeyConfirmation": {
+    "description": "Checkbox label confirming the recovery key was stored."
+  },
+  "vaultToggleFavorite": "Ajouter/retirer des favoris",
+  "@vaultToggleFavorite": {
+    "description": "Tooltip for the bulk favorite action."
+  },
+  "vaultTooManyAttempts": "Trop de tentatives. Réessayez dans {seconds} s.",
+  "@vaultTooManyAttempts": {
+    "description": "Inline cooldown message on the unlock form.",
+    "placeholders": {
+      "seconds": {
+        "type": "num"
+      }
+    }
+  },
+  "vaultTopBarTitle": "Coffre Keyel",
+  "@vaultTopBarTitle": {
+    "description": "Vault list top bar title."
+  },
+  "vaultUndo": "Annuler",
+  "@vaultUndo": {
+    "description": "Undo action on the favorite snack bar."
+  },
+  "vaultUnfavorite": "Retirer des favoris",
+  "@vaultUnfavorite": {
+    "description": "Label revealed when swiping a row to unpin it."
+  },
+  "vaultUnlockHint": "Saisissez votre mot de passe principal pour ouvrir votre coffre.",
+  "@vaultUnlockHint": {
+    "description": "Subtitle of the unlock form."
+  },
+  "vaultUnlockWithBiometrics": "Déverrouiller avec la biométrie",
+  "@vaultUnlockWithBiometrics": {
+    "description": "Biometric unlock button and onboarding switch label."
+  },
+  "vaultUnlocking": "Ouverture…",
+  "@vaultUnlocking": {
+    "description": "Busy label of the unlock button."
+  },
+  "vaultViewNote": "Voir la note",
+  "@vaultViewNote": {
+    "description": "Tooltip for opening a secure note."
+  },
+  "vaultViewPasskey": "Voir la clé d'accès",
+  "@vaultViewPasskey": {
+    "description": "Tooltip for opening a passkey."
+  },
+  "vaultWelcomeBack": "Bon retour",
+  "@vaultWelcomeBack": {
+    "description": "Headline of the unlock form."
+  },
+  "vaultWelcomeSubtitle": "Vos mots de passe restent chiffrés sur cet appareil. Il n'y a ni compte, ni cloud, ni télémétrie.",
+  "@vaultWelcomeSubtitle": {
+    "description": "Subtitle of the onboarding welcome step."
+  },
+  "vaultWelcomeToKeyel": "Bienvenue sur Keyel",
+  "@vaultWelcomeToKeyel": {
+    "description": "Welcome headline on the create-vault and onboarding screens."
+  },
+  "wearClearAll": "Tout supprimer de la montre",
+  "@wearClearAll": {
+    "description": "Button that clears every seed from the watch"
+  },
+  "wearClearMessage": "Les secrets sont supprimés de cette montre. Vous pouvez les renvoyer depuis le téléphone. Votre coffre n'est pas modifié.",
+  "@wearClearMessage": {
+    "description": "Confirmation dialog body"
+  },
+  "wearClearTitle": "Supprimer tous les codes de la montre ?",
+  "@wearClearTitle": {
+    "description": "Confirmation dialog title"
+  },
+  "wearCleared": "Tous les codes ont été supprimés de la montre",
+  "@wearCleared": {
+    "description": "Confirmation after clearing the watch"
+  },
+  "wearEmpty": "Aucune de vos entrées ne contient de mot de passe à usage unique.",
+  "@wearEmpty": {
+    "description": "Empty state for watch code transfer"
+  },
+  "wearFailed": "Impossible de joindre la montre",
+  "@wearFailed": {
+    "description": "Failure message for a watch transfer"
+  },
+  "wearInfo": "Envoyez un secret TOTP à une montre Wear OS associée. Le secret n'est stocké que sur la montre, chiffré avec la clé de l'appareil. L'envoi nécessite un coffre déverrouillé. Les codes sont masqués quand vous quittez l'application montre et ne sont jamais copiés dans le presse-papiers.",
+  "@wearInfo": {
+    "description": "Explanation of the watch code transfer"
+  },
+  "wearSend": "Envoyer",
+  "@wearSend": {
+    "description": "Button that pushes one seed to the watch"
+  },
+  "wearSent": "Secret envoyé à la montre",
+  "@wearSent": {
+    "description": "Confirmation after a successful push"
+  },
+  "wearTitle": "Codes montre",
+  "@wearTitle": {
+    "description": "Title of the Wear OS TOTP settings screen"
+  },
+  "wearUnavailable": "Aucune montre Wear OS associée n'est accessible. Ouvrez Keyel sur votre téléphone avec la montre à proximité, puis réessayez.",
+  "@wearUnavailable": {
+    "description": "Shown when no watch is connected"
+  },
+  "actionReset": "Réinitialiser",
+  "@actionReset": {
+    "description": "Button that clears the current selection."
+  }
+}

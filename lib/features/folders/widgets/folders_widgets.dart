@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// A single folder row with rename and delete actions.
 class FolderTile extends StatelessWidget {
@@ -26,6 +27,7 @@ class FolderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return KeyelSectionCard(
       showBorder: true,
@@ -53,14 +55,14 @@ class FolderTile extends StatelessWidget {
           ),
           KeyelIconHull(
             icon: Icons.edit_rounded,
-            tooltip: 'Rename folder',
+            tooltip: l10n.fldRenameFolder,
             onPressed: onRename,
             size: 40,
             iconSize: 20,
           ),
           KeyelIconHull(
             icon: Icons.delete_outline_rounded,
-            tooltip: 'Delete folder',
+            tooltip: l10n.fldDeleteFolder,
             onPressed: onDelete,
             foreground: scheme.error,
             size: 40,
@@ -79,13 +81,13 @@ class FoldersEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const KeyelStateMessage(
+    final l10n = l10nOf(context);
+
+    return KeyelStateMessage(
       kind: KeyelStateMessageKind.empty,
       icon: Icons.folder_open_rounded,
-      title: 'No folders yet',
-      message:
-          'Folders keep logins, cards and notes in tidy groups. Use the '
-          'button below to create the first one.',
+      title: l10n.folderEmpty,
+      message: l10n.fldEmptyMessage,
     );
   }
 }

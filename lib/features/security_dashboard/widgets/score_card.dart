@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/features/security_dashboard/widgets/score_gauge.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Hero card summarizing overall vault health with a call to review issues.
 class ScoreCard extends StatelessWidget {
@@ -26,12 +27,13 @@ class ScoreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     final (accent, label, status) = switch (score) {
-      >= 90 => (scheme.strong, 'Excellent', 'SECURE'),
-      >= 70 => (scheme.strong, 'Good', 'SECURE'),
-      >= 40 => (scheme.fair, 'Fair', 'REVIEW'),
-      _ => (scheme.weak, 'At risk', 'AT RISK'),
+      >= 90 => (scheme.strong, l10n.secScoreExcellent, l10n.secStatusSecure),
+      >= 70 => (scheme.strong, l10n.secScoreGood, l10n.secStatusSecure),
+      >= 40 => (scheme.fair, l10n.secScoreFair, l10n.secStatusReview),
+      _ => (scheme.weak, l10n.secScoreAtRisk, l10n.secStatusAtRisk),
     };
 
     return Container(
@@ -72,7 +74,7 @@ class ScoreCard extends StatelessWidget {
                 const SizedBox(width: KeyelSpacing.sm),
                 Flexible(
                   child: Text(
-                    'Vault health: $label',
+                    l10n.secVaultHealthLabel(label),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.titleSmall?.copyWith(
@@ -87,9 +89,8 @@ class ScoreCard extends StatelessWidget {
           const SizedBox(height: KeyelSpacing.sm),
           Text(
             issueCount == 0
-                ? 'No issues found. Your vault is in great shape.'
-                : '$issueCount ${issueCount == 1 ? 'item needs' : 'items need'} '
-                      'your attention',
+                ? l10n.secNoIssuesFound
+                : l10n.secIssuesNeedAttention(issueCount),
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium?.copyWith(
               color: scheme.onSurfaceVariant,
@@ -98,7 +99,7 @@ class ScoreCard extends StatelessWidget {
           if (issueCount > 0) ...[
             const SizedBox(height: KeyelSpacing.md),
             KeyelPillButton(
-              label: 'Review issues',
+              label: l10n.secReviewIssues,
               icon: Icons.auto_fix_high_rounded,
               height: 52,
               onPressed: onOptimize,

@@ -1,0 +1,14 @@
+# Flutter gen-l10n configuration.
+#
+# English is the template; French is a complete translation. Generated classes
+# are checked in (like the FRB bindings) and CI verifies that regeneration is a
+# no-op. Arabic/RTL translation is intentionally deferred; RTL layout is still
+# covered by widget tests.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-dir: lib/l10n/generated
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+preferred-supported-locales:
+  - en
+  - fr

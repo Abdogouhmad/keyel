@@ -4,6 +4,7 @@ import 'package:keyel/features/security_dashboard/health_category.dart';
 import 'package:keyel/features/security_dashboard/widgets/mini_button.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Bottom sheet listing the entries affected by one health category.
 ///
@@ -103,7 +104,7 @@ class HealthIssueSheet extends StatelessWidget {
                       vertical: KeyelSpacing.lg,
                     ),
                     child: Text(
-                      'Nothing to fix here.',
+                      l10nOf(context).secNothingToFix,
                       style: textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -182,7 +183,7 @@ class _IssueRow extends StatelessWidget {
           ),
           const SizedBox(width: KeyelSpacing.sm),
           MiniButton(
-            label: 'Fix',
+            label: l10nOf(context).secFix,
             background: scheme.surfaceContainerHigh,
             foreground: scheme.primary,
             onTap: () => Navigator.of(context).pop(issue.id),

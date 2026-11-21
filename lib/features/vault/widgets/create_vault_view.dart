@@ -8,6 +8,7 @@ import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Full screen view for creating a new encrypted vault.
 class CreateVaultView extends ConsumerStatefulWidget {
@@ -32,15 +33,16 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
   }
 
   Future<void> _create() async {
+    final l10n = l10nOf(context);
     final pass = _passwordController.text;
     final confirm = _confirmController.text;
 
     if (pass.isEmpty) {
-      showKeyelSnack(context, 'Please choose a master password.');
+      showKeyelSnack(context, l10n.vaultChooseMasterPassword);
       return;
     }
     if (pass != confirm) {
-      showKeyelSnack(context, 'Passwords do not match.');
+      showKeyelSnack(context, l10n.vaultPasswordsMismatch);
       return;
     }
 
@@ -56,22 +58,18 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
           context: context,
           barrierDismissible: false,
           builder: (dialogCtx) => AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.vpn_key_rounded, color: Colors.amber),
-                SizedBox(width: KeyelSpacing.sm),
-                Text('Recovery Key'),
+                const Icon(Icons.vpn_key_rounded, color: Colors.amber),
+                const SizedBox(width: KeyelSpacing.sm),
+                Text(l10n.vaultRecoveryKeyTitle),
               ],
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Write down or securely store this recovery key offline. '
-                  'If you forget your master password, this is the ONLY way '
-                  'to regain access to your vault.',
-                ),
+                Text(l10n.vaultRecoveryKeyWarning),
                 const SizedBox(height: KeyelSpacing.md),
                 Container(
                   padding: const EdgeInsets.all(KeyelSpacing.md),
@@ -98,17 +96,17 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                   unawaited(SensitiveClipboard.instance.copy(recoveryKey));
                   showKeyelSnack(
                     dialogCtx,
-                    'Recovery key copied to clipboard'
+                    '${l10n.vaultCopiedRecoveryKey}'
                     '${SensitiveClipboard.instance.clearHint}',
                     icon: Icons.content_copy_rounded,
                   );
                 },
                 icon: const Icon(Icons.copy_rounded, size: 18),
-                label: const Text('Copy Key'),
+                label: Text(l10n.vaultCopyKey),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(),
-                child: const Text('I Have Saved It'),
+                child: Text(l10n.vaultSavedRecoveryKey),
               ),
             ],
           ),
@@ -128,12 +126,13 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
     if (ref.read(vaultSessionProvider).status == VaultStatus.locked) {
       context.go(KeyelRoutes.unlock);
     } else {
-      showKeyelSnack(context, 'No existing vault was found on this device.');
+      showKeyelSnack(context, l10nOf(context).vaultNoExistingVault);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -162,7 +161,7 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                 ),
                 const SizedBox(height: KeyelSpacing.lg),
                 Text(
-                  'Welcome to Keyel',
+                  l10n.vaultWelcomeToKeyel,
                   style: textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: scheme.onSurface,
@@ -170,8 +169,7 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                 ),
                 const SizedBox(height: KeyelSpacing.xs),
                 Text(
-                  'Create your encrypted offline vault. Only you have the key '
-                  'to your credentials.',
+                  l10n.vaultCreateIntro,
                   textAlign: TextAlign.center,
                   style: textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
@@ -184,10 +182,12 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                   style: TextStyle(color: scheme.onSurface),
                   cursorColor: scheme.onSurface,
                   decoration: InputDecoration(
-                    labelText: 'Master Password',
+                    labelText: l10n.vaultMasterPasswordCapitalized,
                     prefixIcon: const Icon(Icons.key_rounded),
                     suffixIcon: IconButton(
-                      tooltip: _obscure ? 'Show password' : 'Hide password',
+                      tooltip: _obscure
+                          ? l10n.vaultShowPassword
+                          : l10n.vaultHidePassword,
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_rounded
@@ -203,9 +203,9 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                   obscureText: _obscure,
                   style: TextStyle(color: scheme.onSurface),
                   cursorColor: scheme.onSurface,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm Master Password',
-                    prefixIcon: Icon(Icons.check_circle_outline_rounded),
+                  decoration: InputDecoration(
+                    labelText: l10n.vaultConfirmMasterPassword,
+                    prefixIcon: const Icon(Icons.check_circle_outline_rounded),
                   ),
                   onSubmitted: (_) => unawaited(_create()),
                 ),
@@ -221,7 +221,7 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                             height: 24,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Create Encrypted Vault'),
+                        : Text(l10n.vaultCreateEncryptedVault),
                   ),
                 ),
                 const SizedBox(height: KeyelSpacing.sm),
@@ -230,7 +230,7 @@ class _CreateVaultViewState extends ConsumerState<CreateVaultView> {
                       ? null
                       : () => unawaited(_openExistingVault()),
                   icon: const Icon(Icons.lock_open_rounded),
-                  label: const Text('I already have a vault'),
+                  label: Text(l10n.vaultAlreadyHaveVault),
                 ),
               ],
             ),

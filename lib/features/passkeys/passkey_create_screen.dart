@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
+import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Confirmation screen for creating/saving a new passkey.
 ///
@@ -52,9 +53,10 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
     }
   }
 
+  // Also read outside build() (during creation), so use the ambient locale.
   String get _rpId {
     final req = _req;
-    if (req == null) return 'Unknown site';
+    if (req == null) return currentL10n.passUnknownSite;
     final rp = req['rp'];
     if (rp is Map) {
       final id = rp['id'];
@@ -62,7 +64,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
       final name = rp['name'];
       if (name is String && name.trim().isNotEmpty) return name.trim();
     }
-    return 'Unknown site';
+    return currentL10n.passUnknownSite;
   }
 
   String get _rpName {
@@ -84,7 +86,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
       final display = user['displayName'];
       if (display is String && display.trim().isNotEmpty) return display.trim();
     }
-    return 'Unknown account';
+    return currentL10n.passUnknownAccount;
   }
 
   String get _userDisplayName {
@@ -128,6 +130,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = l10nOf(context);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -137,9 +140,9 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
           child: Column(
             children: [
               KeyelTopBar(
-                title: 'Save passkey',
+                title: l10n.passSavePasskey,
                 icon: Icons.close_rounded,
-                iconTooltip: 'Cancel',
+                iconTooltip: l10n.actionCancel,
                 onIconTap: widget.onCancel,
               ),
               Expanded(
@@ -147,7 +150,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
                   padding: const EdgeInsets.all(KeyelSpacing.lg),
                   children: [
                     Text(
-                      'Create a passkey for this account?',
+                      l10n.passCreateQuestion,
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: scheme.onSurface,
@@ -155,7 +158,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
                     ),
                     const SizedBox(height: KeyelSpacing.sm),
                     Text(
-                      'The passkey will be encrypted and stored in your local Keyel vault. Your private key never leaves this device.',
+                      l10n.passCreateBody,
                       style: textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -165,15 +168,18 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
                       padding: EdgeInsets.zero,
                       child: Column(
                         children: [
-                          _InfoRow(label: 'Site', value: _rpName),
+                          _InfoRow(label: l10n.passLabelSite, value: _rpName),
                           const Divider(height: 1),
-                          _InfoRow(label: 'Domain', value: _rpId),
+                          _InfoRow(label: l10n.passLabelDomain, value: _rpId),
                           const Divider(height: 1),
-                          _InfoRow(label: 'Account', value: _userName),
+                          _InfoRow(
+                            label: l10n.passLabelAccount,
+                            value: _userName,
+                          ),
                           if (_userDisplayName != _userName) ...[
                             const Divider(height: 1),
                             _InfoRow(
-                              label: 'Display name',
+                              label: l10n.passLabelDisplayName,
                               value: _userDisplayName,
                             ),
                           ],
@@ -183,7 +189,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
                     if (widget.origin.trim().isNotEmpty) ...[
                       const SizedBox(height: KeyelSpacing.sm),
                       Text(
-                        'Origin: ${widget.origin}',
+                        l10n.passOrigin(widget.origin),
                         style: textTheme.bodySmall?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -212,7 +218,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
                   children: [
                     Expanded(
                       child: KeyelPillButton(
-                        label: 'Cancel',
+                        label: l10n.actionCancel,
                         tone: KeyelButtonTone.tonal,
                         onPressed: _saving ? null : widget.onCancel,
                       ),
@@ -220,7 +226,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
                     const SizedBox(width: KeyelSpacing.sm),
                     Expanded(
                       child: KeyelPillButton(
-                        label: _saving ? 'Saving…' : 'Save passkey',
+                        label: _saving ? l10n.passSaving : l10n.passSavePasskey,
                         icon: Icons.key_rounded,
                         onPressed: _saving ? null : () => unawaited(_create()),
                       ),
