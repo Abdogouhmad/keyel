@@ -65,6 +65,29 @@ void main() {
     expect(find.text('All clear'), findsOneWidget);
   });
 
+  testWidgets('a failed health check uses the shared retry state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          healthProvider.overrideWith(
+            (ref) => Future<HealthReportDto>.error(StateError('disk gone')),
+          ),
+        ],
+        child: MaterialApp(
+          theme: KeyelTheme.light(),
+          home: const SecurityScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not check vault health'), findsOneWidget);
+    expect(find.textContaining('disk gone'), findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
   testWidgets('security dashboard has no overflow at 200% text scale', (
     tester,
   ) async {

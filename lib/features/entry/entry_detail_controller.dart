@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/data/vault_repository.dart';
+import 'package:keyel/data/vault_session_provider.dart' show describeVaultError;
 import 'package:keyel/features/entry/entry_detail_callbacks.dart';
 import 'package:keyel/features/entry/entry_url.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/src/rust/api/error.dart';
 import 'package:keyel/src/rust/api/models.dart';
 
 /// Owns the loading, reveal and mutation logic behind the detail screen.
@@ -30,6 +32,8 @@ class EntryDetailController {
   EntryDetailDto? _detail;
   VaultEntry? _entry;
   bool _loading = true;
+  bool _missing = false;
+  String? _loadError;
   String? _revealedPassword;
   String? _revealedCardNumber;
   String? _revealedCvv;
@@ -46,6 +50,14 @@ class EntryDetailController {
 
   /// Whether the initial load is still in flight.
   bool get loading => _loading;
+
+  /// Whether the repository proved that this entry id does not exist.
+  ///
+  /// Kept distinct from [loadError]: a failed read is not a missing entry.
+  bool get missing => _missing;
+
+  /// Human-readable message for a failed load, or `null` on success.
+  String? get loadError => _loadError;
 
   /// Revealed login password, or `null` when hidden.
   String? get revealedPassword => _revealedPassword;
@@ -65,6 +77,8 @@ class EntryDetailController {
   /// Loads the entry from the vault repository.
   Future<void> load() async {
     _loading = true;
+    _missing = false;
+    _loadError = null;
     callbacks.rebuild();
     try {
       final record = await repository.getEntry(entryId);
@@ -85,8 +99,14 @@ class EntryDetailController {
       _loading = false;
       _detail = null;
       _entry = null;
+      if (error == VaultApiError.notFound) {
+        _missing = true;
+      } else {
+        // The inline retry message is the feedback; a snack would fire before
+        // the error state has a Scaffold to present it in.
+        _loadError = describeVaultError(error);
+      }
       callbacks.rebuild();
-      callbacks.notifyError(error);
     }
   }
 

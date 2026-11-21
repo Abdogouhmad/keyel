@@ -164,6 +164,7 @@ class _AutofillSaveScreenState extends ConsumerState<AutofillSaveScreen> {
               KeyelTopBar(
                 title: 'Save login?',
                 icon: Icons.close_rounded,
+                iconTooltip: 'Cancel',
                 onIconTap: _decline,
               ),
               Expanded(

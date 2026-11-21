@@ -5,13 +5,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/ota/ota_check_host.dart';
+import 'package:keyel/core/platform/launch_action.dart';
 import 'package:keyel/core/platform/secure_screen.dart';
 import 'package:keyel/core/router/app_router.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/security/auto_lock_host.dart';
+import 'package:keyel/core/security/lock_request_host.dart';
 import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
+import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/ota/widgets/update_available_banner.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
@@ -49,10 +52,22 @@ Future<void> main() async {
     debugPrint('Keyel: vault storage is unavailable: $error');
   }
 
+  // Consume a one-tap lock request that arrived before Flutter started, so no
+  // vault row can flash before the unlock screen is shown.
+  final container = ProviderContainer();
+  if (await getInitialLaunchAction() == lockLaunchAction) {
+    container.read(vaultSessionProvider.notifier).lock();
+  }
+
   runApp(
-    const ProviderScope(
-      child: AutoLockHost(
-        child: OtaCheckHost(child: ScreenshotProtectionHost(child: KeyelApp())),
+    UncontrolledProviderScope(
+      container: container,
+      child: const AutoLockHost(
+        child: OtaCheckHost(
+          child: ScreenshotProtectionHost(
+            child: LockRequestHost(child: KeyelApp()),
+          ),
+        ),
       ),
     ),
   );

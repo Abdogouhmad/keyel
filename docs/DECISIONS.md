@@ -908,3 +908,41 @@ design (docs/roadmap.md header).
   manual check. The notification contains only the version and channel — no vault data.
 
 
+## 2026-11-21 (1.9.0: one-tap lock, AppImage, everyday UX)
+
+- **The reserved 1.6.0 one-tap lock idea ships as 1.9.0.** 1.7.0 and 1.8.x already
+  took the intervening version numbers. `docs/roadmap_1.9.0.md` supersedes the
+  old 1.6.0 reservation; scope is one-tap lock, a Linux AppImage and a bounded
+  UI/UX consistency pass. No schema or threat-model change.
+
+- **One-tap lock always goes through the existing Dart/Rust lock path.** Both a
+  static launcher shortcut and a Quick Settings tile send a single
+  `com.freesoftware.keyel.action.LOCK` action to `MainActivity`. Cold starts
+  read it with `getInitialAction`; warm apps receive a `keyel/lock`
+  `lockRequested` call. The clipboard is wiped natively first, then
+  `VaultSessionNotifier.lock()` drops the Rust session, hides reveals and sets
+  the locked state. A native "locked" flag is deliberately *not* persisted: a
+  flag cannot zeroize the Rust key and could be clobbered by a Dart save.
+
+- **The tile delegates to the activity instead of holding an engine.** A
+  `TileService` has no `FlutterEngine`, so a tile that locked directly would
+  leave the Rust session alive whenever the engine was destroyed but the
+  process survived. The tile clears the clipboard and sends a `PendingIntent`
+  to `MainActivity` from a user tap (an allowed background-launch exception);
+  no receiver, background service, new permission or headless engine is added.
+  The accepted tradeoff is that the unlock screen briefly appears.
+
+- **Linux releases carry a FUSE-free `.AppImage` alongside the tarball.**
+  `tool/build_linux_appimage.sh` assembles an AppDir from the unmodified Flutter
+  bundle, downloads `appimagetool` in CI, and uses `--appimage-extract` so the
+  runner needs no FUSE2. The app id stays `com.freesoftware.keyel`; OTA
+  manifests remain APK-only and desktop verification is unchanged. The tarball
+  stays as the portable fallback.
+
+- **The UX pass is token-driven, not a rebrand.** A single `KeyelStateMessage`
+  replaces ad-hoc loading/empty/error widgets, load errors are kept distinct
+  from "not found", passkey lookups clear stale matches on failure, and Back /
+  Close controls use `KeyelTopBar.iconTooltip` (including OTA, now off
+  `AppBar`). Existing `KeyelTheme` / `KeyelMotion` tokens are reused; no new
+  colour literals, schema or data-model changes.
+

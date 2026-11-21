@@ -5,6 +5,51 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-11-21
+
+One-tap lock, a runnable Linux AppImage, and a consistency pass over everyday
+screens. No vault schema change, no new Android permission, and no change to the
+offline-by-default promise.
+
+### Added
+
+- **One-tap lock on Android.** Long-press the app icon for *Lock vault*, or add
+  the *Lock Keyel* Quick Settings tile. Both wipe the clipboard natively and
+  then take the existing lock path: the Rust session key is dropped, revealed
+  secrets are hidden, and the app returns to the unlock screen. No new
+  permission, broadcast receiver or background service is introduced.
+- **Linux `.AppImage`.** Releases now include a single runnable
+  `keyel-v1.9.0-linux-x64.AppImage` alongside the portable `.tar.gz`. It needs
+  FUSE2 to double-click, or can be run with `--appimage-extract-and-run`. It is
+  built in CI from the same bundle as the tarball and listed in `checksums.txt`.
+
+### Changed
+
+- **Consistent loading, empty and error states.** A single shared state message
+  now backs the vault, item detail, folders, trash, autofill, passkeys, and the
+  security dashboard. Failed loads keep an inline retry instead of briefly
+  looking like an empty vault.
+- **"Not found" is no longer an error.** A missing item gets its own screen; a
+  failed read shows the underlying error with a retry. Back and Close controls
+  on secondary screens now have clear labels, and *Software Update* uses the
+  shared top bar.
+- **Accessibility coverage extended.** New and changed screens are checked at
+  200 % text scale and with reduced motion enabled.
+- Roadmap and decision notes record the reserved 1.6.0 lock idea shipping as
+  1.9.0 and the new release artifact.
+
+### Fixed
+
+- Starting a passkey ceremony for a different relying party no longer leaves
+  matches from the previous site on screen.
+
+### Security
+
+- One-tap lock never writes a native "locked" flag: the Rust session stays the
+  only source of truth, and unlocking still requires the master secret or
+  biometrics with the existing throttle. Screenshot-blocking defaults,
+  clipboard wipe and fail-closed OTA checksum verification are unchanged.
+
 ## [1.8.6] - 2026-11-20
 
 A small Appearance cleanup. No vault, security or permission changes.

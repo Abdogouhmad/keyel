@@ -22,6 +22,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
   List<EntrySummaryDto> _deleted = [];
   bool _loading = true;
   bool _busy = false;
+  String? _loadError;
 
   @override
   void initState() {
@@ -30,7 +31,10 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     try {
       final summaries = await ref
           .read(vaultRepositoryProvider)
@@ -42,7 +46,10 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
       });
     } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _loadError = describeVaultError(error);
+      });
       showKeyelSnack(
         context,
         describeVaultError(error),
@@ -158,6 +165,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
             KeyelTopBar(
               title: 'Trash',
               icon: Icons.arrow_back_rounded,
+              iconTooltip: 'Back',
               onIconTap: () => context.pop(),
               trailing: KeyelIconHull(
                 icon: Icons.delete_sweep_rounded,
@@ -178,7 +186,18 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
 
   Widget _buildBody(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const KeyelStateMessage(
+        kind: KeyelStateMessageKind.loading,
+        message: 'Loading deleted items…',
+      );
+    }
+    if (_loadError != null) {
+      return KeyelStateMessage(
+        kind: KeyelStateMessageKind.error,
+        message: _loadError!,
+        actionLabel: 'Retry',
+        onAction: () => unawaited(_load()),
+      );
     }
     if (_deleted.isEmpty) {
       return const TrashEmptyState();

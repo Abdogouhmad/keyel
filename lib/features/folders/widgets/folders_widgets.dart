@@ -79,39 +79,13 @@ class FoldersEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(KeyelSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.folder_open_rounded,
-              size: 56,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: KeyelSpacing.md),
-            Text(
-              'No folders yet',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.xs),
-            Text(
-              'Folders keep logins, cards and notes in tidy groups. Use the '
-              'button below to create the first one.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return const KeyelStateMessage(
+      kind: KeyelStateMessageKind.empty,
+      icon: Icons.folder_open_rounded,
+      title: 'No folders yet',
+      message:
+          'Folders keep logins, cards and notes in tidy groups. Use the '
+          'button below to create the first one.',
     );
   }
 }

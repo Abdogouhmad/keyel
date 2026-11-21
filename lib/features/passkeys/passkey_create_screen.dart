@@ -139,6 +139,7 @@ class _PasskeyCreateScreenState extends ConsumerState<PasskeyCreateScreen> {
               KeyelTopBar(
                 title: 'Save passkey',
                 icon: Icons.close_rounded,
+                iconTooltip: 'Cancel',
                 onIconTap: widget.onCancel,
               ),
               Expanded(

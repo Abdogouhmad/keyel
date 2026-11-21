@@ -11,6 +11,7 @@ import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.os.PersistableBundle
 import android.provider.Settings
 import android.view.WindowManager
@@ -18,6 +19,8 @@ import android.view.autofill.AutofillManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+
+import com.freesoftware.keyel.quicklock.LockController
 
 // local_auth drives the system BiometricPrompt, which requires the host
 // activity to be a FragmentActivity, so this extends FlutterFragmentActivity
@@ -27,6 +30,7 @@ class MainActivity : FlutterFragmentActivity() {
     private val notificationChannelName = "keyel/notifications"
 
     private var pendingNotificationPermissionResult: MethodChannel.Result? = null
+    private var pendingLockAction = false
 
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "keyel_updates"
@@ -34,8 +38,32 @@ class MainActivity : FlutterFragmentActivity() {
         private const val POST_NOTIFICATIONS_REQUEST_CODE = 4321
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (intent?.action == LockController.ACTION_LOCK) {
+            pendingLockAction = true
+            LockController.clearClipboard(this)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.action == LockController.ACTION_LOCK) {
+            LockController.clearClipboard(this)
+            pendingLockAction = true
+            LockController.notifyLockRequested()
+        }
+    }
+
+    override fun onDestroy() {
+        LockController.detach()
+        super.onDestroy()
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        LockController.attach(flutterEngine.dartExecutor.binaryMessenger)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
@@ -74,9 +102,21 @@ class MainActivity : FlutterFragmentActivity() {
                     // "copied an empty text" notification after every wipe.
                     // clearPrimaryClip() removes the value without a copy event.
                     "clearSensitive" -> {
-                        val clipboard = getSystemService(ClipboardManager::class.java)
-                        clipboard.clearPrimaryClip()
+                        LockController.clearClipboard(this)
                         result.success(null)
+                    }
+
+                    // One-tap lock on a cold start: read and consume the action
+                    // so a later resume cannot lock the app again.
+                    "getInitialAction" -> {
+                        val action = if (pendingLockAction) {
+                            pendingLockAction = false
+                            intent?.action = null
+                            "lock"
+                        } else {
+                            null
+                        }
+                        result.success(action)
                     }
 
                     "isAutofillEnabled" -> {

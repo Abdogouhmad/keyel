@@ -393,17 +393,22 @@ class OtaPreferencesCard extends StatelessWidget {
             ],
           ),
           const Divider(height: KeyelSpacing.lg),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Check for updates automatically'),
-            subtitle: Text(
-              'Checks on launch and when you return, on the selected channel.',
-              style: textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
+          // A ListTile paints its ink on the nearest Material. The section card
+          // is a decorated box, so give the tile its own Material surface.
+          Material(
+            color: Colors.transparent,
+            child: SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Check for updates automatically'),
+              subtitle: Text(
+                'Checks on launch and when you return, on the selected channel.',
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
+              value: state.autoCheck,
+              onChanged: onAutoCheckChanged,
             ),
-            value: state.autoCheck,
-            onChanged: onAutoCheckChanged,
           ),
           if (state.autoCheck) ...[
             const SizedBox(height: KeyelSpacing.xs),

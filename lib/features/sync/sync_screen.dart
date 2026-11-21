@@ -283,6 +283,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                 child: KeyelTopBar(
                   title: 'Sync',
                   icon: Icons.arrow_back_rounded,
+                  iconTooltip: 'Back',
                   onIconTap: () => context.pop(),
                 ),
               ),

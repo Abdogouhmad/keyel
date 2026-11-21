@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/data/vault_repository.dart';
+import 'package:keyel/data/vault_session_provider.dart' show describeVaultError;
 import 'package:keyel/features/entry/vault_entry.dart';
 import 'package:keyel/features/vault/vault_list_callbacks.dart';
 import 'package:keyel/features/vault/widgets/vault_filter.dart';
@@ -27,6 +28,7 @@ class VaultListController extends ChangeNotifier {
   List<VaultEntry> _entries = [];
   List<FolderDto> _folders = [];
   bool _loading = false;
+  String? _loadError;
   VaultFilter _filter = VaultFilter.all;
   String _query = '';
   String? _folderId;
@@ -49,6 +51,12 @@ class VaultListController extends ChangeNotifier {
 
   /// Whether an entry list reload is in flight.
   bool get loading => _loading;
+
+  /// Human-readable message for the last failed load, or `null` on success.
+  ///
+  /// Kept in UI state so a load failure is never mistaken for an empty vault
+  /// once the transient snack bar disappears.
+  String? get loadError => _loadError;
 
   /// Currently selected filter family.
   VaultFilter get filter => _filter;
@@ -99,6 +107,7 @@ class VaultListController extends ChangeNotifier {
     _searchDebounceTimer = null;
     final generation = ++_loadGeneration;
     _loading = true;
+    _loadError = null;
     _notifyStateChanged();
     try {
       final summaries = await repository.listEntries(
@@ -152,7 +161,10 @@ class VaultListController extends ChangeNotifier {
         _selectedEntryId = _entries.isNotEmpty ? _entries.first.id : null;
       }
     } on Object catch (error) {
-      if (generation == _loadGeneration) callbacks.notifyError(error);
+      if (generation == _loadGeneration) {
+        _loadError = describeVaultError(error);
+        callbacks.notifyError(error);
+      }
     } finally {
       if (generation == _loadGeneration) {
         _loading = false;

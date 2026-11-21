@@ -23,7 +23,7 @@ name: release
 #     - Android: split-per-abi arm64-v8a + armeabi-v7a and a universal APK
 #       (the universal one is what the in-app OTA updater always downloads, and
 #       its asset name + sha256 land in update_manifest.json).
-#     - Linux (x64): a portable .tar.gz bundle.
+#     - Linux (x64): a portable .tar.gz bundle and a runnable .AppImage.
 #     - Windows (x64): a portable .zip AND a real .exe installer (Inno Setup),
 #       so a user can double-click to install rather than unpack an archive.
 #     - macOS (universal x86_64+arm64): a .app .zip AND a drag-to-install .dmg.
@@ -277,7 +277,8 @@ jobs:
         if: matrix.target == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev \
+            file squashfs-tools desktop-file-utils
 
       - name: Determine version
         id: version
@@ -307,6 +308,17 @@ jobs:
           mkdir -p dist
           tar -czf "dist/keyel-v${{ steps.version.outputs.version }}-linux-x64.tar.gz" \
             -C "${{ matrix.bundle }}" .
+
+      # appimagetool is downloaded and extracted by the helper, so no FUSE2 is
+      # needed on the runner and no third-party binary is committed to the repo.
+      - name: Build Linux AppImage (.AppImage)
+        if: matrix.target == 'linux'
+        shell: bash
+        run: |
+          bash ./tool/build_linux_appimage.sh \
+            --bundle "${{ matrix.bundle }}" \
+            --version "${{ steps.version.outputs.version }}" \
+            --output "dist/keyel-v${{ steps.version.outputs.version }}-linux-x64.AppImage"
 
       - name: Package Windows bundle
         if: matrix.target == 'windows'
@@ -444,15 +456,16 @@ jobs:
           shopt -s nullglob
           apks=(dist/*.apk)          # arm64-v8a, armeabi-v7a, universal
           zips=(dist/*.zip)          # Windows portable + macOS .app
-          tars=(dist/*.tar.gz)       # Linux
+          tars=(dist/*.tar.gz)       # Linux portable bundle
+          appimages=(dist/*.AppImage) # Linux runnable AppImage
           exes=(dist/*setup.exe)     # Windows installer
           dmgs=(dist/*.dmg)          # macOS disk image
           if (( ${#apks[@]} < 3 || ${#zips[@]} < 2 || ${#tars[@]} < 1 \
-                || ${#exes[@]} < 1 || ${#dmgs[@]} < 1 )); then
-            echo "::error::Expected 3 APKs, 2 zips, 1 tarball, 1 .exe installer and 1 .dmg; found: $(ls dist)"
+                || ${#appimages[@]} < 1 || ${#exes[@]} < 1 || ${#dmgs[@]} < 1 )); then
+            echo "::error::Expected 3 APKs, 2 zips, 1 tarball, 1 .AppImage, 1 .exe installer and 1 .dmg; found: $(ls dist)"
             exit 1
           fi
-          artifacts=(dist/*.apk dist/*.zip dist/*.tar.gz dist/*setup.exe dist/*.dmg dist/checksums.txt)
+          artifacts=(dist/*.apk dist/*.zip dist/*.tar.gz dist/*.AppImage dist/*setup.exe dist/*.dmg dist/checksums.txt)
 
           # Beta is a GitHub prerelease; stable keeps the exact original
           # `gh release create` invocation (no extra flag).

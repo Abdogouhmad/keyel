@@ -102,6 +102,7 @@ class FoldersScreen extends ConsumerWidget {
             KeyelTopBar(
               title: 'Folders',
               icon: Icons.arrow_back_rounded,
+              iconTooltip: 'Back',
               onIconTap: () => context.pop(),
               trailing: KeyelIconHull(
                 icon: Icons.create_new_folder_rounded,
@@ -112,13 +113,15 @@ class FoldersScreen extends ConsumerWidget {
             Expanded(
               child: KeyelContent(
                 child: folders.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(KeyelSpacing.xl),
-                      child: Text(describeVaultError(error)),
-                    ),
+                  loading: () => const KeyelStateMessage(
+                    kind: KeyelStateMessageKind.loading,
+                    message: 'Loading folders…',
+                  ),
+                  error: (error, _) => KeyelStateMessage(
+                    kind: KeyelStateMessageKind.error,
+                    message: describeVaultError(error),
+                    actionLabel: 'Retry',
+                    onAction: () => ref.invalidate(foldersProvider),
                   ),
                   data: (items) {
                     if (items.isEmpty) {

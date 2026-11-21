@@ -205,6 +205,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
             KeyelTopBar(
               title: 'Generator',
               icon: Icons.password_rounded,
+              iconTooltip: 'About generation',
               onIconTap: () => showKeyelSnack(
                 context,
                 'Keyel always generates locally on your device.',

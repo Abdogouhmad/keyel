@@ -39,11 +39,30 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <!-- One-tap lock from the launcher: long-press the app icon. -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Quick Settings tile. BIND_QUICK_SETTINGS_TILE is a permission the
+             system must hold to bind to us, not one we request. The tile sends
+             the same lock action as the launcher shortcut; no receiver or
+             background service is registered. -->
+        <service
+            android:name=".quicklock.KeyelLockTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_quick_lock"
+            android:label="@string/quick_lock_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <!-- Autofill service declaration.
              BIND_AUTOFILL_SERVICE restricts who can bind to us: only the

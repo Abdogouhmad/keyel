@@ -52,11 +52,16 @@ class SecurityScreen extends ConsumerWidget {
             Expanded(
               child: KeyelContent(
                 child: health.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => _HealthError(
+                  loading: () => const KeyelStateMessage(
+                    kind: KeyelStateMessageKind.loading,
+                    message: 'Checking your vault health…',
+                  ),
+                  error: (error, _) => KeyelStateMessage(
+                    kind: KeyelStateMessageKind.error,
+                    title: 'Could not check vault health',
                     message: describeVaultError(error),
-                    onRetry: () => ref.invalidate(healthProvider),
+                    actionLabel: 'Retry',
+                    onAction: () => ref.invalidate(healthProvider),
                   ),
                   data: (report) => _Dashboard(
                     report: report,
@@ -133,50 +138,6 @@ class _Dashboard extends StatelessWidget {
         const SecurityTipCard(),
         const SizedBox(height: KeyelSpacing.md),
       ],
-    );
-  }
-}
-
-class _HealthError extends StatelessWidget {
-  const new({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(KeyelSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 40,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: KeyelSpacing.md),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.md),
-            KeyelPillButton(
-              label: 'Try again',
-              icon: Icons.refresh_rounded,
-              tone: KeyelButtonTone.neutral,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

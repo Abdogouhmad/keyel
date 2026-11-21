@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quick_lock_tile_label">Lock vault</string>
+    <string name="lock_shortcut_short_label">Lock</string>
+    <string name="lock_shortcut_long_label">Lock vault now</string>
+</resources>

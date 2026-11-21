@@ -177,9 +177,22 @@ reveals on demand and clears the clipboard after a delay.
   the vault locks or the app backgrounds: `EntryDetailController.hideAll()` is
   driven by a `ref.listen` on session status, and `KeyelPasswordField` re-masks
   any manually revealed password after the same delay.
+- Since 1.9.0 a one-tap lock is available from the launcher shortcut and the
+  Quick Settings tile. Both wipe the clipboard natively *before* Flutter runs,
+  then call the unchanged `VaultSessionNotifier.lock()` path so the Rust session
+  key is dropped and reveals are hidden. The tile does not touch the session
+  directly: it launches `MainActivity` with the lock action, avoiding the
+  "engine destroyed but process alive" gap a standalone tile would create. No
+  persistent "locked" flag is written, so a stale marker can never stand in for
+  a real zeroization. Unlock still requires the master secret or biometrics and
+  the unlock throttle is untouched.
 
 *Open:* an on-device check that `FLAG_SECURE` is actually engaged on every
-secret-bearing screen.
+secret-bearing screen, plus a device smoke test of the one-tap lock clipboard
+wipe on API 26/27 and from the lock screen. Also worth exercising a lock request
+while an autofill/passkey activity is overlaying `MainActivity`: the Rust
+session is process-global and is still dropped, but the overlay's own isolate
+can briefly hold stale unlocked UI until it closes.
 
 ### T6 — Malformed or malicious vault bytes (A4)
 

@@ -53,11 +53,16 @@ class AutofillMismatchBanner extends StatelessWidget {
 class AutofillCenteredNote extends StatelessWidget {
   /// Creates a centered note.
   const new({
+    required this.kind,
     required this.icon,
     required this.title,
     required this.body,
+    this.onRetry,
     super.key,
   });
+
+  /// Which state is being shown.
+  final KeyelStateMessageKind kind;
 
   /// Leading icon.
   final IconData icon;
@@ -68,31 +73,18 @@ class AutofillCenteredNote extends StatelessWidget {
   /// Supporting message.
   final String body;
 
+  /// Optional retry handler; shows a Retry button when provided.
+  final VoidCallback? onRetry;
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(KeyelSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 40, color: scheme.onSurfaceVariant),
-            const SizedBox(height: KeyelSpacing.sm),
-            Text(title, style: textTheme.titleMedium),
-            const SizedBox(height: KeyelSpacing.xs),
-            Text(
-              body,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return KeyelStateMessage(
+      kind: kind,
+      icon: icon,
+      title: title,
+      message: body,
+      actionLabel: onRetry == null ? null : 'Retry',
+      onAction: onRetry,
     );
   }
 }
@@ -106,6 +98,7 @@ class AutofillPickerBody extends StatelessWidget {
     required this.matches,
     required this.onPick,
     this.error,
+    this.onRetry,
     super.key,
   });
 
@@ -124,10 +117,14 @@ class AutofillPickerBody extends StatelessWidget {
   /// Error message, if loading failed.
   final String? error;
 
+  /// Optional retry handler for a failed load.
+  final VoidCallback? onRetry;
+
   @override
   Widget build(BuildContext context) {
     if (!unlocked) {
       return const AutofillCenteredNote(
+        kind: KeyelStateMessageKind.empty,
         icon: Icons.lock_rounded,
         title: 'Vault locked',
         body: 'Unlock Keyel to fill this form.',
@@ -135,16 +132,22 @@ class AutofillPickerBody extends StatelessWidget {
     }
     if (error != null) {
       return AutofillCenteredNote(
+        kind: KeyelStateMessageKind.error,
         icon: Icons.error_outline_rounded,
         title: 'Could not load matches',
         body: error!,
+        onRetry: onRetry,
       );
     }
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const KeyelStateMessage(
+        kind: KeyelStateMessageKind.loading,
+        message: 'Finding matching logins…',
+      );
     }
     if (matches.isEmpty) {
       return const AutofillCenteredNote(
+        kind: KeyelStateMessageKind.empty,
         icon: Icons.search_off_rounded,
         title: 'No matching logins',
         body: 'Create a new login for this app or site.',

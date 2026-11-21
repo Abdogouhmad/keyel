@@ -138,7 +138,20 @@ class VaultListPane extends StatelessWidget {
         if (controller.loading)
           const SliverFillRemaining(
             hasScrollBody: false,
-            child: Center(child: CircularProgressIndicator()),
+            child: KeyelStateMessage(
+              kind: KeyelStateMessageKind.loading,
+              message: 'Loading your vault…',
+            ),
+          )
+        else if (controller.loadError != null)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: KeyelStateMessage(
+              kind: KeyelStateMessageKind.error,
+              message: controller.loadError!,
+              actionLabel: 'Retry',
+              onAction: () => unawaited(controller.load()),
+            ),
           )
         else if (entries.isEmpty)
           SliverFillRemaining(

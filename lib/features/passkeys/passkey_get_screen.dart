@@ -73,8 +73,23 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
     unawaited(_load());
   }
 
+  @override
+  void didUpdateWidget(covariant PasskeyGetScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new ceremony can target a different relying party. Reload so matches
+    // from the previous RP can never be selected for the new request.
+    if (oldWidget.rpId != widget.rpId ||
+        oldWidget.requestJson != widget.requestJson) {
+      unawaited(_load());
+    }
+  }
+
   Future<void> _load() async {
     final rpId = _effectiveRpId;
+    setState(() {
+      _error = null;
+      _matches = const [];
+    });
     if (rpId.isEmpty) {
       setState(() {
         _loading = false;
@@ -97,6 +112,8 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
     } on Object catch (e) {
       if (!mounted) return;
       setState(() {
+        // Never leave stale credentials visible under a hidden load error.
+        _matches = const [];
         _loading = false;
         _error = describeVaultError(e);
       });
@@ -147,6 +164,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
               KeyelTopBar(
                 title: 'Use passkey',
                 icon: Icons.close_rounded,
+                iconTooltip: 'Cancel',
                 onIconTap: widget.onCancel,
               ),
               Padding(
@@ -169,19 +187,27 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
               ),
               if (_loading)
                 const Expanded(
-                  child: Center(child: CircularProgressIndicator()),
+                  child: KeyelStateMessage(
+                    kind: KeyelStateMessageKind.loading,
+                    message: 'Finding passkeys…',
+                  ),
+                )
+              else if (_error != null)
+                Expanded(
+                  child: KeyelStateMessage(
+                    kind: KeyelStateMessageKind.error,
+                    message: _error!,
+                    actionLabel: 'Retry',
+                    onAction: () => unawaited(_load()),
+                  ),
                 )
               else
                 Expanded(
                   child: _matches.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(KeyelSpacing.lg),
-                          child: Text(
-                            _error ?? 'No passkeys available for $rpId.',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
+                      ? KeyelStateMessage(
+                          kind: KeyelStateMessageKind.empty,
+                          title: 'No passkeys available',
+                          message: 'No passkeys are saved for $rpId.',
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(KeyelSpacing.md),

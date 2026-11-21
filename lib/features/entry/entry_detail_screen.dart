@@ -132,10 +132,27 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
     final entry = _controller.entry;
     final detail = _controller.detail;
+    // Loading and error states need the same themed surface and safe area as
+    // DetailScaffold; on compact screens KeyelSubShell passes us through bare.
     if (_controller.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const _EntryStateScaffold(
+        child: KeyelStateMessage(
+          kind: KeyelStateMessageKind.loading,
+          message: 'Loading entry…',
+        ),
+      );
     }
-    if (entry == null || detail == null) {
+    if (_controller.loadError != null) {
+      return _EntryStateScaffold(
+        child: KeyelStateMessage(
+          kind: KeyelStateMessageKind.error,
+          message: _controller.loadError!,
+          actionLabel: 'Retry',
+          onAction: () => unawaited(_controller.load()),
+        ),
+      );
+    }
+    if (_controller.missing || entry == null || detail == null) {
       return MissingEntry(entryId: widget.entryId);
     }
 
@@ -162,4 +179,17 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       onOpenUrl: _controller.openUrl,
     );
   }
+}
+
+/// Themed surface for the entry's loading and inline-error states.
+class _EntryStateScaffold extends StatelessWidget {
+  const new({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    body: SafeArea(child: child),
+  );
 }

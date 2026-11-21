@@ -30,6 +30,7 @@ class AppearanceScreen extends ConsumerWidget {
                 child: KeyelTopBar(
                   title: 'Appearance',
                   icon: Icons.arrow_back_rounded,
+                  iconTooltip: 'Back',
                   onIconTap: () => context.pop(),
                 ),
               ),

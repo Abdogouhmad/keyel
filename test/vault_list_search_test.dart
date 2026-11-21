@@ -34,6 +34,23 @@ class _ControlledRepository extends VaultRepository {
   Future<List<FolderDto>> listFolders() async => const [];
 }
 
+/// Repository whose reads fail, used to prove load errors are kept in UI state.
+class _FailingRepository extends VaultRepository {
+  @override
+  bool get isUnlocked => true;
+
+  @override
+  Future<List<EntrySummaryDto>> listEntries({
+    String query = '',
+    EntryKindDto? kind,
+    bool? favorite,
+    bool includeDeleted = false,
+  }) => Future<List<EntrySummaryDto>>.error(StateError('disk unavailable'));
+
+  @override
+  Future<List<FolderDto>> listFolders() async => const [];
+}
+
 EntrySummaryDto _summary(String id, String title) => EntrySummaryDto(
   id: id,
   kind: EntryKindDto.login,
@@ -100,6 +117,30 @@ void main() {
     expect(controller.entries.map((e) => e.id), ['new']);
     expect(rebuilds, greaterThan(0));
   });
+
+  test(
+    'a failed load is exposed as inline error state, not an empty vault',
+    () async {
+      final failing = _FailingRepository();
+      final failingController = VaultListController(
+        repository: failing,
+        callbacks: VaultListCallbacks(
+          rebuild: () => rebuilds++,
+          notify: (_, {icon, actionLabel, onAction}) {},
+          notifyError: (_) {},
+          confirmDelete: (_) async => true,
+          pickFolder: () async => null,
+          copy: (_, _) {},
+        ),
+      );
+      addTearDown(failingController.dispose);
+
+      await failingController.load();
+
+      expect(failingController.loadError, isNotNull);
+      expect(failingController.entries, isEmpty);
+    },
+  );
 
   test('selection pruning uses visible ids, not nested scans', () async {
     final load = controller.load();

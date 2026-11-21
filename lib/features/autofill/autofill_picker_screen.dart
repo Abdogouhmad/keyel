@@ -189,6 +189,7 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
               KeyelTopBar(
                 title: 'Fill from Keyel',
                 icon: Icons.close_rounded,
+                iconTooltip: 'Cancel',
                 onIconTap: () => _close(null),
               ),
               Padding(
@@ -237,6 +238,7 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
                   error: _error,
                   matches: _matches,
                   onPick: _pick,
+                  onRetry: () => unawaited(_load()),
                 ),
               ),
               if (unlocked)

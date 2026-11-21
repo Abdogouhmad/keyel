@@ -17,6 +17,7 @@ export 'design_system/keyel_entry_tile.dart';
 export 'design_system/keyel_password_field.dart';
 export 'design_system/keyel_search_field.dart';
 export 'design_system/keyel_snackbar.dart';
+export 'design_system/keyel_state_message.dart';
 export 'design_system/keyel_strength_meter.dart';
 export 'design_system/keyel_surfaces.dart';
 export 'design_system/keyel_top_bar.dart';

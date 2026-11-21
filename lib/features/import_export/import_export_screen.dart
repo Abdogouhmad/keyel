@@ -232,6 +232,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
             KeyelTopBar(
               title: 'Backup & import',
               icon: Icons.arrow_back_rounded,
+              iconTooltip: 'Back',
               onIconTap: () => context.pop(),
             ),
             if (_busy)

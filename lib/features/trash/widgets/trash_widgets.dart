@@ -114,39 +114,13 @@ class TrashEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(KeyelSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.delete_outline_rounded,
-              size: 56,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: KeyelSpacing.md),
-            Text(
-              'Trash is empty',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: KeyelSpacing.xs),
-            Text(
-              'Deleted entries appear here for 30 days before they are '
-              'removed permanently.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return const KeyelStateMessage(
+      kind: KeyelStateMessageKind.empty,
+      icon: Icons.delete_outline_rounded,
+      title: 'Trash is empty',
+      message:
+          'Deleted entries appear here for 30 days before they are '
+          'removed permanently.',
     );
   }
 }

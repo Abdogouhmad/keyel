@@ -659,8 +659,12 @@ and macOS desktop builds beside the Linux one.
 | 2.1 | Wear OS companion for TOTP |
 
 > **Update (2026-11-20):** the breach-check idea in this table is now version
-> **1.7.0**, scoped in [`docs/roadmap_1.7.0.md`](roadmap_1.7.0.md). Version
-> 1.6.0 (one-tap lock / shortcuts / widgets) remains reserved and not started.
+> **1.7.0**, scoped in [`docs/roadmap_1.7.0.md`](roadmap_1.7.0.md).
+>
+> **Update (2026-11-21):** the reserved 1.6.0 one-tap lock / quick-access idea
+> is now shipping as **1.9.0**, scoped in
+> [`docs/roadmap_1.9.0.md`](roadmap_1.9.0.md). It covers the lock shortcut and
+> Quick Settings tile; the generator shortcut and widgets stay ideas.
 
 ---
 

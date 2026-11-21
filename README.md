@@ -74,7 +74,7 @@ Grab the latest build from **[Releases](https://github.com/Abdogouhmad/keyel/rel
 | **Android** | `keyel-v<version>-universal.apk` | One APK for every device. `arm64-v8a` / `armeabi-v7a` splits are also published. |
 | **Windows** | `keyel-v<version>-windows-x64-setup.exe` | Double-click installer (per-user, no admin prompt). A portable `.zip` is also published. |
 | **macOS** | `keyel-v<version>-macos-universal.dmg` | Universal (Apple Silicon + Intel). Open the `.dmg` and drag **Keyel** to *Applications*. |
-| **Linux** | `keyel-v<version>-linux-x64.tar.gz` | Unpack and run `bundle/keyel`. |
+| **Linux** | `keyel-v<version>-linux-x64.AppImage` | Single runnable file: `chmod +x` it and double-click (needs FUSE2), or run `./keyel-v<version>-linux-x64.AppImage --appimage-extract-and-run`. A portable `.tar.gz` is also published. |
 
 Every release also ships `checksums.txt`. Verify before you run:
 
@@ -213,6 +213,7 @@ See [`docs/plan.md §5`](docs/plan.md) for the full structure. Quick tour:
 | `rust/` | FRB bridge crate — the *only* surface exposed to Dart |
 | `lib/` | Flutter app (features, ui, data, core) |
 | `packaging/` | Native installers (Inno Setup for Windows) |
+| `tool/build_linux_appimage.sh` | Builds the Linux `.AppImage` from a Flutter release bundle |
 | `docs/` | plan, design spec, crypto spec, threat model, roadmap, decision log |
 | `design/` | App icon and Stitch UI screens |
 

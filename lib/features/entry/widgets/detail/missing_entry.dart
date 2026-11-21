@@ -14,26 +14,28 @@ class MissingEntry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Item not found')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(KeyelSpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.search_off_rounded, size: 56),
-              const SizedBox(height: KeyelSpacing.md),
-              Text(
-                'No entry with ID "$entryId" exists.',
-                textAlign: TextAlign.center,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            KeyelTopBar(
+              title: 'Item not found',
+              icon: Icons.arrow_back_rounded,
+              iconTooltip: 'Back',
+              onIconTap: () => context.pop(),
+            ),
+            const SizedBox(height: KeyelSpacing.lg),
+            Expanded(
+              child: KeyelStateMessage(
+                kind: KeyelStateMessageKind.empty,
+                message: 'No entry with ID "$entryId" exists.',
+                actionLabel: 'Go back',
+                actionIcon: Icons.arrow_back_rounded,
+                onAction: () => context.pop(),
               ),
-              const SizedBox(height: KeyelSpacing.md),
-              FilledButton(
-                onPressed: () => context.pop(),
-                child: const Text('Go back'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
