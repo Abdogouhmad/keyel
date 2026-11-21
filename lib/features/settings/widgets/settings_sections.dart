@@ -501,7 +501,7 @@ class SettingsWatchSection extends StatelessWidget {
               title: l10n.wearTitle,
               subtitle: l10n.wearInfo,
               trailing: Text(l10n.actionOpen),
-              onTap: () => context.go(KeyelRoutes.watchCodes),
+              onTap: () => unawaited(context.push(KeyelRoutes.watchCodes)),
             ),
           ],
         ),

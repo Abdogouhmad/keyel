@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/security/screenshot_protection_host.dart';
-import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/breach_provider.dart';
+import 'package:keyel/data/security_settings_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart'
     show autoLockLabel, clipboardLabel;
 import 'package:keyel/ui/keyel.dart';
@@ -79,23 +79,22 @@ class SecurityPosture {
 
 /// Connects the posture card to the same non-secret state the features use.
 ///
-/// Auto-lock and clipboard values come from [AppPreferences] (the source the
-/// settings screen writes); the breach and screenshot flags are Riverpod
-/// providers so toggling them updates this card immediately. No state is
-/// duplicated.
+/// Every value is read from a Riverpod provider, so changing a setting on the
+/// Settings screen updates this card immediately. The preferences singleton is
+/// the persisted source of truth behind the reactive mirrors.
 class SecurityPostureCardConnector extends ConsumerWidget {
   /// Creates the connected posture card.
   const new({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final prefs = AppPreferences.instance;
+    final securitySettings = ref.watch(securitySettingsProvider);
     final optedIn = ref.watch(breachOptInProvider);
     final screenshotsBlocked = ref.watch(screenshotProtectionProvider);
 
     final l10n = l10nOf(context);
-    final lockLabel = autoLockLabel(prefs.autoLockDelay);
-    final clipboardSeconds = prefs.clipboardClearSeconds;
+    final lockLabel = autoLockLabel(securitySettings.autoLockDelay);
+    final clipboardSeconds = securitySettings.clipboardClearSeconds;
     final clipboardActive = clipboardSeconds > 0;
     final clipboardValue = clipboardActive
         ? clipboardLabel(clipboardSeconds)

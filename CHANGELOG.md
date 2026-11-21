@@ -5,6 +5,28 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.2] - 2026-11-21
+
+Follow-up fixes to 1.10.0. No vault schema change and no weakening of the lock,
+autofill, clipboard, screenshot or OTA guarantees.
+
+### Fixed
+
+- **Wear OS screen has a back arrow.** Settings → Wear OS now opens the page as
+  a pushed sub-route with the shared top bar, so the back action returns to
+  Settings instead of leaving the page without a title-bar control.
+- **Security dashboard tracks auto-lock and clipboard changes.** Both values
+  are now exposed through a reactive provider watched by Settings and the
+  vault-posture card. Changing either one updates security health immediately
+  instead of leaving the last built value on screen.
+
+### Changed
+
+- **Login entry detail polish.** Credential fields gained leading glyphs, a
+  revealed password is subtly tinted, and the password-health card now sits
+  directly below the credentials so strength feedback appears as soon as the
+  secret is revealed. All copy, reveal and open actions are unchanged.
+
 ## [1.10.0] - 2026-11-21
 
 English/French localization with RTL-ready layouts, the three autofill gaps
