@@ -59,6 +59,7 @@ class CredentialsCard extends StatelessWidget {
           if (username.isNotEmpty)
             KeyelFieldSurface(
               label: l10n.fieldUsername,
+              leading: _FieldIcon(Icons.person_outline_rounded, scheme),
               trailing: KeyelIconHull(
                 icon: Icons.content_copy_rounded,
                 tooltip: l10n.entryCopyUsername,
@@ -78,6 +79,12 @@ class CredentialsCard extends StatelessWidget {
           if (username.isNotEmpty) const SizedBox(height: KeyelSpacing.sm + 4),
           KeyelFieldSurface(
             label: l10n.fieldPassword,
+            leading: _FieldIcon(Icons.key_rounded, scheme),
+            // A revealed secret gets a soft tint so its sensitive state is
+            // obvious at a glance without exposing it to a screenshot buffer.
+            color: isRevealed
+                ? scheme.primaryContainer.withValues(alpha: 0.45)
+                : null,
             trailing: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
@@ -134,6 +141,7 @@ class CredentialsCard extends StatelessWidget {
               semanticLabel: l10n.entryOpenWebsite,
               child: KeyelFieldSurface(
                 label: l10n.entryWebsiteUrl,
+                leading: _FieldIcon(Icons.language_rounded, scheme),
                 trailing: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
@@ -185,4 +193,23 @@ class CredentialsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Small tonal glyph tile that anchors a credential field.
+class _FieldIcon extends StatelessWidget {
+  const new(this.icon, this.scheme);
+
+  final IconData icon;
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      color: scheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(KeyelRadii.field),
+    ),
+    child: Icon(icon, size: 20, color: scheme.primary),
+  );
 }

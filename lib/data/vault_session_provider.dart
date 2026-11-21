@@ -6,6 +6,7 @@ import 'package:keyel/core/platform/biometric_auth.dart';
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/security/unlock_throttle.dart';
 import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/security_settings_provider.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/src/rust/api/error.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
@@ -67,11 +68,11 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
   StreamSubscription<String>? _lockSubscription;
   Timer? _autoLockTimer;
   DateTime? _backgroundedAt;
-  Duration _autoLockDelay = AppPreferences.instance.autoLockDelay;
   final UnlockThrottle _throttle = UnlockThrottle();
 
   /// How long the app may stay in the background before locking.
-  Duration get autoLockDelay => _autoLockDelay;
+  Duration get autoLockDelay =>
+      ref.read(securitySettingsProvider).autoLockDelay;
 
   /// How long the user must wait before the next master-password attempt.
   ///
@@ -83,11 +84,8 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
   bool get isUnlockThrottled => _throttle.isLocked(DateTime.now());
 
   /// Change the auto-lock delay (options: immediately, 30 s, 1/5/15 min).
-  void setAutoLockDelay(Duration delay) {
-    _autoLockDelay = delay;
-    AppPreferences.instance.autoLockDelay = delay;
-    unawaited(AppPreferences.instance.save());
-  }
+  void setAutoLockDelay(Duration delay) =>
+      ref.read(securitySettingsProvider.notifier).setAutoLockDelay(delay);
 
   @override
   VaultSessionState build() {
@@ -113,11 +111,12 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     _wipeClipboard();
     _backgroundedAt = DateTime.now();
     _autoLockTimer?.cancel();
-    if (_autoLockDelay == Duration.zero) {
+    final delay = autoLockDelay;
+    if (delay == Duration.zero) {
       lock();
       return;
     }
-    _autoLockTimer = Timer(_autoLockDelay, lock);
+    _autoLockTimer = Timer(delay, lock);
   }
 
   /// Lock immediately if the background allowance elapsed while paused.
@@ -127,7 +126,7 @@ class VaultSessionNotifier extends Notifier<VaultSessionState> {
     final since = _backgroundedAt;
     _backgroundedAt = null;
     if (since == null || state.status != VaultStatus.unlocked) return;
-    if (DateTime.now().difference(since) >= _autoLockDelay) lock();
+    if (DateTime.now().difference(since) >= autoLockDelay) lock();
   }
 
   void _listenForLockEvents() {

@@ -14,6 +14,7 @@ import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/file_transfer_service.dart';
+import 'package:keyel/data/security_settings_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart';
 import 'package:keyel/features/settings/widgets/settings_help_sheet.dart';
@@ -234,6 +235,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final otaState = ref.watch(otaProvider);
     final appearance = ref.watch(appearanceProvider);
     final screenshotProtection = ref.watch(screenshotProtectionProvider);
+    final securitySettings = ref.watch(securitySettingsProvider);
     // The security dashboard links here with ?from=security. Show a real back
     // arrow for that entry so the user can return to where they came from.
     final returnToSecurity =
@@ -324,11 +326,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       status: sessionStatus,
                       biometricBusy: _biometricBusy,
                       biometricEnabled: _biometricEnabled,
-                      autoLockDelay: ref
-                          .read(vaultSessionProvider.notifier)
-                          .autoLockDelay,
-                      clipboardSeconds:
-                          AppPreferences.instance.clipboardClearSeconds,
+                      autoLockDelay: securitySettings.autoLockDelay,
+                      clipboardSeconds: securitySettings.clipboardClearSeconds,
                       screenshotProtection: screenshotProtection,
                       onLockNow: () {
                         ref.read(vaultSessionProvider.notifier).lock();
@@ -347,7 +346,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onToggleBiometric: (value) =>
                           unawaited(_toggleBiometric(enable: value)),
                       onClipboard: () async {
-                        await showClipboardDialog(context);
+                        await showClipboardDialog(context, ref);
                         if (mounted) setState(() {});
                       },
                       onScreenshotProtectionChanged: (value) =>

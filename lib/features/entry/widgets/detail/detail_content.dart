@@ -121,6 +121,13 @@ class DetailContent extends StatelessWidget {
             )
           else
             _PasskeyDetails(detail: detail, onCopy: onCopy),
+          // For logins the health card sits directly under the credentials:
+          // revealing a password then shows its strength immediately, without
+          // scrolling past the TOTP and custom-field sections first.
+          if (entry.kind == VaultEntryKind.login) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            HealthCard(entry: entry, revealedPassword: revealedPassword),
+          ],
           if (entry.kind == VaultEntryKind.login &&
               detail.login?.totpAlgorithm != null) ...[
             const SizedBox(height: KeyelSpacing.md),
@@ -140,8 +147,10 @@ class DetailContent extends StatelessWidget {
               onOpenUrl: onOpenUrl,
             ),
           ],
-          const SizedBox(height: KeyelSpacing.md),
-          HealthCard(entry: entry, revealedPassword: revealedPassword),
+          if (entry.kind != VaultEntryKind.login) ...[
+            const SizedBox(height: KeyelSpacing.md),
+            HealthCard(entry: entry, revealedPassword: revealedPassword),
+          ],
           if (detail.hasNotes) ...[
             const SizedBox(height: KeyelSpacing.md),
             NotesCard(entryId: detail.id, onCopy: onCopy),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/wear/watch_totp_service.dart';
@@ -92,64 +93,80 @@ class _WatchCodesScreenState extends ConsumerState<WatchCodesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = l10nOf(context);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.wearTitle)),
+      backgroundColor: scheme.surface,
       body: SafeArea(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  KeyelSectionCard(
-                    icon: Icons.watch_rounded,
-                    title: l10n.wearTitle,
-                    child: Text(
-                      _available ? l10n.wearInfo : l10n.wearUnavailable,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_entries.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      child: Center(
-                        child: Text(
-                          l10n.wearEmpty,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
+        bottom: false,
+        child: Column(
+          children: [
+            KeyelTopBar(
+              title: l10n.wearTitle,
+              icon: Icons.arrow_back_rounded,
+              iconTooltip: l10n.actionBack,
+              onIconTap: () => context.pop(),
+            ),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      padding: const EdgeInsets.all(KeyelSpacing.lg),
+                      children: [
+                        KeyelSectionCard(
+                          icon: Icons.watch_rounded,
+                          title: l10n.wearTitle,
+                          child: Text(
+                            _available ? l10n.wearInfo : l10n.wearUnavailable,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                         ),
-                      ),
-                    )
-                  else
-                    ..._entries.map(
-                      (entry) => ListTile(
-                        leading: const Icon(Icons.password_outlined),
-                        title: Text(entry.title),
-                        subtitle: Text(entry.subtitle),
-                        trailing: _busyId == entry.id
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : TextButton(
-                                onPressed: _available
-                                    ? () => _send(entry)
-                                    : null,
-                                child: Text(l10n.wearSend),
+                        const SizedBox(height: KeyelSpacing.lg),
+                        if (_entries.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: KeyelSpacing.xxl * 2,
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.wearEmpty,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
-                      ),
+                            ),
+                          )
+                        else
+                          ..._entries.map(
+                            (entry) => ListTile(
+                              leading: const Icon(Icons.password_outlined),
+                              title: Text(entry.title),
+                              subtitle: Text(entry.subtitle),
+                              trailing: _busyId == entry.id
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : TextButton(
+                                      onPressed: _available
+                                          ? () => _send(entry)
+                                          : null,
+                                      child: Text(l10n.wearSend),
+                                    ),
+                            ),
+                          ),
+                        const SizedBox(height: KeyelSpacing.lg),
+                        OutlinedButton.icon(
+                          onPressed: _available ? _clearAll : null,
+                          icon: const Icon(Icons.watch_off_outlined),
+                          label: Text(l10n.wearClearAll),
+                        ),
+                      ],
                     ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _available ? _clearAll : null,
-                    icon: const Icon(Icons.watch_off_outlined),
-                    label: Text(l10n.wearClearAll),
-                  ),
-                ],
-              ),
+            ),
+          ],
+        ),
       ),
     );
   }

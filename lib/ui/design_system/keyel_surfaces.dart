@@ -92,6 +92,7 @@ class KeyelFieldSurface extends StatelessWidget {
   const new({
     required this.label,
     required this.child,
+    this.leading,
     this.trailing,
     this.color,
     this.padding = const EdgeInsets.symmetric(
@@ -106,6 +107,12 @@ class KeyelFieldSurface extends StatelessWidget {
 
   /// Value / editable content.
   final Widget child;
+
+  /// Optional glyph anchored to the start of the field.
+  ///
+  /// Flutter mirrors the row in RTL layouts, so the glyph follows reading
+  /// direction automatically.
+  final Widget? leading;
 
   /// Optional action anchored to the right.
   final Widget? trailing;
@@ -129,6 +136,10 @@ class KeyelFieldSurface extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: KeyelSpacing.sm + 2),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

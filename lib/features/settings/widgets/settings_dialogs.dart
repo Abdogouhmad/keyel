@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/security_settings_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
@@ -159,9 +159,8 @@ String _clipboardLabel(int seconds) {
 }
 
 /// Shows the clipboard clear timeout picker.
-Future<void> showClipboardDialog(BuildContext context) async {
-  final prefs = AppPreferences.instance;
-  final current = prefs.clipboardClearSeconds;
+Future<void> showClipboardDialog(BuildContext context, WidgetRef ref) async {
+  final current = ref.read(securitySettingsProvider).clipboardClearSeconds;
   const options = [15, 30, 60, 0];
 
   final selected = await showDialog<int>(
@@ -194,8 +193,9 @@ Future<void> showClipboardDialog(BuildContext context) async {
   );
 
   if (selected == null) return;
-  prefs.clipboardClearSeconds = selected;
-  await prefs.save();
+  ref
+      .read(securitySettingsProvider.notifier)
+      .setClipboardClearSeconds(selected);
 }
 
 /// Shows the change-master-password dialog.
