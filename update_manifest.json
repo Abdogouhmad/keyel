@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "1.10.2",
-  "latestVersionCode": 11002,
+  "latestVersionName": "1.12.0",
+  "latestVersionCode": 11200,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.10.2/keyel-v1.10.2-universal.apk",
-  "size": 44886016,
-  "sha256": "e92ea741c7fe3da15a4d3b8782a5ce5af8bfe827eee026c75d7da48e3fa1566e",
-  "releaseNotes": "## [1.10.2] - 2026-11-21\n\nFollow-up fixes to 1.10.0. No vault schema change and no weakening of the lock,\nautofill, clipboard, screenshot or OTA guarantees.\n\n### Fixed\n\n- **Wear OS screen has a back arrow.** Settings → Wear OS now opens the page as\n  a pushed sub-route with the shared top bar, so the back action returns to\n  Settings instead of leaving the page without a title-bar control.\n- **Security dashboard tracks auto-lock and clipboard changes.** Both values\n  are now exposed through a reactive provider watched by Settings and the\n  vault-posture card. Changing either one updates security health immediately\n  instead of leaving the last built value on screen.\n\n### Changed\n\n- **Login entry detail polish.** Credential fields gained leading glyphs, a\n  revealed password is subtly tinted, and the password-health card now sits\n  directly below the credentials so strength feedback appears as soon as the\n  secret is revealed. All copy, reveal and open actions are unchanged.",
-  "publishedAt": "2026-11-21T19:21:38.893999+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.12.0/keyel-v1.12.0-universal.apk",
+  "size": 44984284,
+  "sha256": "f9a4e758841cc78dbea1406eb377606d0aa0374c1df520a39b9b7548915fe593",
+  "releaseNotes": "## [1.12.0] - 2026-11-24\n\nFeature release: the vault selection lives in the URL, master/detail panes are\nresizable, and one quick-actions palette works on phone and desktop. **No vault\nschema change.** EN/FR parity, RTL, 200% text scale and the offline/fail-closed\nsecurity contract remain intact.\n\n### Added\n\n- `/vault/entry/:id` is now a canonical, shareable route. Cold deep links and\n  the legacy `/entry/:id` form open the requested entry; locked deep links are\n  preserved through the unlock guard. Compact windows show a full-screen detail\n  page, wide windows show master/detail, and closing the detail returns to\n  `/vault` without leaving the tab.\n- Resizable master/detail panes on wide windows. The divider is keyboard\n  reachable, clamped to 28–50% with a 320 dp floor, persisted in\n  `AppPreferences`, mirrored in RTL, and ignored when two panes no longer fit\n  (including at 200% text scale).\n- Quick actions: a searchable palette of six static actions (open entry, new\n  entry, lock now, generator, settings, updates) plus secret-free entry results.\n  Open it from the vault top bar on mobile or with `Ctrl/Cmd+K` on desktop; a\n  second shortcut press or `Escape` closes it. Entry results navigate through\n  the canonical route so the URL and selection stay in sync.\n\n### Fixed\n\n- Legacy settings files without the 1.11 autofill policy stamp now correctly\n  force the fail-closed verified-only default instead of honouring the old\n  explicit `false`.\n- The note-card reveal button no longer requests infinite width inside its\n  heading row.\n- TOTP rollover tests use an injectable clock so period boundaries are\n  deterministic; an HTTPS download redirected to HTTP is drained and rejected\n  without a stream-cast error.",
+  "publishedAt": "2026-11-24T12:55:05.084651+00:00",
   "channel": "stable",
   "isPrerelease": false
 }
