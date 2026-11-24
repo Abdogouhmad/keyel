@@ -283,7 +283,7 @@ class OtaService {
     // a redirect to plain HTTP must be refused just like the original URL.
     final finalUri = streamedResponse.request?.url;
     if (finalUri != null && finalUri.scheme.toLowerCase() != 'https') {
-      await streamedResponse.stream.drain<List<int>>();
+      await streamedResponse.stream.drain<void>();
       throw StateError(currentL10n.otaInsecureUrl);
     }
 

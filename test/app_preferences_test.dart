@@ -243,9 +243,11 @@ void main() {
     addTearDown(() => dir.delete(recursive: true));
     final vaultPath = '${dir.path}/vault.keyel';
 
-    prefs.screenshotProtection = false;
+    // Persist an explicit opt-out on disk: a missing settings file correctly
+    // resets to the fail-closed default, so it cannot simulate a saved choice.
+    await File('${dir.path}/settings.json')
+        .writeAsString('{"screenshotProtection": false}');
     await prefs.load(vaultPath);
-    await prefs.save();
 
     prefs.screenshotProtection = true;
     await prefs.load(vaultPath);

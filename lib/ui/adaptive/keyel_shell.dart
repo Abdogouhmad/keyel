@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:keyel/core/focus/keyel_search_focus.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/data/vault_revision_provider.dart';
+import 'package:keyel/features/quick_actions/quick_actions_sheet.dart';
 import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 
@@ -101,7 +103,13 @@ class KeyelShell extends ConsumerWidget {
       // focuses it wherever the shell is mounted. On another tab the node is
       // unattached and requestFocus is a harmless no-op.
       onFind: () => focusVaultSearch(ref),
-      onNewEntry: () => context.push(KeyelRoutes.newEntry),
+      // Bump the revision after the editor pops so the list reloads even when
+      // the shortcut was used from another tab (the palette does the same).
+      onNewEntry: () async {
+        await context.push(KeyelRoutes.newEntry);
+        bumpVaultRevision(ref);
+      },
+      onQuickActions: () => showQuickActions(context),
       child: shell,
     );
   }

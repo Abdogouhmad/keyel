@@ -1924,7 +1924,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get prefHelpKeyboardBody =>
-      'Ctrl/⌘ + F ouvre la recherche du coffre. Ctrl/⌘ + N crée une nouvelle entrée. Sur Android, le bouton Retour demande confirmation avant d\'ignorer les modifications non enregistrées.';
+      'Ctrl/⌘ + K ouvre les actions rapides. Ctrl/⌘ + F ouvre la recherche du coffre. Ctrl/⌘ + N crée une nouvelle entrée. Sur Android, le bouton Retour demande confirmation avant d\'ignorer les modifications non enregistrées.';
 
   @override
   String get prefHelpKeyboardTitle => 'Raccourcis clavier';
@@ -3154,4 +3154,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get actionReset => 'Réinitialiser';
+
+  @override
+  String get quickActionOpenEntry => 'Ouvrir une entrée';
+
+  @override
+  String get quickActionsTitle => 'Actions rapides';
+
+  @override
+  String get quickActionsHint => 'Rechercher une entrée ou choisir une action';
+
+  @override
+  String get quickActionsNoResults => 'Aucune entrée correspondante';
+
+  @override
+  String get quickActionsTooltip => 'Actions rapides (Ctrl/⌘ + K)';
+
+  @override
+  String get paneResizeLabel => 'Redimensionner le volet de liste';
 }

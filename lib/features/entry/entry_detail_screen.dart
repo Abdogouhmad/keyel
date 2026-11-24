@@ -25,6 +25,7 @@ class EntryDetailScreen extends ConsumerStatefulWidget {
     this.isEmbedded = false,
     this.onDeleted,
     this.onEdited,
+    this.onBack,
     super.key,
   });
 
@@ -39,6 +40,12 @@ class EntryDetailScreen extends ConsumerStatefulWidget {
 
   /// Optional callback when entry is edited.
   final VoidCallback? onEdited;
+
+  /// Optional override for the back action.
+  ///
+  /// The wide master/detail pane uses this to clear the canonical route instead
+  /// of popping a navigator route that was never pushed.
+  final VoidCallback? onBack;
 
   @override
   ConsumerState<EntryDetailScreen> createState() => _EntryDetailScreenState();
@@ -154,7 +161,22 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen>
   }
 
   void _closeAfterDelete() {
-    if (mounted && !widget.isEmbedded && context.canPop()) context.pop();
+    if (!mounted) return;
+    final onBack = widget.onBack;
+    if (onBack != null) {
+      onBack();
+    } else if (!widget.isEmbedded && context.canPop()) {
+      context.pop();
+    }
+  }
+
+  void _goBack() {
+    final onBack = widget.onBack;
+    if (onBack != null) {
+      onBack();
+    } else if (context.canPop()) {
+      context.pop();
+    }
   }
 
   @override
@@ -192,7 +214,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen>
       );
     }
     if (_controller.missing || entry == null || detail == null) {
-      return MissingEntry(entryId: widget.entryId);
+      return MissingEntry(entryId: widget.entryId, onBack: _goBack);
     }
 
     return DetailScaffold(
@@ -205,7 +227,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen>
       revealedNote: _controller.revealedNote,
       revealedEntryNotes: _controller.revealedEntryNotes,
       revealedCustomFields: _controller.revealedCustomFields,
-      onBack: () => context.pop(),
+      onBack: _goBack,
       onFavorite: _controller.toggleFavorite,
       onEdit: _controller.openEdit,
       onDelete: _controller.confirmDelete,

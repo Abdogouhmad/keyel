@@ -45,7 +45,7 @@ abstract final class KeyelRoutes {
   /// Temporary 0.4.0 bridge/session debug screen.
   static const debug = '/debug';
 
-  /// Entry detail and editor root.
+  /// Entry detail and editor root (legacy pushed routes).
   static const entryRoot = '/entry';
 
   /// Create a brand-new entry.
@@ -56,4 +56,21 @@ abstract final class KeyelRoutes {
 
   /// Editor for an existing entry id.
   static String entryEdit(String id) => '$entryRoot/$id/edit';
+
+  /// Canonical, shareable entry route inside the vault branch.
+  static const vaultEntryRoot = '$vault/entry';
+
+  /// Canonical route for one selected entry.
+  ///
+  /// On a wide window this renders the master/detail pair; on a phone it
+  /// renders the full-screen detail. The URL, not local state, is the source
+  /// of truth for which entry is selected.
+  static String vaultEntryDetail(String id) => '$vaultEntryRoot/$id';
+
+  /// Unlock route carrying the location the user originally requested.
+  ///
+  /// A locked deep link must survive the unlock guard and land on the entry,
+  /// not on an empty vault.
+  static String unlockFor(String location) =>
+      '$unlock?from=${Uri.encodeQueryComponent(location)}';
 }

@@ -8,7 +8,9 @@ import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_revision_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/entry/entry_detail_screen.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/features/quick_actions/quick_actions_sheet.dart';
 import 'package:keyel/features/vault/vault_list_callbacks.dart';
 import 'package:keyel/features/vault/vault_list_controller.dart';
 import 'package:keyel/features/vault/vault_list_dialogs.dart';
@@ -20,9 +22,16 @@ import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 
 /// Vault screen — the home tab showing saved credentials or unlock state.
+///
+/// When mounted at `/vault/entry/:id`, [selectedEntryId] comes from the URL.
+/// The router is the only source of truth for the selection: a wide window
+/// shows it in the detail pane, a compact window shows the full-screen detail.
 class VaultScreen extends ConsumerStatefulWidget {
   /// Creates the vault screen.
-  const new({super.key});
+  const new({this.selectedEntryId, super.key});
+
+  /// Entry selected by the canonical route, or `null` for the plain list.
+  final String? selectedEntryId;
 
   @override
   ConsumerState<VaultScreen> createState() => _VaultScreenState();
@@ -42,6 +51,7 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       repository: ref.read(vaultRepositoryProvider),
       callbacks: _createCallbacks(),
     );
+    _controller.setSelectedEntry(widget.selectedEntryId);
     if (ref.read(vaultSessionProvider).status == VaultStatus.unlocked) {
       unawaited(_controller.load());
     }
@@ -51,6 +61,14 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _nothingToCopy = l10nOf(context).vaultNothingToCopy;
+  }
+
+  @override
+  void didUpdateWidget(covariant VaultScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedEntryId != widget.selectedEntryId) {
+      _controller.setSelectedEntry(widget.selectedEntryId);
+    }
   }
 
   @override
@@ -94,13 +112,11 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     pickFolder: () => pickVaultFolder(context, _controller.folders),
   );
 
+  /// Selecting a row always goes through the canonical URL, on every window
+  /// size. `isWide` is still supplied by the list so it can highlight the row.
   void _openEntry(VaultEntry entry, {required bool isWide}) {
-    if (isWide) return _controller.selectDetail(entry.id);
-    unawaited(
-      context.push(KeyelRoutes.entryDetail(entry.id)).then((_) {
-        if (mounted) unawaited(_controller.load());
-      }),
-    );
+    context.go(KeyelRoutes.vaultEntryDetail(entry.id));
+    unawaited(_controller.load());
   }
 
   Future<void> _openNewEntry() async {
@@ -115,6 +131,17 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       l10nOf(context).vaultLocked,
       icon: Icons.lock_rounded,
     );
+  }
+
+  /// Clears the canonical selection instead of popping a route that was never
+  /// pushed for the embedded detail pane.
+  void _closeDetail() {
+    context.go(KeyelRoutes.vault);
+    unawaited(_controller.load());
+  }
+
+  void _afterDetailDeleted() {
+    _closeDetail();
   }
 
   @override
@@ -143,14 +170,44 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
       }
     });
 
-    return switch (status) {
+    final content = switch (status) {
       VaultStatus.noVault => const CreateVaultView(),
       VaultStatus.locked => const UnlockVaultView(),
       VaultStatus.unlocked => _buildUnlockedVault(context),
     };
+
+    // Back clears the canonical selection on both layouts. Nothing was pushed
+    // for the embedded pane, so a plain pop would leave the vault tab.
+    if (status != VaultStatus.unlocked || widget.selectedEntryId == null) {
+      return content;
+    }
+    return PopScope<void>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closeDetail();
+      },
+      child: content,
+    );
   }
 
   Widget _buildUnlockedVault(BuildContext context) {
+    final selectedId = widget.selectedEntryId;
+    final isWide =
+        maybeEffectiveLayoutOf(context)?.supportsListDetail ??
+        WindowSizeClass.of(context).supportsListDetail;
+
+    // On a phone the same URL renders the full-screen detail. The list pane is
+    // not mounted, so no masked row can remain behind the revealed fields.
+    if (selectedId != null && !isWide) {
+      return EntryDetailScreen(
+        key: ValueKey(selectedId),
+        entryId: selectedId,
+        onBack: _closeDetail,
+        onDeleted: _afterDetailDeleted,
+        onEdited: () => unawaited(_controller.load()),
+      );
+    }
+
     // The system back button leaves selection mode instead of the screen.
     final listPane = PopScope(
       canPop: !_controller.selectionMode,
@@ -162,15 +219,17 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
         onLock: _lockVault,
         onNewItem: () => unawaited(_openNewEntry()),
         onOpenEntry: _openEntry,
+        onQuickActions: () => showQuickActions(context),
       ),
     );
 
     return VaultLayout(
       listPane: listPane,
-      entryId: _controller.selectedEntryId,
-      onDeleted: () => unawaited(_controller.onDetailDeleted()),
+      entryId: selectedId,
+      onDeleted: _afterDetailDeleted,
       onEdited: () => unawaited(_controller.load()),
       onNewItem: () => unawaited(_openNewEntry()),
+      onCloseDetail: _closeDetail,
     );
   }
 }

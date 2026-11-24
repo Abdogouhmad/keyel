@@ -13,8 +13,8 @@ git tag v0.X.0 && git push --tags
 > is historical. Releases are now cut by CI when a `pubspec.yaml`/`CHANGELOG.md`
 > bump lands on `main`; never push tags by hand. See `docs/DECISIONS.md`.
 >
-> **Current phase:** 1.11.0 (security hardening, responsive layouts and codebase
-> simplification) is scoped in [`docs/roadmap_1.11.0.md`](roadmap_1.11.0.md).
+> **Current phase:** 1.12.0 (route-driven vault, resizable panes and quick
+> actions) is scoped in [`docs/roadmap_1.12.0.md`](roadmap_1.12.0.md).
 
 **Rules for the whole project**
 - Crypto code gets tests before it gets UI.

@@ -152,7 +152,7 @@ void main() {
     controller
       ..startSelection('a')
       ..toggleSelection('gone') // stale id, pruned on the next load
-      ..selectDetail('gone');
+      ..setSelectedEntry('gone');
 
     final reload = controller.load();
     await pumpMicrotasks();
@@ -161,7 +161,9 @@ void main() {
     await pumpMicrotasks();
 
     expect(controller.selectedIds, isEmpty);
-    expect(controller.selectedEntryId, 'b');
+    // Detail selection mirrors the canonical route, so a filtered-out entry
+    // stays selected until the route changes.
+    expect(controller.selectedEntryId, 'gone');
   });
 }
 

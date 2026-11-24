@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -167,6 +168,15 @@ class _FakeUpdateNotifications extends UpdateNotificationPlatform {
 }
 
 void main() {
+  // The redirect guard calls getTemporaryDirectory(); provide a deterministic
+  // platform response instead of relying on a real plugin channel.
+  TestWidgetsFlutterBinding.ensureInitialized();
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => Directory.systemTemp.path,
+      );
+
   setUp(() {
     AppPreferences.instance
       ..otaChannel = 'stable'

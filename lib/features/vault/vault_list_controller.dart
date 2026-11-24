@@ -154,13 +154,12 @@ class VaultListController extends ChangeNotifier {
           !folders.any((folder) => folder.id == _folderId)) {
         _folderId = null;
       }
-      // Keep the selection valid when rows disappeared after a reload. Build
-      // the id set once: the old nested scans were O(visible × selected).
+      // Multi-row selection is local and must stay valid after a reload. The
+      // detail selection is not: it mirrors the canonical route, so a filtered
+      // out entry stays selected until the route itself changes. Build the id
+      // set once instead of rescanning for every selected row.
       final visibleIds = _entries.map((entry) => entry.id).toSet();
       _selectedIds.removeWhere((id) => !visibleIds.contains(id));
-      if (_selectedEntryId != null && !visibleIds.contains(_selectedEntryId)) {
-        _selectedEntryId = _entries.isNotEmpty ? _entries.first.id : null;
-      }
     } on Object catch (error) {
       if (generation == _loadGeneration) {
         _loadError = describeVaultError(error);
@@ -214,14 +213,17 @@ class VaultListController extends ChangeNotifier {
     unawaited(load());
   }
 
-  /// Show an entry in the wide detail pane.
-  void selectDetail(String entryId) {
+  /// Mirror the entry selected by the canonical route into the list highlight.
+  ///
+  /// The router remains the source of truth; this only keeps the visible row
+  /// highlight in sync without duplicating navigation state here.
+  void setSelectedEntry(String? entryId) {
     if (_selectedEntryId == entryId) return;
     _selectedEntryId = entryId;
     _notifyStateChanged();
   }
 
-  /// Clear the detail pane selection after its entry was deleted.
+  /// Drop the detail mirror after its entry was deleted.
   Future<void> onDetailDeleted() async {
     _selectedEntryId = null;
     await load();

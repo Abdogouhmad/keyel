@@ -7,12 +7,17 @@ import 'package:keyel/ui/keyel.dart';
 Widget _host({required String? revealed}) => MaterialApp(
   theme: KeyelTheme.light(),
   home: Scaffold(
-    body: NotesCard(
-      title: 'Notes',
-      icon: Icons.notes_rounded,
-      revealedContent: revealed,
-      onToggleReveal: () {},
-      onCopy: (_, _) {},
+    // Section cards stretch to their parent, so the isolated host needs a
+    // bounded width just like a real detail screen does.
+    body: SizedBox(
+      width: 800,
+      child: NotesCard(
+        title: 'Notes',
+        icon: Icons.notes_rounded,
+        revealedContent: revealed,
+        onToggleReveal: () {},
+        onCopy: (_, _) {},
+      ),
     ),
   ),
 );

@@ -5,6 +5,41 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-11-24
+
+Feature release: the vault selection lives in the URL, master/detail panes are
+resizable, and one quick-actions palette works on phone and desktop. **No vault
+schema change.** EN/FR parity, RTL, 200% text scale and the offline/fail-closed
+security contract remain intact.
+
+### Added
+
+- `/vault/entry/:id` is now a canonical, shareable route. Cold deep links and
+  the legacy `/entry/:id` form open the requested entry; locked deep links are
+  preserved through the unlock guard. Compact windows show a full-screen detail
+  page, wide windows show master/detail, and closing the detail returns to
+  `/vault` without leaving the tab.
+- Resizable master/detail panes on wide windows. The divider is keyboard
+  reachable, clamped to 28–50% with a 320 dp floor, persisted in
+  `AppPreferences`, mirrored in RTL, and ignored when two panes no longer fit
+  (including at 200% text scale).
+- Quick actions: a searchable palette of six static actions (open entry, new
+  entry, lock now, generator, settings, updates) plus secret-free entry results.
+  Open it from the vault top bar on mobile or with `Ctrl/Cmd+K` on desktop; a
+  second shortcut press or `Escape` closes it. Entry results navigate through
+  the canonical route so the URL and selection stay in sync.
+
+### Fixed
+
+- Legacy settings files without the 1.11 autofill policy stamp now correctly
+  force the fail-closed verified-only default instead of honouring the old
+  explicit `false`.
+- The note-card reveal button no longer requests infinite width inside its
+  heading row.
+- TOTP rollover tests use an injectable clock so period boundaries are
+  deterministic; an HTTPS download redirected to HTTP is drained and rejected
+  without a stream-cast error.
+
 ## [1.11.0] - 2026-11-21
 
 Major maintenance release: security hardening, real multi-window layouts and

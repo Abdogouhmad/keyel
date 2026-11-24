@@ -3365,7 +3365,7 @@ abstract class AppLocalizations {
   /// Settings UI copy: help keyboard body.
   ///
   /// In en, this message translates to:
-  /// **'Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. On Android, Back asks before discarding unsaved edits.'**
+  /// **'Ctrl/⌘ + K opens quick actions. Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. On Android, Back asks before discarding unsaved edits.'**
   String get prefHelpKeyboardBody;
 
   /// Settings UI copy: help keyboard title.
@@ -5261,6 +5261,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset'**
   String get actionReset;
+
+  /// Static palette action that focuses the vault entry search.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an entry'**
+  String get quickActionOpenEntry;
+
+  /// Title of the searchable quick-actions palette.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get quickActionsTitle;
+
+  /// Placeholder of the quick-actions search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search entries or choose an action'**
+  String get quickActionsHint;
+
+  /// Shown when the quick-actions search has no entry results.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching entries'**
+  String get quickActionsNoResults;
+
+  /// Tooltip of the top-bar button that opens quick actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions (Ctrl/⌘ + K)'**
+  String get quickActionsTooltip;
+
+  /// Accessibility label of the draggable master/detail divider.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize the list pane'**
+  String get paneResizeLabel;
 }
 
 class _AppLocalizationsDelegate

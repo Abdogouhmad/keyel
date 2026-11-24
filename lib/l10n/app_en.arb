@@ -2499,7 +2499,7 @@
   "@prefHelpAutoLockTitle": {
     "description": "Settings UI copy: help auto lock title."
   },
-  "prefHelpKeyboardBody": "Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. On Android, Back asks before discarding unsaved edits.",
+  "prefHelpKeyboardBody": "Ctrl/⌘ + K opens quick actions. Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. On Android, Back asks before discarding unsaved edits.",
   "@prefHelpKeyboardBody": {
     "description": "Settings UI copy: help keyboard body."
   },
@@ -3997,5 +3997,29 @@
   "actionReset": "Reset",
   "@actionReset": {
     "description": "Button that clears the current selection."
+  },
+  "quickActionOpenEntry": "Open an entry",
+  "@quickActionOpenEntry": {
+    "description": "Static palette action that focuses the vault entry search."
+  },
+  "quickActionsTitle": "Quick actions",
+  "@quickActionsTitle": {
+    "description": "Title of the searchable quick-actions palette."
+  },
+  "quickActionsHint": "Search entries or choose an action",
+  "@quickActionsHint": {
+    "description": "Placeholder of the quick-actions search field."
+  },
+  "quickActionsNoResults": "No matching entries",
+  "@quickActionsNoResults": {
+    "description": "Shown when the quick-actions search has no entry results."
+  },
+  "quickActionsTooltip": "Quick actions (Ctrl/⌘ + K)",
+  "@quickActionsTooltip": {
+    "description": "Tooltip of the top-bar button that opens quick actions."
+  },
+  "paneResizeLabel": "Resize the list pane",
+  "@paneResizeLabel": {
+    "description": "Accessibility label of the draggable master/detail divider."
   }
 }

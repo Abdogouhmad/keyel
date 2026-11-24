@@ -27,6 +27,10 @@ class AppPreferences {
   /// Most recent vault searches, newest first.
   List<String> recentSearches = <String>[];
 
+  /// Width of the vault master list as a fraction of the effective content
+  /// width. Clamped to 0.28–0.5 on load; a corrupt value falls back to 0.34.
+  double vaultPaneRatio = 0.34;
+
   /// Remembered generator mode (`password` or `passphrase`).
   String generatorMode = 'password';
 
@@ -212,10 +216,13 @@ class AppPreferences {
       // never changed the setting. Only files stamped with the 1.11 policy
       // version may opt out of verified-only autofill.
       final policyVersion = decoded['autofillPolicyVersion'];
+      final stamped =
+          policyVersion is int && policyVersion >= autofillPolicyVersion;
+      // Unstamped files are legacy installs: force the fail-closed default
+      // regardless of the value 1.10.2 persisted. Only stamped files may opt
+      // out explicitly.
       autofillVerifiedOnly =
-          policyVersion is int &&
-          policyVersion >= autofillPolicyVersion &&
-          decoded['autofillVerifiedOnly'] != false;
+          !stamped || decoded['autofillVerifiedOnly'] != false;
       final denied = decoded['autofillNeverForSites'];
       if (denied is List) {
         autofillNeverForSites = denied
@@ -247,6 +254,10 @@ class AppPreferences {
             .where((value) => value.trim().isNotEmpty)
             .take(8)
             .toList();
+      }
+      final paneRatio = decoded['vaultPaneRatio'];
+      if (paneRatio is num && paneRatio.isFinite) {
+        vaultPaneRatio = paneRatio.toDouble().clamp(0.28, 0.5);
       }
 
       final localeId = decoded['localeId'];
@@ -348,6 +359,7 @@ class AppPreferences {
           'otaDismissedVersion': otaDismissedVersion,
           'otaNotificationPromptShown': otaNotificationPromptShown,
           'recentSearches': recentSearches,
+          'vaultPaneRatio': vaultPaneRatio,
           'generator': {
             'mode': generatorMode,
             'length': generatorLength,

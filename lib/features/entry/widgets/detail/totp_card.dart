@@ -19,6 +19,7 @@ class EntryTotpCard extends StatefulWidget {
     required this.onCopy,
     this.period = 30,
     this.loadCode,
+    this.now = DateTime.now,
     super.key,
   });
 
@@ -33,6 +34,9 @@ class EntryTotpCard extends StatefulWidget {
 
   /// Optional code source for tests. Production always uses the Rust bridge.
   final Future<TotpCodeDto> Function(String entryId)? loadCode;
+
+  /// Injectable clock so period rollover can be tested deterministically.
+  final DateTime Function() now;
 
   @override
   State<EntryTotpCard> createState() => _EntryTotpCardState();
@@ -91,7 +95,7 @@ class _EntryTotpCardState extends State<EntryTotpCard>
   void _tick() {
     // Backgrounding must not turn the ticker into a one-per-second bridge poll.
     if (!_foreground) return;
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final now = widget.now().millisecondsSinceEpoch ~/ 1000;
     if (now ~/ _period != _counter) {
       // Drop the previous code at rollover instead of leaving an expired code
       // on screen while the replacement is being computed.
@@ -106,13 +110,13 @@ class _EntryTotpCardState extends State<EntryTotpCard>
   Future<void> _refresh() async {
     if (!_foreground) return;
     final generation = _generation;
-    final requestedAt = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final requestedAt = widget.now().millisecondsSinceEpoch ~/ 1000;
     final load = widget.loadCode ?? (String id) => totp_api.currentCode(id: id);
     try {
       final code = await load(widget.entryId);
       if (!mounted || !_foreground || generation != _generation) return;
       final currentCounter =
-          DateTime.now().millisecondsSinceEpoch ~/ 1000 ~/ code.period;
+          widget.now().millisecondsSinceEpoch ~/ 1000 ~/ code.period;
       if (currentCounter != requestedAt ~/ code.period) {
         // The response crossed a period boundary, so the code is already
         // expired. Retry on the next rollover rather than showing a stale code.
@@ -134,7 +138,7 @@ class _EntryTotpCardState extends State<EntryTotpCard>
       if (!mounted || generation != _generation) return;
       // Never keep an expired code on screen, but do record this counter so a
       // failed bridge call does not retry every second.
-      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final now = widget.now().millisecondsSinceEpoch ~/ 1000;
       setState(() {
         _code = null;
         _counter = now ~/ _period;
@@ -145,7 +149,7 @@ class _EntryTotpCardState extends State<EntryTotpCard>
   void _copy() {
     final code = _code;
     if (code == null || !_foreground) return;
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final now = widget.now().millisecondsSinceEpoch ~/ 1000;
     if (now ~/ code.period != _counter) {
       if (mounted) setState(() => _code = null);
       return;
@@ -158,7 +162,7 @@ class _EntryTotpCardState extends State<EntryTotpCard>
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = l10nOf(context);
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final now = widget.now().millisecondsSinceEpoch ~/ 1000;
     final code = _code != null && now ~/ _code!.period == _counter
         ? _code
         : null;

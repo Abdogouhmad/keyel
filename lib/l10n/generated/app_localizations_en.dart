@@ -1871,7 +1871,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prefHelpKeyboardBody =>
-      'Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. On Android, Back asks before discarding unsaved edits.';
+      'Ctrl/⌘ + K opens quick actions. Ctrl/⌘ + F jumps to vault search. Ctrl/⌘ + N starts a new entry. On Android, Back asks before discarding unsaved edits.';
 
   @override
   String get prefHelpKeyboardTitle => 'Keyboard shortcuts';
@@ -3079,4 +3079,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionReset => 'Reset';
+
+  @override
+  String get quickActionOpenEntry => 'Open an entry';
+
+  @override
+  String get quickActionsTitle => 'Quick actions';
+
+  @override
+  String get quickActionsHint => 'Search entries or choose an action';
+
+  @override
+  String get quickActionsNoResults => 'No matching entries';
+
+  @override
+  String get quickActionsTooltip => 'Quick actions (Ctrl/⌘ + K)';
+
+  @override
+  String get paneResizeLabel => 'Resize the list pane';
 }

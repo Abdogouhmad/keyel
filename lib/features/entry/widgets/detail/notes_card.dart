@@ -71,6 +71,9 @@ class NotesCard extends StatelessWidget {
                     ? Icons.visibility_off_rounded
                     : Icons.visibility_rounded,
                 tone: KeyelButtonTone.tonal,
+                // Row children get unbounded width; a self-sizing pill avoids
+                // forcing an infinite-width SizedBox inside the heading row.
+                expand: false,
                 onPressed: onToggleReveal,
               ),
             ],

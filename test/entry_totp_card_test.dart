@@ -58,6 +58,7 @@ void main() {
     final second = Completer<TotpCodeDto>();
     final futures = <Future<TotpCodeDto>>[first.future, second.future];
     var calls = 0;
+    var clock = DateTime(2026, 1, 1, 12);
 
     await tester.pumpWidget(
       _host(
@@ -65,6 +66,7 @@ void main() {
           entryId: 'entry',
           onCopy: (_, _) {},
           loadCode: (_) => futures[calls++],
+          now: () => clock,
         ),
       ),
     );
@@ -73,6 +75,7 @@ void main() {
 
     // Cross a period boundary. The refresh is held open, so the old code must
     // not remain visible or copyable while the new one is in flight.
+    clock = clock.add(const Duration(seconds: 31));
     await tester.pump(const Duration(seconds: 31));
     expect(find.text('123'), findsNothing);
     expect(find.text('456'), findsNothing);

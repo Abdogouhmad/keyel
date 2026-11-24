@@ -9,13 +9,20 @@ import 'package:keyel/data/app_preferences.dart';
 @immutable
 class UiSettings {
   /// Creates a UI settings snapshot.
-  const new({required this.recentSearches, required this.animationsEnabled});
+  const new({
+    required this.recentSearches,
+    required this.animationsEnabled,
+    required this.vaultPaneRatio,
+  });
 
   /// Most recent vault searches, newest first.
   final List<String> recentSearches;
 
   /// Whether in-app motion is enabled (the platform setting still wins).
   final bool animationsEnabled;
+
+  /// Persisted width of the vault master list, as a fraction of the content.
+  final double vaultPaneRatio;
 }
 
 /// Reactive mirror of the UI preferences that hot build paths depend on.
@@ -32,6 +39,7 @@ class UiSettingsNotifier extends Notifier<UiSettings> {
   UiSettings build() => UiSettings(
     recentSearches: List.unmodifiable(AppPreferences.instance.recentSearches),
     animationsEnabled: AppPreferences.instance.animationsEnabled,
+    vaultPaneRatio: AppPreferences.instance.vaultPaneRatio,
   );
 
   /// Remembers a search term and refreshes every strip showing recent searches.
@@ -53,11 +61,20 @@ class UiSettingsNotifier extends Notifier<UiSettings> {
     _publish();
   }
 
+  /// Persists the width of the vault master list pane.
+  void setVaultPaneRatio(double ratio) {
+    final prefs = AppPreferences.instance
+      ..vaultPaneRatio = ratio.clamp(0.28, 0.5);
+    unawaited(prefs.save());
+    _publish();
+  }
+
   /// Reloads the snapshot from the persisted singleton after an external load.
   void refresh() => _publish();
 
   void _publish() => state = UiSettings(
     recentSearches: List.unmodifiable(AppPreferences.instance.recentSearches),
     animationsEnabled: AppPreferences.instance.animationsEnabled,
+    vaultPaneRatio: AppPreferences.instance.vaultPaneRatio,
   );
 }

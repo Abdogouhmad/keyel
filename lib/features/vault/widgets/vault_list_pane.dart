@@ -23,6 +23,7 @@ class VaultListPane extends StatelessWidget {
     required this.onLock,
     required this.onNewItem,
     required this.onOpenEntry,
+    required this.onQuickActions,
     super.key,
   });
 
@@ -38,7 +39,13 @@ class VaultListPane extends StatelessWidget {
   /// Called when the user opens an entry.
   final OnVaultEntryOpen onOpenEntry;
 
+  /// Called when the user opens the quick-actions palette.
+  final VoidCallback onQuickActions;
+
+  // Must match VaultLayout's predicate: the physical window can be wide while
+  // the effective content (chrome removed, 200 % text scale applied) is not.
   bool _isWide(BuildContext context) =>
+      maybeEffectiveLayoutOf(context)?.supportsListDetail ??
       WindowSizeClass.of(context).supportsListDetail;
 
   void _handleRowLongPress(VaultEntry entry) {
@@ -86,10 +93,21 @@ class VaultListPane extends StatelessWidget {
               : KeyelTopBar(
                   title: l10n.vaultTopBarTitle,
                   icon: Icons.shield_rounded,
-                  trailing: KeyelIconHull(
-                    icon: Icons.lock_rounded,
-                    tooltip: l10n.actionLockVault,
-                    onPressed: onLock,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      KeyelIconHull(
+                        icon: Icons.bolt_rounded,
+                        tooltip: l10n.quickActionsTooltip,
+                        onPressed: onQuickActions,
+                      ),
+                      const SizedBox(width: KeyelSpacing.xs),
+                      KeyelIconHull(
+                        icon: Icons.lock_rounded,
+                        tooltip: l10n.actionLockVault,
+                        onPressed: onLock,
+                      ),
+                    ],
                   ),
                 ),
         ),
@@ -138,17 +156,15 @@ class VaultListPane extends StatelessWidget {
         ),
         const SliverToBoxAdapter(child: SizedBox(height: KeyelSpacing.lg)),
         if (controller.loading)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: KeyelStateMessage(
+          _fillSliver(
+            KeyelStateMessage(
               kind: KeyelStateMessageKind.loading,
               message: l10n.vaultLoadingList,
             ),
           )
         else if (controller.loadError != null)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: KeyelStateMessage(
+          _fillSliver(
+            KeyelStateMessage(
               kind: KeyelStateMessageKind.error,
               message: controller.loadError!,
               actionLabel: l10n.actionRetry,
@@ -156,9 +172,8 @@ class VaultListPane extends StatelessWidget {
             ),
           )
         else if (entries.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: VaultEmptyState(
+          _fillSliver(
+            VaultEmptyState(
               query: controller.query,
               onClear: controller.clearFilters,
               onAddItem: onNewItem,
@@ -186,4 +201,13 @@ class VaultListPane extends StatelessWidget {
       ],
     );
   }
+
+  /// Fills the remaining scroll space with a status/empty view.
+  ///
+  /// `SliverFillRemaining(hasScrollBody: false)` asks its child for intrinsic
+  /// dimensions, which is unsupported by the `LayoutBuilder` inside the shared
+  /// state-message and empty-state widgets. A viewport sliver gives the child
+  /// tight constraints instead, so the same widgets render in both panes.
+  static SliverFillViewport _fillSliver(Widget child) =>
+      SliverFillViewport(delegate: SliverChildListDelegate.fixed([child]));
 }

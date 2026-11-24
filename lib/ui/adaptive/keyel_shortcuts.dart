@@ -13,14 +13,26 @@ class KeyelNewEntryIntent extends Intent {
   const new();
 }
 
+/// Intent dispatched when the user opens quick actions (Ctrl+K / Cmd+K).
+class KeyelQuickActionsIntent extends Intent {
+  /// Creates the intent.
+  const new();
+}
+
 /// Global keyboard shortcut scaffold for the adaptive shell.
 ///
 /// Wraps [child] with [Shortcuts] and [Actions] so screens and text fields
 /// can participate without each one re-registering bindings. Screen-level
-/// behaviour arrives via [onFind] and [onNewEntry] callbacks.
+/// behaviour arrives via [onFind], [onNewEntry] and [onQuickActions] callbacks.
 class KeyelShortcuts extends StatelessWidget {
   /// Creates the shortcut wrapper.
-  const new({required this.child, this.onFind, this.onNewEntry, super.key});
+  const new({
+    required this.child,
+    this.onFind,
+    this.onNewEntry,
+    this.onQuickActions,
+    super.key,
+  });
 
   /// Wrapped content.
   final Widget child;
@@ -30,6 +42,9 @@ class KeyelShortcuts extends StatelessWidget {
 
   /// Handler for the new-entry shortcut.
   final VoidCallback? onNewEntry;
+
+  /// Handler for the quick-actions shortcut.
+  final VoidCallback? onQuickActions;
 
   static Map<ShortcutActivator, Intent> get _shortcuts => {
     // Control for Windows/Linux/desktop web, Meta for macOS.
@@ -41,6 +56,10 @@ class KeyelShortcuts extends StatelessWidget {
         const KeyelNewEntryIntent(),
     const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
         const KeyelNewEntryIntent(),
+    const SingleActivator(LogicalKeyboardKey.keyK, control: true):
+        const KeyelQuickActionsIntent(),
+    const SingleActivator(LogicalKeyboardKey.keyK, meta: true):
+        const KeyelQuickActionsIntent(),
   };
 
   @override
@@ -54,6 +73,9 @@ class KeyelShortcuts extends StatelessWidget {
           ),
           KeyelNewEntryIntent: CallbackAction<KeyelNewEntryIntent>(
             onInvoke: (_) => onNewEntry?.call(),
+          ),
+          KeyelQuickActionsIntent: CallbackAction<KeyelQuickActionsIntent>(
+            onInvoke: (_) => onQuickActions?.call(),
           ),
         },
         child: child,

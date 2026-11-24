@@ -8,7 +8,6 @@ import 'package:keyel/core/router/vault_session_listenable.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/autofill/autofill_picker_screen.dart';
 import 'package:keyel/features/debug/debug_vault_screen.dart';
-import 'package:keyel/features/entry/entry_detail_screen.dart';
 import 'package:keyel/features/entry/entry_edit_screen.dart';
 import 'package:keyel/features/folders/folders_screen.dart';
 import 'package:keyel/features/generator/generator_screen.dart';
@@ -30,6 +29,28 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 // No slide animation between tabs, like a normal bottom bar.
 Page<void> _tab(GoRouterState state, Widget child) =>
     NoTransitionPage<void>(key: state.pageKey, child: child);
+
+// The vault list and its canonical `/vault/entry/:id` route share one page key
+// so switching selection updates the same State (and the same list controller)
+// instead of pushing a second vault screen on the branch navigator.
+Page<void> _vaultPage(VaultScreen child) =>
+    NoTransitionPage<void>(key: const ValueKey('vault-screen'), child: child);
+
+/// Location to open once the vault unlocks.
+///
+/// A locked deep link is carried through `/unlock?from=…`; without this the
+/// guard would drop the user on an empty vault. Only internal absolute paths
+/// are accepted, and `/unlock` itself is rejected to avoid a redirect loop.
+String _postUnlockLocation(GoRouterState state) {
+  final from = state.uri.queryParameters['from'];
+  if (from != null &&
+      from.startsWith('/') &&
+      !from.startsWith('//') &&
+      !from.startsWith(KeyelRoutes.unlock)) {
+    return from;
+  }
+  return KeyelRoutes.vault;
+}
 
 /// Initial tab, adjustable before `runApp` for launcher actions.
 final initialRouteProvider = NotifierProvider<InitialRouteNotifier, String>(
@@ -72,10 +93,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       return switch (status) {
         VaultStatus.noVault when !isOnboarding => KeyelRoutes.onboarding,
-        VaultStatus.locked when !isUnlock && !isDebug => KeyelRoutes.unlock,
+        VaultStatus.locked when !isUnlock && !isDebug => KeyelRoutes.unlockFor(
+          state.uri.toString(),
+        ),
         // Onboarding keeps its own flow after creation so the one-time
         // recovery key stays on screen until the user dismisses it.
-        VaultStatus.unlocked when isUnlock => KeyelRoutes.vault,
+        VaultStatus.unlocked when isUnlock => _postUnlockLocation(state),
         _ => null,
       };
     },
@@ -85,10 +108,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             routes: [
+              // Siblings, not parent/child: a child page would keep the plain
+              // list mounted underneath the detail page and duplicate keys.
+              // A shared page key makes selection a State update, preserving
+              // the list's scroll position while the URL stays authoritative.
               GoRoute(
                 path: KeyelRoutes.vault,
                 pageBuilder: (context, state) =>
-                    _tab(state, const VaultScreen()),
+                    _vaultPage(const VaultScreen()),
+              ),
+              GoRoute(
+                path: '${KeyelRoutes.vaultEntryRoot}/:id',
+                pageBuilder: (context, state) => _vaultPage(
+                  VaultScreen(selectedEntryId: state.pathParameters['id']),
+                ),
               ),
             ],
           ),
@@ -203,12 +236,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: EntryEditScreen(entryId: state.pathParameters['id']),
         ),
       ),
+      // Legacy deep links keep working, but canonicalise to the vault-branch
+      // route so the URL, the highlight and the pane selection stay in sync.
       GoRoute(
         path: '${KeyelRoutes.entryRoot}/:id',
-        builder: (context, state) => KeyelSubShell(
-          tabIndex: KeyelTab.vault,
-          child: EntryDetailScreen(entryId: state.pathParameters['id']!),
-        ),
+        redirect: (context, state) =>
+            KeyelRoutes.vaultEntryDetail(state.pathParameters['id']!),
       ),
     ],
   );

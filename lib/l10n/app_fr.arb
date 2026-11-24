@@ -2499,7 +2499,7 @@
   "@prefHelpAutoLockTitle": {
     "description": "Settings UI copy: help auto lock title."
   },
-  "prefHelpKeyboardBody": "Ctrl/⌘ + F ouvre la recherche du coffre. Ctrl/⌘ + N crée une nouvelle entrée. Sur Android, le bouton Retour demande confirmation avant d'ignorer les modifications non enregistrées.",
+  "prefHelpKeyboardBody": "Ctrl/⌘ + K ouvre les actions rapides. Ctrl/⌘ + F ouvre la recherche du coffre. Ctrl/⌘ + N crée une nouvelle entrée. Sur Android, le bouton Retour demande confirmation avant d'ignorer les modifications non enregistrées.",
   "@prefHelpKeyboardBody": {
     "description": "Settings UI copy: help keyboard body."
   },
@@ -3997,5 +3997,29 @@
   "actionReset": "Réinitialiser",
   "@actionReset": {
     "description": "Button that clears the current selection."
+  },
+  "quickActionOpenEntry": "Ouvrir une entrée",
+  "@quickActionOpenEntry": {
+    "description": "Static palette action that focuses the vault entry search."
+  },
+  "quickActionsTitle": "Actions rapides",
+  "@quickActionsTitle": {
+    "description": "Title of the searchable quick-actions palette."
+  },
+  "quickActionsHint": "Rechercher une entrée ou choisir une action",
+  "@quickActionsHint": {
+    "description": "Placeholder of the quick-actions search field."
+  },
+  "quickActionsNoResults": "Aucune entrée correspondante",
+  "@quickActionsNoResults": {
+    "description": "Shown when the quick-actions search has no entry results."
+  },
+  "quickActionsTooltip": "Actions rapides (Ctrl/⌘ + K)",
+  "@quickActionsTooltip": {
+    "description": "Tooltip of the top-bar button that opens quick actions."
+  },
+  "paneResizeLabel": "Redimensionner le volet de liste",
+  "@paneResizeLabel": {
+    "description": "Accessibility label of the draggable master/detail divider."
   }
 }
