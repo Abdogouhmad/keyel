@@ -46,8 +46,10 @@ class BiometricAuth {
     try {
       return await _localAuth.authenticate(
         localizedReason: reason,
+        // biometricOnly keeps the strong-biometric gate. The default
+        // persistAcrossBackgrounding: false means a match belongs to this
+        // foreground session only and cannot unlock after leaving the app.
         biometricOnly: true,
-        persistAcrossBackgrounding: true,
       );
     } on Object catch (_) {
       return false;

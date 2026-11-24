@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:keyel/core/router/keyel_route_observer.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/router/vault_session_listenable.dart';
 import 'package:keyel/data/vault_session_provider.dart';
@@ -55,6 +56,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: ref.read(initialRouteProvider),
     refreshListenable: session,
+    // Route changes must mask revealed secrets in the screen underneath.
+    observers: [keyelRouteObserver],
     // Lifecycle guard: no vault → /onboarding, locked → /unlock.
     // Redirects only once the session state has resolved.
     redirect: (context, state) {

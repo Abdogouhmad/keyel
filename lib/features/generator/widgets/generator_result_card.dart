@@ -44,7 +44,7 @@ class GeneratorResultCard extends StatelessWidget {
       child: Column(
         children: [
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: context.alignStart,
             child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: KeyelSpacing.sm + 4,

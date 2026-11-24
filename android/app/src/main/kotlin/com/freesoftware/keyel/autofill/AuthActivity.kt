@@ -26,13 +26,16 @@ class AuthActivity : FlutterActivity() {
 
     private val channelName = "keyel/autofill"
 
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        // This window can show revealed credentials, so it is always secure.
+        // Set it before the first frame; Dart's setSecureScreen channel is not
+        // registered on this entrypoint's activity.
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        // This window can show revealed credentials, so it is always secure.
-        // Do it natively: Dart's setSecureScreen channel is not registered on
-        // this entrypoint's activity.
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->

@@ -5,6 +5,64 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-11-21
+
+Major maintenance release: security hardening, real multi-window layouts and
+codebase simplification. **No vault schema change.** EN/FR only — Arabic stays
+out of scope — with RTL layout and 200% text-scale correctness preserved. The
+offline/fail-closed contract, clipboard wipe, screenshot blocking, passkey
+flows and OTA checksum verification are unchanged or strengthened.
+
+### Security
+
+- Secrets are masked by default and re-masked when the app backgrounds or
+  locks, including when an editor is pushed on top and when a decryption that
+  started before the lock finishes afterwards. TOTP codes clear on
+  failure/background, are dropped at period rollover and can never be copied
+  after expiry; attached notes use the same gated reveal path as secure-note
+  bodies.
+- Autofill fails closed: `autofillVerifiedOnly` defaults to `true`, and legacy
+  settings files are migrated to that default on upgrade because 1.10.2 wrote
+  an explicit `false` even when the user never changed the setting. Missing or
+  corrupt settings also restore the fail-closed defaults. Exact/strict mode
+  drops text-search hits instead of silently widening matches. "Never for this
+  site" persists.
+- OTA downloads require HTTPS plus a valid SHA-256, including after redirects,
+  and are re-verified immediately before install; a tampered file is deleted.
+  Local APK installs require an explicit unverified warning confirmation.
+- `FLAG_SECURE` is applied natively before the first frame on every entrypoint,
+  and biometric prompts no longer survive backgrounding.
+- Rust lock events now fan out to every live subscriber, so all open sessions
+  observe a lock rather than only the first listener.
+- Wear OS is audited and enforced in CI: the watch listener is a GMS-bound,
+  path-scoped message handler — no boot receiver, foreground service,
+  clipboard, screenshots, vault or other credentials on the watch
+  (`tool/check_wear_isolation.sh`).
+
+### Layout
+
+- Button metrics use fixed dp values with bounded, text-scale-aware padding
+  instead of scaling with window width.
+- New shared primitives for effective layout capacity (window width minus nav
+  chrome and margins, adjusted for text scale), direction-aware arrows/alignment
+  and adaptive bottom/side sheets with RTL-correct corners and slide direction.
+- Settings, security dashboard, import/export, generator and entry detail use
+  real two-column compositions when effective capacity allows, collapsing to
+  one column on phones or at 200% text scale.
+- A responsive test matrix covers 360–2560 dp at 1.0/1.4/2.0 text scale in both
+  LTR and RTL and in both English and French, and the screen-level tests exercise
+  real two-column compositions inside the shell's effective-layout scope.
+
+### Codebase
+
+- Removed dead widgets/helpers, unused localization keys and the misleading
+  "offline vault" setting; settings dialogs and formatters are consolidated.
+- Primary-secret copying has one resolver with a documented password/card-number
+  first, username-fallback precedence.
+- Preference loading and vault deletion use async file I/O; hot `AppPreferences`
+  reads on the settings, security, autofill and vault paths use reactive
+  providers, and all three entrypoints derive theme/locale from them.
+
 ## [1.10.2] - 2026-11-21
 
 Follow-up fixes to 1.10.0. No vault schema change and no weakening of the lock,

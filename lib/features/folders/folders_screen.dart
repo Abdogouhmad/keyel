@@ -107,7 +107,7 @@ class FoldersScreen extends ConsumerWidget {
           children: [
             KeyelTopBar(
               title: l10n.foldersTitle,
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
               trailing: KeyelIconHull(

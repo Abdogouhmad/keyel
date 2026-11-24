@@ -43,9 +43,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionDelete => 'Delete';
 
   @override
-  String get actionEdit => 'Edit';
-
-  @override
   String get actionCopy => 'Copy';
 
   @override
@@ -59,9 +56,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionOpen => 'Open';
-
-  @override
-  String get actionRefresh => 'Refresh';
 
   @override
   String get actionLockVault => 'Lock vault';
@@ -80,9 +74,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionContinue => 'Continue';
-
-  @override
-  String get languageSystem => 'System';
 
   @override
   String get languageEnglish => 'English';
@@ -121,40 +112,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trashTitle => 'Trash';
 
   @override
-  String get passkeysTitle => 'Passkeys';
-
-  @override
-  String get autofillTitle => 'Autofill';
-
-  @override
   String get importExportTitle => 'Import & export';
 
   @override
   String get syncTitle => 'Sync';
 
   @override
-  String get helpTitle => 'Help';
-
-  @override
   String get reportProblem => 'Report a problem';
 
   @override
-  String get commonLoading => 'Loading…';
-
-  @override
-  String get commonErrorTitle => 'Something went wrong';
-
-  @override
-  String get commonEmpty => 'Nothing here yet';
-
-  @override
   String get searchHint => 'Search';
-
-  @override
-  String get stateMissingTitle => 'Not found';
-
-  @override
-  String get stateMissingMessage => 'This item no longer exists.';
 
   @override
   String get checkForUpdates => 'Check for updates';
@@ -171,9 +138,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearFilters => 'Clear filters';
-
-  @override
-  String get addItem => 'Add item';
 
   @override
   String get themeModeTitle => 'Theme';
@@ -200,22 +164,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoLockTitle => 'Auto-lock';
 
   @override
-  String get breachTitle => 'Breach monitoring';
-
-  @override
-  String get otaTitle => 'Updates';
-
-  @override
   String get healthLoading => 'Checking your vault health…';
 
   @override
   String get healthErrorTitle => 'Could not check vault health';
-
-  @override
-  String get vaultLoading => 'Opening your vault…';
-
-  @override
-  String get vaultErrorTitle => 'Could not open your vault';
 
   @override
   String get folderEmpty => 'No folders yet';
@@ -224,19 +176,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trashEmpty => 'Trash is empty';
 
   @override
-  String get folderErrorTitle => 'Could not load folders';
-
-  @override
-  String get trashErrorTitle => 'Could not load trash';
-
-  @override
-  String get versionLabel => 'Version';
-
-  @override
   String get currentVersion => 'Current version';
-
-  @override
-  String get installedVersion => 'Installed';
 
   @override
   String get appearanceHeadline => 'Personalize Keyel';
@@ -1606,6 +1546,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Refusing to download an update without a valid SHA-256 checksum';
 
   @override
+  String get otaInsecureUrl => 'Update downloads require an HTTPS URL';
+
+  @override
+  String get otaLocalInstallWarning =>
+      'Local APKs are not checksum-verified by Keyel. Only install a file you trust.';
+
+  @override
+  String get otaReverifyFailed =>
+      'The downloaded update failed its final checksum check and was removed';
+
+  @override
   String get otaReleaseChannel => 'Release Channel';
 
   @override
@@ -1993,13 +1944,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prefNoVaultBadge => 'No Vault';
-
-  @override
-  String get prefOfflineVaultSubtitle =>
-      'Zero telemetry, zero cloud synchronisation';
-
-  @override
-  String get prefOfflineVaultTitle => 'Offline vault mode';
 
   @override
   String get prefOpenSourceLicensesSubtitle =>

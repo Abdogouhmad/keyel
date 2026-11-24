@@ -177,7 +177,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
                   KeyelSpacing.sm,
                 ),
                 child: Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: context.alignStart,
                   child: Text(
                     l10n.passSignInTo(rpId),
                     style: textTheme.titleMedium?.copyWith(
@@ -273,7 +273,7 @@ class _PasskeyGetScreenState extends ConsumerState<PasskeyGetScreen> {
                                         )
                                       else
                                         Icon(
-                                          Icons.chevron_right_rounded,
+                                          context.forwardChevron,
                                           color: scheme.onSurfaceVariant,
                                         ),
                                     ],

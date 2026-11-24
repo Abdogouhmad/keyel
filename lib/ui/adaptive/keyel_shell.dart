@@ -170,8 +170,11 @@ class KeyelSubShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final windowClass = WindowSizeClass.of(context);
 
-    // Phones keep the previous full-screen push.
-    if (windowClass.isCompact) return child;
+    // Phones keep the previous full-screen push, but still get a layout scope
+    // so page-level decisions work the same way in every shell mode.
+    if (windowClass.isCompact) {
+      return EffectiveLayoutScope(chrome: const LayoutChrome(), child: child);
+    }
 
     if (windowClass == WindowSizeClass.medium) {
       return _RailScaffold(
@@ -217,7 +220,7 @@ class _BottomNavScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: content,
+      body: EffectiveLayoutScope(chrome: const LayoutChrome(), child: content),
       bottomNavigationBar: _KeyelBottomNav(
         currentIndex: currentIndex,
         onTap: onTap,
@@ -362,7 +365,10 @@ class _RailScaffold extends StatelessWidget {
             width: width,
             color: scheme.surface,
             child: SafeArea(
-              right: false,
+              // The rail sits at the reading start: physical left in LTR,
+              // physical right in RTL. Keep the inset on the outer edge only.
+              left: !context.isRtl,
+              right: context.isRtl,
               child: Column(
                 children: [
                   const SizedBox(height: KeyelSpacing.md),
@@ -395,7 +401,12 @@ class _RailScaffold extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: content),
+          Expanded(
+            child: EffectiveLayoutScope(
+              chrome: LayoutChrome(width: width),
+              child: content,
+            ),
+          ),
         ],
       ),
     );
@@ -429,13 +440,15 @@ class _DrawerScaffold extends StatelessWidget {
             width: 280,
             color: scheme.surface,
             child: SafeArea(
-              right: false,
+              // As with the rail, the drawer sits at the reading start.
+              left: !context.isRtl,
+              right: context.isRtl,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: KeyelSpacing.lg,
+                    padding: const EdgeInsetsDirectional.only(
+                      start: KeyelSpacing.lg,
                       top: KeyelSpacing.xl,
                       bottom: KeyelSpacing.xl,
                     ),
@@ -488,7 +501,12 @@ class _DrawerScaffold extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: content),
+          Expanded(
+            child: EffectiveLayoutScope(
+              chrome: const LayoutChrome(width: 280),
+              child: content,
+            ),
+          ),
         ],
       ),
     );

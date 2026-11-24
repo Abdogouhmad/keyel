@@ -276,7 +276,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
               SliverToBoxAdapter(
                 child: KeyelTopBar(
                   title: l10n.syncTitle,
-                  icon: Icons.arrow_back_rounded,
+                  icon: context.backArrow,
                   iconTooltip: l10n.actionBack,
                   onIconTap: () => context.pop(),
                 ),
@@ -394,7 +394,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Align(
-                                  alignment: Alignment.centerRight,
+                                  alignment: context.alignEnd,
                                   child: FilledButton(
                                     onPressed: _busy ? null : _join,
                                     child: Text(l10n.synJoinGroup),

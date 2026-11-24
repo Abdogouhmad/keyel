@@ -8,7 +8,7 @@ import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
-import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/features/vault/primary_secret_copy.dart';
 import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 
@@ -27,69 +27,35 @@ class VaultCopyButton extends ConsumerStatefulWidget {
 
 class _VaultCopyButtonState extends ConsumerState<VaultCopyButton> {
   Future<void> _copy() async {
-    final l10n = l10nOf(context);
     final entry = widget.entry;
     unawaited(Haptics.light());
-    if (entry.kind == VaultEntryKind.login) {
-      if (entry.username.isNotEmpty) {
-        unawaited(SensitiveClipboard.instance.copy(entry.username));
-        showKeyelSnack(
-          context,
-          l10n.vaultCopiedUsername,
-          icon: Icons.content_copy_rounded,
-        );
-      } else {
-        try {
-          final pass = await ref
-              .read(vaultRepositoryProvider)
-              .revealField(entry.id, SecretFieldDto.loginPassword);
-          if (!mounted) return;
-          if (pass.isEmpty) {
-            showKeyelSnack(
-              context,
-              l10n.vaultNothingToCopy,
-              icon: Icons.info_outline_rounded,
-            );
-            return;
-          }
-          unawaited(SensitiveClipboard.instance.copy(pass));
-          showKeyelSnack(
-            context,
-            '${l10n.vaultCopiedPassword}'
-            '${SensitiveClipboard.instance.clearHint}',
-            icon: Icons.content_copy_rounded,
-          );
-        } on Object catch (error) {
-          if (mounted) showKeyelSnack(context, describeVaultError(error));
-        }
-      }
-    } else if (entry.kind == VaultEntryKind.card) {
-      try {
-        final cardNum = await ref
-            .read(vaultRepositoryProvider)
-            .revealField(entry.id, SecretFieldDto.cardNumber);
-        if (!mounted) return;
-        if (cardNum.isEmpty) {
-          showKeyelSnack(
-            context,
-            l10n.vaultNothingToCopy,
-            icon: Icons.info_outline_rounded,
-          );
-          return;
-        }
-        unawaited(SensitiveClipboard.instance.copy(cardNum));
-        showKeyelSnack(
-          context,
-          l10n.vaultCopiedCardNumber,
-          icon: Icons.content_copy_rounded,
-        );
-      } on Object catch (_) {
-        if (mounted) {
-          unawaited(context.push(KeyelRoutes.entryDetail(entry.id)));
-        }
-      }
-    } else {
+
+    // Notes and passkeys have no primary secret: open them for inspection.
+    if (entry.kind != VaultEntryKind.login &&
+        entry.kind != VaultEntryKind.card) {
       unawaited(context.push(KeyelRoutes.entryDetail(entry.id)));
+      return;
+    }
+
+    try {
+      final result = await PrimarySecretCopy.resolve(
+        entry,
+        repository: ref.read(vaultRepositoryProvider),
+        l10n: l10nOf(context),
+      );
+      if (!mounted) return;
+      if (!result.hasValue) {
+        showKeyelSnack(
+          context,
+          result.message,
+          icon: Icons.info_outline_rounded,
+        );
+        return;
+      }
+      unawaited(SensitiveClipboard.instance.copy(result.value!));
+      showKeyelSnack(context, result.message, icon: Icons.content_copy_rounded);
+    } on Object catch (error) {
+      if (mounted) showKeyelSnack(context, describeVaultError(error));
     }
   }
 

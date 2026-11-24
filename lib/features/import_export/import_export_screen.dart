@@ -235,7 +235,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
           children: [
             KeyelTopBar(
               title: l10n.prefBackupImportTitle,
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
             ),
@@ -246,6 +246,9 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
               ),
             Expanded(
               child: KeyelContent(
+                maxWidth: context.supportsTwoColumns
+                    ? KeyelContentWidth.page
+                    : KeyelContentWidth.reading,
                 child: ImportExportHubBody(
                   busy: _busy,
                   onExportBackup: () => unawaited(_exportBackup()),

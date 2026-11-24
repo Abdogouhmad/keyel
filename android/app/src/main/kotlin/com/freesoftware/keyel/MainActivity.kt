@@ -42,6 +42,9 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Protect the very first frame. Dart reapplies this from the settings
+        // provider and may clear it only for an unlocked, opted-in vault.
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         when (intent?.action) {
             LockController.ACTION_LOCK -> {
                 pendingAction = LockController.ACTION_LOCK

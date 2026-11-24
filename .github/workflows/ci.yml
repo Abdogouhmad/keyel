@@ -29,6 +29,10 @@ jobs:
         run: cargo test --workspace
       - name: no secret logs
         run: ./tool/check_no_secret_logs.sh
+      - name: Wear OS isolation
+        run: ./tool/check_wear_isolation.sh
+      - name: Reveal lifecycle
+        run: ./tool/check_reveal_lifecycle.sh
 
   security:
     runs-on: ubuntu-latest
@@ -81,10 +85,18 @@ jobs:
           flutter gen-l10n
           git diff --exit-code -- lib/l10n/generated \
             || (echo "::error::Generated localizations are out of date. Run 'flutter gen-l10n' and commit the result." && exit 1)
+      - name: dart format
+        run: dart format --set-exit-if-changed lib test
       - name: flutter analyze
         run: flutter analyze
       - name: flutter test
         run: flutter test
+      - name: Linux desktop dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev
+      - name: Linux debug bundle
+        run: flutter build linux --debug
 
   flutter-android-build:
     runs-on: ubuntu-latest

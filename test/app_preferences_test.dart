@@ -97,6 +97,69 @@ void main() {
     expect(prefs.autofillVerifiedOnly, isTrue);
   });
 
+  test('autofill verified-only fails closed for older settings files', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_legacy');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+    await File('${dir.path}/settings.json').writeAsString('{}');
+
+    // Simulate a hot-reload/clobbered singleton before reading legacy settings.
+    prefs.autofillVerifiedOnly = false;
+    await prefs.load(vaultPath);
+
+    expect(prefs.autofillVerifiedOnly, isTrue);
+
+    // An explicit opt-out is still honoured.
+    prefs.autofillVerifiedOnly = false;
+    await prefs.save();
+    await prefs.load(vaultPath);
+    expect(prefs.autofillVerifiedOnly, isFalse);
+
+    // Restore the fail-closed default for later tests.
+    prefs.autofillVerifiedOnly = true;
+  });
+
+  test('legacy explicit autofill opt-out is migrated to fail closed', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_upgrade');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+    await File('${dir.path}/settings.json')
+        .writeAsString('{"autofillVerifiedOnly": false}');
+
+    prefs.autofillVerifiedOnly = false;
+    await prefs.load(vaultPath);
+    expect(
+      prefs.autofillVerifiedOnly,
+      isTrue,
+      reason: '1.10.2 wrote false by default; upgrades must fail closed',
+    );
+
+    // Once stamped, a deliberate opt-out is persisted across restarts.
+    prefs.autofillVerifiedOnly = false;
+    await prefs.save();
+    await prefs.load(vaultPath);
+    expect(prefs.autofillVerifiedOnly, isFalse);
+    prefs.autofillVerifiedOnly = true;
+  });
+
+  test('deleting settings restores fail-closed security defaults', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_missing');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+    final settings = File('${dir.path}/settings.json');
+    await settings.writeAsString('{}');
+    await prefs.load(vaultPath);
+
+    prefs
+      ..autofillVerifiedOnly = false
+      ..screenshotProtection = false;
+    await settings.delete();
+    await prefs.load(vaultPath);
+
+    expect(prefs.autofillVerifiedOnly, isTrue);
+    expect(prefs.screenshotProtection, isTrue);
+  });
+
   test(
     'autofill deny list round-trips and rejects malformed entries',
     () async {

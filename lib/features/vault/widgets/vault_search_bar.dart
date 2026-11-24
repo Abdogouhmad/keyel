@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:keyel/core/focus/keyel_search_focus.dart';
-import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/ui_settings_provider.dart';
 import 'package:keyel/features/vault/widgets/vault_recent_search.dart';
 import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
@@ -11,7 +11,7 @@ import 'package:keyel/ui/l10n/l10n.dart';
 ///
 /// Tracks whether the field is focused so recent searches only appear while
 /// the user is looking at an empty query, and commits finished queries to
-/// [AppPreferences.rememberSearch] when the field is left or cleared.
+/// [UiSettingsNotifier.rememberSearch] when the field is left or cleared.
 class VaultSearchBar extends ConsumerStatefulWidget {
   /// Creates the search field area.
   const new({required this.query, required this.onSearchChanged, super.key});
@@ -68,7 +68,7 @@ class _VaultSearchBarState extends ConsumerState<VaultSearchBar> {
   void _commitPendingSearch() {
     final term = _searchController.text.trim();
     if (term.isEmpty) return;
-    AppPreferences.instance.rememberSearch(term);
+    ref.read(uiSettingsProvider.notifier).rememberSearch(term);
   }
 
   void _runRecentSearch(String term) {

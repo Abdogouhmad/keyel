@@ -25,7 +25,7 @@ import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/l10n/locale_provider.dart';
-import 'package:keyel/ui/theme/keyel_palettes.dart';
+import 'package:keyel/ui/theme/appearance_provider.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
 const _autofillChannel = MethodChannel('keyel/autofill');
@@ -157,22 +157,21 @@ class _AutofillApp extends ConsumerWidget {
     final isUnlocked =
         ref.watch(vaultSessionProvider.select((state) => state.status)) ==
         VaultStatus.unlocked;
-    final prefs = AppPreferences.instance;
-    final palette = KeyelPaletteX.fromId(prefs.paletteId);
-    final themeMode = KeyelPaletteX.themeModeFromId(prefs.themeMode);
+    // Same reactive appearance/locale providers as the main app, so every
+    // entrypoint renders the user's current choices without a direct singleton
+    // read in the build path.
+    final appearance = ref.watch(appearanceProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp(
       title: l10nOf(context).coreAutofillAppTitle,
       debugShowCheckedModeBanner: false,
-      locale: localeFromId(prefs.localeId),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      themeMode: themeMode,
-      theme: KeyelTheme.light(palette: palette),
-      darkTheme: KeyelTheme.dark(
-        palette: palette,
-        amoledBlack: prefs.amoledBlack,
-      ),
+      themeMode: appearance.themeMode,
+      theme: appearance.lightTheme,
+      darkTheme: appearance.darkTheme,
       // Honour the platform high-contrast setting on the autofill screens too.
       builder: (context, child) => KeyelTheme.highContrastBuilder(
         child: child ?? const SizedBox.shrink(),

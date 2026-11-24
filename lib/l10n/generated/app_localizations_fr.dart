@@ -43,9 +43,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get actionDelete => 'Supprimer';
 
   @override
-  String get actionEdit => 'Modifier';
-
-  @override
   String get actionCopy => 'Copier';
 
   @override
@@ -59,9 +56,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get actionOpen => 'Ouvrir';
-
-  @override
-  String get actionRefresh => 'Actualiser';
 
   @override
   String get actionLockVault => 'Verrouiller le coffre';
@@ -80,9 +74,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get actionContinue => 'Continuer';
-
-  @override
-  String get languageSystem => 'Système';
 
   @override
   String get languageEnglish => 'Anglais';
@@ -122,40 +113,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trashTitle => 'Corbeille';
 
   @override
-  String get passkeysTitle => 'Clés d\'accès';
-
-  @override
-  String get autofillTitle => 'Saisie automatique';
-
-  @override
   String get importExportTitle => 'Importer et exporter';
 
   @override
   String get syncTitle => 'Synchronisation';
 
   @override
-  String get helpTitle => 'Aide';
-
-  @override
   String get reportProblem => 'Signaler un problème';
 
   @override
-  String get commonLoading => 'Chargement…';
-
-  @override
-  String get commonErrorTitle => 'Une erreur est survenue';
-
-  @override
-  String get commonEmpty => 'Rien ici pour l\'instant';
-
-  @override
   String get searchHint => 'Rechercher';
-
-  @override
-  String get stateMissingTitle => 'Introuvable';
-
-  @override
-  String get stateMissingMessage => 'Cet élément n\'existe plus.';
 
   @override
   String get checkForUpdates => 'Rechercher des mises à jour';
@@ -172,9 +139,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get clearFilters => 'Effacer les filtres';
-
-  @override
-  String get addItem => 'Ajouter un élément';
 
   @override
   String get themeModeTitle => 'Thème';
@@ -201,22 +165,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get autoLockTitle => 'Verrouillage automatique';
 
   @override
-  String get breachTitle => 'Surveillance des fuites';
-
-  @override
-  String get otaTitle => 'Mises à jour';
-
-  @override
   String get healthLoading => 'Vérification de la santé de votre coffre…';
 
   @override
   String get healthErrorTitle => 'Impossible de vérifier la santé du coffre';
-
-  @override
-  String get vaultLoading => 'Ouverture de votre coffre…';
-
-  @override
-  String get vaultErrorTitle => 'Impossible d\'ouvrir votre coffre';
 
   @override
   String get folderEmpty => 'Aucun dossier pour l\'instant';
@@ -225,19 +177,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trashEmpty => 'La corbeille est vide';
 
   @override
-  String get folderErrorTitle => 'Impossible de charger les dossiers';
-
-  @override
-  String get trashErrorTitle => 'Impossible de charger la corbeille';
-
-  @override
-  String get versionLabel => 'Version';
-
-  @override
   String get currentVersion => 'Version actuelle';
-
-  @override
-  String get installedVersion => 'Installée';
 
   @override
   String get appearanceHeadline => 'Personnalisez Keyel';
@@ -1646,6 +1586,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Refus de télécharger une mise à jour sans somme de contrôle SHA-256 valide';
 
   @override
+  String get otaInsecureUrl =>
+      'Le téléchargement des mises à jour nécessite une URL HTTPS';
+
+  @override
+  String get otaLocalInstallWarning =>
+      'Les APK locaux ne sont pas vérifiés par somme de contrôle. N\'installez qu\'un fichier de confiance.';
+
+  @override
+  String get otaReverifyFailed =>
+      'La mise à jour téléchargée a échoué la vérification finale et a été supprimée';
+
+  @override
   String get otaReleaseChannel => 'Canal de version';
 
   @override
@@ -2048,13 +2000,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get prefNoVaultBadge => 'Aucun coffre';
-
-  @override
-  String get prefOfflineVaultSubtitle =>
-      'Aucune télémétrie, aucune synchronisation cloud';
-
-  @override
-  String get prefOfflineVaultTitle => 'Mode coffre hors ligne';
 
   @override
   String get prefOpenSourceLicensesSubtitle =>

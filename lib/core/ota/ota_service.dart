@@ -258,6 +258,12 @@ class OtaService {
     if (!isValidOtaChecksum(release.sha256)) {
       throw StateError(currentL10n.otaRefuseUnverifiedDownload);
     }
+    final downloadUri = Uri.tryParse(release.downloadUrl);
+    if (downloadUri == null ||
+        !downloadUri.isAbsolute ||
+        downloadUri.scheme.toLowerCase() != 'https') {
+      throw StateError(currentL10n.otaInsecureUrl);
+    }
 
     final tempDir = await getTemporaryDirectory();
     final cleanFileName = release.fileName.replaceAll(RegExp(r'[^\w\.-]'), '_');
@@ -269,14 +275,22 @@ class OtaService {
       } on Object catch (_) {}
     }
 
-    final request = http.Request('GET', Uri.parse(release.downloadUrl));
+    final request = http.Request('GET', downloadUri);
     request.headers['User-Agent'] = 'Keyel-OTA-Updater';
     final streamedResponse = await _client.send(request);
+
+    // The client follows redirects, so the manifest's HTTPS URL is not enough:
+    // a redirect to plain HTTP must be refused just like the original URL.
+    final finalUri = streamedResponse.request?.url;
+    if (finalUri != null && finalUri.scheme.toLowerCase() != 'https') {
+      await streamedResponse.stream.drain<List<int>>();
+      throw StateError(currentL10n.otaInsecureUrl);
+    }
 
     if (streamedResponse.statusCode != 200) {
       throw HttpException(
         currentL10n.otaDownloadFailedHttp('${streamedResponse.statusCode}'),
-        uri: Uri.parse(release.downloadUrl),
+        uri: downloadUri,
       );
     }
 

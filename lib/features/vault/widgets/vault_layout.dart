@@ -33,19 +33,20 @@ class VaultLayout extends StatelessWidget {
 
   /// Width of the master list pane in the two-pane layout.
   ///
-  /// Scales with the window between 320 and 420 dp so a narrow tablet keeps a
-  /// usable detail pane and a desktop window does not strand the list in a sea
-  /// of empty space.
+  /// Derived from the effective content width, not the raw window: at 1200 dp
+  /// with a 280 dp drawer the content area is only ~850 dp, so a window-based
+  /// 408 dp list would leave too little room for the detail pane. The pane
+  /// stays between 320 and 420 dp and keeps at least a third of the content.
   double _listPaneWidth(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    return (width * 0.34).clamp(320.0, 420.0);
+    final width = effectiveWidthOf(context);
+    return (width * 0.34).clamp(320.0, (width * 0.42).clamp(320.0, 420.0));
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    if (WindowSizeClass.of(context).supportsListDetail) {
+    if (WindowSizeClass.ofEffective(context).supportsListDetail) {
       return Scaffold(
         backgroundColor: scheme.surface,
         body: SafeArea(

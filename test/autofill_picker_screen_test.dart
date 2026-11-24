@@ -169,6 +169,27 @@ void main() {
     expect(find.text('Sub login'), findsNothing);
   });
 
+  testWidgets('strict match mode also drops text-search hits', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    AppPreferences.instance.autofillMatchMode = 'exact';
+    final repository = _FakeRepository(
+      matches: [
+        _match('a', 'Exact login', AutofillQualityDto.exact),
+        _match('b', 'Sub login', AutofillQualityDto.sameSite),
+        _match('c', 'Text login', AutofillQualityDto.search),
+      ],
+    );
+    await tester.pumpWidget(_host(repository));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Exact login'), findsOneWidget);
+    expect(find.text('Sub login'), findsNothing);
+    expect(find.text('Text login'), findsNothing);
+  });
+
   testWidgets('locked vault shows the unlock prompt and no matches', (
     tester,
   ) async {

@@ -44,10 +44,6 @@
   "@actionDelete": {
     "description": "User-facing copy: actionDelete (en template)."
   },
-  "actionEdit": "Edit",
-  "@actionEdit": {
-    "description": "User-facing copy: actionEdit (en template)."
-  },
   "actionCopy": "Copy",
   "@actionCopy": {
     "description": "User-facing copy: actionCopy (en template)."
@@ -67,10 +63,6 @@
   "actionOpen": "Open",
   "@actionOpen": {
     "description": "User-facing copy: actionOpen (en template)."
-  },
-  "actionRefresh": "Refresh",
-  "@actionRefresh": {
-    "description": "User-facing copy: actionRefresh (en template)."
   },
   "actionLockVault": "Lock vault",
   "@actionLockVault": {
@@ -95,10 +87,6 @@
   "actionContinue": "Continue",
   "@actionContinue": {
     "description": "User-facing copy: actionContinue (en template)."
-  },
-  "languageSystem": "System",
-  "@languageSystem": {
-    "description": "User-facing copy: languageSystem (en template)."
   },
   "languageEnglish": "English",
   "@languageEnglish": {
@@ -148,14 +136,6 @@
   "@trashTitle": {
     "description": "User-facing copy: trashTitle (en template)."
   },
-  "passkeysTitle": "Passkeys",
-  "@passkeysTitle": {
-    "description": "User-facing copy: passkeysTitle (en template)."
-  },
-  "autofillTitle": "Autofill",
-  "@autofillTitle": {
-    "description": "User-facing copy: autofillTitle (en template)."
-  },
   "importExportTitle": "Import & export",
   "@importExportTitle": {
     "description": "User-facing copy: importExportTitle (en template)."
@@ -164,37 +144,13 @@
   "@syncTitle": {
     "description": "User-facing copy: syncTitle (en template)."
   },
-  "helpTitle": "Help",
-  "@helpTitle": {
-    "description": "User-facing copy: helpTitle (en template)."
-  },
   "reportProblem": "Report a problem",
   "@reportProblem": {
     "description": "User-facing copy: reportProblem (en template)."
   },
-  "commonLoading": "Loading…",
-  "@commonLoading": {
-    "description": "User-facing copy: commonLoading (en template)."
-  },
-  "commonErrorTitle": "Something went wrong",
-  "@commonErrorTitle": {
-    "description": "User-facing copy: commonErrorTitle (en template)."
-  },
-  "commonEmpty": "Nothing here yet",
-  "@commonEmpty": {
-    "description": "User-facing copy: commonEmpty (en template)."
-  },
   "searchHint": "Search",
   "@searchHint": {
     "description": "User-facing copy: searchHint (en template)."
-  },
-  "stateMissingTitle": "Not found",
-  "@stateMissingTitle": {
-    "description": "User-facing copy: stateMissingTitle (en template)."
-  },
-  "stateMissingMessage": "This item no longer exists.",
-  "@stateMissingMessage": {
-    "description": "User-facing copy: stateMissingMessage (en template)."
   },
   "checkForUpdates": "Check for updates",
   "@checkForUpdates": {
@@ -215,10 +171,6 @@
   "clearFilters": "Clear filters",
   "@clearFilters": {
     "description": "User-facing copy: clearFilters (en template)."
-  },
-  "addItem": "Add item",
-  "@addItem": {
-    "description": "User-facing copy: addItem (en template)."
   },
   "themeModeTitle": "Theme",
   "@themeModeTitle": {
@@ -252,14 +204,6 @@
   "@autoLockTitle": {
     "description": "User-facing copy: autoLockTitle (en template)."
   },
-  "breachTitle": "Breach monitoring",
-  "@breachTitle": {
-    "description": "User-facing copy: breachTitle (en template)."
-  },
-  "otaTitle": "Updates",
-  "@otaTitle": {
-    "description": "User-facing copy: otaTitle (en template)."
-  },
   "healthLoading": "Checking your vault health…",
   "@healthLoading": {
     "description": "User-facing copy: healthLoading (en template)."
@@ -267,14 +211,6 @@
   "healthErrorTitle": "Could not check vault health",
   "@healthErrorTitle": {
     "description": "User-facing copy: healthErrorTitle (en template)."
-  },
-  "vaultLoading": "Opening your vault…",
-  "@vaultLoading": {
-    "description": "User-facing copy: vaultLoading (en template)."
-  },
-  "vaultErrorTitle": "Could not open your vault",
-  "@vaultErrorTitle": {
-    "description": "User-facing copy: vaultErrorTitle (en template)."
   },
   "folderEmpty": "No folders yet",
   "@folderEmpty": {
@@ -284,25 +220,9 @@
   "@trashEmpty": {
     "description": "User-facing copy: trashEmpty (en template)."
   },
-  "folderErrorTitle": "Could not load folders",
-  "@folderErrorTitle": {
-    "description": "User-facing copy: folderErrorTitle (en template)."
-  },
-  "trashErrorTitle": "Could not load trash",
-  "@trashErrorTitle": {
-    "description": "User-facing copy: trashErrorTitle (en template)."
-  },
-  "versionLabel": "Version",
-  "@versionLabel": {
-    "description": "User-facing copy: versionLabel (en template)."
-  },
   "currentVersion": "Current version",
   "@currentVersion": {
     "description": "User-facing copy: currentVersion (en template)."
-  },
-  "installedVersion": "Installed",
-  "@installedVersion": {
-    "description": "User-facing copy: installedVersion (en template)."
   },
   "appearanceHeadline": "Personalize Keyel",
   "@appearanceHeadline": {
@@ -2158,6 +2078,18 @@
   "@otaRefuseUnverifiedDownload": {
     "description": "Service error refusing an update without a checksum."
   },
+  "otaInsecureUrl": "Update downloads require an HTTPS URL",
+  "@otaInsecureUrl": {
+    "description": "Service error when a release manifest supplies a non-HTTPS download URL."
+  },
+  "otaLocalInstallWarning": "Local APKs are not checksum-verified by Keyel. Only install a file you trust.",
+  "@otaLocalInstallWarning": {
+    "description": "Warning shown before installing an APK picked from local storage."
+  },
+  "otaReverifyFailed": "The downloaded update failed its final checksum check and was removed",
+  "@otaReverifyFailed": {
+    "description": "Provider error when a downloaded APK changes after download."
+  },
   "otaReleaseChannel": "Release Channel",
   "@otaReleaseChannel": {
     "description": "Label of the release channel selector."
@@ -2662,14 +2594,6 @@
   "prefNoVaultBadge": "No Vault",
   "@prefNoVaultBadge": {
     "description": "Settings UI copy: no vault badge."
-  },
-  "prefOfflineVaultSubtitle": "Zero telemetry, zero cloud synchronisation",
-  "@prefOfflineVaultSubtitle": {
-    "description": "Settings UI copy: offline vault subtitle."
-  },
-  "prefOfflineVaultTitle": "Offline vault mode",
-  "@prefOfflineVaultTitle": {
-    "description": "Settings UI copy: offline vault title."
   },
   "prefOpenSourceLicensesSubtitle": "Libraries bundled with this build",
   "@prefOpenSourceLicensesSubtitle": {

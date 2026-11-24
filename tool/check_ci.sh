@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Run the exact command set CI runs, so toolchain drift is caught locally.
+# Run the static, Dart and Rust gates locally, so toolchain drift is caught
+# before CI. Platform bundles (Android/Wear/Linux/Windows/macOS) are built in
+# the dedicated CI jobs because they need SDKs and system packages.
 #
 # CI pins Flutter 3.47.9 (see .github/workflows/ci.yml FLUTTER_VERSION and the
 # note in analysis_options.yaml). If `flutter --version` here differs, treat any
@@ -33,6 +35,15 @@ cargo test --workspace
 
 step "tool/check_no_secret_logs.sh"
 ./tool/check_no_secret_logs.sh
+
+step "tool/check_wear_isolation.sh"
+./tool/check_wear_isolation.sh
+
+step "tool/check_reveal_lifecycle.sh"
+./tool/check_reveal_lifecycle.sh
+
+step "dart format --set-exit-if-changed lib test"
+dart format --set-exit-if-changed lib test
 
 step "flutter gen-l10n (idempotency)"
 flutter gen-l10n

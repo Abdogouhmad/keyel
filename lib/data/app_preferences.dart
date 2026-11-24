@@ -71,8 +71,15 @@ class AppPreferences {
   ///
   /// This is the offline substitute for Digital Asset Links verification:
   /// same-site and text-search hits are suppressed because they cannot be
-  /// proven locally. No network request is ever made.
-  bool autofillVerifiedOnly = false;
+  /// proven locally. No network request is ever made. Defaults to `true` so
+  /// autofill fails closed; users who want broader suggestions can opt out.
+  bool autofillVerifiedOnly = true;
+
+  /// Version stamped into new settings files. 1.10.2 always persisted an
+  /// explicit `autofillVerifiedOnly: false`, so that legacy value must not be
+  /// honoured after an upgrade; a file without this version is migrated to the
+  /// fail-closed default regardless of what the old key says.
+  static const int autofillPolicyVersion = 2;
 
   /// Sites/apps the user chose "Never for this site" on.
   ///
@@ -180,9 +187,18 @@ class AppPreferences {
     try {
       final file = File('${File(vaultPath).parent.path}/settings.json');
       _file = file;
-      if (!file.existsSync()) return;
-      final decoded = jsonDecode(file.readAsStringSync());
-      if (decoded is! Map<String, dynamic>) return;
+      // Async I/O is deliberate here: startup awaits this before runApp, but a
+      // synchronous disk read would still stall the UI isolate on slow storage.
+      // ignore: avoid_slow_async_io
+      if (!await file.exists()) {
+        _applyFailClosedDefaults();
+        return;
+      }
+      final decoded = jsonDecode(await file.readAsString());
+      if (decoded is! Map<String, dynamic>) {
+        _applyFailClosedDefaults();
+        return;
+      }
       final seconds = decoded['autoLockSeconds'];
       if (seconds is int && seconds >= 0) {
         autoLockDelay = Duration(seconds: seconds);
@@ -192,7 +208,14 @@ class AppPreferences {
       autofillMatchMode = decoded['autofillMatchMode'] == 'exact'
           ? 'exact'
           : 'domain';
-      autofillVerifiedOnly = decoded['autofillVerifiedOnly'] == true;
+      // A legacy 1.10.2 file contains an explicit `false` even when the user
+      // never changed the setting. Only files stamped with the 1.11 policy
+      // version may opt out of verified-only autofill.
+      final policyVersion = decoded['autofillPolicyVersion'];
+      autofillVerifiedOnly =
+          policyVersion is int &&
+          policyVersion >= autofillPolicyVersion &&
+          decoded['autofillVerifiedOnly'] != false;
       final denied = decoded['autofillNeverForSites'];
       if (denied is List) {
         autofillNeverForSites = denied
@@ -283,8 +306,14 @@ class AppPreferences {
         }
       }
     } on Object catch (_) {
-      // Preferences are optional; keep the defaults on any failure.
+      // Preferences are optional; keep the fail-closed defaults on any failure.
+      _applyFailClosedDefaults();
     }
+  }
+
+  void _applyFailClosedDefaults() {
+    autofillVerifiedOnly = true;
+    screenshotProtection = true;
   }
 
   /// Persist the current preferences. Failures are intentionally ignored.
@@ -298,6 +327,7 @@ class AppPreferences {
           'biometricEnabled': biometricEnabled,
           'autofillAskToSave': autofillAskToSave,
           'autofillMatchMode': autofillMatchMode,
+          'autofillPolicyVersion': autofillPolicyVersion,
           'autofillVerifiedOnly': autofillVerifiedOnly,
           'autofillNeverForSites': autofillNeverForSites,
           'clipboardClearSeconds': clipboardClearSeconds,

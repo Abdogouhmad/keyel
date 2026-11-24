@@ -44,10 +44,6 @@
   "@actionDelete": {
     "description": "User-facing copy: actionDelete (fr template)."
   },
-  "actionEdit": "Modifier",
-  "@actionEdit": {
-    "description": "User-facing copy: actionEdit (fr template)."
-  },
   "actionCopy": "Copier",
   "@actionCopy": {
     "description": "User-facing copy: actionCopy (fr template)."
@@ -67,10 +63,6 @@
   "actionOpen": "Ouvrir",
   "@actionOpen": {
     "description": "User-facing copy: actionOpen (fr template)."
-  },
-  "actionRefresh": "Actualiser",
-  "@actionRefresh": {
-    "description": "User-facing copy: actionRefresh (fr template)."
   },
   "actionLockVault": "Verrouiller le coffre",
   "@actionLockVault": {
@@ -95,10 +87,6 @@
   "actionContinue": "Continuer",
   "@actionContinue": {
     "description": "User-facing copy: actionContinue (fr template)."
-  },
-  "languageSystem": "Système",
-  "@languageSystem": {
-    "description": "User-facing copy: languageSystem (fr template)."
   },
   "languageEnglish": "Anglais",
   "@languageEnglish": {
@@ -148,14 +136,6 @@
   "@trashTitle": {
     "description": "User-facing copy: trashTitle (fr template)."
   },
-  "passkeysTitle": "Clés d'accès",
-  "@passkeysTitle": {
-    "description": "User-facing copy: passkeysTitle (fr template)."
-  },
-  "autofillTitle": "Saisie automatique",
-  "@autofillTitle": {
-    "description": "User-facing copy: autofillTitle (fr template)."
-  },
   "importExportTitle": "Importer et exporter",
   "@importExportTitle": {
     "description": "User-facing copy: importExportTitle (fr template)."
@@ -164,37 +144,13 @@
   "@syncTitle": {
     "description": "User-facing copy: syncTitle (fr template)."
   },
-  "helpTitle": "Aide",
-  "@helpTitle": {
-    "description": "User-facing copy: helpTitle (fr template)."
-  },
   "reportProblem": "Signaler un problème",
   "@reportProblem": {
     "description": "User-facing copy: reportProblem (fr template)."
   },
-  "commonLoading": "Chargement…",
-  "@commonLoading": {
-    "description": "User-facing copy: commonLoading (fr template)."
-  },
-  "commonErrorTitle": "Une erreur est survenue",
-  "@commonErrorTitle": {
-    "description": "User-facing copy: commonErrorTitle (fr template)."
-  },
-  "commonEmpty": "Rien ici pour l'instant",
-  "@commonEmpty": {
-    "description": "User-facing copy: commonEmpty (fr template)."
-  },
   "searchHint": "Rechercher",
   "@searchHint": {
     "description": "User-facing copy: searchHint (fr template)."
-  },
-  "stateMissingTitle": "Introuvable",
-  "@stateMissingTitle": {
-    "description": "User-facing copy: stateMissingTitle (fr template)."
-  },
-  "stateMissingMessage": "Cet élément n'existe plus.",
-  "@stateMissingMessage": {
-    "description": "User-facing copy: stateMissingMessage (fr template)."
   },
   "checkForUpdates": "Rechercher des mises à jour",
   "@checkForUpdates": {
@@ -215,10 +171,6 @@
   "clearFilters": "Effacer les filtres",
   "@clearFilters": {
     "description": "User-facing copy: clearFilters (fr template)."
-  },
-  "addItem": "Ajouter un élément",
-  "@addItem": {
-    "description": "User-facing copy: addItem (fr template)."
   },
   "themeModeTitle": "Thème",
   "@themeModeTitle": {
@@ -252,14 +204,6 @@
   "@autoLockTitle": {
     "description": "User-facing copy: autoLockTitle (fr template)."
   },
-  "breachTitle": "Surveillance des fuites",
-  "@breachTitle": {
-    "description": "User-facing copy: breachTitle (fr template)."
-  },
-  "otaTitle": "Mises à jour",
-  "@otaTitle": {
-    "description": "User-facing copy: otaTitle (fr template)."
-  },
   "healthLoading": "Vérification de la santé de votre coffre…",
   "@healthLoading": {
     "description": "User-facing copy: healthLoading (fr template)."
@@ -267,14 +211,6 @@
   "healthErrorTitle": "Impossible de vérifier la santé du coffre",
   "@healthErrorTitle": {
     "description": "User-facing copy: healthErrorTitle (fr template)."
-  },
-  "vaultLoading": "Ouverture de votre coffre…",
-  "@vaultLoading": {
-    "description": "User-facing copy: vaultLoading (fr template)."
-  },
-  "vaultErrorTitle": "Impossible d'ouvrir votre coffre",
-  "@vaultErrorTitle": {
-    "description": "User-facing copy: vaultErrorTitle (fr template)."
   },
   "folderEmpty": "Aucun dossier pour l'instant",
   "@folderEmpty": {
@@ -284,25 +220,9 @@
   "@trashEmpty": {
     "description": "User-facing copy: trashEmpty (fr template)."
   },
-  "folderErrorTitle": "Impossible de charger les dossiers",
-  "@folderErrorTitle": {
-    "description": "User-facing copy: folderErrorTitle (fr template)."
-  },
-  "trashErrorTitle": "Impossible de charger la corbeille",
-  "@trashErrorTitle": {
-    "description": "User-facing copy: trashErrorTitle (fr template)."
-  },
-  "versionLabel": "Version",
-  "@versionLabel": {
-    "description": "User-facing copy: versionLabel (fr template)."
-  },
   "currentVersion": "Version actuelle",
   "@currentVersion": {
     "description": "User-facing copy: currentVersion (fr template)."
-  },
-  "installedVersion": "Installée",
-  "@installedVersion": {
-    "description": "User-facing copy: installedVersion (fr template)."
   },
   "appearanceHeadline": "Personnalisez Keyel",
   "@appearanceHeadline": {
@@ -2158,6 +2078,18 @@
   "@otaRefuseUnverifiedDownload": {
     "description": "Service error refusing an update without a checksum."
   },
+  "otaInsecureUrl": "Le téléchargement des mises à jour nécessite une URL HTTPS",
+  "@otaInsecureUrl": {
+    "description": "Service error when a release manifest supplies a non-HTTPS download URL."
+  },
+  "otaLocalInstallWarning": "Les APK locaux ne sont pas vérifiés par somme de contrôle. N'installez qu'un fichier de confiance.",
+  "@otaLocalInstallWarning": {
+    "description": "Warning shown before installing an APK picked from local storage."
+  },
+  "otaReverifyFailed": "La mise à jour téléchargée a échoué la vérification finale et a été supprimée",
+  "@otaReverifyFailed": {
+    "description": "Provider error when a downloaded APK changes after download."
+  },
   "otaReleaseChannel": "Canal de version",
   "@otaReleaseChannel": {
     "description": "Label of the release channel selector."
@@ -2662,14 +2594,6 @@
   "prefNoVaultBadge": "Aucun coffre",
   "@prefNoVaultBadge": {
     "description": "Settings UI copy: no vault badge."
-  },
-  "prefOfflineVaultSubtitle": "Aucune télémétrie, aucune synchronisation cloud",
-  "@prefOfflineVaultSubtitle": {
-    "description": "Settings UI copy: offline vault subtitle."
-  },
-  "prefOfflineVaultTitle": "Mode coffre hors ligne",
-  "@prefOfflineVaultTitle": {
-    "description": "Settings UI copy: offline vault title."
   },
   "prefOpenSourceLicensesSubtitle": "Bibliothèques incluses dans cette version",
   "@prefOpenSourceLicensesSubtitle": {

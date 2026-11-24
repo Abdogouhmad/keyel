@@ -209,7 +209,10 @@ class OtaNotifier extends Notifier<OtaState> {
       );
       return false;
     }
-    if (!state.isChecksumVerified) {
+    final expectedSha256 = state.availableRelease?.sha256;
+    if (!state.isChecksumVerified ||
+        expectedSha256 == null ||
+        !isValidOtaChecksum(expectedSha256)) {
       state = state.copyWith(
         step: OtaStep.error,
         errorMessage: () => currentL10n.otaChecksumNotVerified,
@@ -218,14 +221,36 @@ class OtaNotifier extends Notifier<OtaState> {
     }
 
     try {
+      // Permission prompts can take arbitrary time, so settle them first. The
+      // re-hash below is then the last await before handing the file over.
       final canInstall = await _service.canInstallPackages();
       if (!ref.mounted) return false;
       if (!canInstall) {
         await _service.openInstallPermissionSettings();
         return false;
       }
-
       state = state.copyWith(step: OtaStep.installing);
+
+      // The file can be replaced between download and install. Re-hash it at
+      // the last possible moment and drop it if it no longer matches.
+      final stillValid = await _service.verifyFileChecksum(
+        File(path),
+        expectedSha256,
+      );
+      if (!ref.mounted) return false;
+      if (!stillValid) {
+        try {
+          File(path).deleteSync();
+        } on Object catch (_) {}
+        state = state.copyWith(
+          step: OtaStep.error,
+          errorMessage: () => currentL10n.otaReverifyFailed,
+          isChecksumVerified: false,
+          downloadedFilePath: () => null,
+        );
+        return false;
+      }
+
       final ok = await _service.installApk(path);
       if (!ref.mounted) return ok;
       state = state.copyWith(step: OtaStep.downloaded);

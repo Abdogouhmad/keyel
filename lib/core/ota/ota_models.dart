@@ -110,14 +110,18 @@ class OtaRelease {
   final bool isMandatory;
 
   /// Formatted human-readable file size (e.g. "18.4 MB").
-  String get formattedSize {
-    if (fileSize <= 0) return '';
-    if (fileSize < 1024) return '$fileSize B';
-    if (fileSize < 1024 * 1024) {
-      return '${(fileSize / 1024).toStringAsFixed(1)} KB';
-    }
-    return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
+  String get formattedSize => formatOtaBytes(fileSize);
+}
+
+/// Formats a byte count for the OTA UI.
+///
+/// Release metadata hides a missing size with an empty string; live download
+/// progress keeps a visible zero. Sharing the thresholds keeps both consistent.
+String formatOtaBytes(int bytes, {String zeroLabel = ''}) {
+  if (bytes <= 0) return zeroLabel;
+  if (bytes < 1024) return '$bytes B';
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }
 
 /// Complete immutable state of the OTA subsystem.

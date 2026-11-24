@@ -404,7 +404,11 @@ connection of its own.
   channel to a connected node only; the phone fails closed when Play Services
   or a paired watch is unavailable. Payloads are size-bounded, never logged,
   and the native byte buffers are zero-filled after the send. There is no
-  retry, queue or background service.
+  retry, queue or background service. The receiver is a plain
+  `WearableListenerService` bound on demand by GMS via a
+  `com.google.android.gms.wearable.MESSAGE_RECEIVED` filter scoped to
+  `wear://*/keyel/totp`; the watch manifest declares no boot receiver and no
+  foreground-service permission or type, and nothing calls `startForeground`.
 - **Storage on the watch.** The watch validates every incoming field, then
   stores the seed in `EncryptedSharedPreferences` behind a StrongBox-backed
   AES-256-GCM master key. No plaintext seed appears in preferences, backups
@@ -442,7 +446,7 @@ app has no remote-wipe path other than the paired phone's remove command.
 | T14 | `crates/keyel_core/tests/sync.rs` + `sync`/`pairing` unit tests (envelope tamper/wrong-key/truncation, pairing typo rejection, merge idempotency/convergence, corrupt blob leaves vault untouched, folder atomic I/O); `test/sync_screen_test.dart` (pairing-code acknowledgement, status, manual sync) |
 | T15 | `crates/keyel_core/src/breach.rs` known-answer/parser tests; `test/breach_test.dart` (HTTPS endpoint and prefix validation, opt-in disclosure, unlocked gating, error/cleanup, title/count-only results); secret-free DTO shape in `rust/src/api/breach.rs` |
 | T11 | `rust/src/api/import_export.rs` private-file test (`0600`, no overwrite) |
-| T16 | `wear/src/test/.../TotpGeneratorTest.kt` (RFC 6238 vectors for SHA-1/256/512, input validation); source review of `TotpStore`/`WearTotpBridge`; `tool/check_no_secret_logs.sh`; on-device watch smoke pending |
+| T16 | `wear/src/test/.../TotpGeneratorTest.kt` (RFC 6238 vectors for SHA-1/256/512, input validation); source review of `TotpStore`/`WearTotpBridge`; `tool/check_no_secret_logs.sh`; `tool/check_wear_isolation.sh` (no boot receiver/foreground service/clipboard, `FLAG_SECURE`, GMS-bound path-scoped listener — automated in CI); on-device watch smoke pending |
 
 ## 7. Open items
 

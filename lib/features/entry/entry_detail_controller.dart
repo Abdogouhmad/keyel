@@ -39,9 +39,14 @@ class EntryDetailController {
   String? _revealedCardNumber;
   String? _revealedCvv;
   String? _revealedNote;
+  String? _revealedEntryNotes;
   final Map<String, String> _revealedCustomFields = <String, String>{};
   Timer? _hideTimer;
-  final Map<String, Timer> _customFieldHideTimers = <String, Timer>{};
+
+  /// Bumped whenever every reveal is invalidated (lock, background, route
+  /// change, dispose). An in-flight bridge reveal captured with an older token
+  /// must never write its plaintext back into state afterwards.
+  int _revealGeneration = 0;
 
   /// Latest loaded detail record, or `null` while missing.
   EntryDetailDto? get detail => _detail;
@@ -69,8 +74,11 @@ class EntryDetailController {
   /// Revealed card security code, or `null` when hidden.
   String? get revealedCvv => _revealedCvv;
 
-  /// Revealed note content, or `null` when hidden.
+  /// Revealed secure-note body, or `null` when hidden.
   String? get revealedNote => _revealedNote;
+
+  /// Revealed free-form notes attached to the entry, or `null` when hidden.
+  String? get revealedEntryNotes => _revealedEntryNotes;
 
   /// Revealed hidden custom-field values keyed by custom-field id.
   Map<String, String> get revealedCustomFields => _revealedCustomFields;
@@ -125,6 +133,8 @@ class EntryDetailController {
       _revealedCardNumber = null;
       _revealedCvv = null;
       _revealedNote = null;
+      _revealedEntryNotes = null;
+      _revealedCustomFields.clear();
       callbacks.rebuild();
     });
   }
@@ -133,30 +143,37 @@ class EntryDetailController {
     if (_revealedPassword == null &&
         _revealedCardNumber == null &&
         _revealedCvv == null &&
-        _revealedNote == null) {
+        _revealedNote == null &&
+        _revealedEntryNotes == null &&
+        _revealedCustomFields.isEmpty) {
       _hideTimer?.cancel();
       _hideTimer = null;
     }
   }
 
+  /// Whether a reveal request started under [generation] is still allowed to
+  /// publish its plaintext. Lock/background/route changes invalidate it.
+  bool _isCurrent(int generation) => generation == _revealGeneration;
+
   /// Immediately hides every revealed secret. Called on lock/background.
   void hideAll() {
+    // Invalidate reveals that are still waiting on the Rust bridge before any
+    // state is cleared, so a late response cannot resurrect the secret.
+    _revealGeneration++;
     final hadReveals =
         _revealedPassword != null ||
         _revealedCardNumber != null ||
         _revealedCvv != null ||
         _revealedNote != null ||
+        _revealedEntryNotes != null ||
         _revealedCustomFields.isNotEmpty;
     _hideTimer?.cancel();
     _hideTimer = null;
-    for (final timer in _customFieldHideTimers.values) {
-      timer.cancel();
-    }
-    _customFieldHideTimers.clear();
     _revealedPassword = null;
     _revealedCardNumber = null;
     _revealedCvv = null;
     _revealedNote = null;
+    _revealedEntryNotes = null;
     _revealedCustomFields.clear();
     if (hadReveals) callbacks.rebuild();
   }
@@ -170,11 +187,13 @@ class EntryDetailController {
       return;
     }
 
+    final generation = _revealGeneration;
     try {
       final plain = await repository.revealField(
         entryId,
         SecretFieldDto.loginPassword,
       );
+      if (!_isCurrent(generation)) return;
       _revealedPassword = plain;
       callbacks.rebuild();
       _scheduleHide();
@@ -193,15 +212,18 @@ class EntryDetailController {
       return;
     }
 
+    final generation = _revealGeneration;
     try {
       final number = await repository.revealField(
         entryId,
         SecretFieldDto.cardNumber,
       );
+      if (!_isCurrent(generation)) return;
       String? cvv;
       try {
         cvv = await repository.revealField(entryId, SecretFieldDto.cardCvv);
       } on Object catch (_) {}
+      if (!_isCurrent(generation)) return;
 
       _revealedCardNumber = number;
       _revealedCvv = cvv;
@@ -221,12 +243,42 @@ class EntryDetailController {
       return;
     }
 
+    final generation = _revealGeneration;
     try {
       final content = await repository.revealField(
         entryId,
         SecretFieldDto.noteContent,
       );
+      if (!_isCurrent(generation)) return;
       _revealedNote = content;
+      callbacks.rebuild();
+      _scheduleHide();
+    } on Object catch (error) {
+      callbacks.notifyError(error);
+    }
+  }
+
+  /// Reveals or hides the free-form notes attached to any entry kind.
+  ///
+  /// Notes are secrets too: a login can carry a recovery code or a backup seed
+  /// in its notes, so they follow the same tap-to-reveal and auto-hide rules as
+  /// a password instead of being rendered on build.
+  Future<void> toggleRevealEntryNotes() async {
+    if (_revealedEntryNotes != null) {
+      _revealedEntryNotes = null;
+      _cancelHideIfEmpty();
+      callbacks.rebuild();
+      return;
+    }
+
+    final generation = _revealGeneration;
+    try {
+      final notes = await repository.revealField(
+        entryId,
+        SecretFieldDto.entryNotes,
+      );
+      if (!_isCurrent(generation)) return;
+      _revealedEntryNotes = notes;
       callbacks.rebuild();
       _scheduleHide();
     } on Object catch (error) {
@@ -244,11 +296,15 @@ class EntryDetailController {
       return;
     }
 
+    final generation = _revealGeneration;
     try {
       final plain = await repository.revealField(
         entryId,
         SecretFieldDto.loginPassword,
       );
+      // A lock/background request that arrived during the bridge call owns the
+      // clipboard now; copying after it would undo the native wipe.
+      if (!_isCurrent(generation)) return;
       callbacks.copy(
         plain,
         currentL10n.entryPasswordCopied(SensitiveClipboard.instance.clearHint),
@@ -262,21 +318,20 @@ class EntryDetailController {
   Future<void> toggleRevealCustomField(String fieldId) async {
     if (_revealedCustomFields.containsKey(fieldId)) {
       _revealedCustomFields.remove(fieldId);
-      _customFieldHideTimers.remove(fieldId)?.cancel();
+      _cancelHideIfEmpty();
       callbacks.rebuild();
       return;
     }
 
+    final generation = _revealGeneration;
     try {
       final plain = await repository.revealCustomField(entryId, fieldId);
+      if (!_isCurrent(generation)) return;
       _revealedCustomFields[fieldId] = plain;
       callbacks.rebuild();
-      _customFieldHideTimers.remove(fieldId)?.cancel();
-      _customFieldHideTimers[fieldId] = Timer(revealDuration, () {
-        _revealedCustomFields.remove(fieldId);
-        _customFieldHideTimers.remove(fieldId);
-        callbacks.rebuild();
-      });
+      // One shared timer covers every revealed field: revealing any secret
+      // refreshes the same deadline, and lock/background hides all of them.
+      _scheduleHide();
     } on Object catch (error) {
       callbacks.notifyError(error);
     }
@@ -296,8 +351,10 @@ class EntryDetailController {
         );
         return;
       }
+      final generation = _revealGeneration;
       try {
         final plain = await repository.revealCustomField(entryId, field.id);
+        if (!_isCurrent(generation)) return;
         callbacks.copy(
           plain,
           currentL10n.entryFieldCopied(
@@ -391,17 +448,18 @@ class EntryDetailController {
     final detail = _detail;
     if (detail == null) return;
 
+    // The detail route stays mounted underneath the editor; mask before
+    // pushing so a pop cannot reveal a secret whose timer is still running.
+    hideAll();
     await callbacks.pushEdit(detail.id);
     await load();
     callbacks.onEdited?.call();
   }
 
-  /// Cancels pending auto-hide timers.
+  /// Invalidates in-flight reveals and cancels the pending auto-hide timer.
   void dispose() {
+    _revealGeneration++;
     _hideTimer?.cancel();
-    for (final timer in _customFieldHideTimers.values) {
-      timer.cancel();
-    }
-    _customFieldHideTimers.clear();
+    _hideTimer = null;
   }
 }

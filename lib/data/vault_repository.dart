@@ -264,20 +264,6 @@ class VaultRepository {
   Future<List<EntrySummaryDto>> listPasskeysForRp(String rpId) =>
       passkeys_api.listPasskeysForRp(rpId: rpId);
 
-  /// Store a new passkey credential in the encrypted vault.
-  ///
-  /// Private key material is persisted only inside the vault and never exposed
-  /// back through read APIs.
-  Future<String> storePasskey(passkeys_api.PasskeyCreateDto passkey) =>
-      passkeys_api.storePasskey(passkey: passkey);
-
-  /// Record a successful passkey assertion (updates sign count/last used).
-  Future<void> recordPasskeySignCount(String id, int signCount) =>
-      passkeys_api.recordPasskeySignCount(id: id, signCount: signCount);
-
-  /// Move a passkey entry to trash.
-  Future<void> deletePasskey(String id) => passkeys_api.deletePasskey(id: id);
-
   /// Create and store a passkey from a WebAuthn creation request.
   ///
   /// Returns the created entry id and the platform response JSON. Private key
@@ -327,12 +313,19 @@ class VaultRepository {
 
   /// Force delete the vault file from disk.
   /// Useful for debugging or implementing a "Factory Reset" feature in settings.
-  void forceDeleteVault() {
+  ///
+  /// The session key is always wiped, even if the delete fails, so a partial
+  /// failure can never leave an unlocked session pointing at a stale file.
+  Future<void> forceDeleteVault() async {
     final path = vaultPath;
-    if (path != null && File(path).existsSync()) {
-      File(path).deleteSync();
+    try {
+      if (path != null) {
+        final file = File(path);
+        // ignore: avoid_slow_async_io - async keeps the destructive reset off the UI isolate.
+        if (await file.exists()) await file.delete();
+      }
+    } finally {
+      session_api.lock();
     }
-    // Ensure Rust session state is also wiped
-    session_api.lock();
   }
 }

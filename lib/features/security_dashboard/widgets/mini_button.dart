@@ -64,7 +64,7 @@ class MiniButton extends StatelessWidget {
                 else
                   labelWidget,
                 const SizedBox(width: 2),
-                Icon(Icons.chevron_right_rounded, size: 16, color: foreground),
+                Icon(context.forwardChevron, size: 16, color: foreground),
               ],
             );
           },

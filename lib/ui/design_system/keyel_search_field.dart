@@ -118,7 +118,7 @@ class _KeyelSearchFieldState extends State<KeyelSearchField> {
           ),
           if (widget.trailing != null)
             Padding(
-              padding: const EdgeInsets.only(right: KeyelSpacing.sm),
+              padding: const EdgeInsetsDirectional.only(end: KeyelSpacing.sm),
               child: widget.trailing,
             ),
         ],

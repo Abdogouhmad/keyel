@@ -242,7 +242,7 @@ class _RecoveryKeyStepState extends State<RecoveryKeyStep> {
         const SizedBox(height: KeyelSpacing.xl),
         KeyelButtonM3(
           label: l10n.actionContinue,
-          icon: Icons.arrow_forward_rounded,
+          icon: context.forwardArrow,
           isFullWidth: true,
           onPressed: _savedRecovery ? widget.onContinue : null,
         ),

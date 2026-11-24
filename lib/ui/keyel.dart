@@ -3,11 +3,12 @@
 /// Screens import this barrel instead of individual widget files.
 library;
 
+export 'adaptive/columns.dart';
 export 'adaptive/content.dart';
+export 'adaptive/direction.dart';
 export 'adaptive/keyel_shell.dart';
 export 'adaptive/keyel_shortcuts.dart';
 export 'adaptive/window.dart';
-export 'design_system/keyel_action_button_group.dart';
 export 'design_system/keyel_adaptive_sheet.dart';
 export 'design_system/keyel_avatar.dart';
 export 'design_system/keyel_buttons.dart';
@@ -25,7 +26,6 @@ export 'design_system/keyel_totp.dart';
 export 'design_system/pressable_scale.dart';
 export 'theme/appearance_provider.dart';
 export 'theme/keyel_colors.dart';
-export 'theme/keyel_context.dart';
 export 'theme/keyel_haptics.dart';
 export 'theme/keyel_palettes.dart';
 export 'theme/keyel_theme.dart';

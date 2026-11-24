@@ -215,7 +215,7 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
                 const SizedBox(height: KeyelSpacing.md),
                 TextButton.icon(
                   onPressed: _busy ? null : widget.onBack,
-                  icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                  icon: Icon(context.backArrow, size: 18),
                   label: Text(l10n.vaultBackToUnlock),
                 ),
               ],

@@ -18,7 +18,10 @@ use super::error::VaultApiError;
 
 static SESSION: Mutex<Option<Session>> = Mutex::new(None);
 static VAULT_PATH: Mutex<Option<PathBuf>> = Mutex::new(None);
-static LOCK_SINK: Mutex<Option<StreamSink<String>>> = Mutex::new(None);
+// Several features in the same isolate can watch the lock state (the session
+// provider, autofill host, quick-lock tile bridge). A single sink would hand
+// the event to whichever subscriber registered last, so keep every live sink.
+static LOCK_SINKS: Mutex<Vec<StreamSink<String>>> = Mutex::new(Vec::new());
 
 fn session_slot() -> MutexGuard<'static, Option<Session>> {
     SESSION
@@ -32,8 +35,8 @@ fn path_slot() -> MutexGuard<'static, Option<PathBuf>> {
         .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
-fn lock_sink_slot() -> MutexGuard<'static, Option<StreamSink<String>>> {
-    LOCK_SINK
+fn lock_sink_slots() -> MutexGuard<'static, Vec<StreamSink<String>>> {
+    LOCK_SINKS
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
@@ -212,10 +215,11 @@ pub fn change_master(old_master: String, new_master: String) -> Result<(), Vault
 
 /// Subscribe to session lock events.
 ///
-/// Emits `"locked"` whenever a session is dropped: explicitly through
-/// [`lock`], by changing the vault path, or by any future auto-lock.
+/// Emits `"locked"` to every live subscriber whenever a session is dropped:
+/// explicitly through [`lock`], by changing the vault path, or by any future
+/// auto-lock.
 pub fn lock_events(sink: StreamSink<String>) {
-    *lock_sink_slot() = Some(sink);
+    lock_sink_slots().push(sink);
 }
 
 /// Run `f` against the unlocked session, or fail with [`VaultApiError::Locked`].
@@ -241,8 +245,15 @@ fn drop_session(emit_event: bool) {
 }
 
 fn emit_lock_event() {
-    let sink = lock_sink_slot().clone();
-    if let Some(sink) = sink {
-        let _ = sink.add("locked".to_string());
+    // Take the sinks out before calling into Dart so a cancelled listener
+    // cannot block other subscribers, then put back only the live ones. New
+    // subscriptions added in the meantime are preserved by extending.
+    let sinks = std::mem::take(&mut *lock_sink_slots());
+    let mut live = Vec::with_capacity(sinks.len());
+    for sink in sinks {
+        if sink.add("locked".to_string()).is_ok() {
+            live.push(sink);
+        }
     }
+    lock_sink_slots().extend(live);
 }

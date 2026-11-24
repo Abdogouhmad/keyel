@@ -48,7 +48,7 @@ class DetailBar extends StatelessWidget {
         children: [
           if (!isEmbedded)
             KeyelIconHull(
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               tooltip: l10n.actionBack,
               onPressed: onBack,
             )

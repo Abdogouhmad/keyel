@@ -9,16 +9,20 @@ import 'package:keyel/features/entry/entry_detail_controller.dart';
 import 'package:keyel/src/rust/api/models.dart';
 
 class _FakeRepository extends VaultRepository {
+  /// When set, every reveal waits on this future (used for lock races).
+  Future<String>? gatedReveal;
+
   final Map<SecretFieldDto, String> secrets = {
     SecretFieldDto.loginPassword: 'password',
     SecretFieldDto.cardNumber: '4111111111111111',
     SecretFieldDto.cardCvv: '123',
     SecretFieldDto.noteContent: 'private note',
+    SecretFieldDto.entryNotes: 'attached recovery code',
   };
 
   @override
   Future<String> revealField(String id, SecretFieldDto field) async =>
-      secrets[field] ?? '';
+      await gatedReveal ?? secrets[field] ?? '';
 
   @override
   Future<String> revealCustomField(String id, String fieldId) async => 'custom';
@@ -27,6 +31,7 @@ class _FakeRepository extends VaultRepository {
 void main() {
   late _FakeRepository repository;
   var rebuilds = 0;
+  final copiedValues = <String>[];
 
   EntryDetailController controller() => EntryDetailController(
     entryId: 'entry',
@@ -35,7 +40,7 @@ void main() {
       rebuild: () => rebuilds++,
       notify: (_, {icon}) {},
       notifyError: (_) {},
-      copy: (_, _) {},
+      copy: (value, _) => copiedValues.add(value),
       launchUrl: (_) async => true,
       confirmDelete: (_) async => true,
       pushEdit: (_) async {},
@@ -46,6 +51,7 @@ void main() {
   setUp(() {
     repository = _FakeRepository();
     rebuilds = 0;
+    copiedValues.clear();
   });
 
   test('card and note reveals auto-hide with the password timer', () {
@@ -111,4 +117,80 @@ void main() {
     expect(detail.revealedCustomFields, isEmpty);
     detail.dispose();
   });
+
+  test(
+    'attached notes are hidden until revealed and join the shared timer',
+    () {
+      fakeAsync((async) {
+        final detail = controller();
+
+        // Nothing is decrypted or rendered during a build.
+        expect(detail.revealedEntryNotes, isNull);
+
+        unawaited(detail.toggleRevealEntryNotes());
+        async.flushMicrotasks();
+        expect(detail.revealedEntryNotes, 'attached recovery code');
+
+        // Revealing another secret refreshes the same deadline.
+        unawaited(detail.toggleRevealPassword());
+        async
+          ..flushMicrotasks()
+          ..elapse(const Duration(seconds: 14));
+        expect(detail.revealedEntryNotes, 'attached recovery code');
+
+        unawaited(detail.toggleRevealCard());
+        async
+          ..flushMicrotasks()
+          ..elapse(const Duration(seconds: 14));
+        expect(detail.revealedEntryNotes, isNotNull);
+
+        async.elapse(const Duration(seconds: 15));
+        expect(detail.revealedEntryNotes, isNull);
+        expect(detail.revealedPassword, isNull);
+        expect(detail.revealedCardNumber, isNull);
+        detail.dispose();
+      });
+    },
+  );
+
+  test('hideAll also masks attached notes', () async {
+    final detail = controller();
+    await detail.toggleRevealEntryNotes();
+    expect(detail.revealedEntryNotes, isNotNull);
+
+    detail.hideAll();
+    expect(detail.revealedEntryNotes, isNull);
+    detail.dispose();
+  });
+
+  test('a reveal that completes after lock is discarded', () async {
+    final gate = Completer<String>();
+    repository.gatedReveal = gate.future;
+    final detail = controller();
+
+    final pending = detail.toggleRevealPassword();
+    detail.hideAll();
+    gate.complete('late password');
+    await pending;
+
+    expect(detail.revealedPassword, isNull);
+    detail.dispose();
+  });
+
+  test(
+    'a copy that completes after lock never reaches the clipboard',
+    () async {
+      final gate = Completer<String>();
+      repository.gatedReveal = gate.future;
+      final detail = controller();
+
+      final pending = detail.copyPassword();
+      detail.hideAll();
+      gate.complete('late copy');
+      await pending;
+
+      expect(copiedValues, isEmpty);
+      detail.dispose();
+    },
+  );
 }

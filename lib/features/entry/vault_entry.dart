@@ -191,15 +191,6 @@ class VaultEntry {
       username.isEmpty ? currentL10n.entryKindPasskey : username,
   };
 
-  /// Lower-cased haystack used by the vault search field.
-  String get searchTerms => [
-    title,
-    username,
-    folder,
-    website ?? '',
-    notes ?? '',
-  ].join(' ').toLowerCase();
-
   String _lastFour() {
     final digits = (cardNumber ?? '').replaceAll(' ', '');
     if (digits.length <= 4) return digits;
@@ -210,15 +201,4 @@ class VaultEntry {
 String _folderLabel(String? id, Map<String, String> names) {
   if (id == null) return currentL10n.entryNoFolder;
   return names[id] ?? currentL10n.entryFolder;
-}
-
-/// Active entries cache / empty fallback when unpopulated.
-const sampleVaultEntries = <VaultEntry>[];
-
-/// Looks up an entry in [sampleVaultEntries] by id, or returns `null`.
-VaultEntry? vaultEntryById(String id) {
-  for (final entry in sampleVaultEntries) {
-    if (entry.id == id) return entry;
-  }
-  return null;
 }

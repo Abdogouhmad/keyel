@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:keyel/features/settings/widgets/settings_dialogs.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/l10n/generated/app_localizations.dart';
-import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 import 'package:keyel/ui/l10n/locale_provider.dart';
 
@@ -25,32 +25,12 @@ class LanguageSelector extends ConsumerWidget {
         : l10n.languageEnglish;
 
     Future<void> pickLanguage() async {
-      final selected = await showDialog<String>(
+      final selected = await showKeyelRadioDialog<String>(
         context: context,
-        builder: (dialogContext) {
-          final dialogL10n = l10nOf(dialogContext);
-          return SimpleDialog(
-            title: Text(dialogL10n.settingsLanguageTitle),
-            children: [
-              for (final id in _languageOptions)
-                SimpleDialogOption(
-                  onPressed: () => Navigator.of(dialogContext).pop(id),
-                  child: Row(
-                    children: [
-                      Icon(
-                        id == (locale?.languageCode ?? 'system')
-                            ? Icons.radio_button_checked_rounded
-                            : Icons.radio_button_off_rounded,
-                        size: 20,
-                      ),
-                      const SizedBox(width: KeyelSpacing.sm),
-                      Text(_optionLabel(dialogL10n, id)),
-                    ],
-                  ),
-                ),
-            ],
-          );
-        },
+        title: l10n.settingsLanguageTitle,
+        current: locale?.languageCode ?? 'system',
+        options: _languageOptions,
+        label: (dialogContext, id) => _optionLabel(l10nOf(dialogContext), id),
       );
       if (selected == null || !context.mounted) return;
       ref.read(localeProvider.notifier).setLocaleId(selected);

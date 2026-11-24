@@ -36,14 +36,16 @@ class ImportExportHubBody extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final l10n = l10nOf(context);
 
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
+    // Encrypted backup and plain CSV are two independent concerns: on wide
+    // screens they sit side by side, on phones they keep the original order.
+    return KeyelResponsiveColumns(
+      padding: EdgeInsetsDirectional.fromSTEB(
         context.pageMargin,
         KeyelSpacing.sm,
         context.pageMargin,
         KeyelSpacing.xxl,
       ),
-      children: [
+      leading: [
         Padding(
           padding: const EdgeInsets.only(bottom: KeyelSpacing.md),
           child: Text(
@@ -79,6 +81,8 @@ class ImportExportHubBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: KeyelSpacing.lg),
+      ],
+      trailing: [
         KeyelSectionLabel(
           label: l10n.importExportTitle,
           icon: Icons.swap_vert_rounded,
@@ -191,7 +195,7 @@ class ImportExportActionRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: KeyelSpacing.sm),
-              Icon(Icons.chevron_right_rounded, color: accent),
+              Icon(context.forwardChevron, color: accent),
             ],
           ),
         ),

@@ -21,6 +21,7 @@ class DetailScaffold extends StatelessWidget {
     required this.revealedCardNumber,
     required this.revealedCvv,
     required this.revealedNote,
+    required this.revealedEntryNotes,
     required this.revealedCustomFields,
     required this.onBack,
     required this.onFavorite,
@@ -29,6 +30,7 @@ class DetailScaffold extends StatelessWidget {
     required this.onToggleRevealPassword,
     required this.onToggleRevealCard,
     required this.onToggleRevealNote,
+    required this.onToggleRevealEntryNotes,
     required this.onToggleRevealCustomField,
     required this.onCopy,
     required this.onCopyPassword,
@@ -55,8 +57,11 @@ class DetailScaffold extends StatelessWidget {
   /// Revealed card security code, or `null` when hidden.
   final String? revealedCvv;
 
-  /// Revealed note content, or `null` when hidden.
+  /// Revealed secure-note body, or `null` when hidden.
   final String? revealedNote;
+
+  /// Revealed free-form notes on the entry, or `null` when hidden.
+  final String? revealedEntryNotes;
 
   /// Revealed hidden custom-field values keyed by custom-field id.
   final Map<String, String> revealedCustomFields;
@@ -79,8 +84,11 @@ class DetailScaffold extends StatelessWidget {
   /// Reveals or hides the card number and security code.
   final VoidCallback onToggleRevealCard;
 
-  /// Reveals or hides the note content.
+  /// Reveals or hides the secure-note body.
   final VoidCallback onToggleRevealNote;
+
+  /// Reveals or hides the free-form notes on the entry.
+  final VoidCallback onToggleRevealEntryNotes;
 
   /// Reveals or hides a hidden custom field.
   final void Function(String fieldId) onToggleRevealCustomField;
@@ -121,10 +129,12 @@ class DetailScaffold extends StatelessWidget {
                 revealedCardNumber: revealedCardNumber,
                 revealedCvv: revealedCvv,
                 revealedNote: revealedNote,
+                revealedEntryNotes: revealedEntryNotes,
                 revealedCustomFields: revealedCustomFields,
                 onToggleRevealPassword: onToggleRevealPassword,
                 onToggleRevealCard: onToggleRevealCard,
                 onToggleRevealNote: onToggleRevealNote,
+                onToggleRevealEntryNotes: onToggleRevealEntryNotes,
                 onToggleRevealCustomField: onToggleRevealCustomField,
                 onCopy: onCopy,
                 onCopyPassword: onCopyPassword,

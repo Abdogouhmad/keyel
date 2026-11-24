@@ -87,8 +87,11 @@ not yet translated.
 
 ### Coverage at this checkpoint
 
-- 878 messages in each ARB (English template + complete French translation),
-  with generated classes checked in and both CI jobs guarding regeneration.
+- 878 messages in each ARB at this checkpoint (English template + complete
+  French translation), with generated classes checked in and both CI jobs
+  guarding regeneration. The count briefly grew to 882 before 1.11.0 removed
+  22 unused keys and added three OTA security messages (879 → 860); the EN/FR
+  parity guard still applies.
 - System / English / Français selector on Appearance, runtime locale switching
   for both widget and non-widget code, and `TextDirection.rtl` layout smoke at
   200 % text scale.

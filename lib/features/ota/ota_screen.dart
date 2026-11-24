@@ -31,7 +31,7 @@ class OtaScreen extends ConsumerWidget {
             children: [
               KeyelTopBar(
                 title: l10n.softwareUpdate,
-                icon: Icons.arrow_back_rounded,
+                icon: context.backArrow,
                 iconTooltip: l10n.actionBack,
                 onIconTap: () => context.pop(),
                 trailing: KeyelIconHull(

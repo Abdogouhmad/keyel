@@ -146,7 +146,7 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
         Row(
           children: [
             KeyelButtonM3(
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               type: ButtonType.iconOnly,
               onPressed: widget.busy ? null : widget.onBack,
             ),
@@ -156,7 +156,7 @@ class _MasterPasswordStepState extends State<MasterPasswordStep> {
                 label: widget.busy
                     ? l10n.vaultCreatingVault
                     : l10n.actionContinue,
-                icon: widget.busy ? null : Icons.arrow_forward_rounded,
+                icon: widget.busy ? null : context.forwardArrow,
                 onPressed: widget.busy || !_masterValid ? null : _submit,
                 isFullWidth: true,
               ),

@@ -196,7 +196,7 @@ class OtaDownloadProgressCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _formatBytes(state.bytesReceived),
+                formatOtaBytes(state.bytesReceived, zeroLabel: '0 B'),
                 style: textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -450,7 +450,7 @@ class OtaPreferencesCard extends StatelessWidget {
               )
             else
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: context.alignStart,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.notifications_none_rounded),
                   label: Text(l10n.otaEnableNotifications),
@@ -485,15 +485,24 @@ class OtaLocalInstallButton extends StatelessWidget {
           final picked = await service.pickFile(
             dialogTitle: l10n.otaSelectApkTitle,
           );
-          if (picked != null) {
-            final ok = await onInstallLocal(picked.path);
-            if (!ok && context.mounted) {
-              showKeyelSnack(
-                context,
-                l10n.otaGrantInstallPermission,
-                icon: Icons.security_rounded,
-              );
-            }
+          if (picked == null || !context.mounted) return;
+          // Local files never pass through the manifest checksum gate, so make
+          // that explicit before handing one to the system installer.
+          final confirmed = await KeyelConfirmDialog.show(
+            context,
+            title: l10n.otaInstallLocal,
+            body: l10n.otaLocalInstallWarning,
+            confirmLabel: l10n.otaInstallNow,
+            destructive: true,
+          );
+          if (!confirmed || !context.mounted) return;
+          final ok = await onInstallLocal(picked.path);
+          if (!ok && context.mounted) {
+            showKeyelSnack(
+              context,
+              l10n.otaGrantInstallPermission,
+              icon: Icons.security_rounded,
+            );
           }
         },
       ),
@@ -543,11 +552,4 @@ String _formatTime(DateTime dt) {
   final hour = dt.hour.toString().padLeft(2, '0');
   final minute = dt.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
-}
-
-String _formatBytes(int bytes) {
-  if (bytes <= 0) return '0 B';
-  if (bytes < 1024) return '$bytes B';
-  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }

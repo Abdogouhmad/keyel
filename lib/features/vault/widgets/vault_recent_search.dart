@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/ui_settings_provider.dart';
 import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 
@@ -8,7 +9,7 @@ import 'package:keyel/ui/l10n/l10n.dart';
 ///
 /// Show it only while the search field is focused and empty. It renders
 /// nothing when there are no remembered searches.
-class VaultRecentSearches extends StatefulWidget {
+class VaultRecentSearches extends ConsumerStatefulWidget {
   /// Creates the recent-searches strip.
   const new({required this.onSelected, super.key});
 
@@ -16,14 +17,17 @@ class VaultRecentSearches extends StatefulWidget {
   final ValueChanged<String> onSelected;
 
   @override
-  State<VaultRecentSearches> createState() => _VaultRecentSearchesState();
+  ConsumerState<VaultRecentSearches> createState() =>
+      _VaultRecentSearchesState();
 }
 
-class _VaultRecentSearchesState extends State<VaultRecentSearches> {
+class _VaultRecentSearchesState extends ConsumerState<VaultRecentSearches> {
   @override
   Widget build(BuildContext context) {
     final l10n = l10nOf(context);
-    final searches = AppPreferences.instance.recentSearches;
+    final searches = ref.watch(
+      uiSettingsProvider.select((settings) => settings.recentSearches),
+    );
     if (searches.isEmpty) return const SizedBox.shrink();
 
     final scheme = Theme.of(context).colorScheme;
@@ -49,10 +53,8 @@ class _VaultRecentSearchesState extends State<VaultRecentSearches> {
               ),
               const Spacer(),
               TextButton(
-                onPressed: () {
-                  AppPreferences.instance.clearRecentSearches();
-                  setState(() {});
-                },
+                onPressed: () =>
+                    ref.read(uiSettingsProvider.notifier).clearRecentSearches(),
                 child: Text(l10n.actionClear),
               ),
             ],

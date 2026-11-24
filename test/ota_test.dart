@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -56,6 +57,86 @@ class _UnverifiedOtaService extends OtaService {
   Future<bool> installApk(String filePath) async {
     installCalls++;
     return true;
+  }
+}
+
+/// A service whose download starts valid but can be tampered with before the
+/// provider's last-moment re-verification.
+class _TamperableOtaService extends OtaService {
+  new(this._bytes)
+    : super(client: MockClient((_) async => http.Response('[]', 200)));
+
+  final List<int> _bytes;
+  String? path;
+  int installCalls = 0;
+
+  /// Runs during the permission check, before the last-moment re-hash.
+  Future<void> Function()? permissionHook;
+
+  @override
+  Future<OtaRelease?> checkForUpdate({
+    required String currentVersion,
+    OtaChannel channel = OtaChannel.stable,
+  }) async {
+    return OtaRelease(
+      version: '9.9.9',
+      tagName: 'v9.9.9',
+      title: 'Verified update',
+      releaseNotes: '',
+      publishedAt: DateTime(2026),
+      downloadUrl: 'https://example.com/app.apk',
+      fileName: 'app.apk',
+      fileSize: _bytes.length,
+      sha256: sha256.convert(_bytes).toString(),
+    );
+  }
+
+  @override
+  Future<File> downloadRelease(
+    OtaRelease release, {
+    OtaDownloadProgressCallback? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    final file = File('${Directory.systemTemp.path}/keyel-reverify-test.apk');
+    await file.writeAsBytes(_bytes);
+    path = file.path;
+    addTearDown(() {
+      if (file.existsSync()) file.deleteSync();
+    });
+    return file;
+  }
+
+  @override
+  Future<bool> canInstallPackages() async {
+    final hook = permissionHook;
+    if (hook != null) await hook();
+    return true;
+  }
+
+  @override
+  Future<bool> installApk(String filePath) async {
+    installCalls++;
+    return true;
+  }
+}
+
+/// Client that reports a different final URL than the one requested, simulating
+/// an HTTPS manifest URL redirected to plain HTTP. `MockClient` can only return
+/// a `Response`, which has no `request` field, so `send()` is overridden here.
+class _FinalUrlClient extends http.BaseClient {
+  new(this.finalUrl);
+
+  final Uri finalUrl;
+  int requests = 0;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    requests++;
+    return http.StreamedResponse(
+      Stream<List<int>>.value(const [1, 2, 3]),
+      200,
+      request: http.Request('GET', finalUrl),
+    );
   }
 }
 
@@ -626,6 +707,98 @@ void main() {
       await expectLater(service.downloadRelease(release), throwsStateError);
       expect(requests, 0);
     });
+
+    test('downloadRelease refuses a non-HTTPS URL', () async {
+      var requests = 0;
+      final service = OtaService(
+        client: MockClient((request) async {
+          requests++;
+          return http.Response('apk', 200);
+        }),
+      );
+      final release = OtaRelease(
+        version: '9.9.9',
+        tagName: 'v9.9.9',
+        title: 'Insecure',
+        releaseNotes: '',
+        publishedAt: DateTime(2026),
+        downloadUrl: 'http://example.com/app.apk',
+        fileName: 'app.apk',
+        fileSize: 3,
+        sha256: sha256.convert(const [1, 2, 3]).toString(),
+      );
+
+      await expectLater(service.downloadRelease(release), throwsStateError);
+      expect(requests, 0);
+    });
+
+    test('downloadRelease refuses an HTTPS URL redirected to HTTP', () async {
+      final client = _FinalUrlClient(Uri.parse('http://example.com/app.apk'));
+      final service = OtaService(client: client);
+      final release = OtaRelease(
+        version: '9.9.9',
+        tagName: 'v9.9.9',
+        title: 'Redirected',
+        releaseNotes: '',
+        publishedAt: DateTime(2026),
+        downloadUrl: 'https://example.com/app.apk',
+        fileName: 'app.apk',
+        fileSize: 3,
+        sha256: sha256.convert(const [1, 2, 3]).toString(),
+      );
+
+      await expectLater(service.downloadRelease(release), throwsStateError);
+      expect(client.requests, 1);
+    });
+
+    test(
+      'provider re-verifies the file immediately before installing',
+      () async {
+        final service = _TamperableOtaService(const [1, 2, 3]);
+        final container = ProviderContainer(
+          overrides: [otaServiceProvider.overrideWithValue(service)],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(otaProvider.notifier);
+
+        await notifier.checkForUpdates();
+        await notifier.startDownload();
+        expect(container.read(otaProvider).isChecksumVerified, isTrue);
+
+        // A local file can be swapped between download and install.
+        await File(service.path!).writeAsBytes(const [9, 9, 9]);
+        expect(await notifier.installUpdate(), isFalse);
+
+        expect(service.installCalls, 0);
+        expect(File(service.path!).existsSync(), isFalse);
+        final state = container.read(otaProvider);
+        expect(state.step, OtaStep.error);
+        expect(state.isChecksumVerified, isFalse);
+        expect(state.downloadedFilePath, isNull);
+      },
+    );
+
+    test(
+      'a file swapped while asking for install permission is rejected',
+      () async {
+        final service = _TamperableOtaService(const [1, 2, 3]);
+        final container = ProviderContainer(
+          overrides: [otaServiceProvider.overrideWithValue(service)],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(otaProvider.notifier);
+
+        await notifier.checkForUpdates();
+        await notifier.startDownload();
+        service.permissionHook = () async {
+          await File(service.path!).writeAsBytes(const [9, 9, 9]);
+        };
+
+        expect(await notifier.installUpdate(), isFalse);
+        expect(service.installCalls, 0);
+        expect(File(service.path!).existsSync(), isFalse);
+      },
+    );
 
     test('provider refuses to install an unverified download', () async {
       final service = _UnverifiedOtaService();

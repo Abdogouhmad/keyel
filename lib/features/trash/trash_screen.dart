@@ -165,7 +165,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
           children: [
             KeyelTopBar(
               title: l10n.trashTitle,
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
               trailing: KeyelIconHull(

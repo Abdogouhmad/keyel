@@ -164,12 +164,6 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get actionDelete;
 
-  /// User-facing copy: actionEdit (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Edit'**
-  String get actionEdit;
-
   /// User-facing copy: actionCopy (en template).
   ///
   /// In en, this message translates to:
@@ -199,12 +193,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get actionOpen;
-
-  /// User-facing copy: actionRefresh (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh'**
-  String get actionRefresh;
 
   /// User-facing copy: actionLockVault (en template).
   ///
@@ -241,12 +229,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get actionContinue;
-
-  /// User-facing copy: languageSystem (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'System'**
-  String get languageSystem;
 
   /// User-facing copy: languageEnglish (en template).
   ///
@@ -320,18 +302,6 @@ abstract class AppLocalizations {
   /// **'Trash'**
   String get trashTitle;
 
-  /// User-facing copy: passkeysTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Passkeys'**
-  String get passkeysTitle;
-
-  /// User-facing copy: autofillTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Autofill'**
-  String get autofillTitle;
-
   /// User-facing copy: importExportTitle (en template).
   ///
   /// In en, this message translates to:
@@ -344,53 +314,17 @@ abstract class AppLocalizations {
   /// **'Sync'**
   String get syncTitle;
 
-  /// User-facing copy: helpTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Help'**
-  String get helpTitle;
-
   /// User-facing copy: reportProblem (en template).
   ///
   /// In en, this message translates to:
   /// **'Report a problem'**
   String get reportProblem;
 
-  /// User-facing copy: commonLoading (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Loading…'**
-  String get commonLoading;
-
-  /// User-facing copy: commonErrorTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Something went wrong'**
-  String get commonErrorTitle;
-
-  /// User-facing copy: commonEmpty (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing here yet'**
-  String get commonEmpty;
-
   /// User-facing copy: searchHint (en template).
   ///
   /// In en, this message translates to:
   /// **'Search'**
   String get searchHint;
-
-  /// User-facing copy: stateMissingTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Not found'**
-  String get stateMissingTitle;
-
-  /// User-facing copy: stateMissingMessage (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'This item no longer exists.'**
-  String get stateMissingMessage;
 
   /// User-facing copy: checkForUpdates (en template).
   ///
@@ -421,12 +355,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear filters'**
   String get clearFilters;
-
-  /// User-facing copy: addItem (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Add item'**
-  String get addItem;
 
   /// User-facing copy: themeModeTitle (en template).
   ///
@@ -476,18 +404,6 @@ abstract class AppLocalizations {
   /// **'Auto-lock'**
   String get autoLockTitle;
 
-  /// User-facing copy: breachTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Breach monitoring'**
-  String get breachTitle;
-
-  /// User-facing copy: otaTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Updates'**
-  String get otaTitle;
-
   /// User-facing copy: healthLoading (en template).
   ///
   /// In en, this message translates to:
@@ -499,18 +415,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not check vault health'**
   String get healthErrorTitle;
-
-  /// User-facing copy: vaultLoading (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Opening your vault…'**
-  String get vaultLoading;
-
-  /// User-facing copy: vaultErrorTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Could not open your vault'**
-  String get vaultErrorTitle;
 
   /// User-facing copy: folderEmpty (en template).
   ///
@@ -524,35 +428,11 @@ abstract class AppLocalizations {
   /// **'Trash is empty'**
   String get trashEmpty;
 
-  /// User-facing copy: folderErrorTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Could not load folders'**
-  String get folderErrorTitle;
-
-  /// User-facing copy: trashErrorTitle (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Could not load trash'**
-  String get trashErrorTitle;
-
-  /// User-facing copy: versionLabel (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Version'**
-  String get versionLabel;
-
   /// User-facing copy: currentVersion (en template).
   ///
   /// In en, this message translates to:
   /// **'Current version'**
   String get currentVersion;
-
-  /// User-facing copy: installedVersion (en template).
-  ///
-  /// In en, this message translates to:
-  /// **'Installed'**
-  String get installedVersion;
 
   /// User-facing copy: appearanceHeadline (en template).
   ///
@@ -2948,6 +2828,24 @@ abstract class AppLocalizations {
   /// **'Refusing to download an update without a valid SHA-256 checksum'**
   String get otaRefuseUnverifiedDownload;
 
+  /// Service error when a release manifest supplies a non-HTTPS download URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Update downloads require an HTTPS URL'**
+  String get otaInsecureUrl;
+
+  /// Warning shown before installing an APK picked from local storage.
+  ///
+  /// In en, this message translates to:
+  /// **'Local APKs are not checksum-verified by Keyel. Only install a file you trust.'**
+  String get otaLocalInstallWarning;
+
+  /// Provider error when a downloaded APK changes after download.
+  ///
+  /// In en, this message translates to:
+  /// **'The downloaded update failed its final checksum check and was removed'**
+  String get otaReverifyFailed;
+
   /// Label of the release channel selector.
   ///
   /// In en, this message translates to:
@@ -3607,18 +3505,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No Vault'**
   String get prefNoVaultBadge;
-
-  /// Settings UI copy: offline vault subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Zero telemetry, zero cloud synchronisation'**
-  String get prefOfflineVaultSubtitle;
-
-  /// Settings UI copy: offline vault title.
-  ///
-  /// In en, this message translates to:
-  /// **'Offline vault mode'**
-  String get prefOfflineVaultTitle;
 
   /// Settings UI copy: open source licenses subtitle.
   ///

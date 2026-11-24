@@ -6,7 +6,6 @@ import 'package:keyel/features/entry/widgets/detail/credentials_card.dart';
 import 'package:keyel/features/entry/widgets/detail/custom_fields_card.dart';
 import 'package:keyel/features/entry/widgets/detail/detail_hero.dart';
 import 'package:keyel/features/entry/widgets/detail/health_card.dart';
-import 'package:keyel/features/entry/widgets/detail/note_details.dart';
 import 'package:keyel/features/entry/widgets/detail/notes_card.dart';
 import 'package:keyel/features/entry/widgets/detail/totp_card.dart';
 import 'package:keyel/src/rust/api/models.dart';
@@ -23,10 +22,12 @@ class DetailContent extends StatelessWidget {
     required this.revealedCardNumber,
     required this.revealedCvv,
     required this.revealedNote,
+    required this.revealedEntryNotes,
     required this.revealedCustomFields,
     required this.onToggleRevealPassword,
     required this.onToggleRevealCard,
     required this.onToggleRevealNote,
+    required this.onToggleRevealEntryNotes,
     required this.onToggleRevealCustomField,
     required this.onCopy,
     required this.onCopyPassword,
@@ -50,8 +51,11 @@ class DetailContent extends StatelessWidget {
   /// Revealed card security code, or `null` when hidden.
   final String? revealedCvv;
 
-  /// Revealed note content, or `null` when hidden.
+  /// Revealed secure-note body, or `null` when hidden.
   final String? revealedNote;
+
+  /// Revealed free-form notes on the entry, or `null` when hidden.
+  final String? revealedEntryNotes;
 
   /// Revealed hidden custom-field values keyed by custom-field id.
   final Map<String, String> revealedCustomFields;
@@ -62,8 +66,11 @@ class DetailContent extends StatelessWidget {
   /// Reveals or hides the card number and security code.
   final VoidCallback onToggleRevealCard;
 
-  /// Reveals or hides the note content.
+  /// Reveals or hides the secure-note body.
   final VoidCallback onToggleRevealNote;
+
+  /// Reveals or hides the free-form notes on the entry.
+  final VoidCallback onToggleRevealEntryNotes;
 
   /// Reveals or hides a hidden custom field.
   final void Function(String fieldId) onToggleRevealCustomField;
@@ -83,14 +90,17 @@ class DetailContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return KeyelContent(
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
+      maxWidth: context.supportsTwoColumns
+          ? KeyelContentWidth.page
+          : KeyelContentWidth.reading,
+      child: KeyelResponsiveColumns(
+        padding: EdgeInsetsDirectional.fromSTEB(
           context.pageMargin,
           0,
           context.pageMargin,
           KeyelSpacing.lg,
         ),
-        children: [
+        leading: [
           DetailHero(entry: entry),
           if (entry.kind == VaultEntryKind.card)
             CardDetails(
@@ -112,9 +122,9 @@ class DetailContent extends StatelessWidget {
               onOpenUrl: onOpenUrl,
             )
           else if (entry.kind == VaultEntryKind.note)
-            NoteDetails(
-              entry: entry,
-              detail: detail,
+            NotesCard(
+              title: l10nOf(context).entrySecureNoteContent,
+              icon: Icons.description_rounded,
               revealedContent: revealedNote,
               onToggleReveal: onToggleRevealNote,
               onCopy: onCopy,
@@ -137,8 +147,10 @@ class DetailContent extends StatelessWidget {
               onCopy: onCopy,
             ),
           ],
+          const SizedBox(height: KeyelSpacing.lg),
+        ],
+        trailing: [
           if (detail.customFields.isNotEmpty) ...[
-            const SizedBox(height: KeyelSpacing.md),
             CustomFieldsCard(
               fields: detail.customFields,
               revealedValues: revealedCustomFields,
@@ -146,16 +158,22 @@ class DetailContent extends StatelessWidget {
               onCopyField: onCopyCustomField,
               onOpenUrl: onOpenUrl,
             ),
+            const SizedBox(height: KeyelSpacing.md),
           ],
           if (entry.kind != VaultEntryKind.login) ...[
-            const SizedBox(height: KeyelSpacing.md),
             HealthCard(entry: entry, revealedPassword: revealedPassword),
+            const SizedBox(height: KeyelSpacing.md),
           ],
           if (detail.hasNotes) ...[
-            const SizedBox(height: KeyelSpacing.md),
-            NotesCard(entryId: detail.id, onCopy: onCopy),
+            NotesCard(
+              title: l10nOf(context).entryNotes,
+              icon: Icons.notes_rounded,
+              revealedContent: revealedEntryNotes,
+              onToggleReveal: onToggleRevealEntryNotes,
+              onCopy: onCopy,
+            ),
+            const SizedBox(height: KeyelSpacing.lg),
           ],
-          const SizedBox(height: KeyelSpacing.lg),
         ],
       ),
     );

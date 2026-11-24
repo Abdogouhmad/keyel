@@ -12,6 +12,7 @@ import 'package:keyel/core/platform/debug_bundle.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/core/security/screenshot_protection_host.dart';
 import 'package:keyel/data/app_preferences.dart';
+import 'package:keyel/data/autofill_settings_provider.dart';
 import 'package:keyel/data/biometric_settings.dart';
 import 'package:keyel/data/file_transfer_service.dart';
 import 'package:keyel/data/security_settings_provider.dart';
@@ -35,7 +36,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _biometricBusy = false;
   bool _biometricEnabled = false;
-  bool _offlineOnly = true;
   bool? _autofillEnabled;
   bool? _passkeyProviderSupported;
 
@@ -59,12 +59,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _manageNeverSites() async {
-    final prefs = AppPreferences.instance;
+    final notifier = ref.read(autofillSettingsProvider.notifier);
+    final sites = List<String>.from(
+      ref.read(autofillSettingsProvider).neverForSites,
+    );
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         final dialogL10n = l10nOf(dialogContext);
-        final sites = List<String>.from(prefs.autofillNeverForSites);
         return SimpleDialog(
           title: Text(dialogL10n.autofillNeverTitle),
           children: [
@@ -76,15 +78,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             else
               for (final site in sites)
                 SimpleDialogOption(
-                  onPressed: () async {
-                    prefs.autofillNeverForSites = prefs.autofillNeverForSites
-                        .where((value) => value != site)
-                        .toList();
-                    await prefs.save();
+                  onPressed: () {
+                    notifier.removeNeverSite(site);
                     if (dialogContext.mounted) {
                       Navigator.of(dialogContext).pop();
                     }
-                    if (mounted) setState(() {});
                   },
                   child: Row(
                     children: [
@@ -169,9 +167,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     try {
       await disableBiometricUnlock();
-      await Future.sync(
-        () => ref.read(vaultRepositoryProvider).forceDeleteVault(),
-      );
+      await ref.read(vaultRepositoryProvider).forceDeleteVault();
       ref.read(vaultSessionProvider.notifier).lock();
 
       if (!mounted) return;
@@ -232,10 +228,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       vaultSessionProvider.select((state) => state.status),
     );
     final repo = ref.watch(vaultRepositoryProvider);
-    final otaState = ref.watch(otaProvider);
+    // Watch only the fields this screen renders: OTA progress ticks must not
+    // rebuild the whole settings tree while a download is running.
+    final hasUpdate = ref.watch(otaProvider.select((state) => state.hasUpdate));
+    final updateVersion = ref.watch(
+      otaProvider.select((state) => state.availableRelease?.version),
+    );
     final appearance = ref.watch(appearanceProvider);
     final screenshotProtection = ref.watch(screenshotProtectionProvider);
     final securitySettings = ref.watch(securitySettingsProvider);
+    final autofill = ref.watch(autofillSettingsProvider);
     // The security dashboard links here with ?from=security. Show a real back
     // arrow for that entry so the user can return to where they came from.
     final returnToSecurity =
@@ -246,80 +248,74 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       backgroundColor: scheme.surface,
       body: SafeArea(
         bottom: false,
-        child: KeyelContent(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: KeyelTopBar(
-                  title: l10n.settingsTitle,
-                  icon: returnToSecurity
-                      ? Icons.arrow_back_rounded
-                      : Icons.tune_rounded,
-                  iconTooltip: returnToSecurity
-                      ? l10n.prefBackToSecurity
-                      : null,
-                  onIconTap: returnToSecurity
-                      ? () => context.go(KeyelRoutes.security)
-                      : null,
-                  trailing: KeyelIconHull(
-                    icon: Icons.help_outline_rounded,
-                    tooltip: l10n.prefHelpSupportTooltip,
-                    onPressed: () => showSettingsHelpSheet(context),
-                  ),
-                ),
+        child: Column(
+          children: [
+            KeyelTopBar(
+              title: l10n.settingsTitle,
+              icon: returnToSecurity ? context.backArrow : Icons.tune_rounded,
+              iconTooltip: returnToSecurity ? l10n.prefBackToSecurity : null,
+              onIconTap: returnToSecurity
+                  ? () => context.go(KeyelRoutes.security)
+                  : null,
+              trailing: KeyelIconHull(
+                icon: Icons.help_outline_rounded,
+                tooltip: l10n.prefHelpSupportTooltip,
+                onPressed: () => showSettingsHelpSheet(context),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  KeyelSpacing.lg,
-                  KeyelSpacing.xs,
-                  KeyelSpacing.lg,
-                  KeyelSpacing.md,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.prefYourVault,
-                        style: textTheme.headlineLarge?.copyWith(
-                          color: scheme.onSurface,
-                          fontSize: 28,
-                          height: 36 / 28,
-                          letterSpacing: -0.6,
-                          fontWeight: FontWeight.w800,
-                        ),
+            ),
+            Expanded(
+              child: KeyelContent(
+                maxWidth: context.supportsTwoColumns
+                    ? KeyelContentWidth.page
+                    : KeyelContentWidth.reading,
+                child: KeyelResponsiveColumns(
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    context.pageMargin,
+                    0,
+                    context.pageMargin,
+                    KeyelSpacing.lg,
+                  ),
+                  leading: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        KeyelSpacing.lg,
+                        KeyelSpacing.xs,
+                        KeyelSpacing.lg,
+                        KeyelSpacing.md,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.prefSecuritySubtitle,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.prefYourVault,
+                            style: textTheme.headlineLarge?.copyWith(
+                              color: scheme.onSurface,
+                              fontSize: 28,
+                              height: 36 / 28,
+                              letterSpacing: -0.6,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.prefSecuritySubtitle,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: KeyelSpacing.md,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: VaultProfileCard(
-                    status: sessionStatus,
-                    vaultPath: repo.vaultPath,
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: KeyelSpacing.lg),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: KeyelSpacing.md,
-                ),
-                sliver: SliverList.list(
-                  children: [
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: KeyelSpacing.md,
+                      ),
+                      child: VaultProfileCard(
+                        status: sessionStatus,
+                        vaultPath: repo.vaultPath,
+                      ),
+                    ),
+                    const SizedBox(height: KeyelSpacing.lg),
                     SettingsAppearanceSection(appearance: appearance),
                     const SizedBox(height: KeyelSpacing.lg),
                     SettingsSecuritySection(
@@ -352,50 +348,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onScreenshotProtectionChanged: (value) =>
                           unawaited(_setScreenshotProtection(value)),
                     ),
-                    const SizedBox(height: KeyelSpacing.lg),
+                  ],
+                  trailing: [
                     SettingsAutofillSection(
                       autofillEnabled: _autofillEnabled,
                       passkeyProviderSupported: _passkeyProviderSupported,
-                      askToSave: AppPreferences.instance.autofillAskToSave,
-                      matchMode: AppPreferences.instance.autofillMatchMode,
+                      askToSave: autofill.askToSave,
+                      matchMode: autofill.matchMode,
                       onOpenSettings: () => unawaited(_openAutofillSettings()),
                       onOpenCredentialProviderSettings: () =>
                           unawaited(_openCredentialProviderSettings()),
-                      verifiedOnly:
-                          AppPreferences.instance.autofillVerifiedOnly,
-                      onVerifiedOnlyChanged: (value) {
-                        setState(() {
-                          AppPreferences.instance.autofillVerifiedOnly = value;
-                        });
-                        unawaited(AppPreferences.instance.save());
-                      },
-                      neverForSitesCount:
-                          AppPreferences.instance.autofillNeverForSites.length,
+                      verifiedOnly: autofill.verifiedOnly,
+                      onVerifiedOnlyChanged: (value) => ref
+                          .read(autofillSettingsProvider.notifier)
+                          .setVerifiedOnly(value: value),
+                      neverForSitesCount: autofill.neverForSites.length,
                       onManageNeverSites: _manageNeverSites,
-                      onAskToSaveChanged: (value) {
-                        setState(() {
-                          AppPreferences.instance.autofillAskToSave = value;
-                        });
-                        unawaited(AppPreferences.instance.save());
-                      },
-                      onToggleMatchMode: () {
-                        final current =
-                            AppPreferences.instance.autofillMatchMode;
-                        setState(() {
-                          AppPreferences.instance.autofillMatchMode =
-                              current == 'exact' ? 'domain' : 'exact';
-                        });
-                        unawaited(AppPreferences.instance.save());
-                      },
+                      onAskToSaveChanged: (value) => ref
+                          .read(autofillSettingsProvider.notifier)
+                          .setAskToSave(value: value),
+                      onToggleMatchMode: () => ref
+                          .read(autofillSettingsProvider.notifier)
+                          .toggleMatchMode(),
                     ),
                     const SizedBox(height: KeyelSpacing.lg),
                     const SettingsWatchSection(),
                     const SizedBox(height: KeyelSpacing.lg),
                     SettingsStorageSection(
-                      offlineOnly: _offlineOnly,
-                      otaState: otaState,
-                      onOfflineOnlyChanged: (value) =>
-                          setState(() => _offlineOnly = value),
+                      hasUpdate: hasUpdate,
+                      updateVersion: updateVersion,
                       onFactoryReset: () => unawaited(_factoryReset()),
                       onReportProblem: () => unawaited(_reportProblem()),
                     ),
@@ -403,8 +384,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

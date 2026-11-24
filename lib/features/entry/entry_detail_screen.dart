@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
+import 'package:keyel/core/router/keyel_route_observer.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/entry_detail_callbacks.dart';
@@ -43,13 +44,47 @@ class EntryDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<EntryDetailScreen> createState() => _EntryDetailScreenState();
 }
 
-class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
+class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen>
+    with WidgetsBindingObserver, RouteAware {
   late EntryDetailController _controller = _createController();
+  ModalRoute<dynamic>? _route;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_controller.load());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (identical(route, _route)) return;
+    if (_route != null) keyelRouteObserver.unsubscribe(this);
+    _route = route;
+    if (route != null) keyelRouteObserver.subscribe(this, route);
+  }
+
+  /// A route pushed on top of the detail screen (editor, confirm dialog,
+  /// another entry) must not leave a revealed secret in the tree underneath.
+  @override
+  void didPushNext() => _controller.hideAll();
+
+  /// Mask again when returning, in case the timer fired while away.
+  @override
+  void didPopNext() => _controller.hideAll();
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Auto-lock only fires after a background grace period, so a revealed
+    // secret would otherwise stay on screen during that whole window when the
+    // app is backgrounded. Mask immediately instead.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _controller.hideAll();
+    }
   }
 
   @override
@@ -64,6 +99,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
   @override
   void dispose() {
+    if (_route != null) keyelRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -166,6 +203,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       revealedCardNumber: _controller.revealedCardNumber,
       revealedCvv: _controller.revealedCvv,
       revealedNote: _controller.revealedNote,
+      revealedEntryNotes: _controller.revealedEntryNotes,
       revealedCustomFields: _controller.revealedCustomFields,
       onBack: () => context.pop(),
       onFavorite: _controller.toggleFavorite,
@@ -174,6 +212,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       onToggleRevealPassword: _controller.toggleRevealPassword,
       onToggleRevealCard: _controller.toggleRevealCard,
       onToggleRevealNote: _controller.toggleRevealNote,
+      onToggleRevealEntryNotes: _controller.toggleRevealEntryNotes,
       onToggleRevealCustomField: _controller.toggleRevealCustomField,
       onCopy: _copy,
       onCopyPassword: _controller.copyPassword,

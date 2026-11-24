@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/app_info.dart';
-import 'package:keyel/core/ota/ota_models.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_dialogs.dart';
@@ -341,22 +340,18 @@ class SettingsAutofillSection extends StatelessWidget {
 class SettingsStorageSection extends StatelessWidget {
   /// Creates the storage/diagnostics section.
   const new({
-    required this.offlineOnly,
-    required this.otaState,
-    required this.onOfflineOnlyChanged,
+    required this.hasUpdate,
+    required this.updateVersion,
     required this.onFactoryReset,
     required this.onReportProblem,
     super.key,
   });
 
-  /// Whether offline-only mode is enabled.
-  final bool offlineOnly;
+  /// Whether an update is available.
+  final bool hasUpdate;
 
-  /// Current OTA state.
-  final OtaState otaState;
-
-  /// Updates offline-only mode.
-  final ValueChanged<bool> onOfflineOnlyChanged;
+  /// Version of the available update, when there is one.
+  final String? updateVersion;
 
   /// Starts factory reset flow.
   final VoidCallback onFactoryReset;
@@ -380,15 +375,6 @@ class SettingsStorageSection extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.sm),
         SettingsCard(
           children: [
-            SettingsRow(
-              icon: Icons.cloud_off_rounded,
-              title: l10n.prefOfflineVaultTitle,
-              subtitle: l10n.prefOfflineVaultSubtitle,
-              trailing: Switch.adaptive(
-                value: offlineOnly,
-                onChanged: onOfflineOnlyChanged,
-              ),
-            ),
             SettingsRow(
               icon: Icons.cloud_sync_outlined,
               title: l10n.prefCrossDeviceSyncTitle,
@@ -417,10 +403,7 @@ class SettingsStorageSection extends StatelessWidget {
               icon: Icons.delete_forever_rounded,
               title: l10n.prefFactoryResetVaultTitle,
               subtitle: l10n.prefFactoryResetVaultSubtitle,
-              trailing: const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.red,
-              ),
+              trailing: Icon(context.forwardChevron, color: Colors.red),
               onTap: onFactoryReset,
             ),
             SettingsRow(
@@ -438,10 +421,10 @@ class SettingsStorageSection extends StatelessWidget {
             SettingsRow(
               icon: Icons.system_update_rounded,
               title: l10n.prefSoftwareUpdateRowTitle,
-              subtitle: otaState.hasUpdate
-                  ? l10n.prefUpdateAvailable(otaState.availableRelease!.version)
+              subtitle: hasUpdate && updateVersion != null
+                  ? l10n.prefUpdateAvailable(updateVersion!)
                   : l10n.prefVersionUpToDate(AppInfo.version),
-              trailing: otaState.hasUpdate
+              trailing: hasUpdate
                   ? Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -459,7 +442,7 @@ class SettingsStorageSection extends StatelessWidget {
                         ),
                       ),
                     )
-                  : const Icon(Icons.chevron_right_rounded),
+                  : Icon(context.forwardChevron),
               onTap: () => unawaited(context.push(KeyelRoutes.softwareUpdate)),
             ),
             SettingsRow(

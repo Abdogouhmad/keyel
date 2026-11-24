@@ -45,7 +45,7 @@ class WelcomeStep extends StatelessWidget {
         const SizedBox(height: KeyelSpacing.xl * 1.5),
         KeyelButtonM3(
           label: l10n.vaultGetStarted,
-          icon: Icons.arrow_forward_rounded,
+          icon: context.forwardArrow,
           isFullWidth: true,
           onPressed: onGetStarted,
         ),

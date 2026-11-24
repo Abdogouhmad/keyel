@@ -8,7 +8,7 @@ import 'error.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `current_path`, `drop_session`, `emit_lock_event`, `lock_sink_slot`, `path_slot`, `session_slot`, `with_session`
+// These functions are ignored because they are not marked as `pub`: `current_path`, `drop_session`, `emit_lock_event`, `lock_sink_slots`, `path_slot`, `session_slot`, `with_session`
 
 /// Configure the vault file path. Call once during app startup.
 ///
@@ -76,6 +76,7 @@ Future<void> changeMaster({
 
 /// Subscribe to session lock events.
 ///
-/// Emits `"locked"` whenever a session is dropped: explicitly through
-/// [`lock`], by changing the vault path, or by any future auto-lock.
+/// Emits `"locked"` to every live subscriber whenever a session is dropped:
+/// explicitly through [`lock`], by changing the vault path, or by any future
+/// auto-lock.
 Stream<String> lockEvents() => RustLib.instance.api.crateApiSessionLockEvents();

@@ -12,6 +12,9 @@ git tag v0.X.0 && git push --tags
 > **Release process update (since 1.5.0):** the manual `git tag` command above
 > is historical. Releases are now cut by CI when a `pubspec.yaml`/`CHANGELOG.md`
 > bump lands on `main`; never push tags by hand. See `docs/DECISIONS.md`.
+>
+> **Current phase:** 1.11.0 (security hardening, responsive layouts and codebase
+> simplification) is scoped in [`docs/roadmap_1.11.0.md`](roadmap_1.11.0.md).
 
 **Rules for the whole project**
 - Crypto code gets tests before it gets UI.
@@ -664,7 +667,11 @@ and macOS desktop builds beside the Linux one.
 > **Update (2026-11-21):** the reserved 1.6.0 one-tap lock / quick-access idea
 > is now shipping as **1.9.0**, scoped in
 > [`docs/roadmap_1.9.0.md`](roadmap_1.9.0.md). It covers the lock shortcut and
-> Quick Settings tile; the generator shortcut and widgets stay ideas.
+> Quick Settings tile.
+>
+> **Update (1.10.0):** the generator launcher shortcut and home-screen widget
+> from this table also shipped, in
+> [`docs/roadmap_1.10.0.md`](roadmap_1.10.0.md); they are no longer just ideas.
 
 ---
 

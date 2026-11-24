@@ -30,16 +30,6 @@ class Haptics {
     }
   }
 
-  /// A short vibration. Used for errors and warnings.
-  static Future<void> vibrate() async {
-    if (!AppPreferences.instance.hapticsEnabled) return;
-    try {
-      await HapticFeedback.vibrate();
-    } on Object catch (_) {
-      // Ignore: haptics are best-effort.
-    }
-  }
-
   /// A selection tick. Used for toggle/checkbox interactions.
   static Future<void> selection() async {
     if (!AppPreferences.instance.hapticsEnabled) return;

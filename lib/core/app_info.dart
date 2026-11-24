@@ -9,7 +9,4 @@ abstract final class AppInfo {
     'KEYEL_VERSION',
     defaultValue: '1.1.0',
   );
-
-  /// Version reported to bug reports; `dev` builds are flagged as such.
-  static bool get isReleaseBuild => version != 'dev';
 }

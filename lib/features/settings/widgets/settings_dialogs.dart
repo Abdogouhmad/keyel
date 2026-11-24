@@ -98,6 +98,47 @@ Future<String?> confirmMasterPassword(
   }
 }
 
+/// A single-choice dialog shared by every settings picker.
+///
+/// The label is built with the dialog's context so it follows the current
+/// locale, and wraps instead of overflowing at 200 % text scale.
+Future<T?> showKeyelRadioDialog<T>({
+  required BuildContext context,
+  required String title,
+  required T current,
+  required List<T> options,
+  required String Function(BuildContext context, T option) label,
+  Widget? body,
+}) => showDialog<T>(
+  context: context,
+  builder: (dialogContext) => SimpleDialog(
+    title: Text(title),
+    children: [
+      if (body != null)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, KeyelSpacing.sm),
+          child: body,
+        ),
+      for (final option in options)
+        SimpleDialogOption(
+          onPressed: () => Navigator.of(dialogContext).pop(option),
+          child: Row(
+            children: [
+              Icon(
+                option == current
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                size: 20,
+              ),
+              const SizedBox(width: KeyelSpacing.sm),
+              Expanded(child: Text(label(dialogContext, option))),
+            ],
+          ),
+        ),
+    ],
+  ),
+);
+
 String _autoLockLabel(Duration delay) {
   final l10n = currentL10n;
   if (delay == Duration.zero) return l10n.prefAutoLockImmediately;
@@ -121,29 +162,12 @@ Future<void> showAutoLockDialog(BuildContext context, WidgetRef ref) async {
     Duration(minutes: 15),
   ];
 
-  final selected = await showDialog<Duration>(
+  final selected = await showKeyelRadioDialog<Duration>(
     context: context,
-    builder: (dialogContext) => SimpleDialog(
-      title: Text(l10nOf(dialogContext).prefAutoLockDialogTitle),
-      children: [
-        for (final option in options)
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(dialogContext).pop(option),
-            child: Row(
-              children: [
-                Icon(
-                  option == current
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
-                  size: 20,
-                ),
-                const SizedBox(width: KeyelSpacing.sm),
-                Text(_autoLockLabel(option)),
-              ],
-            ),
-          ),
-      ],
-    ),
+    title: l10nOf(context).prefAutoLockDialogTitle,
+    current: current,
+    options: options,
+    label: (_, option) => _autoLockLabel(option),
   );
 
   if (selected == null) return;
@@ -162,34 +186,15 @@ String _clipboardLabel(int seconds) {
 Future<void> showClipboardDialog(BuildContext context, WidgetRef ref) async {
   final current = ref.read(securitySettingsProvider).clipboardClearSeconds;
   const options = [15, 30, 60, 0];
+  final l10n = l10nOf(context);
 
-  final selected = await showDialog<int>(
+  final selected = await showKeyelRadioDialog<int>(
     context: context,
-    builder: (dialogContext) => SimpleDialog(
-      title: Text(l10nOf(dialogContext).prefClipboardDialogTitle),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, KeyelSpacing.sm),
-          child: Text(l10nOf(dialogContext).prefClipboardDialogBody),
-        ),
-        for (final option in options)
-          SimpleDialogOption(
-            onPressed: () => Navigator.of(dialogContext).pop(option),
-            child: Row(
-              children: [
-                Icon(
-                  option == current
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
-                  size: 20,
-                ),
-                const SizedBox(width: KeyelSpacing.sm),
-                Text(_clipboardLabel(option)),
-              ],
-            ),
-          ),
-      ],
-    ),
+    title: l10n.prefClipboardDialogTitle,
+    current: current,
+    options: options,
+    label: (_, option) => _clipboardLabel(option),
+    body: Text(l10n.prefClipboardDialogBody),
   );
 
   if (selected == null) return;

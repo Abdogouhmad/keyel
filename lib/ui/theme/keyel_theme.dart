@@ -75,21 +75,6 @@ abstract final class KeyelMotion {
   }
 }
 
-/// Soft, colour-tinted ambient elevation from design.md §Elevation.
-abstract final class KeyelShadows {
-  /// Level-2 ambient glow.
-  static List<BoxShadow> ambient(Brightness brightness) => [
-    BoxShadow(
-      color: brightness == Brightness.light
-          ? const Color(0x144355B9)
-          : const Color(0x66000000),
-      blurRadius: 24,
-      spreadRadius: -2,
-      offset: const Offset(0, 4),
-    ),
-  ];
-}
-
 /// Keyel themes built from the selected accent palette.
 ///
 /// The default light/dark themes use the classic indigo brand palette for
@@ -123,21 +108,6 @@ abstract final class KeyelTheme {
     KeyelPalette palette = KeyelPalette.indigo,
     bool amoledBlack = false,
   }) => _build(palette.darkScheme(), amoledBlack: amoledBlack);
-
-  /// Convenience that mirrors `AppPreferences` for the initial build.
-  static ThemeData lightFromPrefs([AppPreferences? prefs]) {
-    final p = prefs ?? AppPreferences.instance;
-    return light(palette: KeyelPaletteX.fromId(p.paletteId));
-  }
-
-  /// Convenience that mirrors `AppPreferences` for the initial build.
-  static ThemeData darkFromPrefs([AppPreferences? prefs]) {
-    final p = prefs ?? AppPreferences.instance;
-    return dark(
-      palette: KeyelPaletteX.fromId(p.paletteId),
-      amoledBlack: p.amoledBlack,
-    );
-  }
 
   /// A higher-contrast variant of [base] for the platform's high-contrast
   /// setting (`MediaQuery.highContrastOf`).

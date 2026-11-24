@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/data/vault_session_provider.dart' show describeVaultError;
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/features/vault/primary_secret_copy.dart';
 import 'package:keyel/features/vault/vault_list_callbacks.dart';
 import 'package:keyel/features/vault/widgets/vault_filter.dart';
 import 'package:keyel/features/vault/widgets/vault_folder_bar.dart';
@@ -330,49 +330,21 @@ class VaultListController extends ChangeNotifier {
   }
 
   /// Copy the primary secret of one row (password, card number, username).
+  ///
+  /// Precedence lives in [PrimarySecretCopy] so the row button and the swipe
+  /// action can never disagree again.
   Future<void> copyPrimarySecret(VaultEntry entry) async {
     try {
-      switch (entry.kind) {
-        case VaultEntryKind.login:
-          final detail = await repository.getEntry(entry.id);
-          if (detail.login?.hasPassword ?? false) {
-            final secret = await repository.revealField(
-              entry.id,
-              SecretFieldDto.loginPassword,
-            );
-            if (secret.isNotEmpty) {
-              callbacks.copy(
-                secret,
-                '${currentL10n.vaultCopiedPassword}'
-                '${SensitiveClipboard.instance.clearHint}',
-              );
-              return;
-            }
-          }
-          if (entry.username.isNotEmpty) {
-            callbacks.copy(entry.username, currentL10n.vaultCopiedUsername);
-            return;
-          }
-        case VaultEntryKind.card:
-          final detail = await repository.getEntry(entry.id);
-          if (detail.card?.hasNumber ?? false) {
-            final number = await repository.revealField(
-              entry.id,
-              SecretFieldDto.cardNumber,
-            );
-            if (number.isNotEmpty) {
-              callbacks.copy(number, currentL10n.vaultCopiedCardNumber);
-              return;
-            }
-          }
-        case VaultEntryKind.note:
-        case VaultEntryKind.passkey:
-          break;
-      }
-      callbacks.notify(
-        currentL10n.vaultNothingToCopy,
-        icon: Icons.info_outline_rounded,
+      final result = await PrimarySecretCopy.resolve(
+        entry,
+        repository: repository,
+        l10n: currentL10n,
       );
+      if (result.hasValue) {
+        callbacks.copy(result.value!, result.message);
+      } else {
+        callbacks.notify(result.message, icon: Icons.info_outline_rounded);
+      }
     } on Object catch (error) {
       callbacks.notifyError(error);
     }

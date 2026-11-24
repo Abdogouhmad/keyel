@@ -11,9 +11,12 @@ import 'package:keyel/features/autofill/autofill_save_screen.dart';
 import 'package:keyel/features/import_export/import_export_screen.dart';
 import 'package:keyel/features/security_dashboard/security_screen.dart';
 import 'package:keyel/src/rust/api/models.dart';
+import 'package:keyel/ui/adaptive/columns.dart';
 import 'package:keyel/ui/adaptive/content.dart';
+import 'package:keyel/ui/adaptive/direction.dart';
 import 'package:keyel/ui/adaptive/keyel_shell.dart';
 import 'package:keyel/ui/adaptive/window.dart';
+import 'package:keyel/ui/design_system/keyel_adaptive_sheet.dart';
 import 'package:keyel/ui/design_system/keyel_top_bar.dart';
 import 'package:keyel/ui/theme/keyel_theme.dart';
 
@@ -102,6 +105,30 @@ Widget _importExportHost() => ProviderScope(
     theme: KeyelTheme.light(),
     home: const ImportExportScreen(),
   ),
+);
+
+/// Real screens inside the shell's effective-layout scope. Without this scope
+/// `supportsTwoColumns` is forced false and a desktop test would only ever see
+/// the single-column fallback, hiding a broken multi-column composition.
+Widget _scopedPage(Widget child) => MaterialApp(
+  theme: KeyelTheme.light(),
+  home: EffectiveLayoutScope(
+    chrome: const LayoutChrome(width: 280),
+    child: child,
+  ),
+);
+
+Widget _scopedSecurityHost() => ProviderScope(
+  overrides: [healthProvider.overrideWith((ref) => _cleanReport)],
+  child: _scopedPage(const SecurityScreen()),
+);
+
+Widget _scopedImportExportHost() => ProviderScope(
+  overrides: [
+    vaultRepositoryProvider.overrideWithValue(_FakeRepository()),
+    fileTransferServiceProvider.overrideWithValue(_FakeFiles()),
+  ],
+  child: _scopedPage(const ImportExportScreen()),
 );
 
 Widget _pickerHost() => ProviderScope(
@@ -264,6 +291,30 @@ void main() {
     });
   });
 
+  group('real screens use multi-column compositions inside the shell', () {
+    testWidgets('security dashboard splits into two columns on desktop', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1600);
+      await tester.pumpWidget(_scopedSecurityHost());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('import/export hub splits into two columns on desktop', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1600);
+      await tester.pumpWidget(_scopedImportExportHost());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('KeyelSubShell keeps the nav chrome on wide windows', () {
     testWidgets('compact is a pass-through: no shell chrome', (tester) async {
       _sizeTo(tester, 400);
@@ -349,6 +400,390 @@ void main() {
 
       expect(tester.getSize(find.byType(ListView)).width, 400);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('EffectiveLayoutScope', () {
+    test('subtracts chrome and margins before dividing by text scale', () {
+      const withDrawer = EffectiveLayoutData(
+        windowWidth: 1200,
+        chromeWidth: 280,
+        pageMargin: 32,
+        textScale: 1,
+      );
+      expect(withDrawer.contentWidth, 856);
+      expect(withDrawer.capacity, 856);
+      expect(withDrawer.supportsTwoColumns, isFalse);
+      // A 1200 dp window with a 280 dp drawer still fits a list/detail pair.
+      expect(
+        WindowSizeClass.fromWidth(withDrawer.width).supportsListDetail,
+        isTrue,
+      );
+
+      const scaled = EffectiveLayoutData(
+        windowWidth: 1600,
+        chromeWidth: 0,
+        pageMargin: 32,
+        textScale: 2,
+      );
+      expect(scaled.contentWidth, 1536);
+      expect(scaled.capacity, 768);
+      expect(scaled.supportsTwoColumns, isFalse);
+    });
+
+    test('page margins follow the physical window class', () {
+      expect(EffectiveLayoutScope.pageMarginFor(400), 16);
+      expect(EffectiveLayoutScope.pageMarginFor(700), 24);
+      expect(EffectiveLayoutScope.pageMarginFor(1000), 24);
+      expect(EffectiveLayoutScope.pageMarginFor(1200), 32);
+    });
+
+    Future<EffectiveLayoutData> probe(
+      WidgetTester tester, {
+      required double window,
+      required double chrome,
+      double textScale = 1,
+    }) async {
+      _sizeTo(tester, window);
+      if (textScale != 1) {
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      }
+      late EffectiveLayoutData observed;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: KeyelTheme.light(),
+          home: Scaffold(
+            body: EffectiveLayoutScope(
+              chrome: LayoutChrome(width: chrome),
+              child: Builder(
+                builder: (context) {
+                  observed = context.maybeEffectiveLayout!;
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return observed;
+    }
+
+    testWidgets('reports the width left after the drawer', (tester) async {
+      final layout = await probe(tester, window: 1200, chrome: 280);
+      expect(layout.windowWidth, 1200);
+      expect(layout.chromeWidth, 280);
+      expect(layout.pageMargin, 32);
+      expect(layout.contentWidth, 856);
+      expect(layout.width, 856);
+      expect(layout.supportsTwoColumns, isFalse);
+    });
+
+    testWidgets('a 200% text scale collapses two-column layouts', (
+      tester,
+    ) async {
+      final layout = await probe(tester, window: 1600, chrome: 0, textScale: 2);
+      expect(layout.contentWidth, 1536);
+      expect(layout.capacity, 768);
+      expect(layout.supportsTwoColumns, isFalse);
+    });
+
+    testWidgets('falls back to the raw window width outside a shell', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1600);
+      late double width;
+      late bool twoColumns;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: KeyelTheme.light(),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                width = context.effectiveWidth;
+                twoColumns = context.supportsTwoColumns;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(width, 1600);
+      expect(twoColumns, isFalse);
+    });
+  });
+
+  group('KeyelResponsiveColumns', () {
+    Widget host({required bool scoped}) {
+      const columns = KeyelResponsiveColumns(
+        leading: [Text('lead-card')],
+        trailing: [Text('trail-card')],
+      );
+      return MaterialApp(
+        theme: KeyelTheme.light(),
+        home: Scaffold(
+          body: scoped
+              ? const EffectiveLayoutScope(
+                  chrome: LayoutChrome(),
+                  child: columns,
+                )
+              : columns,
+        ),
+      );
+    }
+
+    testWidgets('stacks both groups in one column without a shell', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1600);
+      await tester.pumpWidget(host(scoped: false));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsOneWidget);
+      expect(find.text('lead-card'), findsOneWidget);
+      expect(find.text('trail-card'), findsOneWidget);
+    });
+
+    testWidgets('lays out two columns when effective capacity allows', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1600);
+      await tester.pumpWidget(host(scoped: true));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsNWidgets(2));
+      final lead = tester.getRect(find.text('lead-card'));
+      final trail = tester.getRect(find.text('trail-card'));
+      expect(lead.left, lessThan(trail.left));
+      expect(lead.top, closeTo(trail.top, 1));
+    });
+
+    testWidgets('returns to one column when text is scaled to 200%', (
+      tester,
+    ) async {
+      _sizeTo(tester, 1600);
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpWidget(host(scoped: true));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsOneWidget);
+    });
+  });
+
+  group('DirectionalChrome', () {
+    Future<List<String>> report(
+      WidgetTester tester,
+      TextDirection direction,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: KeyelTheme.light(),
+          home: Directionality(
+            textDirection: direction,
+            child: Builder(
+              builder: (context) => Text(
+                key: const Key('direction-report'),
+                [
+                  context.isRtl.toString(),
+                  context.backArrow.codePoint.toString(),
+                  context.forwardArrow.codePoint.toString(),
+                  context.forwardChevron.codePoint.toString(),
+                  context.alignStart.toString(),
+                  context.alignEnd.toString(),
+                ].join('|'),
+              ),
+            ),
+          ),
+        ),
+      );
+      return tester
+          .widget<Text>(find.byKey(const Key('direction-report')))
+          .data!
+          .split('|');
+    }
+
+    testWidgets('uses physical back/forward glyphs in LTR', (tester) async {
+      final values = await report(tester, TextDirection.ltr);
+      expect(values[0], 'false');
+      expect(values[1], Icons.arrow_back_rounded.codePoint.toString());
+      expect(values[2], Icons.arrow_forward_rounded.codePoint.toString());
+      expect(values[3], Icons.chevron_right_rounded.codePoint.toString());
+      expect(values[4], 'Alignment.centerLeft');
+      expect(values[5], 'Alignment.centerRight');
+    });
+
+    testWidgets('mirrors back/forward glyphs and edges in RTL', (tester) async {
+      final values = await report(tester, TextDirection.rtl);
+      expect(values[0], 'true');
+      expect(values[1], Icons.arrow_forward_rounded.codePoint.toString());
+      expect(values[2], Icons.arrow_back_rounded.codePoint.toString());
+      expect(values[3], Icons.chevron_left_rounded.codePoint.toString());
+      expect(values[4], 'Alignment.centerRight');
+      expect(values[5], 'Alignment.centerLeft');
+    });
+  });
+
+  group('showKeyelAdaptiveSheet', () {
+    const sheetProbe = Key('sheet-probe');
+
+    Future<void> start(
+      WidgetTester tester, {
+      required double width,
+      TextDirection direction = TextDirection.ltr,
+    }) async {
+      _sizeTo(tester, width);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: KeyelTheme.light(),
+          home: Directionality(
+            textDirection: direction,
+            child: Scaffold(
+              body: Center(
+                child: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => showKeyelAdaptiveSheet<void>(
+                      context: context,
+                      builder: (_) => const SizedBox(
+                        key: sheetProbe,
+                        width: 200,
+                        height: 120,
+                      ),
+                    ),
+                    child: const Text('open sheet'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open sheet'));
+      // Stop mid-transition so the slide direction is observable.
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    testWidgets('phones get a bottom sheet', (tester) async {
+      await start(tester, width: 400);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(sheetProbe), findsOneWidget);
+      expect(find.byType(BottomSheet), findsOneWidget);
+    });
+
+    testWidgets('wide windows get a bounded, end-aligned side sheet', (
+      tester,
+    ) async {
+      await start(tester, width: 1600);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsNothing);
+      final probe = find.byKey(sheetProbe);
+      expect(probe, findsOneWidget);
+
+      final constrained = tester.widget<ConstrainedBox>(
+        find.ancestor(of: probe, matching: find.byType(ConstrainedBox)).first,
+      );
+      expect(constrained.constraints.maxWidth, 480);
+      // LTR end edge is the physical right edge.
+      expect(tester.getRect(probe).right, closeTo(1600, 1));
+
+      final surface = tester.widget<ClipRRect>(
+        find.ancestor(of: probe, matching: find.byType(ClipRRect)).first,
+      );
+      final radius = surface.borderRadius as BorderRadius;
+      expect(radius.topLeft.x, greaterThan(0));
+      expect(radius.topRight.x, 0);
+    });
+
+    testWidgets('RTL sheets anchor and round towards the left edge', (
+      tester,
+    ) async {
+      await start(tester, width: 1200, direction: TextDirection.rtl);
+      await tester.pumpAndSettle();
+
+      final probe = find.byKey(sheetProbe);
+      expect(tester.getRect(probe).left, closeTo(0, 1));
+
+      final surface = tester.widget<ClipRRect>(
+        find.ancestor(of: probe, matching: find.byType(ClipRRect)).first,
+      );
+      final radius = surface.borderRadius as BorderRadius;
+      expect(radius.topLeft.x, 0);
+      expect(radius.topRight.x, greaterThan(0));
+    });
+
+    testWidgets('side sheets slide in from the right in LTR', (tester) async {
+      await start(tester, width: 1200);
+      final slide = tester.widget<SlideTransition>(
+        find
+            .ancestor(
+              of: find.byKey(sheetProbe),
+              matching: find.byType(SlideTransition),
+            )
+            .first,
+      );
+      expect(slide.position.value.dx, greaterThan(0));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('side sheets slide in from the left in RTL', (tester) async {
+      await start(tester, width: 1200, direction: TextDirection.rtl);
+      final slide = tester.widget<SlideTransition>(
+        find
+            .ancestor(
+              of: find.byKey(sheetProbe),
+              matching: find.byType(SlideTransition),
+            )
+            .first,
+      );
+      expect(slide.position.value.dx, lessThan(0));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('side sheets stay bounded after navigation chrome', (
+      tester,
+    ) async {
+      _sizeTo(tester, 600);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: KeyelTheme.light(),
+          home: EffectiveLayoutScope(
+            chrome: const LayoutChrome(width: 280),
+            child: Scaffold(
+              body: Center(
+                child: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => showKeyelAdaptiveSheet<void>(
+                      context: context,
+                      builder: (_) =>
+                          const SizedBox(key: sheetProbe, height: 120),
+                    ),
+                    child: const Text('open sheet'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open sheet'));
+      await tester.pumpAndSettle();
+
+      final constrained = tester.widget<ConstrainedBox>(
+        find
+            .ancestor(
+              of: find.byKey(sheetProbe),
+              matching: find.byType(ConstrainedBox),
+            )
+            .first,
+      );
+      // (600 - 280 - 2*24) * 0.9 = 244.8, raised to the 320 dp floor.
+      expect(constrained.constraints.maxWidth, 320);
     });
   });
 }

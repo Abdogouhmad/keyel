@@ -148,15 +148,17 @@ class GeneratorBody extends StatelessWidget {
 
     return Expanded(
       child: KeyelContent(
-        maxWidth: KeyelContentWidth.form,
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(
+        maxWidth: context.supportsTwoColumns
+            ? KeyelContentWidth.page
+            : KeyelContentWidth.form,
+        child: KeyelResponsiveColumns(
+          padding: EdgeInsetsDirectional.fromSTEB(
             context.pageMargin,
             KeyelSpacing.xs,
             context.pageMargin,
             KeyelSpacing.xl,
           ),
-          children: [
+          leading: [
             KeyelSegmentedControl<GeneratorMode>(
               selected: mode,
               onChanged: onModeChanged,
@@ -181,6 +183,8 @@ class GeneratorBody extends StatelessWidget {
             const SizedBox(height: KeyelSpacing.lg),
             KeyelStrengthMeter(strength: strength),
             const SizedBox(height: KeyelSpacing.lg),
+          ],
+          trailing: [
             if (mode == GeneratorMode.password)
               PasswordConfig(
                 length: length,

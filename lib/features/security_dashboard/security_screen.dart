@@ -53,6 +53,9 @@ class SecurityScreen extends ConsumerWidget {
             ),
             Expanded(
               child: KeyelContent(
+                maxWidth: context.supportsTwoColumns
+                    ? KeyelContentWidth.page
+                    : KeyelContentWidth.reading,
                 child: health.when(
                   loading: () => KeyelStateMessage(
                     kind: KeyelStateMessageKind.loading,
@@ -109,16 +112,16 @@ class _Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
+    // Posture + score stay together in the reading-start column; the detailed
+    // audit and tip fill the second column on tablets and desktop windows.
+    return KeyelResponsiveColumns(
+      padding: EdgeInsetsDirectional.fromSTEB(
         context.pageMargin,
         KeyelSpacing.xs,
         context.pageMargin,
         KeyelSpacing.xl,
       ),
-      children: [
-        // What the user can control right now, above the score that summarizes
-        // the credentials themselves. Both read the same non-secret state.
+      leading: [
         const SecurityPostureCardConnector(),
         const SizedBox(height: KeyelSpacing.lg),
         ScoreCard(
@@ -130,6 +133,8 @@ class _Dashboard extends StatelessWidget {
           },
         ),
         const SizedBox(height: KeyelSpacing.lg),
+      ],
+      trailing: [
         VulnerabilitySummarySection(report: report, onOpen: onOpen),
         const SizedBox(height: KeyelSpacing.lg),
         VulnerabilityAuditSection(

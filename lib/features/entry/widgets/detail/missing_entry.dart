@@ -23,7 +23,7 @@ class MissingEntry extends StatelessWidget {
           children: [
             KeyelTopBar(
               title: l10n.entryItemNotFound,
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
             ),
@@ -33,7 +33,7 @@ class MissingEntry extends StatelessWidget {
                 kind: KeyelStateMessageKind.empty,
                 message: l10n.entryMissingMessage(entryId),
                 actionLabel: l10n.entryGoBack,
-                actionIcon: Icons.arrow_back_rounded,
+                actionIcon: context.backArrow,
                 onAction: () => context.pop(),
               ),
             ),

@@ -125,9 +125,9 @@ class SettingsCard extends StatelessWidget {
             children[i],
             if (i < children.length - 1)
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 72,
-                  right: KeyelSpacing.md,
+                padding: const EdgeInsetsDirectional.only(
+                  start: 72,
+                  end: KeyelSpacing.md,
                 ),
                 child: KeyelRule(
                   color: scheme.outlineVariant.withValues(alpha: 0.5),
@@ -215,7 +215,7 @@ class SettingsRow extends StatelessWidget {
             trailing!,
           ] else if (onTap != null) ...[
             const SizedBox(width: KeyelSpacing.sm),
-            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+            Icon(context.forwardChevron, color: scheme.onSurfaceVariant),
           ],
         ],
       ),

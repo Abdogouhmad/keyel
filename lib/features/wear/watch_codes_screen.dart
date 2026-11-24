@@ -102,7 +102,7 @@ class _WatchCodesScreenState extends ConsumerState<WatchCodesScreen> {
           children: [
             KeyelTopBar(
               title: l10n.wearTitle,
-              icon: Icons.arrow_back_rounded,
+              icon: context.backArrow,
               iconTooltip: l10n.actionBack,
               onIconTap: () => context.pop(),
             ),

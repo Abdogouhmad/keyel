@@ -128,7 +128,7 @@ class _EditFormLayoutState extends ConsumerState<EditFormLayout> {
   @override
   Widget build(BuildContext context) {
     final l10n = l10nOf(context);
-    final twoColumns = WindowSizeClass.of(context).supportsListDetail;
+    final twoColumns = WindowSizeClass.ofEffective(context).supportsListDetail;
 
     return KeyelContent(
       maxWidth: twoColumns ? KeyelContentWidth.page : KeyelContentWidth.form,

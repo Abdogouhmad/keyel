@@ -23,13 +23,25 @@ class UpdateAvailableBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(otaProvider);
+    // This banner sits above every route, so watch only the fields it renders:
+    // a download progress tick must not rebuild the whole app.
+    final banner = ref.watch(
+      otaProvider.select(
+        (state) => (
+          hasUpdate: state.hasUpdate,
+          version: state.availableRelease?.version,
+          dismissedVersion: state.dismissedVersion,
+          channelLabel: state.channel.label,
+        ),
+      ),
+    );
     final l10n = l10nOf(context);
-    final release = state.availableRelease;
-    final visible =
-        state.hasUpdate &&
-        release != null &&
-        release.version != state.dismissedVersion;
+    final displayVersion =
+        banner.hasUpdate &&
+            banner.version != null &&
+            banner.version != banner.dismissedVersion
+        ? banner.version
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,7 +50,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
         AnimatedSize(
           duration: KeyelMotion.resolve(context, KeyelMotion.fast),
           curve: Curves.easeOut,
-          child: visible
+          child: displayVersion != null
               ? SafeArea(
                   bottom: false,
                   child: Material(
@@ -46,7 +58,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
                     child: Semantics(
                       container: true,
                       button: true,
-                      label: l10n.otaBannerSemantics(release.version),
+                      label: l10n.otaBannerSemantics(displayVersion),
                       child: InkWell(
                         onTap: onOpen,
                         child: Padding(
@@ -84,8 +96,8 @@ class UpdateAvailableBanner extends ConsumerWidget {
                                     ),
                                     Text(
                                       l10n.otaAvailableSubtitle(
-                                        release.version,
-                                        state.channel.label,
+                                        displayVersion,
+                                        banner.channelLabel,
                                       ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,

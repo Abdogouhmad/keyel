@@ -117,12 +117,15 @@ class _AutofillPickerScreenState extends ConsumerState<AutofillPickerScreen> {
           );
       if (!mounted) return;
       final prefs = AppPreferences.instance;
-      final strict = prefs.autofillMatchMode == 'exact';
-      final verified = prefs.autofillVerifiedOnly;
+      // `exact` match mode and verified-only both mean the same thing to the
+      // user: only suggest a login whose host or package actually matches.
+      // Text-search hits are never an identity proof, so an exact-mode picker
+      // must drop them too instead of silently widening the match.
+      final strict =
+          prefs.autofillMatchMode == 'exact' || prefs.autofillVerifiedOnly;
       setState(() {
         _matches = matches.where((match) {
-          if (verified) return match.quality == AutofillQualityDto.exact;
-          if (strict) return match.quality != AutofillQualityDto.sameSite;
+          if (strict) return match.quality == AutofillQualityDto.exact;
           return true;
         }).toList();
         _loading = false;

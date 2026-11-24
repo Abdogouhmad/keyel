@@ -44,6 +44,7 @@ Widget _harness(
   double width,
   Brightness brightness, {
   TextScaler textScaler = TextScaler.noScaling,
+  TextDirection textDirection = TextDirection.ltr,
 }) {
   return ProviderScope(
     child: MediaQuery(
@@ -54,6 +55,10 @@ Widget _harness(
             ? KeyelTheme.light()
             : KeyelTheme.dark(),
         routerConfig: _testRouter,
+        builder: (context, child) => Directionality(
+          textDirection: textDirection,
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
     ),
   );
@@ -64,7 +69,15 @@ Future<void> _pump(
   double width,
   Brightness brightness, {
   TextScaler textScaler = TextScaler.noScaling,
-}) => tester.pumpWidget(_harness(width, brightness, textScaler: textScaler));
+  TextDirection textDirection = TextDirection.ltr,
+}) => tester.pumpWidget(
+  _harness(
+    width,
+    brightness,
+    textScaler: textScaler,
+    textDirection: textDirection,
+  ),
+);
 
 Future<void> _golden(
   WidgetTester tester,
@@ -159,6 +172,90 @@ void main() {
     for (final label in ['Vault', 'Generator', 'Security', 'Settings']) {
       expect(find.text(label), findsOneWidget);
     }
+  });
+
+  testWidgets('RTL rail keeps every destination reachable', (tester) async {
+    await _pump(
+      tester,
+      1000,
+      Brightness.light,
+      textDirection: TextDirection.rtl,
+    );
+    await tester.pumpAndSettle();
+
+    // The shared test router may be on a later branch from a previous test,
+    // so assert that *some* branch body renders rather than a fixed one.
+    expect(
+      _markers.values.any((marker) => find.text(marker).evaluate().isNotEmpty),
+      isTrue,
+      reason: 'a branch body must render in RTL',
+    );
+    for (final label in ['Vault', 'Generator', 'Security', 'Settings']) {
+      expect(find.text(label), findsOneWidget, reason: 'RTL rail label');
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('RTL drawer has no overflow at 200% text scale', (tester) async {
+    await _pump(
+      tester,
+      1200,
+      Brightness.light,
+      textDirection: TextDirection.rtl,
+      textScaler: const TextScaler.linear(2),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _markers.values.any((marker) => find.text(marker).evaluate().isNotEmpty),
+      isTrue,
+      reason: 'a branch body must render in RTL',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('drawer chrome is reflected in the page layout scope', (
+    tester,
+  ) async {
+    late EffectiveLayoutData observed;
+    final router = GoRouter(
+      initialLocation: '/vault',
+      routes: [
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, shell) =>
+              KeyelShell(navigationShell: shell),
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/vault',
+                  builder: (context, state) {
+                    observed = context.maybeEffectiveLayout!;
+                    return const Scaffold(body: SizedBox.shrink());
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MediaQuery(
+          data: const MediaQueryData(size: Size(1200, 800)),
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // A 280 dp drawer and two 32 dp margins leave 856 dp, so a page must not
+    // decide its columns from the raw 1200 dp window width.
+    expect(observed.chromeWidth, 280);
+    expect(observed.contentWidth, 856);
+    expect(observed.supportsTwoColumns, isFalse);
   });
 
   testWidgets('Ctrl+F focuses the vault search field through the shell', (

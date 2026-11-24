@@ -32,7 +32,7 @@ class AppearanceScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: KeyelTopBar(
                   title: l10n.appearanceTitle,
-                  icon: Icons.arrow_back_rounded,
+                  icon: context.backArrow,
                   iconTooltip: l10n.actionBack,
                   onIconTap: () => context.pop(),
                 ),
@@ -122,7 +122,9 @@ class AppearanceScreen extends ConsumerWidget {
                             ),
                             if (i < KeyelPalette.values.length - 1)
                               Padding(
-                                padding: const EdgeInsets.only(left: 56),
+                                padding: const EdgeInsetsDirectional.only(
+                                  start: 56,
+                                ),
                                 child: KeyelRule(
                                   color: scheme.outlineVariant.withValues(
                                     alpha: 0.5,
