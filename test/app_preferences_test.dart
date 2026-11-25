@@ -25,7 +25,8 @@ void _reset(AppPreferences prefs) {
     ..paletteId = 'indigo'
     ..amoledBlack = false
     ..animationsEnabled = true
-    ..hapticsEnabled = true;
+    ..hapticsEnabled = true
+    ..recentQuickActionIds = const [];
 }
 
 void main() {
@@ -287,6 +288,29 @@ void main() {
     expect(prefs.amoledBlack, isTrue);
     expect(prefs.animationsEnabled, isFalse);
     expect(prefs.hapticsEnabled, isFalse);
+  });
+
+  test('quick-action recency round-trips and rejects corrupt ids', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_recency');
+    addTearDown(() => dir.delete(recursive: true));
+    final vaultPath = '${dir.path}/vault.keyel';
+
+    await prefs.load(vaultPath);
+    prefs
+      ..rememberQuickActionEntry('a')
+      ..rememberQuickActionEntry('b')
+      ..rememberQuickActionEntry('a');
+    await prefs.save();
+
+    _reset(prefs);
+    await prefs.load(vaultPath);
+    expect(prefs.recentQuickActionIds, ['a', 'b']);
+
+    await File('${dir.path}/settings.json')
+        .writeAsString('{"recentQuickActionIds":["x",3,"",null,"y"]}');
+    prefs.recentQuickActionIds = const ['stale'];
+    await prefs.load(vaultPath);
+    expect(prefs.recentQuickActionIds, ['x', 'y']);
   });
 
   test('language choice round-trips and rejects unknown ids', () async {

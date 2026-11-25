@@ -5,6 +5,29 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-11-25
+
+Feature release: the quick-actions palette is now a keyboard-first, fuzzy-ranked
+command palette. **No vault schema change.** Ranking sees only secret-free
+summaries, and EN/FR parity, RTL, 200% text scale and the offline/fail-closed
+security contract remain intact.
+
+### Added
+
+- Fuzzy ranking over entry titles and subtitles: matching is case- and
+  accent-insensitive and token-based, exact/prefix hits outrank mid-word hits,
+  and loose subsequences still find entries. Favourites and recently opened
+  entries break equal-score ties. With an empty query the six static actions
+  keep their 1.12.0 order above the entry results.
+- Keyboard navigation in the palette: `↑`/`↓` move and scroll the selected row
+  into view, `Enter` runs it, and `Esc` / `Ctrl/Cmd+K` still close it. The
+  selection is exposed to platform semantics and works without a pointer.
+- Recency persistence: the last eight entry ids opened from the palette are
+  kept in `settings.json` as opaque, non-secret UI preferences, with corrupt
+  values rejected without affecting any fail-closed default.
+- EN/FR keyboard-help copy and regression tests for ranking, keyboard nav,
+  recency, RTL and 200% text scale.
+
 ## [1.12.0] - 2026-11-24
 
 Feature release: the vault selection lives in the URL, master/detail panes are

@@ -5292,6 +5292,12 @@ abstract class AppLocalizations {
   /// **'Quick actions (Ctrl/⌘ + K)'**
   String get quickActionsTooltip;
 
+  /// Keyboard help shown under the quick-actions search field.
+  ///
+  /// In en, this message translates to:
+  /// **'↑/↓ to move, Enter to open, Esc to close'**
+  String get quickActionsKeyboardHint;
+
   /// Accessibility label of the draggable master/detail divider.
   ///
   /// In en, this message translates to:

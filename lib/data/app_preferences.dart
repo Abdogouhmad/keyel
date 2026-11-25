@@ -27,6 +27,11 @@ class AppPreferences {
   /// Most recent vault searches, newest first.
   List<String> recentSearches = <String>[];
 
+  /// Entry ids most recently opened from the quick-actions palette, newest
+  /// first. Ids are opaque identifiers, never passwords or vault payload data.
+  /// Capped at eight unique values. Not a secret.
+  List<String> recentQuickActionIds = <String>[];
+
   /// Width of the vault master list as a fraction of the effective content
   /// width. Clamped to 0.28–0.5 on load; a corrupt value falls back to 0.34.
   double vaultPaneRatio = 0.34;
@@ -180,6 +185,18 @@ class AppPreferences {
     unawaited(save());
   }
 
+  /// Remember an entry opened from the quick-actions palette.
+  ///
+  /// Only the opaque entry id is stored, never an entry value or secret.
+  void rememberQuickActionEntry(String id) {
+    if (id.isEmpty) return;
+    recentQuickActionIds = [
+      id,
+      ...recentQuickActionIds.where((value) => value != id),
+    ].take(8).toList();
+    unawaited(save());
+  }
+
   /// File backing the preferences, or `null` when not initialized.
   File? _file;
 
@@ -252,6 +269,14 @@ class AppPreferences {
         recentSearches = searches
             .whereType<String>()
             .where((value) => value.trim().isNotEmpty)
+            .take(8)
+            .toList();
+      }
+      final recentIds = decoded['recentQuickActionIds'];
+      if (recentIds is List) {
+        recentQuickActionIds = recentIds
+            .whereType<String>()
+            .where((value) => value.isNotEmpty)
             .take(8)
             .toList();
       }
@@ -359,6 +384,7 @@ class AppPreferences {
           'otaDismissedVersion': otaDismissedVersion,
           'otaNotificationPromptShown': otaNotificationPromptShown,
           'recentSearches': recentSearches,
+          'recentQuickActionIds': recentQuickActionIds,
           'vaultPaneRatio': vaultPaneRatio,
           'generator': {
             'mode': generatorMode,

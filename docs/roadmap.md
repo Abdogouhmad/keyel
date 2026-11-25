@@ -13,8 +13,9 @@ git tag v0.X.0 && git push --tags
 > is historical. Releases are now cut by CI when a `pubspec.yaml`/`CHANGELOG.md`
 > bump lands on `main`; never push tags by hand. See `docs/DECISIONS.md`.
 >
-> **Current phase:** 1.12.0 (route-driven vault, resizable panes and quick
-> actions) is scoped in [`docs/roadmap_1.12.0.md`](roadmap_1.12.0.md).
+> **Current phase:** 1.13.0 (ranked command palette) is scoped in
+> [`docs/roadmap_1.13.0.md`](roadmap_1.13.0.md). 1.12.0 shipped; see
+> [`docs/roadmap_1.12.0.md`](roadmap_1.12.0.md).
 
 **Rules for the whole project**
 - Crypto code gets tests before it gets UI.
@@ -44,6 +45,7 @@ git tag v0.X.0 && git push --tags
 | 1.1.0 | Desktop, updates and icons | 1.5 weeks | ◐ |
 | 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☑ |
 | 1.7.0 | Opt-in HIBP breach check | 1–1.5 weeks | ◐ |
+| 1.13.0 | Ranked command palette | 1 week | ◐ |
 
 Estimates assume part-time work. Adjust to your pace.
 

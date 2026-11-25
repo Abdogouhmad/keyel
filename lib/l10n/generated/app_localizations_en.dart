@@ -3096,5 +3096,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickActionsTooltip => 'Quick actions (Ctrl/⌘ + K)';
 
   @override
+  String get quickActionsKeyboardHint =>
+      '↑/↓ to move, Enter to open, Esc to close';
+
+  @override
   String get paneResizeLabel => 'Resize the list pane';
 }

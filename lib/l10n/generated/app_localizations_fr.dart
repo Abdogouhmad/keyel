@@ -3171,5 +3171,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get quickActionsTooltip => 'Actions rapides (Ctrl/⌘ + K)';
 
   @override
+  String get quickActionsKeyboardHint =>
+      '↑/↓ pour naviguer, Entrée pour ouvrir, Échap pour fermer';
+
+  @override
   String get paneResizeLabel => 'Redimensionner le volet de liste';
 }

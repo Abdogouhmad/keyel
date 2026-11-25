@@ -4018,6 +4018,10 @@
   "@quickActionsTooltip": {
     "description": "Tooltip of the top-bar button that opens quick actions."
   },
+  "quickActionsKeyboardHint": "↑/↓ to move, Enter to open, Esc to close",
+  "@quickActionsKeyboardHint": {
+    "description": "Keyboard help shown under the quick-actions search field."
+  },
   "paneResizeLabel": "Resize the list pane",
   "@paneResizeLabel": {
     "description": "Accessibility label of the draggable master/detail divider."

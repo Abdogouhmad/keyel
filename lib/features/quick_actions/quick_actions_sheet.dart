@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/core/focus/keyel_search_focus.dart';
 import 'package:keyel/core/router/keyel_route_observer.dart';
 import 'package:keyel/core/router/keyel_routes.dart';
+import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_revision_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/entry/vault_entry.dart';
+import 'package:keyel/features/quick_actions/quick_action_ranking.dart';
 import 'package:keyel/ui/keyel.dart';
 import 'package:keyel/ui/l10n/l10n.dart';
 
@@ -24,9 +26,9 @@ final ValueNotifier<bool> quickActionsOpen = ValueNotifier<bool>(false);
 /// Toggles the searchable quick-actions palette.
 ///
 /// A bottom sheet on phones and an end-aligned side sheet elsewhere, sharing
-/// the same result list. [keyelRouteObserver] masks revealed secrets as soon as
-/// this route is pushed, so opening the palette can never leave a secret
-/// exposed underneath it.
+/// the same ranked result list. [keyelRouteObserver] masks revealed secrets as
+/// soon as this route is pushed, so opening the palette can never leave a
+/// secret exposed underneath it.
 Future<void> showQuickActions(BuildContext context) async {
   if (quickActionsOpen.value) {
     Navigator.of(context, rootNavigator: true).pop();
@@ -66,15 +68,51 @@ class _CloseQuickActionsIntent extends Intent {
   const new();
 }
 
+/// Moves the selected palette row by [offset] without wrapping around.
+@immutable
+class _MoveQuickActionSelectionIntent extends Intent {
+  /// Creates a move intent.
+  const new(this.offset);
+
+  /// Number of rows to move, negative for up and positive for down.
+  final int offset;
+}
+
+/// Runs the currently selected palette row.
+class _ActivateQuickActionIntent extends Intent {
+  /// Creates the activate intent.
+  const new();
+}
+
 const Map<ShortcutActivator, Intent> _paletteShortcuts = {
   SingleActivator(LogicalKeyboardKey.escape): _CloseQuickActionsIntent(),
   SingleActivator(LogicalKeyboardKey.keyK, control: true):
       KeyelQuickActionsIntent(),
   SingleActivator(LogicalKeyboardKey.keyK, meta: true):
       KeyelQuickActionsIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowDown):
+      _MoveQuickActionSelectionIntent(1),
+  SingleActivator(LogicalKeyboardKey.arrowUp): _MoveQuickActionSelectionIntent(
+    -1,
+  ),
+  SingleActivator(LogicalKeyboardKey.enter): _ActivateQuickActionIntent(),
 };
 
-/// Searchable palette of entry results and six static actions.
+/// One selectable row in the palette: either a static action or an entry.
+@immutable
+class _PaletteRow {
+  const new({this.action, this.entry});
+
+  final QuickAction? action;
+  final VaultEntry? entry;
+}
+
+/// Wraps either kind of palette value in a selectable row.
+_PaletteRow _paletteRow(Object value) => value is QuickAction
+    ? _PaletteRow(action: value)
+    : _PaletteRow(entry: value as VaultEntry);
+
+/// Searchable, keyboard-navigable palette of entries and six static actions.
 class QuickActionsSheet extends ConsumerStatefulWidget {
   /// Creates the palette body.
   const new({super.key});
@@ -84,51 +122,56 @@ class QuickActionsSheet extends ConsumerStatefulWidget {
 }
 
 class _QuickActionsSheetState extends ConsumerState<QuickActionsSheet> {
-  static const _searchDebounce = Duration(milliseconds: 180);
-  static const _maxResults = 8;
+  static const _maxActions = 6;
+  static const _maxEntries = 8;
+  static const _maxRankedResults = 12;
 
   final _searchController = TextEditingController();
-  Timer? _debounce;
-  List<VaultEntry> _results = const [];
+  final _listController = ScrollController();
+  final _rowKeys = <int, GlobalKey>{};
+
+  List<VaultEntry> _allEntries = const [];
+  List<_PaletteRow> _rows = const [];
+  String _query = '';
+  int _generation = 0;
+  int _selectedIndex = 0;
   bool _searching = false;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_search(''));
+    unawaited(_loadEntries());
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _listController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onQueryChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(_searchDebounce, () => _search(value));
+    setState(() {
+      _query = value;
+      _selectedIndex = 0;
+    });
   }
 
-  Future<void> _search(String query) async {
+  Future<void> _loadEntries() async {
     if (ref.read(vaultSessionProvider).status != VaultStatus.unlocked) return;
     final generation = _generation = _generation + 1;
     setState(() => _searching = true);
     try {
-      final summaries = await ref
-          .read(vaultRepositoryProvider)
-          .listEntries(query: query.trim());
+      // One metadata-only fetch: ranking happens locally so a loose token such
+      // as "atm" can find an entry that a substring query would miss.
+      final summaries = await ref.read(vaultRepositoryProvider).listEntries();
       if (!mounted || generation != _generation) return;
       setState(() {
-        // Metadata only: titles and subtitles can never contain a secret.
-        _results = summaries
-            .take(_maxResults)
-            .map(VaultEntry.fromSummary)
-            .toList();
+        _allEntries = summaries.map(VaultEntry.fromSummary).toList();
       });
     } on Object catch (_) {
       if (mounted && generation == _generation) {
-        setState(() => _results = const []);
+        setState(() => _allEntries = const []);
       }
     } finally {
       if (mounted && generation == _generation) {
@@ -136,8 +179,6 @@ class _QuickActionsSheetState extends ConsumerState<QuickActionsSheet> {
       }
     }
   }
-
-  int _generation = 0;
 
   List<QuickAction> _actions(BuildContext context) {
     final l10n = l10nOf(context);
@@ -181,6 +222,51 @@ class _QuickActionsSheetState extends ConsumerState<QuickActionsSheet> {
     ];
   }
 
+  /// Builds the ordered rows from secret-free summaries and static actions.
+  List<_PaletteRow> _rankedRows(BuildContext context) {
+    final query = _query.trim();
+    final recentIds = AppPreferences.instance.recentQuickActionIds;
+    final actionCandidates = <QuickActionCandidate<Object>>[
+      for (final action in _actions(context))
+        QuickActionCandidate(value: action, title: action.label),
+    ];
+    final entryCandidates = <QuickActionCandidate<Object>>[
+      for (final entry in _allEntries)
+        QuickActionCandidate(
+          value: entry,
+          title: entry.title,
+          subtitle: entry.subtitle,
+          isFavorite: entry.favorite,
+          recencyRank: recentIds.contains(entry.id)
+              ? recentIds.indexOf(entry.id)
+              : null,
+        ),
+    ];
+
+    if (query.isEmpty) {
+      return [
+        for (final item in rankQuickActions(
+          actionCandidates,
+          query,
+        ).take(_maxActions))
+          _paletteRow(item.candidate.value),
+        for (final item in rankQuickActions(
+          entryCandidates,
+          query,
+        ).take(_maxEntries))
+          _paletteRow(item.candidate.value),
+      ];
+    }
+
+    return [
+      for (final item in rankQuickActions([
+        ...actionCandidates,
+        ...entryCandidates,
+      ], query).take(_maxRankedResults))
+        _paletteRow(item.candidate.value),
+    ];
+  }
+
   /// Captures the router and container before the sheet route disappears.
   void _select(void Function(GoRouter router, WidgetRef ref) run) {
     final router = GoRouter.of(context);
@@ -193,20 +279,51 @@ class _QuickActionsSheetState extends ConsumerState<QuickActionsSheet> {
     if (mounted) Navigator.of(context, rootNavigator: true).pop();
   }
 
+  void _moveSelection(int offset) {
+    if (_rows.isEmpty) return;
+    final next = _selectedIndex + offset;
+    setState(() {
+      _selectedIndex = next < 0
+          ? 0
+          : next >= _rows.length
+          ? _rows.length - 1
+          : next;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final selectedContext = _rowKeys[_selectedIndex]?.currentContext;
+      if (selectedContext != null) {
+        Scrollable.ensureVisible(
+          selectedContext,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 120),
+        );
+      }
+    });
+  }
+
+  void _activate(int index) {
+    if (index < 0 || index >= _rows.length) return;
+    final row = _rows[index];
+    final action = row.action;
+    if (action != null) {
+      _select(action.run);
+      return;
+    }
+    final entry = row.entry!;
+    // Only the opaque id is persisted; no entry value or secret is involved.
+    AppPreferences.instance.rememberQuickActionEntry(entry.id);
+    _select((router, _) => router.go(KeyelRoutes.vaultEntryDetail(entry.id)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = l10nOf(context);
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final query = _searchController.text.trim().toLowerCase();
-    final actions = _actions(context).where((action) {
-      return query.isEmpty || action.label.toLowerCase().contains(query);
-    }).toList();
-    final entries = _results.where((entry) {
-      if (query.isEmpty) return true;
-      return entry.title.toLowerCase().contains(query) ||
-          entry.username.toLowerCase().contains(query);
-    }).toList();
+    _rows = _rankedRows(context);
+    final showNoResults =
+        _query.trim().isNotEmpty && _rows.isEmpty && !_searching;
 
     return Shortcuts(
       shortcuts: _paletteShortcuts,
@@ -218,6 +335,14 @@ class _QuickActionsSheetState extends ConsumerState<QuickActionsSheet> {
           _CloseQuickActionsIntent: CallbackAction<_CloseQuickActionsIntent>(
             onInvoke: (_) => _close(),
           ),
+          _MoveQuickActionSelectionIntent:
+              CallbackAction<_MoveQuickActionSelectionIntent>(
+                onInvoke: (intent) => _moveSelection(intent.offset),
+              ),
+          _ActivateQuickActionIntent:
+              CallbackAction<_ActivateQuickActionIntent>(
+                onInvoke: (_) => _activate(_selectedIndex),
+              ),
         },
         child: Material(
           color: Colors.transparent,
@@ -267,61 +392,79 @@ class _QuickActionsSheetState extends ConsumerState<QuickActionsSheet> {
                       controller: _searchController,
                       autofocus: true,
                       onChanged: _onQueryChanged,
+                      textInputAction: TextInputAction.search,
                       decoration: InputDecoration(
                         hintText: l10n.quickActionsHint,
                         prefixIcon: const Icon(Icons.search_rounded),
                       ),
                     ),
                   ),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 320),
-                    child: ListView(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.fromLTRB(
-                        KeyelSpacing.sm,
-                        KeyelSpacing.xs,
-                        KeyelSpacing.sm,
-                        KeyelSpacing.md,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: KeyelSpacing.lg,
+                      vertical: KeyelSpacing.xs,
+                    ),
+                    child: Text(
+                      l10n.quickActionsKeyboardHint,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
                       ),
-                      children: [
-                        for (final action in actions)
-                          ListTile(
-                            leading: Icon(action.icon, color: scheme.primary),
-                            title: Text(action.label),
-                            onTap: () => _select(action.run),
-                          ),
-                        if (entries.isNotEmpty && actions.isNotEmpty)
-                          const Divider(height: KeyelSpacing.sm),
-                        for (final entry in entries)
-                          ListTile(
-                            leading: Icon(entry.icon),
-                            title: Text(entry.title, maxLines: 1),
-                            subtitle: Text(
-                              entry.subtitle,
+                    ),
+                  ),
+                  Flexible(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 320),
+                      child: ListView.builder(
+                        controller: _listController,
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.fromLTRB(
+                          KeyelSpacing.sm,
+                          KeyelSpacing.xs,
+                          KeyelSpacing.sm,
+                          KeyelSpacing.md,
+                        ),
+                        itemCount: _rows.length + (showNoResults ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= _rows.length) {
+                            return Padding(
+                              key: const Key('quick-actions-no-results'),
+                              padding: const EdgeInsets.all(KeyelSpacing.lg),
+                              child: Text(
+                                l10n.quickActionsNoResults,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          final row = _rows[index];
+                          final action = row.action;
+                          final entry = row.entry;
+                          return ListTile(
+                            key: _rowKeys.putIfAbsent(index, GlobalKey.new),
+                            leading: Icon(
+                              action?.icon ?? entry!.icon,
+                              color: action == null ? null : scheme.primary,
+                            ),
+                            title: Text(
+                              action?.label ?? entry!.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            onTap: () => _select(
-                              (router, _) => router.go(
-                                KeyelRoutes.vaultEntryDetail(entry.id),
-                              ),
-                            ),
-                          ),
-                        if (query.isNotEmpty &&
-                            actions.isEmpty &&
-                            entries.isEmpty &&
-                            !_searching)
-                          Padding(
-                            padding: const EdgeInsets.all(KeyelSpacing.lg),
-                            child: Text(
-                              l10n.quickActionsNoResults,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                      ],
+                            subtitle: entry == null
+                                ? null
+                                : Text(
+                                    entry.subtitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                            selected: index == _selectedIndex,
+                            selectedTileColor: scheme.secondaryContainer,
+                            onTap: () => _activate(index),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
