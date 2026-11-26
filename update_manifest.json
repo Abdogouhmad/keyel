@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "1.13.0",
-  "latestVersionCode": 11300,
+  "latestVersionName": "1.13.1",
+  "latestVersionCode": 11301,
   "minSupportedVersionCode": 10000,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.13.0/keyel-v1.13.0-universal.apk",
-  "size": 45017052,
-  "sha256": "9ac84705389ca46b957541e118ec3d4e2943488133a1b3ef1d952ab038319d77",
-  "releaseNotes": "## [1.13.0] - 2026-11-25\n\nFeature release: the quick-actions palette is now a keyboard-first, fuzzy-ranked\ncommand palette. **No vault schema change.** Ranking sees only secret-free\nsummaries, and EN/FR parity, RTL, 200% text scale and the offline/fail-closed\nsecurity contract remain intact.\n\n### Added\n\n- Fuzzy ranking over entry titles and subtitles: matching is case- and\n  accent-insensitive and token-based, exact/prefix hits outrank mid-word hits,\n  and loose subsequences still find entries. Favourites and recently opened\n  entries break equal-score ties. With an empty query the six static actions\n  keep their 1.12.0 order above the entry results.\n- Keyboard navigation in the palette: `↑`/`↓` move and scroll the selected row\n  into view, `Enter` runs it, and `Esc` / `Ctrl/Cmd+K` still close it. The\n  selection is exposed to platform semantics and works without a pointer.\n- Recency persistence: the last eight entry ids opened from the palette are\n  kept in `settings.json` as opaque, non-secret UI preferences, with corrupt\n  values rejected without affecting any fail-closed default.\n- EN/FR keyboard-help copy and regression tests for ranking, keyboard nav,\n  recency, RTL and 200% text scale.",
-  "publishedAt": "2026-11-25T23:39:45.848469+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/keyel/releases/download/v1.13.1/keyel-v1.13.1-universal.apk",
+  "size": 45066556,
+  "sha256": "b58b63e32c7c440a1369684bc899039829175aea7de390e6e727f6adc93b426d",
+  "releaseNotes": "## [1.13.1] - 2026-11-26\n\nPatch release: desktop builds now target the original x86-64 baseline, vault\nstorage creation is hardened, and sync room creation gains LocalSend-style\nsame-Wi-Fi discovery while keeping the one-time pairing code as the trust root.\n**No vault schema change.**\n\n### Fixed\n\n- Linux release builds no longer emit ELF notes requiring `x86-64-v2`/`v3`,\n  which made glibc reject the app with `CPU ISA level is lower than required` on\n  older CPUs. The baseline is pinned in CMake and the Rust target flags, and\n  every release artifact is checked before upload. Release CI also discards\n  Rust artifacts cached before those flags were pinned and normalizes any\n  runner-injected ISA note, so the published bundles are genuinely portable.\n- Synced vaults whose main file is missing but whose `vault.keyel.bak` is intact\n  are now detected as existing: onboarding no longer offers to overwrite them,\n  unlock/recovery accept the backup path, and factory reset removes both.\n- New vault and backup files are created with `0600` permissions on Unix even\n  under a permissive umask; older vault backups are tightened on write.\n- One-time recovery keys remain visible if optional biometric setup fails.\n- Legacy vault migration picks the newest candidate, writes via temp+rename,\n  and carries `settings.json` forward.\n- `settings.json` writes are serialized and atomic, so concurrent fire-and-\n  forget saves cannot truncate fail-closed preferences.\n\n### Added\n\n- Sync room creation checks the local network using the same LocalSend-style\n  discovery approach and shows nearby Keyel devices before the existing\n  manual pairing code flow. Same-Wi-Fi presence is a convenience, not\n  authentication: the code remains a bearer secret and is always required to\n  join. If discovery is unavailable, manual code entry still works.",
+  "publishedAt": "2026-11-26T01:32:04.205565+00:00",
   "channel": "stable",
   "isPrerelease": false
 }
