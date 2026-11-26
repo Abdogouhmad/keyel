@@ -5,6 +5,38 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.1] - 2026-11-26
+
+Patch release: desktop builds now target the original x86-64 baseline, vault
+storage creation is hardened, and sync room creation gains LocalSend-style
+same-Wi-Fi discovery while keeping the one-time pairing code as the trust root.
+**No vault schema change.**
+
+### Fixed
+
+- Linux release builds no longer emit ELF notes requiring `x86-64-v2`/`v3`,
+  which made glibc reject the app with `CPU ISA level is lower than required` on
+  older CPUs. The baseline is pinned in CMake and the Rust target flags, and
+  every release artifact is checked before upload.
+- Synced vaults whose main file is missing but whose `vault.keyel.bak` is intact
+  are now detected as existing: onboarding no longer offers to overwrite them,
+  unlock/recovery accept the backup path, and factory reset removes both.
+- New vault and backup files are created with `0600` permissions on Unix even
+  under a permissive umask; older vault backups are tightened on write.
+- One-time recovery keys remain visible if optional biometric setup fails.
+- Legacy vault migration picks the newest candidate, writes via temp+rename,
+  and carries `settings.json` forward.
+- `settings.json` writes are serialized and atomic, so concurrent fire-and-
+  forget saves cannot truncate fail-closed preferences.
+
+### Added
+
+- Sync room creation checks the local network using the same LocalSend-style
+  discovery approach and shows nearby Keyel devices before the existing
+  manual pairing code flow. Same-Wi-Fi presence is a convenience, not
+  authentication: the code remains a bearer secret and is always required to
+  join. If discovery is unavailable, manual code entry still works.
+
 ## [1.13.0] - 2026-11-25
 
 Feature release: the quick-actions palette is now a keyboard-first, fuzzy-ranked

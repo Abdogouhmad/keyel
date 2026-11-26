@@ -17,4 +17,4 @@ pub use model::{
     Folder, Login, Note, Passkey, SyncConfig, SyncMeta, Tombstone, TombstoneKind, TotpAlgorithm,
     TotpConfig, Vault, TOMBSTONE_RETENTION_SECS, TRASH_RETENTION_SECS, VAULT_SCHEMA_VERSION,
 };
-pub use store::Session;
+pub use store::{has_vault_file, Session};

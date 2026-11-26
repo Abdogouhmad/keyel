@@ -4,6 +4,38 @@ Requests to change/interpret the plan, design or roadmap are recorded here
 (date, decision, reason). Priority when documents conflict: roadmap > plan >
 design (docs/roadmap.md header).
 
+## 2026-11-26
+
+- **Desktop builds pin the original x86-64 baseline instead of trusting the
+  runner.** The 1.12.0/1.13.0 CI-built Linux ELFs advertised
+  `x86-64-v2`/`x86-64-v3` and glibc refused to start them on older CPUs with
+  `CPU ISA level is lower than required`. `linux/CMakeLists.txt` appends
+  `-march=x86-64 -mtune=generic`, `.cargo/config.toml` pins
+  `-C target-cpu=x86-64` for every desktop x86-64 Rust target, and release/CI
+  jobs run `tool/check_cpu_baseline.sh` so a hostile `-march=x86-64-v3`
+  environment can no longer ship an unusable artifact. A local hostile-flags
+  build now emits only `x86-64-baseline`.
+
+- **Vault storage creation is hardened without a schema change.** A `vault.keyel.bak`
+  now counts as an existing vault everywhere (open, unlock, recovery and create)
+  so first-run onboarding cannot overwrite the only recoverable copy; factory
+  reset removes the main file, `.bak` and `.tmp`. New vault/backup files are
+  forced to `0600` on Unix, `settings.json` saves are serialized and atomic,
+  legacy migration picks the newest candidate via temp+rename and carries
+  preferences forward, and the one-time recovery key survives a biometric
+  setup error. A hidden user-home fallback keeps the bridge initialized if the
+  platform support directory cannot be resolved.
+
+- **Sync room creation uses LocalSend-style same-network discovery as a
+  convenience, not as authentication.** Discovery enumerates non-loopback
+  interfaces, probes the LocalSend multicast group/broadcast target with a
+  small bounded secret-free payload, accepts only same-subnet answers, and
+  requires explicit user selection. It adds no new permission (`INTERNET`
+  already exists) and no sync server; the folder backend and the one-time
+  `KYSYNC1-…` pairing code remain the trust root. Manual code entry is always
+  available. This narrows the 1.5.0 "no discovery" non-goal to "no discovery as
+  a transport or trust signal".
+
 ## 2026-11-17
 
 - **OTA updates are in, and with them the `INTERNET` permission.** The user

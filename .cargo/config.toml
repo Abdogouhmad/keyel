@@ -1,0 +1,19 @@
+# Portable desktop build baseline (1.13.1).
+#
+# Keyel ships to machines we do not control, so the Rust half of the desktop
+# bundles must not inherit the build host's CPU features. A `target-cpu` of
+# `x86-64` is the original AMD64 baseline (SSE2 only); newer toolchains/images
+# may otherwise pick x86-64-v2/v3 and produce a library that SIGILLs or is
+# rejected by the dynamic loader on older CPUs. Targets are listed explicitly
+# so the arm64 macOS slice and the Android arm targets keep their own defaults.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "target-cpu=x86-64"]
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-cpu=x86-64"]
+
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "target-cpu=x86-64"]
+
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "target-cpu=x86-64"]

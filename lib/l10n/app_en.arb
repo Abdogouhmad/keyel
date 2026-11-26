@@ -3156,6 +3156,46 @@
   "@synActionsLabel": {
     "description": "Sync UI copy: actions label."
   },
+  "synDiscoveryUnavailable": "Local network discovery is unavailable; enter the pairing code manually.",
+  "@synDiscoveryUnavailable": {
+    "description": "Sync UI copy: shown when local network discovery cannot start."
+  },
+  "synFindNearbySubtitle": "Detect Keyel devices on the same local network before pairing.",
+  "@synFindNearbySubtitle": {
+    "description": "Sync UI copy: local network discovery subtitle."
+  },
+  "synFindNearbyTitle": "Find nearby devices",
+  "@synFindNearbyTitle": {
+    "description": "Sync UI copy: start local network discovery."
+  },
+  "synFindingNearby": "Scanning the local network…",
+  "@synFindingNearby": {
+    "description": "Sync UI copy: discovery in progress."
+  },
+  "synNearbyNone": "No nearby devices found. You can still pair with a code.",
+  "@synNearbyNone": {
+    "description": "Sync UI copy: discovery returned no peers."
+  },
+  "synNearbyNote": "Being on the same network is not identity verification. Exchange the pairing code out of band.",
+  "@synNearbyNote": {
+    "description": "Sync UI copy: security note for discovered peers."
+  },
+  "synNearbyPeer": "{name} · {address}",
+  "@synNearbyPeer": {
+    "description": "Sync UI copy: a discovered peer row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "synNearbySelected": "Selected nearby device",
+  "@synNearbySelected": {
+    "description": "Sync UI copy: label for the chosen discovered peer."
+  },
   "synChooseFolder": "Choose a sync folder",
   "@synChooseFolder": {
     "description": "Sync UI copy: choose folder."

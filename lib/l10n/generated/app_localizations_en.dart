@@ -2390,6 +2390,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get synActionsLabel => 'Actions';
 
   @override
+  String get synDiscoveryUnavailable =>
+      'Local network discovery is unavailable; enter the pairing code manually.';
+
+  @override
+  String get synFindNearbySubtitle =>
+      'Detect Keyel devices on the same local network before pairing.';
+
+  @override
+  String get synFindNearbyTitle => 'Find nearby devices';
+
+  @override
+  String get synFindingNearby => 'Scanning the local network…';
+
+  @override
+  String get synNearbyNone =>
+      'No nearby devices found. You can still pair with a code.';
+
+  @override
+  String get synNearbyNote =>
+      'Being on the same network is not identity verification. Exchange the pairing code out of band.';
+
+  @override
+  String synNearbyPeer(String name, String address) {
+    return '$name · $address';
+  }
+
+  @override
+  String get synNearbySelected => 'Selected nearby device';
+
+  @override
   String get synChooseFolder => 'Choose a sync folder';
 
   @override

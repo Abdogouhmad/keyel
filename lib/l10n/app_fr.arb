@@ -3156,6 +3156,46 @@
   "@synActionsLabel": {
     "description": "Sync UI copy: actions label."
   },
+  "synDiscoveryUnavailable": "La découverte sur le réseau local est indisponible ; saisissez le code d'appariement manuellement.",
+  "@synDiscoveryUnavailable": {
+    "description": "Sync UI copy: shown when local network discovery cannot start."
+  },
+  "synFindNearbySubtitle": "Détecter les appareils Keyel sur le même réseau local avant l'appariement.",
+  "@synFindNearbySubtitle": {
+    "description": "Sync UI copy: local network discovery subtitle."
+  },
+  "synFindNearbyTitle": "Trouver des appareils à proximité",
+  "@synFindNearbyTitle": {
+    "description": "Sync UI copy: start local network discovery."
+  },
+  "synFindingNearby": "Analyse du réseau local…",
+  "@synFindingNearby": {
+    "description": "Sync UI copy: discovery in progress."
+  },
+  "synNearbyNone": "Aucun appareil à proximité. Vous pouvez toujours vous apparier avec un code.",
+  "@synNearbyNone": {
+    "description": "Sync UI copy: discovery returned no peers."
+  },
+  "synNearbyNote": "Être sur le même réseau ne prouve pas l'identité. Échangez le code d'appariement par un autre canal.",
+  "@synNearbyNote": {
+    "description": "Sync UI copy: security note for discovered peers."
+  },
+  "synNearbyPeer": "{name} · {address}",
+  "@synNearbyPeer": {
+    "description": "Sync UI copy: a discovered peer row.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "synNearbySelected": "Appareil à proximité sélectionné",
+  "@synNearbySelected": {
+    "description": "Sync UI copy: label for the chosen discovered peer."
+  },
   "synChooseFolder": "Choisir un dossier de synchronisation",
   "@synChooseFolder": {
     "description": "Sync UI copy: choose folder."

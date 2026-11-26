@@ -2449,6 +2449,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get synActionsLabel => 'Actions';
 
   @override
+  String get synDiscoveryUnavailable =>
+      'La découverte sur le réseau local est indisponible ; saisissez le code d\'appariement manuellement.';
+
+  @override
+  String get synFindNearbySubtitle =>
+      'Détecter les appareils Keyel sur le même réseau local avant l\'appariement.';
+
+  @override
+  String get synFindNearbyTitle => 'Trouver des appareils à proximité';
+
+  @override
+  String get synFindingNearby => 'Analyse du réseau local…';
+
+  @override
+  String get synNearbyNone =>
+      'Aucun appareil à proximité. Vous pouvez toujours vous apparier avec un code.';
+
+  @override
+  String get synNearbyNote =>
+      'Être sur le même réseau ne prouve pas l\'identité. Échangez le code d\'appariement par un autre canal.';
+
+  @override
+  String synNearbyPeer(String name, String address) {
+    return '$name · $address';
+  }
+
+  @override
+  String get synNearbySelected => 'Appareil à proximité sélectionné';
+
+  @override
   String get synChooseFolder => 'Choisir un dossier de synchronisation';
 
   @override

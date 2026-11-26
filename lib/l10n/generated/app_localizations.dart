@@ -4170,6 +4170,54 @@ abstract class AppLocalizations {
   /// **'Actions'**
   String get synActionsLabel;
 
+  /// Sync UI copy: shown when local network discovery cannot start.
+  ///
+  /// In en, this message translates to:
+  /// **'Local network discovery is unavailable; enter the pairing code manually.'**
+  String get synDiscoveryUnavailable;
+
+  /// Sync UI copy: local network discovery subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect Keyel devices on the same local network before pairing.'**
+  String get synFindNearbySubtitle;
+
+  /// Sync UI copy: start local network discovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Find nearby devices'**
+  String get synFindNearbyTitle;
+
+  /// Sync UI copy: discovery in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning the local network…'**
+  String get synFindingNearby;
+
+  /// Sync UI copy: discovery returned no peers.
+  ///
+  /// In en, this message translates to:
+  /// **'No nearby devices found. You can still pair with a code.'**
+  String get synNearbyNone;
+
+  /// Sync UI copy: security note for discovered peers.
+  ///
+  /// In en, this message translates to:
+  /// **'Being on the same network is not identity verification. Exchange the pairing code out of band.'**
+  String get synNearbyNote;
+
+  /// Sync UI copy: a discovered peer row.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {address}'**
+  String synNearbyPeer(String name, String address);
+
+  /// Sync UI copy: label for the chosen discovered peer.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected nearby device'**
+  String get synNearbySelected;
+
   /// Sync UI copy: choose folder.
   ///
   /// In en, this message translates to:

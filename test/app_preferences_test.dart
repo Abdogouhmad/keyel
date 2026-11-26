@@ -345,4 +345,28 @@ void main() {
     expect(prefs.animationsEnabled, isTrue);
     expect(prefs.hapticsEnabled, isTrue);
   });
+
+  test('save is atomic, serialized and creates a missing parent', () async {
+    final dir = await Directory.systemTemp.createTemp('keyel_prefs_atomic');
+    addTearDown(() => dir.delete(recursive: true));
+    // The vault directory may not exist yet if the bridge failed to initialize.
+    final vaultPath = '${dir.path}/nested/vault.keyel';
+
+    await prefs.load(vaultPath);
+    prefs.localeId = 'fr';
+    // Production callers fire and forget; both saves must land in call order
+    // without ever leaving a truncated settings.json behind.
+    final first = prefs.save();
+    prefs.localeId = 'en';
+    final second = prefs.save();
+    await Future.wait([first, second]);
+
+    final file = File('${dir.path}/nested/settings.json');
+    expect(file.existsSync(), isTrue);
+    expect(File('${file.path}.tmp').existsSync(), isFalse);
+
+    _reset(prefs);
+    await prefs.load(vaultPath);
+    expect(prefs.localeId, 'en');
+  });
 }

@@ -48,6 +48,47 @@ fn sample_login(index: usize) -> Entry {
 }
 
 #[test]
+fn backup_only_vault_is_detected_and_openable() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = temp_vault_path(&dir);
+    let (session, _recovery) = Session::create(&path, "master", fast_params()).unwrap();
+    session.lock();
+
+    // Simulate a main file lost to an interrupted rename. The Rust bridge must
+    // still report a vault, otherwise onboarding would overwrite the backup.
+    let backup = dir.path().join("vault.keyel.bak");
+    fs::rename(&path, &backup).unwrap();
+    assert!(!path.exists());
+    assert!(keyel_core::vault::has_vault_file(&path));
+    let reopened = Session::open(&path, "master").unwrap();
+    assert!(reopened.vault().entries.is_empty());
+}
+
+#[cfg(unix)]
+#[test]
+fn created_vault_and_backup_are_private() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = temp_vault_path(&dir);
+    let (mut session, _recovery) = Session::create(&path, "master", fast_params()).unwrap();
+
+    let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+    assert_eq!(
+        mode, 0o600,
+        "vault file must not be readable by other users"
+    );
+
+    session.add_entry(sample_login(0));
+    session.save().unwrap();
+
+    let backup = dir.path().join("vault.keyel.bak");
+    assert!(backup.exists());
+    let mode = fs::metadata(&backup).unwrap().permissions().mode() & 0o777;
+    assert_eq!(mode, 0o600, "backup must be private too");
+}
+
+#[test]
 fn create_lock_reopen_search_and_compare_1000_entries() {
     let dir = tempfile::tempdir().unwrap();
     let path = temp_vault_path(&dir);

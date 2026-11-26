@@ -320,9 +320,18 @@ class VaultRepository {
     final path = vaultPath;
     try {
       if (path != null) {
-        final file = File(path);
-        // ignore: avoid_slow_async_io - async keeps the destructive reset off the UI isolate.
-        if (await file.exists()) await file.delete();
+        // A reset must remove every copy, not just the main file: the Rust
+        // store can recover from `vault.keyel.bak`, and a stale `.tmp` may
+        // still hold a complete encrypted vault after an interrupted write.
+        for (final suffix in ['', '.bak', '.tmp']) {
+          final file = File('$path$suffix');
+          try {
+            // ignore: avoid_slow_async_io - async keeps the destructive reset off the UI isolate.
+            if (await file.exists()) await file.delete();
+          } on Object catch (_) {
+            // Try the remaining copies even when one delete fails.
+          }
+        }
       }
     } finally {
       session_api.lock();

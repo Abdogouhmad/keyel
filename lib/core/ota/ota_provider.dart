@@ -316,10 +316,13 @@ class OtaNotifier extends Notifier<OtaState> {
   Future<void> dismissUpdateBanner() async {
     final version = state.availableRelease?.version;
     if (version == null) return;
+    // Hide the banner immediately; persistence is best-effort and must not
+    // keep the UI waiting on a disk write (which can be slow under load).
+    if (ref.mounted) {
+      state = state.copyWith(dismissedVersion: () => version);
+    }
     final prefs = _prefs..otaDismissedVersion = version;
     await prefs.save();
-    if (!ref.mounted) return;
-    state = state.copyWith(dismissedVersion: () => version);
   }
 
   /// Dismisses an active error and returns to idle or available.

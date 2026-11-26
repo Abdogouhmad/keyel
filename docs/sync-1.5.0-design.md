@@ -45,6 +45,13 @@ abstraction. This document is the reference for the 1.5.0 implementation.
 - Multi-user shared vaults, attachments, or field-level interactive conflict
   resolution UI (conflict *copies* are sufficient for 1.5.0).
 
+> **1.13.1 clarification:** sync room creation can now optionally run a
+> LocalSend-style local-network discovery pass to *show nearby Keyel devices*.
+> This is only a UI convenience for finding a peer on the same Wi-Fi/LAN; it is
+> not a sync transport, it sends no vault data or pairing secret, and the
+> `KYSYNC1-…` code remains the sole trust root. The file-based backend above is
+> unchanged, and manual code entry still works when discovery is unavailable.
+
 ---
 
 ## 2. Relationship to existing crypto

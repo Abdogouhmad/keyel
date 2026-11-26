@@ -18,6 +18,9 @@ void init({required String path}) =>
     RustLib.instance.api.crateApiSessionInit(path: path);
 
 /// Whether a vault file exists at the configured path.
+///
+/// A `.bak` counts too: `Session::open` can recover from it, so reporting
+/// "no vault" would invite a first-run create that overwrites the only copy.
 bool vaultExists() => RustLib.instance.api.crateApiSessionVaultExists();
 
 /// Whether a vault is currently unlocked in Rust.

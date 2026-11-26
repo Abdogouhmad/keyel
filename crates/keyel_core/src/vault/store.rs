@@ -10,6 +10,8 @@
 use std::fmt;
 use std::fs::{self, File};
 use std::io::Write;
+#[cfg(unix)]
+use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
 use uuid::Uuid;
@@ -225,8 +227,20 @@ fn write_atomic(path: &Path, bytes: &[u8]) -> Result<(), Error> {
     }
 
     let tmp = temp_path(path);
+    // Remove a stale temp file from an interrupted earlier write. `create_new`
+    // then guarantees we never follow a pre-existing symlink or truncate a
+    // file another writer is using.
+    let _ = fs::remove_file(&tmp);
     let write_result = (|| -> std::io::Result<()> {
-        let mut file = File::create(&tmp)?;
+        let mut options = fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        // The vault is app-private data. Never let the process umask make it
+        // world-readable on a multi-user desktop (the CSV export already does
+        // this explicitly). The renamed main file and `fs::copy`ed backup
+        // inherit these bits.
+        #[cfg(unix)]
+        options.mode(0o600);
+        let mut file = options.open(&tmp)?;
         file.write_all(bytes)?;
         file.sync_all()?;
         Ok(())
@@ -239,6 +253,12 @@ fn write_atomic(path: &Path, bytes: &[u8]) -> Result<(), Error> {
     if path.exists() {
         let backup = backup_path(path);
         fs::copy(path, &backup).map_err(storage_error)?;
+        // Older vaults may have been created with a permissive umask. Tighten
+        // the copy rather than propagating those bits into a new backup.
+        #[cfg(unix)]
+        {
+            let _ = fs::set_permissions(&backup, fs::Permissions::from_mode(0o600));
+        }
         // Best-effort durability for the backup; the main file is untouched.
         if let Ok(file) = File::open(&backup) {
             let _ = file.sync_all();
@@ -248,6 +268,14 @@ fn write_atomic(path: &Path, bytes: &[u8]) -> Result<(), Error> {
     fs::rename(&tmp, path).map_err(storage_error)?;
     sync_parent(path);
     Ok(())
+}
+
+/// Whether a usable vault exists at `path`, including a `.bak` that is still
+/// recoverable. Open already falls back to `.bak` when the main file is missing
+/// or structurally damaged, so existence checks must agree: otherwise the UI
+/// offers "create vault", overwrites the only good copy and loses the vault.
+pub fn has_vault_file(path: &Path) -> bool {
+    path.exists() || backup_path(path).exists()
 }
 
 fn backup_path(path: &Path) -> PathBuf {

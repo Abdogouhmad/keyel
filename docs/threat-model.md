@@ -351,6 +351,14 @@ user's own tool).
   acknowledgement, copied through `SensitiveClipboard` (auto-wipe) under the
   global `FLAG_SECURE` policy, and never logged. Losing it means starting a new
   sync group (no in-place rotation in 1.5.0); revoking a device means re-pairing.
+- **Same-network discovery (since 1.13.1) is not identity.** The opt-in probe in
+  `lib/features/sync/local_network.dart` sends only a short-lived opaque id and
+  a sanitized display name to a LocalSend-style multicast/broadcast target,
+  accepts only same-subnet answers with strict size/key checks, and returns
+  non-secret UI DTOs. Neither `sync_id`, `sync_key`, the `KYSYNC1-…` code nor any
+  vault/entry data is broadcast, accepted, or logged. A peer on the same Wi-Fi
+  can be spoofed; the user must still obtain and enter the pairing code out of
+  band, and manual entry works with discovery disabled or unavailable.
 
 *Residual:* an attacker with both a device blob and the pairing code can read
 that device's synced vault (equivalent to vault-file theft plus recovery key),

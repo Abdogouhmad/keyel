@@ -200,6 +200,10 @@ class AppPreferences {
   /// File backing the preferences, or `null` when not initialized.
   File? _file;
 
+  /// Serializes writes so fire-and-forget callers cannot interleave two
+  /// `writeAsString` operations and leave a truncated `settings.json`.
+  Future<void> _pendingSave = Future.value();
+
   /// Load preferences from `settings.json` beside [vaultPath].
   ///
   /// Missing or unreadable files fall back to the defaults. This must never
@@ -353,57 +357,72 @@ class AppPreferences {
   }
 
   /// Persist the current preferences. Failures are intentionally ignored.
-  Future<void> save() async {
+  ///
+  /// Writes go to a sibling temp file and are renamed into place, so a crash or
+  /// a concurrent save can never leave a half-written `settings.json` that
+  /// would reset fail-closed settings on the next launch. Callers may fire and
+  /// forget this future: saves are chained in call order.
+  Future<void> save() {
     final file = _file;
-    if (file == null) return;
+    if (file == null) return _pendingSave;
+    return _pendingSave = _pendingSave.whenComplete(() => _writePrefs(file));
+  }
+
+  Future<void> _writePrefs(File file) async {
     try {
-      await file.writeAsString(
-        jsonEncode({
-          'autoLockSeconds': autoLockDelay.inSeconds,
-          'biometricEnabled': biometricEnabled,
-          'autofillAskToSave': autofillAskToSave,
-          'autofillMatchMode': autofillMatchMode,
-          'autofillPolicyVersion': autofillPolicyVersion,
-          'autofillVerifiedOnly': autofillVerifiedOnly,
-          'autofillNeverForSites': autofillNeverForSites,
-          'clipboardClearSeconds': clipboardClearSeconds,
-          'screenshotProtection': screenshotProtection,
-          'unlockFailures': unlockFailures,
-          'unlockLockedUntilMs': unlockLockedUntilMs,
-          'localeId': localeId,
-          'themeMode': themeMode,
-          'paletteId': paletteId,
-          'amoledBlack': amoledBlack,
-          'animationsEnabled': animationsEnabled,
-          'hapticsEnabled': hapticsEnabled,
-          'breachCheckEnabled': breachCheckEnabled,
-          'otaChannel': otaChannel,
-          'otaAutoCheck': otaAutoCheck,
-          'otaLastCheckedMs': otaLastCheckedMs,
-          'otaLastNotifiedVersion': otaLastNotifiedVersion,
-          'otaDismissedVersion': otaDismissedVersion,
-          'otaNotificationPromptShown': otaNotificationPromptShown,
-          'recentSearches': recentSearches,
-          'recentQuickActionIds': recentQuickActionIds,
-          'vaultPaneRatio': vaultPaneRatio,
-          'generator': {
-            'mode': generatorMode,
-            'length': generatorLength,
-            'wordCount': generatorWordCount,
-            'uppercase': generatorUppercase,
-            'lowercase': generatorLowercase,
-            'numbers': generatorNumbers,
-            'symbols': generatorSymbols,
-            'excludeAmbiguous': generatorExcludeAmbiguous,
-            'capitalize': generatorCapitalize,
-            'includeNumber': generatorIncludeNumber,
-            'separator': generatorSeparator,
-          },
-        }),
-        flush: true,
-      );
+      final parent = file.parent;
+      if (!parent.existsSync()) {
+        await parent.create(recursive: true);
+      }
+      final content = jsonEncode({
+        'autoLockSeconds': autoLockDelay.inSeconds,
+        'biometricEnabled': biometricEnabled,
+        'autofillAskToSave': autofillAskToSave,
+        'autofillMatchMode': autofillMatchMode,
+        'autofillPolicyVersion': autofillPolicyVersion,
+        'autofillVerifiedOnly': autofillVerifiedOnly,
+        'autofillNeverForSites': autofillNeverForSites,
+        'clipboardClearSeconds': clipboardClearSeconds,
+        'screenshotProtection': screenshotProtection,
+        'unlockFailures': unlockFailures,
+        'unlockLockedUntilMs': unlockLockedUntilMs,
+        'localeId': localeId,
+        'themeMode': themeMode,
+        'paletteId': paletteId,
+        'amoledBlack': amoledBlack,
+        'animationsEnabled': animationsEnabled,
+        'hapticsEnabled': hapticsEnabled,
+        'breachCheckEnabled': breachCheckEnabled,
+        'otaChannel': otaChannel,
+        'otaAutoCheck': otaAutoCheck,
+        'otaLastCheckedMs': otaLastCheckedMs,
+        'otaLastNotifiedVersion': otaLastNotifiedVersion,
+        'otaDismissedVersion': otaDismissedVersion,
+        'otaNotificationPromptShown': otaNotificationPromptShown,
+        'recentSearches': recentSearches,
+        'recentQuickActionIds': recentQuickActionIds,
+        'vaultPaneRatio': vaultPaneRatio,
+        'generator': {
+          'mode': generatorMode,
+          'length': generatorLength,
+          'wordCount': generatorWordCount,
+          'uppercase': generatorUppercase,
+          'lowercase': generatorLowercase,
+          'numbers': generatorNumbers,
+          'symbols': generatorSymbols,
+          'excludeAmbiguous': generatorExcludeAmbiguous,
+          'capitalize': generatorCapitalize,
+          'includeNumber': generatorIncludeNumber,
+          'separator': generatorSeparator,
+        },
+      });
+      final temp = File('${file.path}.tmp');
+      await temp.writeAsString(content, flush: true);
+      await temp.rename(file.path);
     } on Object catch (_) {
-      // A read-only or missing directory must not break the UI.
+      // A read-only or missing directory must not break the UI. The old
+      // settings.json (if any) is still intact because the temp file was never
+      // renamed over it.
     }
   }
 }

@@ -61,6 +61,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       final key = await ref.read(vaultSessionProvider.notifier).create(master);
       if (!mounted) return;
+      // The vault now exists. Keep the one-time key even if the optional
+      // biometric step below throws, otherwise the user could never see it.
+      _recoveryKey = key;
 
       // The optional biometric opt-in is honoured while the master password is
       // still in memory, so the user never has to type it again.
@@ -72,7 +75,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
       setState(() {
         _busy = false;
-        _recoveryKey = key;
         _quickUnlockEnabled = quickUnlock;
         _step = _OnboardingStep.recovery;
       });

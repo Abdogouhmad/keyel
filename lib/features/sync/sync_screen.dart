@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
+import 'package:keyel/features/sync/local_network.dart';
 import 'package:keyel/features/sync/sync_folder_service.dart';
 import 'package:keyel/src/rust/api/models.dart';
 import 'package:keyel/ui/keyel.dart';
@@ -29,6 +30,10 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
   SyncStatusDto? _status;
   bool _loading = true;
   bool _busy = false;
+  bool _discoveryBusy = false;
+  bool _discoveryAttempted = false;
+  List<LocalNetworkPeer> _peers = const [];
+  LocalNetworkPeer? _selectedPeer;
 
   @override
   void initState() {
@@ -75,6 +80,41 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       describeVaultError(error),
       icon: Icons.error_outline_rounded,
     );
+  }
+
+  /// LocalSend-style local-network discovery.
+  ///
+  /// Same-Wi-Fi reachability only narrows the picker: it never authenticates a
+  /// peer and never carries or replaces the one-time pairing code. Manual code
+  /// entry remains available even when discovery fails.
+  Future<void> _findNearby() async {
+    final l10n = l10nOf(context);
+    setState(() {
+      _discoveryBusy = true;
+      _discoveryAttempted = false;
+      _peers = const [];
+      _selectedPeer = null;
+    });
+    try {
+      final peers = await ref.read(localNetworkDiscoveryProvider).discover();
+      if (!mounted) return;
+      setState(() {
+        _peers = peers;
+        _discoveryBusy = false;
+        _discoveryAttempted = true;
+      });
+    } on Object catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _discoveryBusy = false;
+        _discoveryAttempted = true;
+      });
+      showKeyelSnack(
+        context,
+        l10n.synDiscoveryUnavailable,
+        icon: Icons.wifi_off_rounded,
+      );
+    }
   }
 
   Future<String?> _pickFolder() async {
@@ -370,6 +410,56 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
                             subtitle: l10n.synCreateGroupSubtitle,
                             onTap: _busy ? null : _enable,
                           ),
+                          SettingsRow(
+                            icon: Icons.wifi_find_outlined,
+                            title: l10n.synFindNearbyTitle,
+                            subtitle: _discoveryBusy
+                                ? l10n.synFindingNearby
+                                : l10n.synFindNearbySubtitle,
+                            trailing: _discoveryBusy
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : null,
+                            onTap: _busy || _discoveryBusy ? null : _findNearby,
+                          ),
+                          if (_discoveryAttempted && _peers.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                KeyelSpacing.lg,
+                                KeyelSpacing.sm,
+                                KeyelSpacing.lg,
+                                KeyelSpacing.sm,
+                              ),
+                              child: Text(
+                                l10n.synNearbyNone,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          for (final peer in _peers)
+                            SettingsRow(
+                              icon: Icons.devices_other_outlined,
+                              title: l10n.synNearbyPeer(
+                                peer.displayName,
+                                peer.address,
+                              ),
+                              subtitle: _selectedPeer?.peerId == peer.peerId
+                                  ? l10n.synNearbySelected
+                                  : l10n.synNearbyNote,
+                              trailing: _selectedPeer?.peerId == peer.peerId
+                                  ? Icon(
+                                      Icons.check_circle_rounded,
+                                      color: scheme.primary,
+                                    )
+                                  : null,
+                              onTap: () => setState(() => _selectedPeer = peer),
+                            ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(
                               KeyelSpacing.lg,

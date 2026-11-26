@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:keyel/data/vault_repository.dart';
 import 'package:keyel/data/vault_session_provider.dart';
+import 'package:keyel/features/sync/local_network.dart';
 import 'package:keyel/features/sync/sync_folder_service.dart';
 import 'package:keyel/features/sync/sync_screen.dart';
 import 'package:keyel/src/rust/api/models.dart';
@@ -95,14 +96,30 @@ class _FakeFolders implements SyncFolderService {
   Future<String> appSyncFolder() async => '/tmp/keyel-sync';
 }
 
-Widget _host(Widget child, {required VaultRepository repository}) =>
-    ProviderScope(
-      overrides: [
-        vaultRepositoryProvider.overrideWithValue(repository),
-        syncFolderServiceProvider.overrideWithValue(const _FakeFolders()),
-      ],
-      child: MaterialApp(theme: KeyelTheme.light(), home: child),
-    );
+final class _FakeDiscovery implements LocalNetworkDiscovery {
+  const new({this.peers = const []});
+
+  final List<LocalNetworkPeer> peers;
+
+  @override
+  Future<List<LocalNetworkPeer>> discover({
+    Duration timeout = kLocalNetworkDiscoveryTimeout,
+  }) async => peers;
+}
+
+Widget _host(
+  Widget child, {
+  required VaultRepository repository,
+  LocalNetworkDiscovery? discovery,
+}) => ProviderScope(
+  overrides: [
+    vaultRepositoryProvider.overrideWithValue(repository),
+    syncFolderServiceProvider.overrideWithValue(const _FakeFolders()),
+    if (discovery != null)
+      localNetworkDiscoveryProvider.overrideWithValue(discovery),
+  ],
+  child: MaterialApp(theme: KeyelTheme.light(), home: child),
+);
 
 void main() {
   testWidgets('disabled state offers enable and join', (tester) async {
@@ -153,7 +170,46 @@ void main() {
     expect(tester.widget<FilledButton>(done).onPressed, isNotNull);
   });
 
+  testWidgets('nearby discovery lists peers without weakening pairing', (
+    tester,
+  ) async {
+    final repo = _FakeRepository(status: _disabled);
+    const discovery = _FakeDiscovery(
+      peers: <LocalNetworkPeer>[
+        LocalNetworkPeer(
+          peerId: '1122334455667788',
+          displayName: 'Laptop',
+          address: '192.168.1.7',
+          port: kLocalNetworkKeyelPort,
+          isSameSubnet: true,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      _host(const SyncScreen(), repository: repo, discovery: discovery),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Find nearby devices'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Laptop · 192.168.1.7'), findsOneWidget);
+    // Selecting a peer is only a convenience: it must not join a group.
+    expect(repo.joinCode, isNull);
+    await tester.tap(find.text('Laptop · 192.168.1.7'));
+    await tester.pump();
+    expect(find.text('Selected nearby device'), findsOneWidget);
+    expect(repo.joinCode, isNull);
+    // The manual pairing field is still present and remains authoritative.
+    expect(find.byType(TextField), findsOneWidget);
+  });
+
   testWidgets('joining records the pairing code and folder', (tester) async {
+    // The discovery row makes this screen taller than the default test surface.
+    tester.view.physicalSize = const Size(800, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
     final repo = _FakeRepository(status: _disabled);
     await tester.pumpWidget(_host(const SyncScreen(), repository: repo));
     await tester.pumpAndSettle();

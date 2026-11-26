@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::sync::{Mutex, MutexGuard};
 
 use keyel_core::crypto::kdf::Argon2Params;
-use keyel_core::vault::Session;
+use keyel_core::vault::{has_vault_file, Session};
 use zeroize::Zeroizing;
 
 use crate::frb_generated::StreamSink;
@@ -70,9 +70,14 @@ pub fn init(path: String) -> Result<(), VaultApiError> {
 }
 
 /// Whether a vault file exists at the configured path.
+///
+/// A `.bak` counts too: `Session::open` can recover from it, so reporting
+/// "no vault" would invite a first-run create that overwrites the only copy.
 #[flutter_rust_bridge::frb(sync)]
 pub fn vault_exists() -> bool {
-    path_slot().as_ref().is_some_and(|path| path.exists())
+    path_slot()
+        .as_ref()
+        .is_some_and(|path| has_vault_file(path))
 }
 
 /// Whether a vault is currently unlocked in Rust.
@@ -104,7 +109,7 @@ pub fn create_vault(master: String) -> Result<String, VaultApiError> {
         return Err(VaultApiError::InvalidField);
     }
     let path = current_path()?;
-    if path.exists() {
+    if has_vault_file(&path) {
         return Err(VaultApiError::VaultExists);
     }
 
@@ -120,7 +125,7 @@ pub fn unlock_with_master(master: String) -> Result<(), VaultApiError> {
         return Err(VaultApiError::WrongPassword);
     }
     let path = current_path()?;
-    if !path.exists() {
+    if !has_vault_file(&path) {
         return Err(VaultApiError::VaultMissing);
     }
 
@@ -133,7 +138,7 @@ pub fn unlock_with_master(master: String) -> Result<(), VaultApiError> {
 pub fn unlock_with_recovery(recovery_key: String) -> Result<(), VaultApiError> {
     let recovery_key = Zeroizing::new(recovery_key);
     let path = current_path()?;
-    if !path.exists() {
+    if !has_vault_file(&path) {
         return Err(VaultApiError::VaultMissing);
     }
 
@@ -152,7 +157,7 @@ pub fn verify_master(master: String) -> Result<bool, VaultApiError> {
         return Ok(false);
     }
     let path = current_path()?;
-    if !path.exists() {
+    if !has_vault_file(&path) {
         return Err(VaultApiError::VaultMissing);
     }
     match Session::open(&path, master.as_str()) {
@@ -179,7 +184,7 @@ pub fn reset_master_with_recovery(
         return Err(VaultApiError::InvalidField);
     }
     let path = current_path()?;
-    if !path.exists() {
+    if !has_vault_file(&path) {
         return Err(VaultApiError::VaultMissing);
     }
 

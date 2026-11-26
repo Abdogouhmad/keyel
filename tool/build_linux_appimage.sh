@@ -46,6 +46,10 @@ if [[ ! -x "$bundle/keyel" || ! -d "$bundle/lib" ]]; then
 fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Never wrap a bundle that glibc will refuse to start on an older CPU. The
+# check is cheap and protects local builds as well as CI.
+bash "$repo_root/tool/check_cpu_baseline.sh" --bundle "$bundle" --platform linux
+
 icon_source="$repo_root/design/icon/play_store_512.png"
 if [[ ! -f "$icon_source" ]]; then
   echo "Missing app icon: $icon_source" >&2

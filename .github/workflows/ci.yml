@@ -97,6 +97,8 @@ jobs:
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev
       - name: Linux debug bundle
         run: flutter build linux --debug
+      - name: Verify Linux binaries use the x86-64 baseline ISA
+        run: ./tool/check_cpu_baseline.sh --bundle build/linux/x64/debug/bundle
 
   flutter-android-build:
     runs-on: ubuntu-latest

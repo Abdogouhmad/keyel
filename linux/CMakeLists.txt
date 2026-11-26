@@ -26,6 +26,18 @@ if(FLUTTER_TARGET_PLATFORM_SYSROOT)
   set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 endif()
 
+# Ship x86-64 binaries that run on EVERY x86-64 CPU, not just the build
+# machine's. Some Linux CI images compile with a newer baseline (or inherit
+# -march=native from CFLAGS/CXXFLAGS): the resulting ELF advertises
+# "x86-64-v2"/"x86-64-v3" and glibc refuses to start it on older hardware
+# ("CPU ISA level is lower than required"). Explicitly append the baseline
+# so it wins over any inherited -march flag. `add_compile_options` applies to
+# the runner AND to plugins built in subdirectories. arm64 builds are left
+# alone because -march=x86-64 is meaningless there.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
+  add_compile_options(-march=x86-64 -mtune=generic)
+endif()
+
 # Define build configuration options.
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "Debug" CACHE
