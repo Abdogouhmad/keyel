@@ -63,8 +63,6 @@ class KeyelStrengthMeter extends StatelessWidget {
                     strength.bits,
                     strength.descriptor,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: textTheme.titleSmall?.copyWith(
                     color: onContainer,
                     fontWeight: FontWeight.w600,
@@ -72,11 +70,14 @@ class KeyelStrengthMeter extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: KeyelSpacing.sm),
-              Text(
-                l10n.entryStrengthEntropy(strength.entropyLabel),
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
+              Flexible(
+                child: Text(
+                  l10n.entryStrengthEntropy(strength.entropyLabel),
+                  textAlign: TextAlign.end,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

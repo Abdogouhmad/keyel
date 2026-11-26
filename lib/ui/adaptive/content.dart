@@ -86,3 +86,76 @@ extension KeyelWindowSpacingContext on BuildContext {
   /// Gap between sibling cards or columns for the current window.
   double get contentGap => windowSize.contentGap;
 }
+
+/// Width of a focused, single-column task at the current text scale.
+///
+/// Text scaling enlarges glyphs but not layout dp, so a fixed 560 dp column at
+/// 200 % would only fit ~280 dp of 1x text. Growing the cap with the scaler
+/// keeps line lengths readable; the physical window still wins on phones.
+double focusedContentWidthOf(BuildContext context) =>
+    KeyelContentWidth.form *
+    MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+
+/// Shared body for short, focused screens such as onboarding and unlock.
+///
+/// The cap and the centering both live *inside* the vertical scroll view.
+/// Putting `Center` outside a vertical `SingleChildScrollView` is a no-op on
+/// desktop: the scroll view passes tight width constraints and paints its
+/// child at the leading edge. This body also mirrors both page margins for RTL
+/// and gives short steps enough height to center without clipping tall ones.
+class KeyelFocusedBody extends StatelessWidget {
+  /// Creates a scrollable, width-capped focused body.
+  const new({required this.child, this.center = true, super.key});
+
+  /// Key of the capped content column, so layout tests can measure it.
+  static const contentKey = Key('keyel-focused-content');
+
+  /// The form content.
+  final Widget child;
+
+  /// Whether short content is centered vertically as well as horizontally.
+  ///
+  /// Welcome and finish steps opt in; longer form steps stay top-aligned so
+  /// their first field remains near the top of the window.
+  final bool center;
+
+  @override
+  Widget build(BuildContext context) {
+    const verticalPadding = KeyelSpacing.xl;
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final minHeight = constraints.maxHeight.isFinite
+              ? (constraints.maxHeight - (verticalPadding * 2)).clamp(
+                  0.0,
+                  constraints.maxHeight,
+                )
+              : 0.0;
+
+          return GestureDetector(
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: context.pageMargin,
+                vertical: verticalPadding,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: minHeight),
+                child: Align(
+                  alignment: center ? Alignment.center : Alignment.topCenter,
+                  child: ConstrainedBox(
+                    key: contentKey,
+                    constraints: BoxConstraints(
+                      maxWidth: focusedContentWidthOf(context),
+                    ),
+                    child: child,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

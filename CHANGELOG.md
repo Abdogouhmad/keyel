@@ -5,6 +5,38 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-11-26
+
+Feature release focused on desktop responsiveness, especially the first-run
+onboarding flow. **No vault schema change.** Offline/fail-closed security,
+unlock and reveal-generation guards, EN/FR parity, RTL and 200% text-scale
+collapse remain green.
+
+### Fixed
+
+- The global OTA banner no longer crashes the app with `No Overlay widget
+  found.` on Linux desktop. It lives in `MaterialApp.builder`, above the
+  Navigator's Overlay, so its dismiss action now uses semantics instead of a
+  `Tooltip`/`OverlayPortal`.
+- Onboarding, unlock, create-vault and recovery-key forms are centered again
+  on wide desktop windows. Their width cap and centering now live inside the
+  vertical scroll view instead of being defeated by its tight width constraints;
+  RTL mirrors correctly instead of pinning the form to the physical left edge.
+- Focused forms use responsive page margins and a text-scale-aware width cap:
+  560 dp at 1x, growing with the text scaler so 200% text keeps the same line
+  length. Welcome and finish steps still center vertically; longer steps stay
+  top-aligned and scroll instead of clipping.
+- Strength feedback and entropy text wrap instead of being ellipsized at 200%
+  text scale, and the create-vault button uses the shared adaptive button so
+  its label cannot be squeezed by a fixed 50 dp height.
+
+### Added
+
+- Desktop regression coverage pumps the real onboarding, unlock, create-vault
+  and recovery screens at 1600 dp in LTR and RTL, at 200% text scale and on a
+  400 dp phone, asserting the capped column is horizontally centered and free
+  of overflow.
+
 ## [1.13.1] - 2026-11-26
 
 Patch release: desktop builds now target the original x86-64 baseline, vault

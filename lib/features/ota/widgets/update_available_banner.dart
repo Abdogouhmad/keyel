@@ -113,19 +113,25 @@ class UpdateAvailableBanner extends ConsumerWidget {
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                // Dismissing is a separate action, so a screen
-                                // reader does not treat the whole banner as the
-                                // only way to act.
-                                tooltip: l10n.otaDismissBanner,
-                                icon: const Icon(Icons.close_rounded),
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onTertiaryContainer,
-                                onPressed: () => unawaited(
-                                  ref
-                                      .read(otaProvider.notifier)
-                                      .dismissUpdateBanner(),
+                              // This banner lives in MaterialApp.builder,
+                              // above the Navigator's Overlay. A Tooltip uses
+                              // OverlayPortal and asserts when no Overlay is
+                              // present, so expose the action through
+                              // semantics instead of a visual tooltip.
+                              Semantics(
+                                container: true,
+                                button: true,
+                                label: l10n.otaDismissBanner,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onTertiaryContainer,
+                                  onPressed: () => unawaited(
+                                    ref
+                                        .read(otaProvider.notifier)
+                                        .dismissUpdateBanner(),
+                                  ),
                                 ),
                               ),
                             ],

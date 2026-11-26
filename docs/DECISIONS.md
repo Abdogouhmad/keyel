@@ -6,6 +6,16 @@ design (docs/roadmap.md header).
 
 ## 2026-11-26
 
+- **1.14.0 focuses on desktop responsiveness and fixes the Linux startup
+  crash.** The OTA banner sits in `MaterialApp.builder`, above the Navigator's
+  Overlay, so a `Tooltip`'s `OverlayPortal` asserted with `No Overlay widget
+  found.`. Its dismiss action is now exposed through semantics instead. The
+  focused first-run/unlock forms moved to a shared `KeyelFocusedBody` that puts
+  both the width cap and the centering inside the vertical scroll view; this
+  fixes left-pinned forms on wide windows and mirrors correctly in RTL. The cap
+  grows with the text scaler so 200% text keeps readable line lengths, and
+  viewport-height centering never clips taller forms.
+
 - **Desktop builds pin the original x86-64 baseline instead of trusting the
   runner.** The 1.12.0/1.13.0 CI-built Linux ELFs advertised
   `x86-64-v2`/`x86-64-v3` and glibc refused to start them on older CPUs with

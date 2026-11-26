@@ -95,88 +95,53 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isCentered =
-                  _step == _OnboardingStep.welcome ||
-                  _step == _OnboardingStep.finish;
+    final isCentered =
+        _step == _OnboardingStep.welcome || _step == _OnboardingStep.finish;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(KeyelSpacing.xl),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - (KeyelSpacing.xl * 2),
-                    maxWidth: 460,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: isCentered
-                          ? MainAxisAlignment.center
-                          : MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: KeyelMotion.resolve(
-                            context,
-                            KeyelMotion.medium,
-                          ),
-                          transitionBuilder: (child, animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0, 0.04),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: switch (_step) {
-                            _OnboardingStep.welcome => WelcomeStep(
-                              key: const ValueKey('onboarding-welcome'),
-                              onGetStarted: () => setState(
-                                () => _step = _OnboardingStep.master,
-                              ),
-                            ),
-                            _OnboardingStep.master => MasterPasswordStep(
-                              key: const ValueKey('onboarding-master'),
-                              busy: _busy,
-                              biometricAvailable: _biometricAvailable,
-                              biometricEnabled: _biometricChoice,
-                              onBiometricChanged: (value) =>
-                                  setState(() => _biometricChoice = value),
-                              onBack: () => setState(
-                                () => _step = _OnboardingStep.welcome,
-                              ),
-                              onCreate: (master) =>
-                                  unawaited(_createVault(master)),
-                            ),
-                            _OnboardingStep.recovery => RecoveryKeyStep(
-                              key: const ValueKey('onboarding-recovery'),
-                              recoveryKey: _recoveryKey ?? '',
-                              onContinue: () => setState(
-                                () => _step = _OnboardingStep.finish,
-                              ),
-                            ),
-                            _OnboardingStep.finish => FinishStep(
-                              key: const ValueKey('onboarding-finish'),
-                              biometricEnabled: _quickUnlockEnabled,
-                              onOpenVault: _finish,
-                            ),
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+    return Scaffold(
+      body: KeyelFocusedBody(
+        center: isCentered,
+        child: AnimatedSwitcher(
+          duration: KeyelMotion.resolve(context, KeyelMotion.medium),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.04),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
+          child: switch (_step) {
+            _OnboardingStep.welcome => WelcomeStep(
+              key: const ValueKey('onboarding-welcome'),
+              onGetStarted: () =>
+                  setState(() => _step = _OnboardingStep.master),
+            ),
+            _OnboardingStep.master => MasterPasswordStep(
+              key: const ValueKey('onboarding-master'),
+              busy: _busy,
+              biometricAvailable: _biometricAvailable,
+              biometricEnabled: _biometricChoice,
+              onBiometricChanged: (value) =>
+                  setState(() => _biometricChoice = value),
+              onBack: () => setState(() => _step = _OnboardingStep.welcome),
+              onCreate: (master) => unawaited(_createVault(master)),
+            ),
+            _OnboardingStep.recovery => RecoveryKeyStep(
+              key: const ValueKey('onboarding-recovery'),
+              recoveryKey: _recoveryKey ?? '',
+              onContinue: () => setState(() => _step = _OnboardingStep.finish),
+            ),
+            _OnboardingStep.finish => FinishStep(
+              key: const ValueKey('onboarding-finish'),
+              biometricEnabled: _quickUnlockEnabled,
+              onOpenVault: _finish,
+            ),
+          },
         ),
       ),
     );

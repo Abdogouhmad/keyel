@@ -85,143 +85,132 @@ class _RecoveryResetViewState extends ConsumerState<RecoveryResetView> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(KeyelSpacing.xl),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.lock_reset_rounded,
-                      size: 40,
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.xl),
-                Text(
-                  l10n.vaultResetMasterPasswordTitle,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.sm),
-                Text(
-                  l10n.vaultResetMasterPasswordHint,
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.xl),
-                TextField(
-                  controller: _recoveryKeyController,
-                  enabled: !_busy,
-                  autofocus: true,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  onChanged: (_) => setState(() {}),
-                  style: TextStyle(
-                    color: scheme.onSurface,
-                    fontFamily: KeyelTheme.monoFamily,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  cursorColor: scheme.primary,
-                  decoration: InputDecoration(
-                    labelText: l10n.vaultRecoveryKeyLabel,
-                    prefixIcon: Icon(
-                      Icons.vpn_key_rounded,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.md),
-                TextField(
-                  controller: _newMasterController,
-                  enabled: !_busy,
-                  obscureText: _obscure,
-                  onChanged: (_) => setState(() {}),
-                  style: TextStyle(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  cursorColor: scheme.primary,
-                  decoration: InputDecoration(
-                    labelText: l10n.vaultNewMasterPassword,
-                    prefixIcon: Icon(
-                      Icons.lock_outline_rounded,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    suffixIcon: IconButton(
-                      tooltip: _obscure
-                          ? l10n.vaultShowPassword
-                          : l10n.vaultHidePassword,
-                      icon: Icon(
-                        _obscure
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.md),
-                TextField(
-                  controller: _confirmController,
-                  enabled: !_busy,
-                  obscureText: _obscure,
-                  onChanged: (_) => setState(() {}),
-                  onSubmitted: (_) => unawaited(_reset()),
-                  style: TextStyle(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  cursorColor: scheme.primary,
-                  decoration: InputDecoration(
-                    labelText: l10n.vaultConfirmNewPassword,
-                    prefixIcon: Icon(
-                      Icons.check_circle_outline_rounded,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.lg),
-                KeyelStrengthMeter(strength: _strength),
-                const SizedBox(height: KeyelSpacing.xl),
-                KeyelButtonM3(
-                  label: _busy ? l10n.vaultResetting : l10n.vaultResetPassword,
-                  icon: _busy ? null : Icons.lock_reset_rounded,
-                  isFullWidth: true,
-                  onPressed: _busy || !_canReset
-                      ? null
-                      : () => unawaited(_reset()),
-                ),
-                const SizedBox(height: KeyelSpacing.md),
-                TextButton.icon(
-                  onPressed: _busy ? null : widget.onBack,
-                  icon: Icon(context.backArrow, size: 18),
-                  label: Text(l10n.vaultBackToUnlock),
-                ),
-              ],
+    return KeyelFocusedBody(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.lock_reset_rounded,
+                size: 40,
+                color: scheme.onPrimaryContainer,
+              ),
             ),
           ),
-        ),
+          const SizedBox(height: KeyelSpacing.xl),
+          Text(
+            l10n.vaultResetMasterPasswordTitle,
+            textAlign: TextAlign.center,
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: scheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.sm),
+          Text(
+            l10n.vaultResetMasterPasswordHint,
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.xl),
+          TextField(
+            controller: _recoveryKeyController,
+            enabled: !_busy,
+            autofocus: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            onChanged: (_) => setState(() {}),
+            style: TextStyle(
+              color: scheme.onSurface,
+              fontFamily: KeyelTheme.monoFamily,
+              fontWeight: FontWeight.w500,
+            ),
+            cursorColor: scheme.primary,
+            decoration: InputDecoration(
+              labelText: l10n.vaultRecoveryKeyLabel,
+              prefixIcon: Icon(
+                Icons.vpn_key_rounded,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.md),
+          TextField(
+            controller: _newMasterController,
+            enabled: !_busy,
+            obscureText: _obscure,
+            onChanged: (_) => setState(() {}),
+            style: TextStyle(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+            cursorColor: scheme.primary,
+            decoration: InputDecoration(
+              labelText: l10n.vaultNewMasterPassword,
+              prefixIcon: Icon(
+                Icons.lock_outline_rounded,
+                color: scheme.onSurfaceVariant,
+              ),
+              suffixIcon: IconButton(
+                tooltip: _obscure
+                    ? l10n.vaultShowPassword
+                    : l10n.vaultHidePassword,
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: scheme.onSurfaceVariant,
+                ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.md),
+          TextField(
+            controller: _confirmController,
+            enabled: !_busy,
+            obscureText: _obscure,
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => unawaited(_reset()),
+            style: TextStyle(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+            cursorColor: scheme.primary,
+            decoration: InputDecoration(
+              labelText: l10n.vaultConfirmNewPassword,
+              prefixIcon: Icon(
+                Icons.check_circle_outline_rounded,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.lg),
+          KeyelStrengthMeter(strength: _strength),
+          const SizedBox(height: KeyelSpacing.xl),
+          KeyelButtonM3(
+            label: _busy ? l10n.vaultResetting : l10n.vaultResetPassword,
+            icon: _busy ? null : Icons.lock_reset_rounded,
+            isFullWidth: true,
+            onPressed: _busy || !_canReset ? null : () => unawaited(_reset()),
+          ),
+          const SizedBox(height: KeyelSpacing.md),
+          TextButton.icon(
+            onPressed: _busy ? null : widget.onBack,
+            icon: Icon(context.backArrow, size: 18),
+            label: Text(l10n.vaultBackToUnlock),
+          ),
+        ],
       ),
     );
   }

@@ -97,125 +97,114 @@ class _UnlockPasswordFormState extends ConsumerState<UnlockPasswordForm> {
     final textTheme = Theme.of(context).textTheme;
     final throttled = _cooldown > Duration.zero;
 
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(KeyelSpacing.xl),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.lock_rounded,
-                      size: 40,
-                      color: scheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.xl),
-                Text(
-                  l10n.vaultWelcomeBack,
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: scheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.sm),
-                Text(
-                  l10n.vaultUnlockHint,
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.xl),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscure,
-                  autofocus: true,
-                  enabled: !_busy && !throttled,
-                  style: TextStyle(color: scheme.onSurface),
-                  cursorColor: scheme.primary,
-                  onSubmitted: (_) => unawaited(_unlock()),
-                  decoration: InputDecoration(
-                    labelText: l10n.vaultMasterPasswordLabel,
-                    prefixIcon: Icon(
-                      Icons.key_rounded,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    suffixIcon: IconButton(
-                      tooltip: _obscure
-                          ? l10n.vaultShowPassword
-                          : l10n.vaultHidePassword,
-                      icon: Icon(
-                        _obscure
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: KeyelSpacing.md),
-                KeyelButtonM3(
-                  label: _busy ? l10n.vaultUnlocking : l10n.actionUnlock,
-                  icon: _busy ? null : Icons.lock_open_rounded,
-                  isFullWidth: true,
-                  onPressed: (_busy || throttled)
-                      ? null
-                      : () => unawaited(_unlock()),
-                ),
-                if (throttled) ...[
-                  const SizedBox(height: KeyelSpacing.sm),
-                  Text(
-                    l10n.vaultTooManyAttempts(_cooldown.inSeconds),
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodySmall?.copyWith(color: scheme.error),
-                  ),
-                ],
-                const SizedBox(height: KeyelSpacing.sm),
-                TextButton(
-                  onPressed: _busy ? null : widget.onForgotPassword,
-                  child: Text(l10n.vaultForgotPassword),
-                ),
-                const SizedBox(height: KeyelSpacing.xl),
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: scheme.outlineVariant)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        l10n.vaultOr,
-                        style: TextStyle(
-                          color: scheme.onSurfaceVariant,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    Expanded(child: Divider(color: scheme.outlineVariant)),
-                  ],
-                ),
-                const SizedBox(height: KeyelSpacing.xl),
-                const VaultBiometricButton(autoPrompt: true),
-              ],
+    return KeyelFocusedBody(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.lock_rounded,
+                size: 40,
+                color: scheme.onPrimaryContainer,
+              ),
             ),
           ),
-        ),
+          const SizedBox(height: KeyelSpacing.xl),
+          Text(
+            l10n.vaultWelcomeBack,
+            textAlign: TextAlign.center,
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: scheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.sm),
+          Text(
+            l10n.vaultUnlockHint,
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.xl),
+          TextField(
+            controller: _passwordController,
+            obscureText: _obscure,
+            autofocus: true,
+            enabled: !_busy && !throttled,
+            style: TextStyle(color: scheme.onSurface),
+            cursorColor: scheme.primary,
+            onSubmitted: (_) => unawaited(_unlock()),
+            decoration: InputDecoration(
+              labelText: l10n.vaultMasterPasswordLabel,
+              prefixIcon: Icon(
+                Icons.key_rounded,
+                color: scheme.onSurfaceVariant,
+              ),
+              suffixIcon: IconButton(
+                tooltip: _obscure
+                    ? l10n.vaultShowPassword
+                    : l10n.vaultHidePassword,
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: scheme.onSurfaceVariant,
+                ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+            ),
+          ),
+          const SizedBox(height: KeyelSpacing.md),
+          KeyelButtonM3(
+            label: _busy ? l10n.vaultUnlocking : l10n.actionUnlock,
+            icon: _busy ? null : Icons.lock_open_rounded,
+            isFullWidth: true,
+            onPressed: (_busy || throttled) ? null : () => unawaited(_unlock()),
+          ),
+          if (throttled) ...[
+            const SizedBox(height: KeyelSpacing.sm),
+            Text(
+              l10n.vaultTooManyAttempts(_cooldown.inSeconds),
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall?.copyWith(color: scheme.error),
+            ),
+          ],
+          const SizedBox(height: KeyelSpacing.sm),
+          TextButton(
+            onPressed: _busy ? null : widget.onForgotPassword,
+            child: Text(l10n.vaultForgotPassword),
+          ),
+          const SizedBox(height: KeyelSpacing.xl),
+          Row(
+            children: [
+              Expanded(child: Divider(color: scheme.outlineVariant)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  l10n.vaultOr,
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: scheme.outlineVariant)),
+            ],
+          ),
+          const SizedBox(height: KeyelSpacing.xl),
+          const VaultBiometricButton(autoPrompt: true),
+        ],
       ),
     );
   }

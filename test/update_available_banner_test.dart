@@ -48,6 +48,20 @@ Widget _host({required VoidCallback onOpen, bool disableAnimations = false}) =>
       ),
     );
 
+/// Mirrors the real app: the banner wraps the routed app in
+/// MaterialApp.builder, i.e. above the Navigator's Overlay.
+Widget _builderHost({required VoidCallback onOpen}) => ProviderScope(
+  overrides: [otaProvider.overrideWith(_AvailableOta.new)],
+  child: MaterialApp(
+    theme: KeyelTheme.light(),
+    builder: (context, child) => UpdateAvailableBanner(
+      onOpen: onOpen,
+      child: child ?? const SizedBox.shrink(),
+    ),
+    home: const Scaffold(body: Text('page')),
+  ),
+);
+
 void main() {
   setUp(() {
     AppPreferences.instance.otaDismissedVersion = null;
@@ -71,13 +85,39 @@ void main() {
   testWidgets('dismissing hides only this version', (tester) async {
     await tester.pumpWidget(_host(onOpen: () {}));
     await tester.pumpAndSettle();
+    final semantics = tester.ensureSemantics();
+    await tester.pump();
 
-    await tester.tap(find.byTooltip('Dismiss update banner'));
+    await tester.tap(find.bySemanticsLabel('Dismiss update banner'));
     await tester.pumpAndSettle();
 
     expect(find.text('Update available'), findsNothing);
     expect(find.text('page'), findsOneWidget);
     expect(AppPreferences.instance.otaDismissedVersion, equals('1.9.0-beta.1'));
+    semantics.dispose();
+  });
+
+  testWidgets('renders above the Navigator without an Overlay ancestor', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_builderHost(onOpen: () {}));
+    await tester.pumpAndSettle();
+    final semantics = tester.ensureSemantics();
+    await tester.pump();
+
+    // The banner used to put a Tooltip here, which asserts with
+    // "No Overlay widget found" because MaterialApp.builder wraps the
+    // Navigator. A semantics-labelled IconButton must stay usable instead.
+    expect(tester.takeException(), isNull);
+    expect(find.text('Update available'), findsOneWidget);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Update available'), findsNothing);
+    semantics.dispose();
   });
 
   testWidgets('fits at 200% text scale and respects reduced motion', (

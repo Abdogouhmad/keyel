@@ -27,19 +27,17 @@ class _UnlockVaultViewState extends ConsumerState<UnlockVaultView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: AnimatedSwitcher(
-          duration: KeyelMotion.resolve(context, KeyelMotion.medium),
-          child: _resetFlow
-              ? RecoveryResetView(
-                  key: const ValueKey('unlock-recovery-reset'),
-                  onBack: () => setState(() => _resetFlow = false),
-                )
-              : UnlockPasswordForm(
-                  key: const ValueKey('unlock-password-form'),
-                  onForgotPassword: () => setState(() => _resetFlow = true),
-                ),
-        ),
+      body: AnimatedSwitcher(
+        duration: KeyelMotion.resolve(context, KeyelMotion.medium),
+        child: _resetFlow
+            ? RecoveryResetView(
+                key: const ValueKey('unlock-recovery-reset'),
+                onBack: () => setState(() => _resetFlow = false),
+              )
+            : UnlockPasswordForm(
+                key: const ValueKey('unlock-password-form'),
+                onForgotPassword: () => setState(() => _resetFlow = true),
+              ),
       ),
     );
   }
