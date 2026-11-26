@@ -14,7 +14,11 @@ design (docs/roadmap.md header).
   `-C target-cpu=x86-64` for every desktop x86-64 Rust target, and release/CI
   jobs run `tool/check_cpu_baseline.sh` so a hostile `-march=x86-64-v3`
   environment can no longer ship an unusable artifact. A local hostile-flags
-  build now emits only `x86-64-baseline`.
+  build now emits only `x86-64-baseline`. Release CI additionally hashes
+  `.cargo/config.toml` into the Rust cache key (a restored pre-flag `target/`
+  could still hold v2 objects) and runs `tool/normalize_cpu_baseline.sh` before
+  the guard, because a runner's startup objects can add an ISA note that our
+  own compile flags cannot remove.
 
 - **Vault storage creation is hardened without a schema change.** A `vault.keyel.bak`
   now counts as an existing vault everywhere (open, unlock, recovery and create)

@@ -265,7 +265,10 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: desktop-${{ matrix.target }}
+          # A restored target/ from before the baseline flags can contain Rust
+          # objects built for x86-64-v2/v3. Hash the flag config into the key so
+          # changing it always starts a fresh compile.
+          shared-key: desktop-${{ matrix.target }}-${{ hashFiles('.cargo/config.toml') }}
 
       - name: Cache pub
         uses: actions/cache@v4
@@ -301,7 +304,16 @@ jobs:
         run: bash ./build.sh --detect-version >> "$GITHUB_OUTPUT"
 
       - name: Build ${{ matrix.target }} desktop bundle
+        env:
+          # Environment flags also take precedence over any stale target/
+          # artifacts and over toolchain defaults that ignore config.toml.
+          RUSTFLAGS: ${{ matrix.target == 'linux' && '-C target-cpu=x86-64' || '' }}
         run: flutter build ${{ matrix.target }} --release
+
+      - name: Normalize portable CPU baseline (linux)
+        if: matrix.target == 'linux'
+        shell: bash
+        run: bash ./tool/normalize_cpu_baseline.sh --bundle "${{ matrix.bundle }}" --platform linux
 
       - name: Verify portable CPU baseline
         shell: bash

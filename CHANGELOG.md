@@ -17,7 +17,9 @@ same-Wi-Fi discovery while keeping the one-time pairing code as the trust root.
 - Linux release builds no longer emit ELF notes requiring `x86-64-v2`/`v3`,
   which made glibc reject the app with `CPU ISA level is lower than required` on
   older CPUs. The baseline is pinned in CMake and the Rust target flags, and
-  every release artifact is checked before upload.
+  every release artifact is checked before upload. Release CI also discards
+  Rust artifacts cached before those flags were pinned and normalizes any
+  runner-injected ISA note, so the published bundles are genuinely portable.
 - Synced vaults whose main file is missing but whose `vault.keyel.bak` is intact
   are now detected as existing: onboarding no longer offers to overwrite them,
   unlock/recovery accept the backup path, and factory reset removes both.

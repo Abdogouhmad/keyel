@@ -97,6 +97,11 @@ jobs:
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev
       - name: Linux debug bundle
         run: flutter build linux --debug
+      # Runner-provided startup objects can add an ISA note our own compile
+      # flags cannot remove. Normalize it before the guard so a debug bundle
+      # is held to the same portability contract as a release bundle.
+      - name: Normalize Linux debug ISA notes
+        run: ./tool/normalize_cpu_baseline.sh --bundle build/linux/x64/debug/bundle
       - name: Verify Linux binaries use the x86-64 baseline ISA
         run: ./tool/check_cpu_baseline.sh --bundle build/linux/x64/debug/bundle
 

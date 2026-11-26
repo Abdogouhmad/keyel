@@ -46,8 +46,11 @@ if [[ ! -x "$bundle/keyel" || ! -d "$bundle/lib" ]]; then
 fi
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Never wrap a bundle that glibc will refuse to start on an older CPU. The
-# check is cheap and protects local builds as well as CI.
+# Never wrap a bundle that glibc will refuse to start on an older CPU. A runner
+# can contribute a stale ISA note even when our own code was compiled baseline,
+# so normalize first and let the guard verify the result. Both steps are cheap
+# and protect local builds as well as CI.
+bash "$repo_root/tool/normalize_cpu_baseline.sh" --bundle "$bundle" --platform linux
 bash "$repo_root/tool/check_cpu_baseline.sh" --bundle "$bundle" --platform linux
 
 icon_source="$repo_root/design/icon/play_store_512.png"
