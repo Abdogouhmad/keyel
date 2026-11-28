@@ -21,12 +21,13 @@ const int kLocalNetworkPort = 53317;
 /// Keyel's own UDP discovery port.
 ///
 /// Kept separate from LocalSend's 53317 so a device running both apps can
-/// discover Keyel peers without a port collision. The IO adapter binds this
-/// port (with an ephemeral fallback) and advertises the actual bound port.
+/// discover Keyel peers without a port collision. Scanners bind this port with
+/// `reusePort` (falling back to an ephemeral port); presence beacons are sent
+/// to it without opening a listening socket.
 const int kLocalNetworkKeyelPort = 53318;
 
 /// Default deadline for one discovery pass.
-const Duration kLocalNetworkDiscoveryTimeout = Duration(milliseconds: 900);
+const Duration kLocalNetworkDiscoveryTimeout = Duration(milliseconds: 1500);
 
 /// Hard cap on peers returned by one discovery pass.
 const int kLocalNetworkMaxPeers = 16;
@@ -37,7 +38,18 @@ const int kLocalNetworkMaxPayloadBytes = 512;
 /// Maximum number of local interfaces considered in one pass.
 const int kLocalNetworkMaxInterfaces = 4;
 
+/// How often one discovery pass repeats its probe.
+///
+/// Multicast and broadcast are best-effort; repeating a tiny, bounded datagram
+/// makes a pass reliable without turning discovery into a long-lived scanner.
+const Duration kLocalNetworkProbeRepeat = Duration(milliseconds: 400);
+
+/// How often an unlocked device advertises its non-secret presence.
+const Duration kLocalNetworkBeaconInterval = Duration(seconds: 2);
+
 const String _probeKind = 'keyel-probe';
+
+/// Accepted for forward/backward compatibility with explicit peer answers.
 const String _peerKind = 'keyel-peer';
 const int _payloadVersion = 1;
 const String _defaultDisplayName = 'Keyel';
@@ -73,10 +85,10 @@ final class LocalNetworkPeer {
   /// The advertised answer port.
   final int port;
 
-  /// Whether [address] matched one of our inferred local prefixes.
+  /// Whether [address] is a plausible LAN address for this device.
   ///
-  /// Discovery answers from foreign subnets are rejected, so this is currently
-  /// always `true` for returned peers. It is kept explicit so the UI can show
+  /// Discovery answers from public or loopback addresses are rejected, so this
+  /// is always `true` for returned peers. It stays explicit so the UI can show
   /// the distinction and a future relaxed policy cannot silently drop it.
   final bool isSameSubnet;
 
@@ -103,6 +115,16 @@ abstract interface class LocalNetworkDiscovery {
   Future<List<LocalNetworkPeer>> discover({
     Duration timeout = kLocalNetworkDiscoveryTimeout,
   });
+
+  /// Starts advertising this device on the local network while the vault is
+  /// unlocked, so another device can find it without a locked peer.
+  ///
+  /// Implementations must never put secrets in the announcement. The default
+  /// keeps fake/test implementations inert.
+  Future<void> startPresence() => Future<void>.value();
+
+  /// Stops advertising this device.
+  Future<void> stopPresence() => Future<void>.value();
 }
 
 /// A local, non-loopback address plus a conservative inferred prefix.
@@ -150,6 +172,20 @@ abstract interface class LocalNetworkAdapter {
     required String displayName,
     required Duration timeout,
   });
+
+  /// Starts a bounded, outbound-only UDP beacon for Keyel discovery.
+  ///
+  /// A beacon is the other half of discovery: without it, two devices only see
+  /// each other when they happen to scan during the same narrow window. It uses
+  /// no listening socket and carries no secrets.
+  Future<void> startBeacon({
+    required List<LocalNetworkAddress> addresses,
+    required String peerId,
+    required String displayName,
+  }) => Future<void>.value();
+
+  /// Stops the beacon opened by [startBeacon].
+  Future<void> stopBeacon() => Future<void>.value();
 }
 
 /// `dart:io` discovery implementation.
@@ -162,10 +198,11 @@ abstract interface class LocalNetworkAdapter {
 /// * UDP probes on [kLocalNetworkKeyelPort] to the LocalSend multicast group,
 ///   limited broadcast, the inferred directed broadcast and each local address;
 ///   the same bounded envelope is also sent to LocalSend's 53317 as a courtesy.
-/// * A short, connect-only TCP probe to [kLocalNetworkKeyelPort] on local
-///   addresses. No bytes are written; this is a reachability hint, never a
-///   trust signal.
-/// * Answers use a compact Keyel JSON envelope over UDP. LocalSend's HTTP
+/// * A bounded, outbound-only presence beacon from an ephemeral socket while
+///   the vault is unlocked. It repeats the same non-secret envelope on the
+///   probe targets, so a device does not have to be scanning at the exact same
+///   moment to be found, and needs no listening/server entitlement.
+/// * Announcements use a compact Keyel JSON envelope over UDP. LocalSend's HTTP
 ///   register exchange, TLS identity, mDNS and long-lived servers are **not**
 ///   implemented.
 ///
@@ -173,7 +210,10 @@ abstract interface class LocalNetworkAdapter {
 /// errors are swallowed rather than logged (no LAN data reaches a log sink).
 class IoLocalNetworkAdapter implements LocalNetworkAdapter {
   /// Creates the platform adapter.
-  const new();
+  new();
+
+  RawDatagramSocket? _beaconSocket;
+  Timer? _beaconTimer;
 
   @override
   Future<List<LocalNetworkAddress>> interfaces() async {
@@ -204,6 +244,63 @@ class IoLocalNetworkAdapter implements LocalNetworkAdapter {
   }
 
   @override
+  Future<void> startBeacon({
+    required List<LocalNetworkAddress> addresses,
+    required String peerId,
+    required String displayName,
+  }) async {
+    if (_beaconTimer != null) return;
+    if (addresses.isEmpty) return;
+
+    // An ephemeral outbound-only socket is enough to advertise presence. This
+    // avoids needing a listening/server entitlement on macOS and avoids a port
+    // collision with scanners or other apps.
+    final socket = await RawDatagramSocket.bind(
+      InternetAddress.anyIPv4,
+      0,
+      reusePort: true,
+    );
+    if (_beaconTimer != null) {
+      socket.close();
+      return;
+    }
+    socket.broadcastEnabled = true;
+    final payload = _encodeProbe(
+      peerId: peerId,
+      displayName: displayName,
+      port: socket.port,
+    );
+    void sendBeacon() {
+      for (final target in _probeTargets(addresses)) {
+        for (final port in <int>[kLocalNetworkKeyelPort, kLocalNetworkPort]) {
+          try {
+            socket.send(payload, target, port);
+          } on Object catch (_) {
+            // Best effort: one blocked interface must not stop the beacon.
+          }
+        }
+      }
+    }
+
+    _beaconSocket = socket;
+    sendBeacon();
+    _beaconTimer = Timer.periodic(
+      kLocalNetworkBeaconInterval,
+      (_) => sendBeacon(),
+    );
+  }
+
+  @override
+  Future<void> stopBeacon() async {
+    final timer = _beaconTimer;
+    final socket = _beaconSocket;
+    _beaconTimer = null;
+    _beaconSocket = null;
+    timer?.cancel();
+    socket?.close();
+  }
+
+  @override
   Future<List<LocalNetworkDatagram>> probe({
     required List<LocalNetworkAddress> addresses,
     required String peerId,
@@ -217,11 +314,17 @@ class IoLocalNetworkAdapter implements LocalNetworkAdapter {
       socket = await RawDatagramSocket.bind(
         InternetAddress.anyIPv4,
         kLocalNetworkKeyelPort,
+        reusePort: true,
       );
-    } on SocketException catch (_) {
+    } on Object catch (_) {
       // Another process may own the port; an ephemeral port still works because
-      // the advertised port comes from the socket itself.
-      socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+      // the advertised port comes from the socket itself and responders answer
+      // the datagram's actual source port.
+      socket = await RawDatagramSocket.bind(
+        InternetAddress.anyIPv4,
+        0,
+        reusePort: true,
+      );
     }
     socket.broadcastEnabled = true;
     try {
@@ -241,11 +344,13 @@ class IoLocalNetworkAdapter implements LocalNetworkAdapter {
     var finished = false;
     StreamSubscription<RawSocketEvent>? subscription;
     Timer? timer;
+    Timer? repeat;
 
     void finish() {
       if (finished) return;
       finished = true;
       timer?.cancel();
+      repeat?.cancel();
       unawaited(subscription?.cancel());
       if (!completer.isCompleted) {
         completer.complete(List.unmodifiable(answers));
@@ -274,17 +379,20 @@ class IoLocalNetworkAdapter implements LocalNetworkAdapter {
       onDone: finish,
     );
 
-    for (final target in _probeTargets(addresses)) {
-      for (final port in <int>[kLocalNetworkKeyelPort, kLocalNetworkPort]) {
-        try {
-          socket.send(payload, target, port);
-        } on Object catch (_) {
-          // A blocked interface must not stop discovery on the others.
+    void sendProbe() {
+      for (final target in _probeTargets(addresses)) {
+        for (final port in <int>[kLocalNetworkKeyelPort, kLocalNetworkPort]) {
+          try {
+            socket.send(payload, target, port);
+          } on Object catch (_) {
+            // A blocked interface must not stop discovery on the others.
+          }
         }
       }
     }
 
-    await _tcpPresenceProbe(addresses, timeout);
+    sendProbe();
+    repeat = Timer.periodic(kLocalNetworkProbeRepeat, (_) => sendProbe());
     return await completer.future;
   }
 }
@@ -315,13 +423,73 @@ class IoLocalNetworkDiscovery implements LocalNetworkDiscovery {
     LocalNetworkAdapter? adapter,
     String displayName = _defaultDisplayName,
     Random? random,
-  }) : _adapter = adapter ?? const IoLocalNetworkAdapter(),
+  }) : _adapter = adapter ?? IoLocalNetworkAdapter(),
        _displayName = _sanitizeDisplayName(displayName) ?? _defaultDisplayName,
        _random = random ?? Random.secure();
 
   final LocalNetworkAdapter _adapter;
   final String _displayName;
   final Random _random;
+
+  /// Stable while this process is alive, so a scanner never mistakes the
+  /// app's own beacon for a nearby peer.
+  String? _presenceId;
+  bool _presenceActive = false;
+  int _presenceGeneration = 0;
+  Future<void> _presenceQueue = Future<void>.value();
+
+  @override
+  Future<void> startPresence() {
+    final generation = ++_presenceGeneration;
+    return _enqueuePresence(() async {
+      // Interfaces are cheap, but a hung platform query must not block presence.
+      final addresses = await _interfacesWithTimeout(
+        _adapter.interfaces(),
+        const Duration(milliseconds: 500),
+      );
+      if (generation != _presenceGeneration) return;
+      if (addresses.isEmpty) return;
+
+      final peerId = _presenceId ?? _newOpaqueId();
+      await _adapter.startBeacon(
+        addresses: addresses,
+        peerId: peerId,
+        displayName: _displayName,
+      );
+      if (generation != _presenceGeneration) {
+        await _adapter.stopBeacon();
+        return;
+      }
+      _presenceId = peerId;
+      _presenceActive = true;
+    });
+  }
+
+  @override
+  Future<void> stopPresence() {
+    _presenceGeneration++;
+    return _enqueuePresence(() async {
+      _presenceActive = false;
+      await _adapter.stopBeacon();
+    });
+  }
+
+  /// Serializes presence transitions so a slow stop cannot close a socket that
+  /// a newer start has just opened.
+  Future<void> _enqueuePresence(Future<void> Function() action) {
+    final next = _presenceQueue.then((_) => action());
+    _presenceQueue = () async {
+      try {
+        await next;
+      } on Object catch (_) {
+        // Keep the queue usable; callers still receive the original error.
+      }
+    }();
+    return next;
+  }
+
+  /// Whether this service is currently announcing non-secret presence.
+  bool get isPresenceActive => _presenceActive;
 
   @override
   Future<List<LocalNetworkPeer>> discover({
@@ -336,7 +504,7 @@ class IoLocalNetworkDiscovery implements LocalNetworkDiscovery {
     );
     if (addresses.isEmpty) return const <LocalNetworkPeer>[];
 
-    final selfId = _newOpaqueId();
+    final selfId = _presenceId ?? _newOpaqueId();
     final answers = await _answersWithTimeout(
       _adapter.probe(
         addresses: addresses,
@@ -374,17 +542,29 @@ List<int> _encodeProbe({
   required String peerId,
   required String displayName,
   required int port,
+}) => _encodeEnvelope(
+  kind: _probeKind,
+  peerId: peerId,
+  displayName: displayName,
+  port: port,
+);
+
+List<int> _encodeEnvelope({
+  required String kind,
+  required String peerId,
+  required String displayName,
+  required int port,
 }) {
   final name = _sanitizeDisplayName(displayName);
   if (name == null ||
       !_opaqueIdPattern.hasMatch(peerId) ||
       port < 1 ||
       port > 65535) {
-    throw ArgumentError('Invalid local-network probe fields');
+    throw ArgumentError('Invalid local-network discovery fields');
   }
   final payload = utf8.encode(
     jsonEncode(<String, Object?>{
-      'kind': _probeKind,
+      'kind': kind,
       'v': _payloadVersion,
       'peerId': peerId,
       'displayName': name,
@@ -392,7 +572,7 @@ List<int> _encodeProbe({
     }),
   );
   if (payload.length > kLocalNetworkMaxPayloadBytes) {
-    throw StateError('Local-network probe payload is too large');
+    throw StateError('Local-network discovery payload is too large');
   }
   return payload;
 }
@@ -423,7 +603,8 @@ LocalNetworkPeer? _decodeAnswer(
   if (decoded.keys.any((key) => !allowedKeys.contains(key))) return null;
   if (decoded['v'] != _payloadVersion) return null;
   final kind = decoded['kind'];
-  // Both scanners send probes, so both probes and explicit peer answers count.
+  // Scanners emit probes; an explicit peer answer from a future/other Keyel
+  // build is still accepted, but neither kind carries identity or secrets.
   if (kind != _probeKind && kind != _peerKind) return null;
 
   final peerId = decoded['peerId'];
@@ -433,7 +614,7 @@ LocalNetworkPeer? _decodeAnswer(
   if (name is! String || _sanitizeDisplayName(name) == null) return null;
   if (port is! int || port < 1 || port > 65535) return null;
 
-  final isSameSubnet = _isSameSubnet(answer.address, addresses);
+  final isSameSubnet = _isLocalNetworkAddress(answer.address, addresses);
   if (!isSameSubnet) return null;
   return LocalNetworkPeer(
     peerId: peerId,
@@ -511,9 +692,25 @@ String? _directedBroadcast(String address, int prefixLength) {
   return _intToIpv4(broadcast);
 }
 
-bool _isSameSubnet(String source, List<LocalNetworkAddress> addresses) {
+/// Accepts only addresses that can plausibly belong to a local network.
+///
+/// `dart:io` does not expose interface netmasks, so inferring `/24` from the
+/// address class rejects valid `10.0.0.0/8` and `172.16.0.0/12` Wi-Fi networks.
+/// Private/link-local ranges are accepted instead; public addresses are still
+/// discarded. Same-prefix checks remain as a fallback for unusual LAN ranges.
+bool _isLocalNetworkAddress(
+  String source,
+  List<LocalNetworkAddress> addresses,
+) {
   final parsedSource = InternetAddress.tryParse(source);
   if (parsedSource == null || parsedSource.isLoopback) return false;
+  if (parsedSource.type == InternetAddressType.IPv4) {
+    if (_isPrivateIPv4(source)) return true;
+  } else if (_isLinkLocalIPv6(parsedSource) ||
+      _isUniqueLocalIPv6(parsedSource)) {
+    return true;
+  }
+
   for (final local in addresses) {
     final parsedLocal = InternetAddress.tryParse(local.address);
     if (parsedLocal == null ||
@@ -521,7 +718,7 @@ bool _isSameSubnet(String source, List<LocalNetworkAddress> addresses) {
         parsedLocal.isLoopback) {
       continue;
     }
-    if (parsedLocal.type == InternetAddressType.IPv4) {
+    if (parsedSource.type == InternetAddressType.IPv4) {
       final sourceValue = _ipv4ToInt(source);
       final localValue = _ipv4ToInt(local.address);
       if (sourceValue == null || localValue == null) continue;
@@ -556,6 +753,29 @@ bool _isSameSubnet(String source, List<LocalNetworkAddress> addresses) {
   return false;
 }
 
+bool _isPrivateIPv4(String address) {
+  final parts = address.split('.').map(int.tryParse).toList(growable: false);
+  if (parts.length != 4 ||
+      parts.any((part) => part == null || part < 0 || part > 255)) {
+    return false;
+  }
+  final first = parts[0]!;
+  final second = parts[1]!;
+  if (first == 10 || (first == 169 && second == 254)) return true;
+  if (first == 172 && second >= 16 && second <= 31) return true;
+  return first == 192 && second == 168;
+}
+
+bool _isLinkLocalIPv6(InternetAddress address) {
+  final bytes = address.rawAddress;
+  return bytes.length == 16 && bytes[0] == 0xFE && (bytes[1] & 0xC0) == 0x80;
+}
+
+bool _isUniqueLocalIPv6(InternetAddress address) {
+  final bytes = address.rawAddress;
+  return bytes.length == 16 && (bytes[0] & 0xFE) == 0xFC;
+}
+
 int? _ipv4ToInt(String address) {
   final parts = address.split('.');
   if (parts.length != 4) return null;
@@ -571,35 +791,3 @@ int? _ipv4ToInt(String address) {
 String _intToIpv4(int value) =>
     '${(value >> 24) & 0xFF}.${(value >> 16) & 0xFF}.'
     '${(value >> 8) & 0xFF}.${value & 0xFF}';
-
-Future<void> _tcpPresenceProbe(
-  List<LocalNetworkAddress> addresses,
-  Duration timeout,
-) async {
-  final milliseconds = (timeout.inMilliseconds ~/ 4).clamp(1, 150);
-  final connectTimeout = Duration(milliseconds: milliseconds);
-  final targets = addresses
-      .where(
-        (address) =>
-            InternetAddress.tryParse(address.address)?.type ==
-            InternetAddressType.IPv4,
-      )
-      .take(kLocalNetworkMaxInterfaces);
-  await Future.wait<void>([
-    for (final address in targets)
-      _tryTcpConnect(address.address, connectTimeout),
-  ]);
-}
-
-Future<void> _tryTcpConnect(String host, Duration timeout) async {
-  try {
-    final socket = await Socket.connect(
-      host,
-      kLocalNetworkKeyelPort,
-      timeout: timeout,
-    );
-    socket.destroy();
-  } on Object catch (_) {
-    // Connect-only probe: no payload, no identity, no diagnostics.
-  }
-}

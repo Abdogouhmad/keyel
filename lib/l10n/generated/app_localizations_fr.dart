@@ -2548,7 +2548,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get synFooterNote =>
-      'La synchronisation fonctionne uniquement au premier plan et nécessite un coffre déverrouillé. Les données sont chiffrées avec une clé aléatoire qui ne quitte jamais Keyel ; perdre le code d\'appariement implique de créer un nouveau groupe de synchronisation. Conservez également une sauvegarde chiffrée.';
+      'L\'appariement crée le groupe de chiffrement ; il ne transfère pas de données. Les deux appareils doivent utiliser le même dossier synchronisé, puis appuyer sur Synchroniser sur chaque appareil. La synchronisation fonctionne uniquement au premier plan et nécessite un coffre déverrouillé. La clé aléatoire ne quitte jamais Keyel ; perdre le code d\'appariement implique de créer un nouveau groupe de synchronisation. Conservez également une sauvegarde chiffrée.';
 
   @override
   String get synGetStartedLabel => 'Commencer';

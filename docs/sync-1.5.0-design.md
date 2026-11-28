@@ -51,6 +51,12 @@ abstraction. This document is the reference for the 1.5.0 implementation.
 > not a sync transport, it sends no vault data or pairing secret, and the
 > `KYSYNC1-…` code remains the sole trust root. The file-based backend above is
 > unchanged, and manual code entry still works when discovery is unavailable.
+>
+> **2.0.0 reliability note:** an unlocked, foregrounded device now also sends a
+> bounded outbound-only presence beacon while it is scanning-able; this removes
+> the need for two devices to scan in the same short window. It is still only a
+> discovery convenience: no listening sync transport, no authentication, and no
+> `sync_id`, `sync_key`, pairing code or vault data in the announcement.
 
 ---
 

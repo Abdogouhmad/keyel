@@ -17,6 +17,7 @@ import 'package:keyel/data/app_preferences.dart';
 import 'package:keyel/data/vault_paths.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/ota/widgets/update_available_banner.dart';
+import 'package:keyel/features/sync/local_network_presence_host.dart';
 import 'package:keyel/l10n/generated/app_localizations.dart';
 import 'package:keyel/src/rust/api/session.dart' as vault_api;
 import 'package:keyel/src/rust/frb_generated.dart';
@@ -75,7 +76,9 @@ Future<void> main() async {
         child: OtaCheckHost(
           child: ScreenshotProtectionHost(
             child: GenerateRequestHost(
-              child: LockRequestHost(child: KeyelApp()),
+              child: LockRequestHost(
+                child: LocalNetworkPresenceHost(child: KeyelApp()),
+              ),
             ),
           ),
         ),

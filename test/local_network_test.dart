@@ -24,9 +24,32 @@ final class _FakeAdapter implements LocalNetworkAdapter {
   List<int>? sentPayload;
   String? sentPeerId;
   String? sentDisplayName;
+  bool beaconStarted = false;
+  bool beaconStopped = false;
+  String? beaconPeerId;
+  String? beaconDisplayName;
+  List<LocalNetworkAddress>? beaconAddresses;
 
   @override
   Future<List<LocalNetworkAddress>> interfaces() async => addresses;
+
+  @override
+  Future<void> startBeacon({
+    required List<LocalNetworkAddress> addresses,
+    required String peerId,
+    required String displayName,
+  }) async {
+    beaconStarted = true;
+    beaconAddresses = addresses;
+    beaconPeerId = peerId;
+    beaconDisplayName = displayName;
+  }
+
+  @override
+  Future<void> stopBeacon() async {
+    beaconStarted = false;
+    beaconStopped = true;
+  }
 
   @override
   Future<List<LocalNetworkDatagram>> probe({
@@ -108,14 +131,52 @@ void main() {
     expect(peers.map((peer) => peer.peerId), contains('1122334455667788'));
   });
 
-  test('foreign-subnet answers are rejected', () async {
+  test('public answers are rejected', () async {
     final adapter = _FakeAdapter(
       answers: <LocalNetworkDatagram>[
-        _answer(_answerBytes(), address: '10.9.9.9'),
+        _answer(_answerBytes(), address: '8.8.8.8'),
       ],
     );
 
     expect(await _discover(adapter), isEmpty);
+  });
+
+  test('private LAN ranges are accepted beyond an inferred /24', () async {
+    final adapter = _FakeAdapter(
+      addresses: const <LocalNetworkAddress>[
+        LocalNetworkAddress(address: '10.0.0.5', prefixLength: 24),
+      ],
+      answers: <LocalNetworkDatagram>[
+        _answer(_answerBytes(peerId: 'aabbccddeeff0011'), address: '10.4.7.9'),
+      ],
+    );
+
+    final peers = await _discover(adapter);
+    expect(peers, hasLength(1));
+    expect(peers.single.address, '10.4.7.9');
+  });
+
+  test('presence starts and stops a secret-free beacon', () async {
+    final adapter = _FakeAdapter();
+    final discovery = IoLocalNetworkDiscovery(adapter: adapter);
+
+    await discovery.startPresence();
+
+    expect(adapter.beaconStarted, isTrue);
+    expect(discovery.isPresenceActive, isTrue);
+    expect(adapter.beaconAddresses, <LocalNetworkAddress>[_local]);
+    expect(adapter.beaconDisplayName, 'Keyel');
+    expect(adapter.beaconPeerId, matches(RegExp(r'^[0-9a-f]{16}$')));
+    final presenceId = adapter.beaconPeerId;
+
+    // A scan while present must use the same opaque id so our own beacon
+    // cannot be mistaken for another device.
+    await discovery.discover(timeout: const Duration(milliseconds: 20));
+    expect(adapter.sentPeerId, presenceId);
+
+    await discovery.stopPresence();
+    expect(adapter.beaconStopped, isTrue);
+    expect(discovery.isPresenceActive, isFalse);
   });
 
   test('malformed, oversize and pairing-code answers are rejected', () async {
@@ -215,4 +276,10 @@ final class _FakeDiscovery implements LocalNetworkDiscovery {
     calls++;
     return const <LocalNetworkPeer>[];
   }
+
+  @override
+  Future<void> startPresence() => Future<void>.value();
+
+  @override
+  Future<void> stopPresence() => Future<void>.value();
 }

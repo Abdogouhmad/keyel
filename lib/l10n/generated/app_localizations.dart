@@ -4323,7 +4323,7 @@ abstract class AppLocalizations {
   /// Sync UI copy: footer note.
   ///
   /// In en, this message translates to:
-  /// **'Sync is foreground-only and requires an unlocked vault. Data is encrypted with a random key that never leaves Keyel; losing the pairing code means starting a new sync group. Keep an encrypted backup as well.'**
+  /// **'Pairing creates the encryption group; it does not transfer data. Both devices must use the same synced folder and tap Sync now on each device. Sync is foreground-only and requires an unlocked vault. The random key never leaves Keyel; losing the pairing code means starting a new sync group. Keep an encrypted backup as well.'**
   String get synFooterNote;
 
   /// Sync UI copy: get started label.

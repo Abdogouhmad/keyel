@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:keyel/data/vault_repository.dart';
+import 'package:keyel/data/vault_revision_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/sync/local_network.dart';
 import 'package:keyel/features/sync/sync_folder_service.dart';
@@ -105,20 +106,45 @@ final class _FakeDiscovery implements LocalNetworkDiscovery {
   Future<List<LocalNetworkPeer>> discover({
     Duration timeout = kLocalNetworkDiscoveryTimeout,
   }) async => peers;
+
+  @override
+  Future<void> startPresence() => Future<void>.value();
+
+  @override
+  Future<void> stopPresence() => Future<void>.value();
 }
 
 Widget _host(
   Widget child, {
   required VaultRepository repository,
   LocalNetworkDiscovery? discovery,
-}) => ProviderScope(
+  ProviderContainer? container,
+}) {
+  final app = MaterialApp(theme: KeyelTheme.light(), home: child);
+  if (container != null) {
+    return UncontrolledProviderScope(container: container, child: app);
+  }
+  return ProviderScope(
+    overrides: [
+      vaultRepositoryProvider.overrideWithValue(repository),
+      syncFolderServiceProvider.overrideWithValue(const _FakeFolders()),
+      if (discovery != null)
+        localNetworkDiscoveryProvider.overrideWithValue(discovery),
+    ],
+    child: app,
+  );
+}
+
+ProviderContainer _container(
+  VaultRepository repository, {
+  LocalNetworkDiscovery? discovery,
+}) => ProviderContainer(
   overrides: [
     vaultRepositoryProvider.overrideWithValue(repository),
     syncFolderServiceProvider.overrideWithValue(const _FakeFolders()),
     if (discovery != null)
       localNetworkDiscoveryProvider.overrideWithValue(discovery),
   ],
-  child: MaterialApp(theme: KeyelTheme.light(), home: child),
 );
 
 void main() {
@@ -249,5 +275,23 @@ void main() {
       find.textContaining('Sync complete: 1 added, 1 updated, 1 conflict copy'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('sync now refreshes vault views after a merge', (tester) async {
+    final repo = _FakeRepository(status: _enabled);
+    final container = _container(repo);
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      _host(const SyncScreen(), repository: repo, container: container),
+    );
+    await tester.pumpAndSettle();
+    expect(container.read(vaultRevisionProvider), 0);
+
+    await tester.tap(find.text('Sync now'));
+    await tester.pumpAndSettle();
+
+    expect(repo.syncFolder, '/tmp/keyel-sync');
+    expect(container.read(vaultRevisionProvider), 1);
   });
 }

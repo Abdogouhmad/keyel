@@ -5,7 +5,7 @@
 //! go through the existing atomic session writer.
 
 use std::path::Path;
-use zeroize::Zeroizing;
+use zeroize::{Zeroize, Zeroizing};
 
 use data_encoding::HEXLOWER;
 use uuid::Uuid;
@@ -85,11 +85,7 @@ pub fn status(vault: &Vault) -> SyncStatus {
 /// The caller must show the code once and obtain explicit confirmation that it
 /// was stored before letting the user leave the screen.
 pub fn enable(vault: &mut Vault, folder_hint: impl Into<String>) -> Result<String, Error> {
-    if vault.sync_config.is_some() {
-        return Err(Error::Storage(
-            "sync is already enabled on this vault".into(),
-        ));
-    }
+    clear_stale_sync_config(vault)?;
     let pairing = PairingCode::generate();
     let code = pairing.encode();
     vault.sync_config = Some(SyncConfig {
@@ -124,11 +120,7 @@ pub fn join(
     code: &str,
     folder_hint: impl Into<String>,
 ) -> Result<SyncStatus, Error> {
-    if vault.sync_config.is_some() {
-        return Err(Error::Storage(
-            "sync is already enabled on this vault".into(),
-        ));
-    }
+    clear_stale_sync_config(vault)?;
     let pairing = PairingCode::parse(code)?;
     vault.sync_config = Some(SyncConfig {
         enabled: true,
@@ -145,10 +137,27 @@ pub fn join(
 /// Disable sync locally. Remote files are left untouched so a later re-enable
 /// can restore from the same group.
 pub fn disable(vault: &mut Vault) -> Result<(), Error> {
-    if vault.sync_config.is_none() {
-        return Err(Error::NotFound);
+    let mut config = vault.sync_config.take().ok_or(Error::NotFound)?;
+    config.sync_key.zeroize();
+    Ok(())
+}
+
+/// Refuse to change an active group, but allow a disabled leftover config to be
+/// replaced. `status()` reports disabled configs as off, so the UI rightly
+/// offers Create/Join; the old code rejected that path and left users stuck.
+fn clear_stale_sync_config(vault: &mut Vault) -> Result<(), Error> {
+    if vault
+        .sync_config
+        .as_ref()
+        .is_some_and(|config| config.enabled)
+    {
+        return Err(Error::Storage(
+            "sync is already enabled on this vault".into(),
+        ));
     }
-    vault.sync_config = None;
+    if let Some(config) = vault.sync_config.as_mut() {
+        config.sync_key.zeroize();
+    }
     Ok(())
 }
 
@@ -234,7 +243,7 @@ pub fn sync_now(session: &mut Session, folder: impl AsRef<Path>) -> Result<SyncR
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::vault::model::{Entry, Note};
+    use crate::vault::model::{Entry, Login, Note};
 
     fn fast_vault(path: &std::path::Path) -> Session {
         let (session, _) = Session::create(
@@ -276,6 +285,23 @@ mod tests {
     }
 
     #[test]
+    fn disabled_leftover_config_can_be_replaced() {
+        let mut first = Vault::new();
+        let code = enable(&mut first, "/group-a").unwrap();
+
+        let mut second = Vault::new();
+        let old_code = enable(&mut second, "/old").unwrap();
+        second.sync_config.as_mut().unwrap().enabled = false;
+        assert!(!status(&second).enabled);
+
+        let joined = join(&mut second, &code, "/group-b").unwrap();
+        assert!(joined.enabled);
+        assert_eq!(joined.folder_hint, "/group-b");
+        assert_eq!(pairing_code(&second).unwrap(), code);
+        assert_ne!(code, old_code);
+    }
+
+    #[test]
     fn two_devices_converge_through_a_shared_folder() {
         let dir = tempfile::tempdir().unwrap();
         let folder = dir.path().join("sync");
@@ -312,6 +338,58 @@ mod tests {
         sync_now(&mut a, &folder).unwrap();
         assert_eq!(a.vault().entries.len(), 2);
         assert_eq!(b.vault().entries.len(), 2);
+    }
+
+    #[test]
+    fn paired_devices_merge_login_entries_and_secrets() {
+        let dir = tempfile::tempdir().unwrap();
+        let folder = dir.path().join("sync");
+        let mut a = fast_vault(&dir.path().join("a.keyel"));
+        let code = enable(a.vault_mut(), folder.to_string_lossy().into_owned()).unwrap();
+        a.save().unwrap();
+
+        let mut b = fast_vault(&dir.path().join("b.keyel"));
+        join(b.vault_mut(), &code, folder.to_string_lossy().into_owned()).unwrap();
+        b.save().unwrap();
+
+        a.vault_mut().add_entry(Entry::login(
+            "Bank A",
+            Login {
+                username: "a@example.com".into(),
+                password: "secret-a".into(),
+                ..Login::default()
+            },
+        ));
+        a.save().unwrap();
+        b.vault_mut().add_entry(Entry::login(
+            "Bank B",
+            Login {
+                username: "b@example.com".into(),
+                password: "secret-b".into(),
+                ..Login::default()
+            },
+        ));
+        b.save().unwrap();
+
+        sync_now(&mut a, &folder).unwrap();
+        sync_now(&mut b, &folder).unwrap();
+        sync_now(&mut a, &folder).unwrap();
+
+        for vault in [a.vault(), b.vault()] {
+            assert_eq!(vault.entries.len(), 2);
+            assert!(vault.entries.iter().any(|entry| entry.title == "Bank A"));
+            assert!(vault.entries.iter().any(|entry| entry.title == "Bank B"));
+            let passwords = vault
+                .entries
+                .iter()
+                .filter_map(|entry| match &entry.body {
+                    crate::vault::model::EntryBody::Login(login) => Some(login.password.as_str()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
+            assert!(passwords.contains(&"secret-a"));
+            assert!(passwords.contains(&"secret-b"));
+        }
     }
 
     #[test]

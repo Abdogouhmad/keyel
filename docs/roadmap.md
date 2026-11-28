@@ -13,10 +13,9 @@ git tag v0.X.0 && git push --tags
 > is historical. Releases are now cut by CI when a `pubspec.yaml`/`CHANGELOG.md`
 > bump lands on `main`; never push tags by hand. See `docs/DECISIONS.md`.
 >
-> **Current phase:** 1.13.1 (portable CPU builds, safe vault storage and
-> same-Wi-Fi sync room discovery) is scoped in
-> [`docs/roadmap_1.13.1.md`](roadmap_1.13.1.md). 1.13.0 shipped; see
-> [`docs/roadmap_1.13.0.md`](roadmap_1.13.0.md).
+> **Current phase:** 2.0.0 (sync reliability and dependable same-Wi-Fi peer
+> discovery) is scoped in [`docs/roadmap_2.0.0.md`](roadmap_2.0.0.md).
+> 1.14.0 shipped; see [`CHANGELOG.md`](../CHANGELOG.md).
 
 **Rules for the whole project**
 - Crypto code gets tests before it gets UI.
@@ -47,7 +46,9 @@ git tag v0.X.0 && git push --tags
 | 1.5.0 | Opt-in user-controlled E2EE cross-device sync | 3-4 weeks | ☑ |
 | 1.7.0 | Opt-in HIBP breach check | 1–1.5 weeks | ◐ |
 | 1.13.0 | Ranked command palette | 1 week | ☑ |
-| 1.13.1 | Portable CPU builds, storage hardening, same-Wi-Fi sync | 1 week | ◐ |
+| 1.13.1 | Portable CPU builds, storage hardening, same-Wi-Fi sync | 1 week | ☑ |
+| 1.14.0 | Desktop responsiveness and overlay crash fix | 1 week | ☑ |
+| 2.0.0 | Sync merge reliability and same-Wi-Fi discovery | 1 week | ☑ |
 
 Estimates assume part-time work. Adjust to your pace.
 

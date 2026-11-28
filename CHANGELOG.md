@@ -5,6 +5,43 @@ All notable changes to Keyel are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-28
+
+Major release focused on reliable sync merging and dependable same-Wi-Fi device
+discovery. **No vault schema change.** Offline/fail-closed security, unlock and
+reveal-generation guards, EN/FR parity, RTL and 200% text-scale collapse remain
+green. Discovery is still a convenience only; `KYSYNC1-…` remains the sole trust
+root and manual pairing always works.
+
+### Fixed
+
+- Paired devices now refresh every vault view immediately after `Sync now`, so
+  logins merged from the shared folder appear without locking the app or
+  restarting. A regression test covers two paired vaults merging distinct login
+  bodies and both passwords.
+- A stale disabled sync configuration no longer blocks Create group/Join group.
+  Replacing it now zeroizes the old sync key first; an active group is still
+  refused.
+- Same-Wi-Fi discovery no longer depends on two devices scanning in the same
+  narrow window. An unlocked device sends a small, bounded, secret-free beacon
+  every two seconds; pressing Find nearby only has to listen. The beacon uses an
+  outbound-only ephemeral socket, so no listening/server entitlement is needed.
+- Discovery accepts normal private LAN ranges beyond an inferred `/24` (for
+  example `10.0.0.0/8` and `172.16.0.0/12`), repeats its probe during a scan, and
+  still rejects public, loopback, oversize and pairing-code-shaped datagrams.
+  Nothing in discovery carries `sync_id`, `sync_key`, a pairing code or vault
+  data.
+- Presence stops when the vault locks or the app backgrounds, keeping discovery
+  foreground-only and aligned with the unlock guard.
+
+### Changed
+
+- The sync screen explains that pairing creates the encryption group but does
+  not transfer data: both devices must use the same synced folder and tap
+  `Sync now` on each one.
+- Preserving a self blob's highest sequence across restores remains explicit;
+  a restored vault cannot republish an older blob under a reused sequence.
+
 ## [1.14.0] - 2026-11-26
 
 Feature release focused on desktop responsiveness, especially the first-run

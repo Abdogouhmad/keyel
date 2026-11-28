@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:keyel/core/platform/sensitive_clipboard.dart';
+import 'package:keyel/data/folders_provider.dart';
+import 'package:keyel/data/health_provider.dart';
+import 'package:keyel/data/vault_revision_provider.dart';
 import 'package:keyel/data/vault_session_provider.dart';
 import 'package:keyel/features/settings/widgets/settings_widgets.dart';
 import 'package:keyel/features/sync/local_network.dart';
@@ -80,6 +83,17 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
       describeVaultError(error),
       icon: Icons.error_outline_rounded,
     );
+  }
+
+  /// A successful merge changes Rust state behind the UI's back.
+  ///
+  /// Treat it like an import/restore: tell every vault view to reload from the
+  /// repository, otherwise freshly merged logins appear only after a restart.
+  void _refreshVaultViews() {
+    ref
+      ..invalidate(foldersProvider)
+      ..invalidate(healthProvider);
+    bumpVaultRevision(ref);
   }
 
   /// LocalSend-style local-network discovery.
@@ -189,6 +203,7 @@ class _SyncScreenState extends ConsumerState<SyncScreen> {
     }
     await _run(() async {
       final report = await ref.read(vaultRepositoryProvider).syncNow(folder);
+      _refreshVaultViews();
       await _load();
       if (!mounted) return;
       final conflicts = report.conflictsCreated == 0
